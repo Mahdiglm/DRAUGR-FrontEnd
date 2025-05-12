@@ -225,7 +225,8 @@ function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.6 }}
-                className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 text-fog"
+                className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 text-gray-200 font-medium"
+                style={{ textShadow: '0 1px 2px rgba(0, 0, 0, 0.8)' }}
               >
                 مجموعه‌ی ما از آثار افسانه‌ای، سلاح‌ها و تجهیزات را کاوش کنید.
               </motion.p>
