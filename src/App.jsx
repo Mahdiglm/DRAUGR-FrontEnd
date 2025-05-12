@@ -74,78 +74,9 @@ function App() {
     document.body.classList.add(`theme-${currentTheme}`);
   }, [currentTheme]);
 
-  // Add spooky effect - random blood drips
+  // Remove blood drips animation
   useEffect(() => {
-    const addBloodDrips = () => {
-      const bloodDrips = document.createElement('div');
-      bloodDrips.className = 'blood-drips-container fixed inset-0 pointer-events-none z-10';
-      document.body.appendChild(bloodDrips);
-      
-      const createDrip = () => {
-        if (!document.body.contains(bloodDrips)) return;
-        
-        const drip = document.createElement('div');
-        drip.className = 'absolute w-0.5 sm:w-1 rounded-b';
-        
-        // Set color based on theme
-        if (currentTheme === 'vampire') {
-          drip.className += ' bg-gradient-to-b from-vampire-secondary to-vampire-primary';
-        } else if (currentTheme === 'witch') {
-          drip.className += ' bg-gradient-to-b from-witch-secondary to-witch-primary';
-        } else if (currentTheme === 'werewolf') {
-          drip.className += ' bg-gradient-to-b from-werewolf-secondary to-werewolf-primary';
-        } else {
-          drip.className += ' bg-gradient-to-b from-draugr-700 to-draugr-900';
-        }
-        
-        // Random position and height
-        const posX = Math.random() * 100;
-        const height = 50 + Math.random() * 200;
-        const delay = Math.random() * 5;
-        
-        drip.style.left = `${posX}%`;
-        drip.style.top = '0';
-        drip.style.height = `${height}px`;
-        drip.style.opacity = '0';
-        drip.style.animation = `drip 10s ease-in ${delay}s`;
-        
-        bloodDrips.appendChild(drip);
-        
-        // Remove after animation
-        setTimeout(() => {
-          if (drip && bloodDrips.contains(drip)) {
-            bloodDrips.removeChild(drip);
-          }
-        }, (delay + 10) * 1000);
-      };
-      
-      // Add CSS for animation
-      const style = document.createElement('style');
-      style.innerHTML = `
-        @keyframes drip {
-          0% { opacity: 0; transform: scaleY(0); transform-origin: top; }
-          5% { opacity: 0.8; }
-          90% { opacity: 0.8; transform: scaleY(1); transform-origin: top; }
-          100% { opacity: 0; transform: scaleY(1); transform-origin: top; }
-        }
-      `;
-      document.head.appendChild(style);
-      
-      // Create drips periodically
-      setInterval(createDrip, 8000);
-      createDrip(); // Create one immediately
-      
-      return () => {
-        if (document.body.contains(bloodDrips)) {
-          document.body.removeChild(bloodDrips);
-        }
-        if (document.head.contains(style)) {
-          document.head.removeChild(style);
-        }
-      };
-    };
-    
-    // Add fog effect
+    // Add fog effect only
     const addFogEffect = () => {
       const fogContainer = document.createElement('div');
       fogContainer.className = 'fog-container fixed inset-0 pointer-events-none overflow-hidden';
@@ -198,11 +129,9 @@ function App() {
       };
     };
     
-    const cleanupBloodDrips = addBloodDrips();
     const cleanupFogEffect = addFogEffect();
     
     return () => {
-      cleanupBloodDrips();
       cleanupFogEffect();
     };
   }, [currentTheme]);

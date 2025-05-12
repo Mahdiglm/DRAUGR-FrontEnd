@@ -48,7 +48,7 @@ const Header = ({ cartItems, onCartClick }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Blood drop animation for logo
+  // Blood drop animation for logo - removing this
   const bloodDropVariants = {
     initial: { y: -5, opacity: 0 },
     animate: { 
@@ -77,21 +77,7 @@ const Header = ({ cartItems, onCartClick }) => {
           whileHover={{ scale: 1.05 }}
           className="text-xl md:text-2xl font-bold flex items-center relative"
         >
-          <div className="relative">
-            <motion.span
-              className="text-draugr-500 text-shadow-horror mr-2 hidden sm:inline"
-              animate={{ scale: [1, 1.2, 1], rotate: [0, 5, 0, -5, 0] }}
-              transition={{ duration: 4, repeat: Infinity }}
-            >
-              🩸
-            </motion.span>
-            <motion.span
-              variants={bloodDropVariants}
-              initial="initial"
-              animate="animate"
-              className="absolute top-6 sm:left-3 left-0 w-1 h-2 bg-draugr-500 rounded-b-full"
-            />
-          </div>
+          {/* Removing blood emoji and animation */}
           <span className="blood-text animate-pulse-slow relative overflow-hidden">
             <span className="inline-block">{typedText}</span>
             <span className={`inline-block w-0.5 h-6 bg-draugr-500 absolute ml-1 ${isTyping ? 'animate-pulse' : 'opacity-0'}`}></span>
