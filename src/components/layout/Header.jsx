@@ -75,14 +75,16 @@ const Header = ({ cartItems, onCartClick }) => {
       <div className="w-full max-w-7xl mx-auto px-4 flex justify-between items-center">
         <motion.div 
           whileHover={{ scale: 1.05 }}
-          className="text-xl md:text-2xl font-bold flex items-center relative"
+          className="text-xl md:text-2xl font-bold flex items-center relative w-44 md:w-56"
         >
-          {/* Removing blood emoji and animation */}
-          <span className="blood-text animate-pulse-slow relative overflow-hidden">
-            <span className="inline-block">{typedText}</span>
-            <span className={`inline-block w-0.5 h-6 bg-draugr-500 absolute ml-1 ${isTyping ? 'animate-pulse' : 'opacity-0'}`}></span>
-          </span>
-          <span className="mr-1"> فروشگاه</span>
+          {/* Fixed width container for the logo text to prevent layout shifts */}
+          <div className="absolute left-0 top-0 h-full flex items-center">
+            <span className="blood-text animate-pulse-slow relative">
+              <span className="inline-block min-w-[76px] md:min-w-[96px]">{typedText || '\u00A0'}</span>
+              <span className={`inline-block w-0.5 h-6 bg-draugr-500 absolute ml-1 ${isTyping ? 'animate-pulse' : 'opacity-0'}`}></span>
+            </span>
+            <span className="mr-1"> فروشگاه</span>
+          </div>
         </motion.div>
         
         {/* Desktop Navigation */}
