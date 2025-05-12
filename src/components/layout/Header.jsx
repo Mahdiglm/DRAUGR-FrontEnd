@@ -68,8 +68,8 @@ const Header = ({ cartItems, onCartClick }) => {
       initial={{ opacity: 0, y: -50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`bg-black text-white py-4 sticky top-0 z-50 w-full transition-all duration-300 ${
-        isScrolled ? 'shadow-[0_0_15px_rgba(255,0,0,0.3)]' : ''
+      className={`bg-gradient-to-r from-black to-eldritch-900 text-white py-4 sticky top-0 z-50 w-full transition-all duration-300 ${
+        isScrolled ? 'shadow-[0_0_15px_rgba(106,64,191,0.4)]' : ''
       }`}
     >
       <div className="w-full max-w-7xl mx-auto px-4 flex justify-between items-center">
@@ -79,11 +79,11 @@ const Header = ({ cartItems, onCartClick }) => {
         >
           {/* Fixed width container for the logo text to prevent layout shifts */}
           <div className="absolute left-0 top-0 h-full flex items-center">
-            <span className="blood-text animate-pulse-slow relative">
+            <span className="text-draugr-500 animate-pulse-slow relative">
               <span className="inline-block min-w-[76px] md:min-w-[96px]">{typedText || '\u00A0'}</span>
-              <span className={`inline-block w-0.5 h-6 bg-draugr-500 absolute ml-1 ${isTyping ? 'animate-pulse' : 'opacity-0'}`}></span>
+              <span className={`inline-block w-0.5 h-6 bg-eldritch-500 absolute ml-1 ${isTyping ? 'animate-pulse' : 'opacity-0'}`}></span>
             </span>
-            <span className="mr-1"> فروشگاه</span>
+            <span className="mr-1 text-eldritch-200"> فروشگاه</span>
           </div>
         </motion.div>
         
@@ -99,11 +99,11 @@ const Header = ({ cartItems, onCartClick }) => {
           <motion.button 
             whileHover={{ 
               scale: 1.05, 
-              boxShadow: '0 0 12px rgba(255, 0, 0, 0.7)',
+              boxShadow: '0 0 12px rgba(106, 64, 191, 0.7)',
               textShadow: '0 0 8px rgba(255, 255, 255, 0.8)'
             }}
             whileTap={{ scale: 0.95 }}
-            className="hidden sm:block bg-gradient-to-r from-draugr-900 to-draugr-700 text-white px-4 py-2 rounded-md font-medium border border-draugr-600 hover:border-draugr-500 text-sm ml-3 md:ml-4 transition-all duration-300"
+            className="hidden sm:block bg-gradient-to-r from-eldritch-900 to-eldritch-700 text-white px-4 py-2 rounded-md font-medium border border-eldritch-600 hover:border-eldritch-500 text-sm ml-3 md:ml-4 transition-all duration-300"
           >
             ورود
           </motion.button>
@@ -122,7 +122,7 @@ const Header = ({ cartItems, onCartClick }) => {
               <motion.span 
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="absolute -top-2 -right-2 bg-draugr-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                className="absolute -top-2 -right-2 bg-eldritch-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
               >
                 {cartItems.length}
               </motion.span>
@@ -171,7 +171,7 @@ const Header = ({ cartItems, onCartClick }) => {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="md:hidden bg-charcoal overflow-hidden w-full border-t border-draugr-900"
+            className="md:hidden bg-gradient-to-b from-eldritch-900 to-black overflow-hidden w-full border-t border-eldritch-700"
           >
             <div className="w-full max-w-7xl mx-auto px-4 py-3">
               <motion.nav 
@@ -193,9 +193,9 @@ const Header = ({ cartItems, onCartClick }) => {
                 <MobileNavLink href="#" label="دسته‌بندی‌ها" />
                 <MobileNavLink href="#" label="درباره ما" />
                 <motion.button 
-                  whileHover={{ scale: 1.02, backgroundColor: "#660000" }}
+                  whileHover={{ scale: 1.02, backgroundColor: "#3c2272" }}
                   whileTap={{ scale: 0.98 }}
-                  className="sm:hidden bg-gradient-to-r from-draugr-900 to-draugr-700 text-white px-4 py-2 rounded-md font-medium border border-draugr-600 text-sm self-start mt-2"
+                  className="sm:hidden bg-gradient-to-r from-eldritch-900 to-eldritch-700 text-white px-4 py-2 rounded-md font-medium border border-eldritch-600 text-sm self-start mt-2"
                   variants={{
                     hidden: { opacity: 0, y: 20 },
                     show: { opacity: 1, y: 0 }
@@ -216,12 +216,12 @@ const Header = ({ cartItems, onCartClick }) => {
 const NavLink = ({ href, label }) => (
   <motion.a 
     href={href} 
-    className="hover:text-draugr-500 ml-8 relative group"
+    className="hover:text-eldritch-400 ml-8 relative group"
     whileHover={{ y: -2 }}
   >
     {label}
     <motion.span 
-      className="absolute -bottom-1 left-0 w-0 h-0.5 bg-draugr-500 transition-all duration-300 group-hover:w-full"
+      className="absolute -bottom-1 left-0 w-0 h-0.5 bg-eldritch-500 transition-all duration-300 group-hover:w-full"
       whileHover={{ width: "100%" }}
     ></motion.span>
   </motion.a>
@@ -231,12 +231,12 @@ const NavLink = ({ href, label }) => (
 const MobileNavLink = ({ href, label }) => (
   <motion.a 
     href={href} 
-    className="py-2 hover:text-draugr-500 transform transition-all duration-300"
+    className="py-2 hover:text-eldritch-400 transform transition-all duration-300"
     variants={{
       hidden: { opacity: 0, x: -20 },
       show: { opacity: 1, x: 0 }
     }}
-    whileHover={{ x: 5, color: "#ff0000" }}
+    whileHover={{ x: 5, color: "#7d54cc" }}
   >
     {label}
   </motion.a>

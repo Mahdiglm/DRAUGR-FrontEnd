@@ -168,7 +168,7 @@ function App() {
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed top-20 right-1/2 transform translate-x-1/2 bg-draugr-800 text-white px-6 py-3 rounded-md z-50 shadow-horror"
+            className="fixed top-20 right-1/2 transform translate-x-1/2 bg-gradient-to-r from-eldritch-900 to-eldritch-800 text-white px-6 py-3 rounded-md z-50 shadow-eldritch"
           >
             {message}
           </motion.div>
@@ -181,7 +181,7 @@ function App() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8, delay: 0.2 }}
-        className="bg-horror-gradient py-12 sm:py-16 md:py-20 w-full relative overflow-hidden"
+        className="bg-gradient-to-r from-draugr-900 via-eldritch-900 to-midnight w-full relative overflow-hidden"
         style={{ minHeight: '80vh', display: 'flex', alignItems: 'center' }}
       >
         <motion.div 
@@ -215,9 +215,9 @@ function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.4 }}
-                className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 text-shadow-horror"
+                className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 text-shadow-eldritch"
               >
-                <span className="text-draugr-500 font-bold text-shadow-horror">
+                <span className="text-eldritch-400 font-bold text-shadow-eldritch">
                   اقلام خارق‌العاده را
                 </span> برای ماجراجویی خود کشف کنید
               </motion.h1>
@@ -233,11 +233,11 @@ function App() {
               <motion.button
                 whileHover={{ 
                   scale: 1.05, 
-                  boxShadow: '0 0 20px rgba(255, 0, 0, 0.7)',
+                  boxShadow: '0 0 20px rgba(106, 64, 191, 0.7)',
                   textShadow: '0 0 10px rgba(255, 255, 255, 0.9)'
                 }}
                 whileTap={{ scale: 0.95 }}
-                className="bg-gradient-to-r from-draugr-800 to-draugr-600 text-white font-medium text-sm sm:text-base px-6 sm:px-8 py-2 sm:py-3 rounded-md border border-draugr-500"
+                className="bg-gradient-to-r from-eldritch-800 to-eldritch-600 text-white font-medium text-sm sm:text-base px-6 sm:px-8 py-2 sm:py-3 rounded-md border border-eldritch-500"
               >
                 فروشگاه
               </motion.button>
@@ -251,7 +251,7 @@ function App() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1.2 }}
-        className="py-12 sm:py-16 md:py-20 bg-gradient-to-b from-charcoal to-midnight w-full relative overflow-hidden"
+        className="py-12 sm:py-16 md:py-20 bg-gradient-to-b from-midnight to-eldritch-900 w-full relative overflow-hidden"
       >
         {/* Dark overlay with subtle texture */}
         <div className="absolute inset-0 bg-blood-texture opacity-15"></div>
@@ -269,18 +269,18 @@ function App() {
             transition={{ delay: 0.3, duration: 0.8 }}
             className="mb-8 text-center"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-white text-shadow-horror mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-white text-shadow-eldritch mb-4">
               <span className="relative inline-block">
                 محصولات ویژه
                 <motion.span 
-                  className="absolute -bottom-2 left-0 right-0 h-0.5 bg-draugr-500"
+                  className="absolute -bottom-2 left-0 right-0 h-0.5 bg-eldritch-500"
                   initial={{ width: 0, left: '50%', right: '50%' }}
                   animate={{ width: '100%', left: 0, right: 0 }}
                   transition={{ delay: 0.5, duration: 0.8 }}
                 ></motion.span>
               </span>
             </h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">محصولات برتر و منحصر به فرد ما را کشف کنید، هر کدام با ویژگی‌های خاص طراحی شده‌اند.</p>
+            <p className="text-gray-300 max-w-2xl mx-auto">محصولات برتر و منحصر به فرد ما را کشف کنید، هر کدام با ویژگی‌های خاص طراحی شده‌اند.</p>
           </motion.div>
           
           <ProductList 
@@ -291,7 +291,7 @@ function App() {
         </div>
         
         {/* Glowing border at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-draugr-800 to-transparent opacity-70"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-eldritch-600 to-transparent opacity-70"></div>
       </motion.section>
       
       <Footer />
@@ -303,7 +303,10 @@ function App() {
 const FloatingElement = ({ size, duration, left, right, top, bottom, image, alt, fallback, opacity = 0.6, zIndex = 10 }) => {
   // Get shadow color for the default theme
   const getShadowColor = () => {
-    return '0 0 15px rgba(255, 0, 0, 0.5)';
+    // Randomly choose between red and purple shadows for variety
+    return Math.random() > 0.5 
+      ? '0 0 15px rgba(255, 0, 0, 0.5)' 
+      : '0 0 15px rgba(106, 64, 191, 0.5)';
   };
 
   return (

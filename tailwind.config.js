@@ -34,6 +34,18 @@ module.exports = {
             800: '#660000',
             900: '#330000',
           },
+          'eldritch': {  // Deep Purple color palette
+            50: '#f0eafb',
+            100: '#d9c8f3',
+            200: '#b69ae6',
+            300: '#9572d9',
+            400: '#7d54cc',
+            500: '#6a40bf', // Primary deep purple
+            600: '#5b36a8',
+            700: '#4b2c8e',
+            800: '#3c2272',
+            900: '#2b1255',
+          },
           'blood': '#8B0000', // Dark red
           'crimson': '#DC143C', // Brighter red
           'midnight': '#121212', // Very dark grey, almost black
@@ -74,6 +86,7 @@ module.exports = {
         },
         boxShadow: {
           'horror': '0 4px 14px 0 rgba(255, 0, 0, 0.3)',
+          'eldritch': '0 4px 14px 0 rgba(106, 64, 191, 0.4)',
           'vampire': '0 4px 14px 0 rgba(176, 46, 12, 0.4)',
           'witch': '0 4px 14px 0 rgba(84, 123, 115, 0.4)',
           'werewolf': '0 4px 14px 0 rgba(179, 163, 56, 0.4)',
@@ -122,6 +135,9 @@ module.exports = {
           },
           '.text-shadow-horror': {
             'text-shadow': '0 0 8px rgba(255, 0, 0, 0.5), 0 0 12px rgba(255, 0, 0, 0.3)'
+          },
+          '.text-shadow-eldritch': {
+            'text-shadow': '0 0 8px rgba(106, 64, 191, 0.5), 0 0 12px rgba(106, 64, 191, 0.3)'
           },
           '.text-shadow-vampire': {
             'text-shadow': '0 0 8px rgba(176, 46, 12, 0.5), 0 0 12px rgba(121, 0, 0, 0.4)'
