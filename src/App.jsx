@@ -123,68 +123,6 @@ function App() {
     };
   }, []);
 
-  // Remove blood drips animation
-  useEffect(() => {
-    // Add fog effect only
-    const addFogEffect = () => {
-      const fogContainer = document.createElement('div');
-      fogContainer.className = 'fog-container fixed inset-0 pointer-events-none overflow-hidden';
-      fogContainer.style.zIndex = '5';
-      document.body.appendChild(fogContainer);
-      
-      for (let i = 0; i < 6; i++) {
-        const fog = document.createElement('div');
-        fog.className = 'fog absolute';
-        fog.style.opacity = '0.03';
-        fog.style.background = 'white';
-        fog.style.borderRadius = '50%';
-        fog.style.filter = 'blur(60px)';
-        fog.style.transform = 'scale(1)';
-        
-        // Random size and position
-        const size = 100 + Math.random() * 400;
-        const posX = Math.random() * 100;
-        const posY = Math.random() * 100;
-        const delay = Math.random() * 5;
-        const duration = 15 + Math.random() * 30;
-        
-        fog.style.width = `${size}px`;
-        fog.style.height = `${size}px`;
-        fog.style.left = `${posX}%`;
-        fog.style.top = `${posY}%`;
-        fog.style.animation = `fog ${duration}s ease-in-out ${delay}s infinite alternate`;
-        
-        fogContainer.appendChild(fog);
-      }
-      
-      // Add CSS animation
-      const style = document.createElement('style');
-      style.innerHTML = `
-        @keyframes fog {
-          0% { transform: translateX(-10px) scale(1); opacity: 0.02; }
-          50% { opacity: 0.04; }
-          100% { transform: translateX(10px) scale(1.1); opacity: 0.02; }
-        }
-      `;
-      document.head.appendChild(style);
-      
-      return () => {
-        if (document.body.contains(fogContainer)) {
-          document.body.removeChild(fogContainer);
-        }
-        if (document.head.contains(style)) {
-          document.head.removeChild(style);
-        }
-      };
-    };
-    
-    const cleanupFogEffect = addFogEffect();
-    
-    return () => {
-      cleanupFogEffect();
-    };
-  }, []);
-
   // Audio effect on page load
   useEffect(() => {
     const playSpookySound = () => {
