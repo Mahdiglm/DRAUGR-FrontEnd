@@ -213,7 +213,7 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen w-full font-vazirmatn bg-midnight dark relative overflow-hidden">
+    <div className="w-full font-vazirmatn bg-midnight dark">
       <Header cartItems={cartItems} onCartClick={toggleCart} />
       
       <Cart 
@@ -237,9 +237,21 @@ function App() {
         )}
       </AnimatePresence>
 
-      {/* Wrapper div for floating emojis - positioned absolutely within this relative parent */}
-      <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
-        {/* Randomized Floating Emojis - Now placed in a dedicated container */}
+      {/* Hero Section with Parallax */}
+      <motion.section
+        ref={heroRef}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+        className="bg-horror-gradient py-12 sm:py-16 md:py-20 w-full relative overflow-hidden"
+        style={{ minHeight: '80vh', display: 'flex', alignItems: 'center' }}
+      >
+        <motion.div 
+          className="absolute inset-0 bg-blood-texture opacity-20"
+          style={{ y: backgroundY }}
+        />
+
+        {/* Floating emojis contained within the hero section */}
         {floatingEmojis.map((item, index) => (
           <FloatingElement
             key={index}
@@ -254,21 +266,7 @@ function App() {
             zIndex={item.zIndex}
           />
         ))}
-      </div>
 
-      {/* Hero Section with Parallax */}
-      <motion.section
-        ref={heroRef}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8, delay: 0.2 }}
-        className="bg-horror-gradient py-12 sm:py-16 md:py-20 w-full relative overflow-hidden"
-        style={{ minHeight: '80vh', display: 'flex', alignItems: 'center' }}
-      >
-        <motion.div 
-          className="absolute inset-0 bg-blood-texture opacity-20"
-          style={{ y: backgroundY }}
-        />
         <div className="w-full flex justify-center items-center">
           <div className="max-w-7xl mx-auto px-4 relative z-10 text-center">
             <motion.div 
@@ -346,6 +344,9 @@ const FloatingElement = ({ size, duration, left, right, top, bottom, image, alt,
         opacity: opacity,
         filter: `drop-shadow(${getShadowColor()})`,
         zIndex: zIndex,
+        position: 'absolute', // Reinforce absolute positioning
+        userSelect: 'none', // Prevent any text selection
+        touchAction: 'none', // Prevent touch events
       }}
       animate={{
         y: [0, 10, -5, 10, 0],
@@ -357,20 +358,20 @@ const FloatingElement = ({ size, duration, left, right, top, bottom, image, alt,
         repeat: Infinity,
         repeatType: "reverse",
         ease: "easeInOut",
-        delay: Math.random() * 5, // Increased random delay for more variation
+        delay: Math.random() * 5, 
       }}
     >
       {image ? (
         <img 
           src={image} 
           alt={alt} 
-          className="w-full h-full object-contain"
+          className="w-full h-full object-contain pointer-events-none"
           onError={(e) => {
-            e.target.outerHTML = `<div class="w-full h-full flex items-center justify-center text-3xl">${fallback}</div>`;
+            e.target.outerHTML = `<div class="w-full h-full flex items-center justify-center text-3xl pointer-events-none">${fallback}</div>`;
           }}
         />
       ) : (
-        <div className="w-full h-full flex items-center justify-center text-3xl">
+        <div className="w-full h-full flex items-center justify-center text-3xl pointer-events-none">
           {fallback}
         </div>
       )}
