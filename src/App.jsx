@@ -19,7 +19,6 @@ function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
   const [message, setMessage] = useState('');
-  const [floatingEmojis, setFloatingEmojis] = useState([]);
   const heroRef = useRef(null);
   
   // Parallax effect
@@ -27,68 +26,6 @@ function App() {
   const backgroundY = useTransform(scrollY, [0, 500], [0, 100]);
   const textY = useTransform(scrollY, [0, 500], [0, -50]);
   const opacityHero = useTransform(scrollY, [0, 300], [1, 0.3]);
-
-  // Horror-themed emojis
-  const horrorEmojis = [
-    '🩸', '💀', '👻', '🧟', '🧛', '🧙‍♀️', '🔮', '⚰️', '🪦', '🗡️', 
-    '🔪', '🪓', '🧪', '🕸️', '🕷️', '🦇', '🐺', '🌑', '⚡', '🔥',
-    '🧠', '👁️', '💔', '📜', '🪄', '🧿', '🧹', '🪦', '🏺', '⛓️',
-    '🐍', '🦉', '🧣', '🏮', '📿'
-  ];
-  
-  // Generate random emoji configurations on component mount
-  useEffect(() => {
-    const generateRandomEmojis = () => {
-      // Generate between 12-18 random emojis (increased count)
-      const count = 12 + Math.floor(Math.random() * 7);
-      const emojis = [];
-      
-      for (let i = 0; i < count; i++) {
-        // Random emoji
-        const emojiIndex = Math.floor(Math.random() * horrorEmojis.length);
-        
-        // Create grid-like positioning to ensure better distribution
-        // Divide screen into sections and place one emoji in each section
-        const gridX = Math.floor(i / 3) % 4; // 4 columns
-        const gridY = i % 3; // 3 rows
-        
-        // Add randomness within each grid section
-        const leftPos = (gridX * 25) + (Math.random() * 15);
-        const topPos = (gridY * 33) + (Math.random() * 20);
-        
-        // Ensure z-index varies for layered effect
-        const zIndex = 5 + Math.floor(Math.random() * 10);
-        
-        // Random position with better distribution
-        const position = {
-          left: `${leftPos}%`,
-          top: `${topPos}%`,
-          right: null,
-          bottom: null,
-        };
-        
-        // Random size (smaller range for less intrusive emojis)
-        const size = 20 + Math.floor(Math.random() * 60);
-        // Random duration
-        const duration = 15 + Math.random() * 25;
-        // Random opacity (more subtle)
-        const opacity = 0.15 + Math.random() * 0.5;
-        
-        emojis.push({
-          emoji: horrorEmojis[emojiIndex],
-          position,
-          size,
-          duration,
-          opacity,
-          zIndex
-        });
-      }
-      
-      setFloatingEmojis(emojis);
-    };
-    
-    generateRandomEmojis();
-  }, []);
 
   const addToCart = (product) => {
     setCartItems([...cartItems, product]);
@@ -198,22 +135,6 @@ function App() {
         {/* Dark overlay for better text readability */}
         <div className="absolute inset-0 bg-black opacity-50"></div>
 
-        {/* Floating emojis contained within the hero section */}
-        {floatingEmojis.map((item, index) => (
-          <FloatingElement
-            key={index}
-            size={item.size}
-            duration={item.duration}
-            left={item.position.left}
-            right={item.position.right}
-            top={item.position.top}
-            bottom={item.position.bottom}
-            fallback={item.emoji}
-            opacity={item.opacity}
-            zIndex={item.zIndex}
-          />
-        ))}
-
         <div className="w-full flex justify-center items-center">
           <div className="max-w-7xl mx-auto px-4 relative z-10 text-center">
             <motion.div 
@@ -265,8 +186,6 @@ function App() {
         {/* Dark overlay with subtle texture */}
         <div className="absolute inset-0 bg-blood-texture opacity-15"></div>
         
-        {/* Removing the animated background elements that looked awful */}
-        
         {/* Glowing border at top */}
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-draugr-800 to-transparent opacity-70"></div>
         
@@ -307,60 +226,5 @@ function App() {
     </div>
   )
 }
-
-// Floating element component for visual interest
-const FloatingElement = ({ size, duration, left, right, top, bottom, image, alt, fallback, opacity = 0.6, zIndex = 10 }) => {
-  // Get shadow color for the default theme
-  const getShadowColor = () => {
-    return '0 0 15px rgba(255, 0, 0, 0.5)';
-  };
-
-  return (
-    <motion.div
-      className="absolute pointer-events-none"
-      style={{
-        left: left || 'auto',
-        right: right || 'auto',
-        top: top || 'auto',
-        bottom: bottom || 'auto',
-        width: size,
-        height: size,
-        opacity: opacity,
-        filter: `drop-shadow(${getShadowColor()})`,
-        zIndex: zIndex,
-        position: 'absolute', // Reinforce absolute positioning
-        userSelect: 'none', // Prevent any text selection
-        touchAction: 'none', // Prevent touch events
-      }}
-      animate={{
-        y: [0, 10, -5, 10, 0],
-        rotate: [0, 5, -3, 5, 0],
-        scale: [1, 1.05, 0.95, 1.05, 1],
-      }}
-      transition={{
-        duration,
-        repeat: Infinity,
-        repeatType: "reverse",
-        ease: "easeInOut",
-        delay: Math.random() * 5, 
-      }}
-    >
-      {image ? (
-        <img 
-          src={image} 
-          alt={alt} 
-          className="w-full h-full object-contain pointer-events-none"
-          onError={(e) => {
-            e.target.outerHTML = `<div class="w-full h-full flex items-center justify-center text-3xl pointer-events-none">${fallback}</div>`;
-          }}
-        />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center text-3xl pointer-events-none">
-          {fallback}
-        </div>
-      )}
-    </motion.div>
-  );
-};
 
 export default App
