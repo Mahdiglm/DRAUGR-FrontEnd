@@ -26,15 +26,15 @@ const ProductList = ({ products, onAddToCart, title = "محصولات" }) => {
     <div className="w-full max-w-full mx-auto px-4 py-8 sm:py-12">
       <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-center">{title}</h2>
       
-      {/* Category Filter */}
-      <div className="flex justify-center mb-6 sm:mb-10 space-x-2 sm:space-x-4 overflow-x-auto pb-2 sm:pb-4 scrollbar-hide space-x-reverse">
+      {/* Category Filter - Improved spacing */}
+      <div className="flex flex-wrap justify-center mb-8 sm:mb-12 space-x-0 gap-3 sm:gap-4 md:gap-5 overflow-x-auto pb-4 scrollbar-hide rtl">
         {categories.map(category => (
           <motion.button
             key={category}
             onClick={() => setSelectedCategory(category)}
-            className={`px-3 sm:px-6 py-1 sm:py-2 rounded-full text-xs sm:text-sm capitalize ${
+            className={`px-4 sm:px-6 py-2 rounded-full text-sm transition-all duration-300 min-w-[80px] sm:min-w-[100px] ${
               selectedCategory === category 
-                ? 'bg-black text-white' 
+                ? 'bg-black text-white font-medium shadow-md' 
                 : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
             }`}
             whileHover={{ scale: 1.05 }}
