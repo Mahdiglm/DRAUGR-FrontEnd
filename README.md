@@ -1,65 +1,48 @@
-# DRAUGR Shop
+# فروشگاه دراگر (DRAUGR)
 
-A modern e-commerce shop built with React, Tailwind CSS, and Framer Motion.
+<div dir="rtl">
 
-## Project Overview
+## معرفی
+فروشگاه دراگر یک وب‌سایت تجارت الکترونیک با تم ترسناک است که با استفاده از React، Tailwind CSS و Framer Motion توسعه یافته است. این پروژه یک محیط خرید آنلاین با استایل منحصر به فرد و تعاملی را فراهم می‌کند.
 
-DRAUGR Shop is a fantasy-themed online marketplace for legendary artifacts, weapons, and gear. This project showcases a modern, interactive UI with smooth animations and a responsive design.
+## ویژگی‌ها
+- **طراحی ترسناک**: ظاهر کاملاً سفارشی‌شده با تم‌های وحشت
+- **تم‌های چندگانه**: قابلیت تغییر بین تم‌های مختلف (دراگور، خون‌آشام، جادوگر، گرگینه)
+- **انیمیشن‌های پیشرفته**: افکت‌های انیمیشنی متنوع با استفاده از Framer Motion
+- **افکت‌های سه‌بعدی**: کارت‌های محصول با افکت‌های سه‌بعدی و پرسپکتیو
+- **افکت‌های ویژه**: قطره‌های خون، مه، صدای تپش قلب و دیگر جلوه‌های ویژه
+- **واکنش‌گرا**: طراحی کاملاً واکنش‌گرا برای تمامی دستگاه‌ها
+- **پشتیبانی RTL**: کاملاً سازگار با زبان فارسی و جهت راست به چپ
 
-## Tech Stack
+## تکنولوژی‌ها
+- **React**: برای توسعه رابط کاربری
+- **Vite**: برای محیط توسعه سریع
+- **Tailwind CSS**: برای استایل‌دهی
+- **Framer Motion**: برای انیمیشن‌ها
+- **LocalStorage**: برای ذخیره‌سازی ترجیحات کاربر
 
-- **Frontend**: React, Tailwind CSS, Framer Motion
-- **Backend**: C# (in development)
-- **Database**: To be implemented
+## نصب و راه‌اندازی
 
-## Features
+### پیش‌نیازها
+- Node.js نسخه 14 یا بالاتر
+- npm نسخه 6 یا بالاتر
 
-- Responsive layout that works on desktop and mobile
-- Interactive UI with animations powered by Framer Motion
-- Product catalog with filtering capabilities
-- Shopping cart system
-- Checkout flow (coming soon)
+### دستورات نصب
+```bash
+# کلون کردن مخزن
+git clone https://github.com/Mahdiglm/DRAUGR-FrontEnd.git
 
-## Project Structure
+# وارد شدن به پوشه پروژه
+cd DRAUGR-FrontEnd
 
+# نصب وابستگی‌ها
+npm install
+
+# اجرای نسخه توسعه
+npm run dev
 ```
-draugr-shop/
-├── src/
-│   ├── components/
-│   │   ├── cart/
-│   │   │   └── Cart.jsx
-│   │   ├── layout/
-│   │   │   ├── Header.jsx
-│   │   │   └── Footer.jsx
-│   │   └── product/
-│   │       ├── ProductCard.jsx
-│   │       └── ProductList.jsx
-│   ├── utils/
-│   │   └── mockData.js
-│   ├── App.jsx
-│   └── main.jsx
-└── public/
-```
 
-## Getting Started
+## لایسنس
+این پروژه تحت لایسنس MIT منتشر شده است.
 
-1. Clone the repository
-2. Install dependencies:
-   ```
-   npm install
-   ```
-3. Start the development server:
-   ```
-   npm run dev
-   ```
-4. Open your browser and visit: `http://localhost:5173`
-
-## Team
-
-- Frontend Developer: Responsible for React, Tailwind CSS, and Framer Motion implementation
-- Backend Developer: Working on C# backend services
-- Database Specialist: Managing database design and implementation
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+</div>
