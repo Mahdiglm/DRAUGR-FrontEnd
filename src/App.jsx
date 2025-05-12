@@ -16,6 +16,7 @@ function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
   const [message, setMessage] = useState('');
+  const [floatingEmojis, setFloatingEmojis] = useState([]);
   const heroRef = useRef(null);
   
   // Parallax effect
@@ -23,6 +24,69 @@ function App() {
   const backgroundY = useTransform(scrollY, [0, 500], [0, 100]);
   const textY = useTransform(scrollY, [0, 500], [0, -50]);
   const opacityHero = useTransform(scrollY, [0, 300], [1, 0.3]);
+
+  // Horror-themed emojis
+  const horrorEmojis = [
+    '🩸', '💀', '👻', '🧟', '🧛', '🧙‍♀️', '🔮', '⚰️', '🪦', '🗡️', 
+    '🔪', '🪓', '🧪', '🕸️', '🕷️', '🦇', '🐺', '🌑', '⚡', '🔥',
+    '🧠', '👁️', '💔', '📜', '🪄', '🧿', '🧹', '🪦', '🏺', '⛓️',
+    '🐍', '🦉', '🧣', '🏮', '📿'
+  ];
+  
+  // Generate random emoji configurations on component mount
+  useEffect(() => {
+    const generateRandomEmojis = () => {
+      // Generate between 12-18 random emojis (increased count)
+      const count = 12 + Math.floor(Math.random() * 7);
+      const emojis = [];
+      const usedPositions = []; // To track used positions for better spacing
+      
+      for (let i = 0; i < count; i++) {
+        // Random emoji
+        const emojiIndex = Math.floor(Math.random() * horrorEmojis.length);
+        
+        // Create grid-like positioning to ensure better distribution
+        // Divide screen into sections and place one emoji in each section
+        const gridX = Math.floor(i / 3) % 4; // 4 columns
+        const gridY = i % 3; // 3 rows
+        
+        // Add randomness within each grid section
+        const leftPos = (gridX * 25) + (Math.random() * 15);
+        const topPos = (gridY * 33) + (Math.random() * 20);
+        
+        // Ensure z-index varies for layered effect
+        const zIndex = 5 + Math.floor(Math.random() * 10);
+        
+        // Random position with better distribution
+        const position = {
+          left: `${leftPos}%`,
+          top: `${topPos}%`,
+          right: null,
+          bottom: null,
+        };
+        
+        // Random size (smaller range for less intrusive emojis)
+        const size = 20 + Math.floor(Math.random() * 60);
+        // Random duration
+        const duration = 15 + Math.random() * 25;
+        // Random opacity (more subtle)
+        const opacity = 0.15 + Math.random() * 0.5;
+        
+        emojis.push({
+          emoji: horrorEmojis[emojiIndex],
+          position,
+          size,
+          duration,
+          opacity,
+          zIndex
+        });
+      }
+      
+      setFloatingEmojis(emojis);
+    };
+    
+    generateRandomEmojis();
+  }, []);
 
   const addToCart = (product) => {
     setCartItems([...cartItems, product]);
@@ -150,7 +214,7 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen w-full font-vazirmatn bg-midnight dark">
+    <div className="min-h-screen w-full font-vazirmatn bg-midnight dark relative overflow-hidden">
       <Header cartItems={cartItems} onCartClick={toggleCart} />
       
       <Cart 
@@ -173,6 +237,22 @@ function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Randomized Floating Emojis - Now placed at app root level */}
+      {floatingEmojis.map((item, index) => (
+        <FloatingElement
+          key={index}
+          size={item.size}
+          duration={item.duration}
+          left={item.position.left}
+          right={item.position.right}
+          top={item.position.top}
+          bottom={item.position.bottom}
+          fallback={item.emoji}
+          opacity={item.opacity}
+          zIndex={item.zIndex}
+        />
+      ))}
 
       {/* Hero Section with Parallax */}
       <motion.section
@@ -223,26 +303,6 @@ function App() {
             </motion.button>
           </motion.div>
         </div>
-        
-        {/* Floating elements */}
-        <FloatingElement
-          size={60}
-          duration={20}
-          right="15%"
-          top="25%"
-          image="/images/blood-drop.png"
-          alt="Blood drop"
-          fallback="🩸"
-        />
-        <FloatingElement
-          size={90}
-          duration={15}
-          left="10%"
-          bottom="20%"
-          image="/images/skull.png"
-          alt="Skull"
-          fallback="💀" 
-        />
       </motion.section>
 
       {/* Featured Products */}
@@ -263,7 +323,7 @@ function App() {
 }
 
 // Floating element component for visual interest
-const FloatingElement = ({ size, duration, left, right, top, bottom, image, alt, fallback }) => {
+const FloatingElement = ({ size, duration, left, right, top, bottom, image, alt, fallback, opacity = 0.6, zIndex = 10 }) => {
   // Get shadow color for the default theme
   const getShadowColor = () => {
     return '0 0 15px rgba(255, 0, 0, 0.5)';
@@ -271,7 +331,7 @@ const FloatingElement = ({ size, duration, left, right, top, bottom, image, alt,
 
   return (
     <motion.div
-      className="absolute z-10 pointer-events-none opacity-60"
+      className="fixed pointer-events-none"
       style={{
         left: left || 'auto',
         right: right || 'auto',
@@ -279,7 +339,9 @@ const FloatingElement = ({ size, duration, left, right, top, bottom, image, alt,
         bottom: bottom || 'auto',
         width: size,
         height: size,
+        opacity: opacity,
         filter: `drop-shadow(${getShadowColor()})`,
+        zIndex: zIndex,
       }}
       animate={{
         y: [0, 10, -5, 10, 0],
@@ -291,6 +353,7 @@ const FloatingElement = ({ size, duration, left, right, top, bottom, image, alt,
         repeat: Infinity,
         repeatType: "reverse",
         ease: "easeInOut",
+        delay: Math.random() * 5, // Increased random delay for more variation
       }}
     >
       {image ? (
