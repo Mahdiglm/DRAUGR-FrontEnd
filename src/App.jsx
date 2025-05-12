@@ -253,37 +253,10 @@ function App() {
         transition={{ duration: 1.2 }}
         className="py-12 sm:py-16 md:py-20 bg-gradient-to-b from-charcoal to-midnight w-full relative overflow-hidden"
       >
-        {/* Dark overlay */}
-        <div className="absolute inset-0 bg-blood-texture opacity-10"></div>
+        {/* Dark overlay with subtle texture */}
+        <div className="absolute inset-0 bg-blood-texture opacity-15"></div>
         
-        {/* Animated background elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute w-full h-full">
-            {Array.from({ length: 12 }).map((_, index) => (
-              <motion.div
-                key={index}
-                className="absolute rounded-full bg-draugr-900 opacity-10"
-                style={{
-                  width: 20 + Math.random() * 100,
-                  height: 20 + Math.random() * 100,
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                }}
-                animate={{
-                  opacity: [0.05, 0.1, 0.05],
-                  scale: [1, 1.2, 1],
-                }}
-                transition={{
-                  duration: 5 + Math.random() * 10,
-                  repeat: Infinity,
-                  repeatType: 'reverse',
-                  ease: "easeInOut",
-                  delay: Math.random() * 5,
-                }}
-              />
-            ))}
-          </div>
-        </div>
+        {/* Removing the animated background elements that looked awful */}
         
         {/* Glowing border at top */}
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-draugr-800 to-transparent opacity-70"></div>
