@@ -27,7 +27,7 @@ const ProductList = ({ products, onAddToCart, title = "محصولات" }) => {
       <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-center">{title}</h2>
       
       {/* Category Filter - Improved spacing */}
-      <div className="flex flex-wrap justify-center mb-8 sm:mb-12 space-x-0 gap-3 sm:gap-4 md:gap-5 overflow-x-auto pb-4 scrollbar-hide rtl">
+      <div className="flex flex-wrap justify-center mb-8 sm:mb-12 space-x-0 gap-3 sm:gap-4 md:gap-5 overflow-visible pb-4 pt-2 rtl">
         {categories.map(category => (
           <motion.button
             key={category}
@@ -37,7 +37,10 @@ const ProductList = ({ products, onAddToCart, title = "محصولات" }) => {
                 ? 'bg-black text-white font-medium shadow-md' 
                 : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
             }`}
-            whileHover={{ scale: 1.05 }}
+            whileHover={{ 
+              scale: 1.05,
+              y: 2 // Move down slightly when hovering
+            }}
             whileTap={{ scale: 0.95 }}
           >
             {categoryTranslations[category] || category}
