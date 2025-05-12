@@ -39,7 +39,6 @@ function App() {
       // Generate between 12-18 random emojis (increased count)
       const count = 12 + Math.floor(Math.random() * 7);
       const emojis = [];
-      const usedPositions = []; // To track used positions for better spacing
       
       for (let i = 0; i < count; i++) {
         // Random emoji
@@ -238,21 +237,24 @@ function App() {
         )}
       </AnimatePresence>
 
-      {/* Randomized Floating Emojis - Now placed at app root level */}
-      {floatingEmojis.map((item, index) => (
-        <FloatingElement
-          key={index}
-          size={item.size}
-          duration={item.duration}
-          left={item.position.left}
-          right={item.position.right}
-          top={item.position.top}
-          bottom={item.position.bottom}
-          fallback={item.emoji}
-          opacity={item.opacity}
-          zIndex={item.zIndex}
-        />
-      ))}
+      {/* Wrapper div for floating emojis - positioned absolutely within this relative parent */}
+      <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
+        {/* Randomized Floating Emojis - Now placed in a dedicated container */}
+        {floatingEmojis.map((item, index) => (
+          <FloatingElement
+            key={index}
+            size={item.size}
+            duration={item.duration}
+            left={item.position.left}
+            right={item.position.right}
+            top={item.position.top}
+            bottom={item.position.bottom}
+            fallback={item.emoji}
+            opacity={item.opacity}
+            zIndex={item.zIndex}
+          />
+        ))}
+      </div>
 
       {/* Hero Section with Parallax */}
       <motion.section
@@ -333,7 +335,7 @@ const FloatingElement = ({ size, duration, left, right, top, bottom, image, alt,
 
   return (
     <motion.div
-      className="fixed pointer-events-none"
+      className="absolute pointer-events-none"
       style={{
         left: left || 'auto',
         right: right || 'auto',
