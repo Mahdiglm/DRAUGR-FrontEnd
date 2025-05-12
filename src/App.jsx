@@ -11,6 +11,9 @@ import Cart from './components/cart/Cart';
 // Data
 import { products } from './utils/mockData';
 
+// Assets
+import heroBackground from './assets/Background-Hero.jpg';
+
 function App() {
   const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -181,13 +184,19 @@ function App() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8, delay: 0.2 }}
-        className="bg-horror-gradient py-12 sm:py-16 md:py-20 w-full relative overflow-hidden"
-        style={{ minHeight: '80vh', display: 'flex', alignItems: 'center' }}
+        className="py-12 sm:py-16 md:py-20 w-full relative overflow-hidden"
+        style={{ 
+          minHeight: '80vh', 
+          display: 'flex', 
+          alignItems: 'center',
+          backgroundImage: `url(${heroBackground})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
       >
-        <motion.div 
-          className="absolute inset-0 bg-blood-texture opacity-20"
-          style={{ y: backgroundY }}
-        />
+        {/* Dark overlay for better text readability */}
+        <div className="absolute inset-0 bg-black opacity-50"></div>
 
         {/* Floating emojis contained within the hero section */}
         {floatingEmojis.map((item, index) => (
