@@ -7,7 +7,6 @@ import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import ProductList from './components/product/ProductList';
 import Cart from './components/cart/Cart';
-import ThemeSwitcher from './components/layout/ThemeSwitcher';
 
 // Data
 import { products } from './utils/mockData';
@@ -17,7 +16,6 @@ function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
   const [message, setMessage] = useState('');
-  const [currentTheme, setCurrentTheme] = useState('draugr');
   const heroRef = useRef(null);
   
   // Parallax effect
@@ -51,28 +49,16 @@ function App() {
     }, 3000);
   };
   
-  const changeTheme = (themeId) => {
-    setCurrentTheme(themeId);
-    // You could also save theme preference in localStorage here
-    localStorage.setItem('draugr-theme', themeId);
-    showTemporaryMessage(`تم ${getThemeName(themeId)} فعال شد`);
-  };
-  
-  // Load saved theme on initial load
+  // Apply theme class to body for consistency
   useEffect(() => {
-    const savedTheme = localStorage.getItem('draugr-theme');
-    if (savedTheme) {
-      setCurrentTheme(savedTheme);
-    }
+    // Ensure only default theme class is applied
+    document.body.classList.add('theme-draugr');
+    
+    // Clean up on unmount
+    return () => {
+      document.body.classList.remove('theme-draugr');
+    };
   }, []);
-
-  // Apply theme to body element
-  useEffect(() => {
-    // Remove all theme classes
-    document.body.classList.remove('theme-draugr', 'theme-vampire', 'theme-witch', 'theme-werewolf');
-    // Add current theme class
-    document.body.classList.add(`theme-${currentTheme}`);
-  }, [currentTheme]);
 
   // Remove blood drips animation
   useEffect(() => {
@@ -134,7 +120,7 @@ function App() {
     return () => {
       cleanupFogEffect();
     };
-  }, [currentTheme]);
+  }, []);
 
   // Audio effect on page load
   useEffect(() => {
@@ -162,41 +148,17 @@ function App() {
     const cleanup = playSpookySound();
     return cleanup;
   }, []);
-  
-  // Get theme-specific gradient for hero section
-  const getHeroGradient = () => {
-    switch(currentTheme) {
-      case 'vampire': return 'bg-vampire-gradient';
-      case 'witch': return 'bg-witch-gradient';
-      case 'werewolf': return 'bg-werewolf-gradient';
-      default: return 'bg-horror-gradient';
-    }
-  };
-  
-  // Helper function to get theme name for messages
-  const getThemeName = (themeId) => {
-    switch(themeId) {
-      case 'vampire': return 'خون آشام';
-      case 'witch': return 'جادوگر';
-      case 'werewolf': return 'گرگینه';
-      default: return 'دراگور';
-    }
-  };
 
   return (
-    <div className={`min-h-screen w-full font-vazirmatn bg-${currentTheme === 'draugr' ? 'midnight' : `${currentTheme}-dark`} dark`}>
-      <Header cartItems={cartItems} onCartClick={toggleCart} currentTheme={currentTheme} />
+    <div className="min-h-screen w-full font-vazirmatn bg-midnight dark">
+      <Header cartItems={cartItems} onCartClick={toggleCart} />
       
       <Cart 
         items={cartItems} 
         removeItem={removeFromCart} 
         isOpen={isCartOpen} 
         onClose={() => setIsCartOpen(false)} 
-        currentTheme={currentTheme}
       />
-
-      {/* Theme Switcher */}
-      <ThemeSwitcher currentTheme={currentTheme} onThemeChange={changeTheme} />
 
       {/* Floating Message */}
       <AnimatePresence>
@@ -205,9 +167,7 @@ function App() {
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className={`fixed top-20 right-1/2 transform translate-x-1/2 
-                      bg-${currentTheme === 'draugr' ? 'draugr-800' : `${currentTheme}-primary`} 
-                      text-white px-6 py-3 rounded-md z-50 shadow-${currentTheme}`}
+            className="fixed top-20 right-1/2 transform translate-x-1/2 bg-draugr-800 text-white px-6 py-3 rounded-md z-50 shadow-horror"
           >
             {message}
           </motion.div>
@@ -220,7 +180,7 @@ function App() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8, delay: 0.2 }}
-        className={`${getHeroGradient()} py-12 sm:py-16 md:py-20 w-full relative overflow-hidden`}
+        className="bg-horror-gradient py-12 sm:py-16 md:py-20 w-full relative overflow-hidden"
         style={{ minHeight: '80vh', display: 'flex', alignItems: 'center' }}
       >
         <motion.div 
@@ -236,9 +196,9 @@ function App() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.4 }}
-              className={`text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 text-shadow-${currentTheme}`}
+              className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 text-shadow-horror"
             >
-              <span className={`text-${currentTheme === 'draugr' ? 'draugr-500' : `${currentTheme}-accent`} font-bold text-shadow-${currentTheme}`}>
+              <span className="text-draugr-500 font-bold text-shadow-horror">
                 اقلام خارق‌العاده را
               </span> برای ماجراجویی خود کشف کنید
             </motion.h1>
@@ -253,14 +213,11 @@ function App() {
             <motion.button
               whileHover={{ 
                 scale: 1.05, 
-                boxShadow: `0 0 20px ${currentTheme === 'draugr' ? 'rgba(255, 0, 0, 0.7)' : `var(--${currentTheme}-accent-shadow)`}`,
+                boxShadow: '0 0 20px rgba(255, 0, 0, 0.7)',
                 textShadow: '0 0 10px rgba(255, 255, 255, 0.9)'
               }}
               whileTap={{ scale: 0.95 }}
-              className={`bg-gradient-to-r from-${currentTheme === 'draugr' ? 'draugr-800' : `${currentTheme}-primary`} 
-                        to-${currentTheme === 'draugr' ? 'draugr-600' : `${currentTheme}-secondary`} 
-                        text-white font-medium text-sm sm:text-base px-6 sm:px-8 py-2 sm:py-3 rounded-md 
-                        border border-${currentTheme === 'draugr' ? 'draugr-500' : `${currentTheme}-accent`}`}
+              className="bg-gradient-to-r from-draugr-800 to-draugr-600 text-white font-medium text-sm sm:text-base px-6 sm:px-8 py-2 sm:py-3 rounded-md border border-draugr-500"
             >
               فروشگاه
             </motion.button>
@@ -276,7 +233,6 @@ function App() {
           image="/images/blood-drop.png"
           alt="Blood drop"
           fallback="🩸"
-          theme={currentTheme}
         />
         <FloatingElement
           size={90}
@@ -286,38 +242,31 @@ function App() {
           image="/images/skull.png"
           alt="Skull"
           fallback="💀" 
-          theme={currentTheme}
         />
       </motion.section>
 
       {/* Featured Products */}
-      <section className={`py-8 sm:py-12 md:py-16 bg-${currentTheme === 'draugr' ? 'charcoal' : `${currentTheme}-dark`} w-full relative`}>
+      <section className="py-8 sm:py-12 md:py-16 bg-charcoal w-full relative">
         <div className="absolute inset-0 bg-blood-texture opacity-10"></div>
         <div className="relative z-10">
           <ProductList 
             products={products} 
             onAddToCart={addToCart} 
             title="محصولات ویژه" 
-            currentTheme={currentTheme}
           />
         </div>
       </section>
       
-      <Footer currentTheme={currentTheme} />
+      <Footer />
     </div>
   )
 }
 
 // Floating element component for visual interest
-const FloatingElement = ({ size, duration, left, right, top, bottom, image, alt, fallback, theme }) => {
-  // Get theme-specific shadow color
+const FloatingElement = ({ size, duration, left, right, top, bottom, image, alt, fallback }) => {
+  // Get shadow color for the default theme
   const getShadowColor = () => {
-    switch(theme) {
-      case 'vampire': return '0 0 15px rgba(176, 46, 12, 0.5)';
-      case 'witch': return '0 0 15px rgba(84, 123, 115, 0.5)';
-      case 'werewolf': return '0 0 15px rgba(179, 163, 56, 0.5)';
-      default: return '0 0 15px rgba(255, 0, 0, 0.5)';
-    }
+    return '0 0 15px rgba(255, 0, 0, 0.5)';
   };
 
   return (
