@@ -267,41 +267,43 @@ function App() {
           className="absolute inset-0 bg-blood-texture opacity-20"
           style={{ y: backgroundY }}
         />
-        <div className="w-full max-w-7xl mx-auto px-4 relative z-10">
-          <motion.div 
-            className="max-w-3xl"
-            style={{ y: textY, opacity: opacityHero }}
-          >
-            <motion.h1 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 text-shadow-horror"
+        <div className="w-full flex justify-center items-center">
+          <div className="max-w-7xl mx-auto px-4 relative z-10 text-center">
+            <motion.div 
+              className="max-w-3xl mx-auto"
+              style={{ y: textY, opacity: opacityHero }}
             >
-              <span className="text-draugr-500 font-bold text-shadow-horror">
-                اقلام خارق‌العاده را
-              </span> برای ماجراجویی خود کشف کنید
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.6 }}
-              className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 text-fog"
-            >
-              مجموعه‌ی ما از آثار افسانه‌ای، سلاح‌ها و تجهیزات را کاوش کنید.
-            </motion.p>
-            <motion.button
-              whileHover={{ 
-                scale: 1.05, 
-                boxShadow: '0 0 20px rgba(255, 0, 0, 0.7)',
-                textShadow: '0 0 10px rgba(255, 255, 255, 0.9)'
-              }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-gradient-to-r from-draugr-800 to-draugr-600 text-white font-medium text-sm sm:text-base px-6 sm:px-8 py-2 sm:py-3 rounded-md border border-draugr-500"
-            >
-              فروشگاه
-            </motion.button>
-          </motion.div>
+              <motion.h1 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+                className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 text-shadow-horror"
+              >
+                <span className="text-draugr-500 font-bold text-shadow-horror">
+                  اقلام خارق‌العاده را
+                </span> برای ماجراجویی خود کشف کنید
+              </motion.h1>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.6 }}
+                className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 text-fog"
+              >
+                مجموعه‌ی ما از آثار افسانه‌ای، سلاح‌ها و تجهیزات را کاوش کنید.
+              </motion.p>
+              <motion.button
+                whileHover={{ 
+                  scale: 1.05, 
+                  boxShadow: '0 0 20px rgba(255, 0, 0, 0.7)',
+                  textShadow: '0 0 10px rgba(255, 255, 255, 0.9)'
+                }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-gradient-to-r from-draugr-800 to-draugr-600 text-white font-medium text-sm sm:text-base px-6 sm:px-8 py-2 sm:py-3 rounded-md border border-draugr-500"
+              >
+                فروشگاه
+              </motion.button>
+            </motion.div>
+          </div>
         </div>
       </motion.section>
 
