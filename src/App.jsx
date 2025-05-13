@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css'
 
 // Components
@@ -7,6 +8,8 @@ import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import ProductList from './components/product/ProductList';
 import Cart from './components/cart/Cart';
+import Login from './components/auth/Login';
+import SignUp from './components/auth/SignUp';
 
 // Data
 import { products } from './utils/mockData';
@@ -14,9 +17,8 @@ import { products } from './utils/mockData';
 // Assets
 import heroBackground from './assets/Background-Hero.jpg';
 
-function App() {
-  const [cartItems, setCartItems] = useState([]);
-  const [isCartOpen, setIsCartOpen] = useState(false);
+// Home component for the main page
+const Home = ({ cartItems, setCartItems, isCartOpen, setIsCartOpen }) => {
   const [showMessage, setShowMessage] = useState(false);
   const [message, setMessage] = useState('');
   const heroRef = useRef(null);
@@ -31,18 +33,6 @@ function App() {
     setCartItems([...cartItems, product]);
     showTemporaryMessage(`${product.name} به سبد خرید اضافه شد`);
   };
-
-  const removeFromCart = (productId) => {
-    const product = cartItems.find(item => item.id === productId);
-    setCartItems(cartItems.filter(item => item.id !== productId));
-    if (product) {
-      showTemporaryMessage(`${product.name} از سبد خرید حذف شد`);
-    }
-  };
-
-  const toggleCart = () => {
-    setIsCartOpen(!isCartOpen);
-  };
   
   const showTemporaryMessage = (msg) => {
     setMessage(msg);
@@ -51,56 +41,9 @@ function App() {
       setShowMessage(false);
     }, 3000);
   };
-  
-  // Apply theme class to body for consistency
-  useEffect(() => {
-    // Ensure only default theme class is applied
-    document.body.classList.add('theme-draugr');
-    
-    // Clean up on unmount
-    return () => {
-      document.body.classList.remove('theme-draugr');
-    };
-  }, []);
-
-  // Audio effect on page load
-  useEffect(() => {
-    const playSpookySound = () => {
-      const audio = new Audio();
-      audio.src = "https://www.soundjay.com/human/sounds/heartbeat-01.mp3"; // Heartbeat sound URL
-      audio.volume = 0.2;
-      audio.play().catch(e => console.log("Auto-play prevented:", e));
-      
-      // Event listener for user interaction to play sound
-      const handleInteraction = () => {
-        audio.play().catch(e => console.log("Play prevented:", e));
-        document.removeEventListener('click', handleInteraction);
-      };
-      
-      document.addEventListener('click', handleInteraction);
-      
-      return () => {
-        audio.pause();
-        audio.src = "";
-        document.removeEventListener('click', handleInteraction);
-      };
-    };
-    
-    const cleanup = playSpookySound();
-    return cleanup;
-  }, []);
 
   return (
-    <div className="w-full font-vazirmatn bg-midnight dark">
-      <Header cartItems={cartItems} onCartClick={toggleCart} />
-      
-      <Cart 
-        items={cartItems} 
-        removeItem={removeFromCart} 
-        isOpen={isCartOpen} 
-        onClose={() => setIsCartOpen(false)} 
-      />
-
+    <>
       {/* Floating Message */}
       <AnimatePresence>
         {showMessage && (
@@ -221,10 +164,93 @@ function App() {
         {/* Glowing border at bottom */}
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-draugr-800 to-transparent opacity-70"></div>
       </motion.section>
+    </>
+  );
+};
+
+function App() {
+  const [cartItems, setCartItems] = useState([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  
+  const removeFromCart = (productId) => {
+    setCartItems(cartItems.filter(item => item.id !== productId));
+  };
+
+  const toggleCart = () => {
+    setIsCartOpen(!isCartOpen);
+  };
+  
+  // Apply theme class to body for consistency
+  useEffect(() => {
+    // Ensure only default theme class is applied
+    document.body.classList.add('theme-draugr');
+    
+    // Clean up on unmount
+    return () => {
+      document.body.classList.remove('theme-draugr');
+    };
+  }, []);
+
+  // Audio effect on page load
+  useEffect(() => {
+    const playSpookySound = () => {
+      const audio = new Audio();
+      audio.src = "https://www.soundjay.com/human/sounds/heartbeat-01.mp3"; // Heartbeat sound URL
+      audio.volume = 0.2;
+      audio.play().catch(e => console.log("Auto-play prevented:", e));
       
-      <Footer />
+      // Event listener for user interaction to play sound
+      const handleInteraction = () => {
+        audio.play().catch(e => console.log("Play prevented:", e));
+        document.removeEventListener('click', handleInteraction);
+      };
+      
+      document.addEventListener('click', handleInteraction);
+      
+      return () => {
+        audio.pause();
+        audio.src = "";
+        document.removeEventListener('click', handleInteraction);
+      };
+    };
+    
+    const cleanup = playSpookySound();
+    return cleanup;
+  }, []);
+
+  return (
+    <Router basename="/DRAUGR-FrontEnd">
+      <div className="w-full font-vazirmatn bg-midnight dark">
+        <Header cartItems={cartItems} onCartClick={toggleCart} />
+        
+        <Cart 
+          items={cartItems} 
+          removeItem={removeFromCart} 
+          isOpen={isCartOpen} 
+          onClose={() => setIsCartOpen(false)} 
+        />
+
+        <Routes>
+          <Route 
+            path="/" 
+            element={
+              <Home 
+                cartItems={cartItems} 
+                setCartItems={setCartItems}
+                isCartOpen={isCartOpen}
+                setIsCartOpen={setIsCartOpen}
+              />
+            } 
+          />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+        
+        <Footer />
       </div>
-  )
+    </Router>
+  );
 }
 
 export default App
