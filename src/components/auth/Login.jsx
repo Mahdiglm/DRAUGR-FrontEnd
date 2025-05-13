@@ -108,7 +108,7 @@ const Login = () => {
               onChange={handleChange}
               onFocus={() => setFocusedInput('email')}
               onBlur={() => setFocusedInput(null)}
-              className={`w-full px-4 py-3 rounded-md bg-midnight bg-opacity-20 border-2 ${
+              className={`w-full px-4 py-3 rounded-md bg-transparent backdrop-blur-sm border-2 ${
                 errors.email 
                   ? 'border-draugr-500 text-draugr-200' 
                   : focusedInput === 'email'
@@ -164,7 +164,7 @@ const Login = () => {
               onChange={handleChange}
               onFocus={() => setFocusedInput('password')}
               onBlur={() => setFocusedInput(null)}
-              className={`w-full px-4 py-3 rounded-md bg-midnight bg-opacity-20 border-2 ${
+              className={`w-full px-4 py-3 rounded-md bg-transparent backdrop-blur-sm border-2 ${
                 errors.password 
                   ? 'border-draugr-500 text-draugr-200' 
                   : focusedInput === 'password'
