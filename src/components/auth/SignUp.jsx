@@ -14,6 +14,7 @@ const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
+  const [focusedInput, setFocusedInput] = useState(null);
 
   // Input change handler
   const handleChange = (e) => {
@@ -125,11 +126,16 @@ const SignUp = () => {
     })
   };
   
-  // Blood drip animation for input focus
-  const bloodDrip = {
-    initial: { height: 0, opacity: 0 },
-    animate: { height: 15, opacity: 1 },
-    exit: { height: 0, opacity: 0 }
+  // Input glow animations
+  const inputGlow = {
+    focused: {
+      boxShadow: ['0 0 0 1px rgba(255,0,0,0.3)', '0 0 0 3px rgba(255,0,0,0.15)'],
+      transition: { duration: 0.3 }
+    },
+    unfocused: {
+      boxShadow: '0 0 0 0 transparent',
+      transition: { duration: 0.3 }
+    }
   };
   
   return (
@@ -146,6 +152,11 @@ const SignUp = () => {
             نام
           </label>
           <div className="relative">
+            <motion.div
+              className="absolute inset-0 rounded-md"
+              variants={inputGlow}
+              animate={focusedInput === 'name' ? 'focused' : 'unfocused'}
+            />
             <input
               id="name"
               name="name"
@@ -153,16 +164,27 @@ const SignUp = () => {
               autoComplete="name"
               value={formData.name}
               onChange={handleChange}
-              className={`horror-input w-full px-4 py-2 rounded-md bg-ash ${
-                errors.name ? 'border-draugr-500' : 'border-gray-700'
-              }`}
+              onFocus={() => setFocusedInput('name')}
+              onBlur={() => setFocusedInput(null)}
+              className={`w-full px-4 py-3 rounded-md bg-midnight border-2 ${
+                errors.name 
+                  ? 'border-draugr-500 text-draugr-200' 
+                  : focusedInput === 'name'
+                    ? 'border-draugr-800 text-white' 
+                    : 'border-gray-800 text-gray-300'
+              } focus:outline-none transition-colors duration-300`}
               placeholder="نام خود را وارد کنید"
             />
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+              </svg>
+            </div>
             {errors.name && (
               <motion.p 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="mt-2 text-sm text-draugr-500"
+                className="mt-2 text-sm text-draugr-500 font-medium"
               >
                 {errors.name}
               </motion.p>
@@ -181,6 +203,11 @@ const SignUp = () => {
             ایمیل
           </label>
           <div className="relative">
+            <motion.div
+              className="absolute inset-0 rounded-md"
+              variants={inputGlow}
+              animate={focusedInput === 'email' ? 'focused' : 'unfocused'}
+            />
             <input
               id="email"
               name="email"
@@ -188,16 +215,28 @@ const SignUp = () => {
               autoComplete="email"
               value={formData.email}
               onChange={handleChange}
-              className={`horror-input w-full px-4 py-2 rounded-md bg-ash ${
-                errors.email ? 'border-draugr-500' : 'border-gray-700'
-              }`}
+              onFocus={() => setFocusedInput('email')}
+              onBlur={() => setFocusedInput(null)}
+              className={`w-full px-4 py-3 rounded-md bg-midnight border-2 ${
+                errors.email 
+                  ? 'border-draugr-500 text-draugr-200' 
+                  : focusedInput === 'email'
+                    ? 'border-draugr-800 text-white' 
+                    : 'border-gray-800 text-gray-300'
+              } focus:outline-none transition-colors duration-300`}
               placeholder="ایمیل خود را وارد کنید"
             />
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+              </svg>
+            </div>
             {errors.email && (
               <motion.p 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="mt-2 text-sm text-draugr-500"
+                className="mt-2 text-sm text-draugr-500 font-medium"
               >
                 {errors.email}
               </motion.p>
@@ -216,6 +255,11 @@ const SignUp = () => {
             رمز عبور
           </label>
           <div className="relative">
+            <motion.div
+              className="absolute inset-0 rounded-md"
+              variants={inputGlow}
+              animate={focusedInput === 'password' ? 'focused' : 'unfocused'}
+            />
             <input
               id="password"
               name="password"
@@ -223,15 +267,21 @@ const SignUp = () => {
               autoComplete="new-password"
               value={formData.password}
               onChange={handleChange}
-              className={`horror-input w-full px-4 py-2 rounded-md bg-ash ${
-                errors.password ? 'border-draugr-500' : 'border-gray-700'
-              }`}
+              onFocus={() => setFocusedInput('password')}
+              onBlur={() => setFocusedInput(null)}
+              className={`w-full px-4 py-3 rounded-md bg-midnight border-2 ${
+                errors.password 
+                  ? 'border-draugr-500 text-draugr-200' 
+                  : focusedInput === 'password'
+                    ? 'border-draugr-800 text-white' 
+                    : 'border-gray-800 text-gray-300'
+              } focus:outline-none transition-colors duration-300`}
               placeholder="رمز عبور جدید را وارد کنید"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 left-0 px-3 flex items-center bg-transparent border-0 text-gray-400 hover:text-white focus:outline-none"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors duration-300 focus:outline-none"
             >
               {showPassword ? (
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -249,7 +299,7 @@ const SignUp = () => {
           
           {/* Password strength meter */}
           {formData.password && (
-            <div className="mt-2">
+            <div className="mt-3">
               <div className="flex justify-between items-center mb-1">
                 <span className="text-xs text-gray-400">قدرت رمز عبور: </span>
                 <span className={`text-xs ${
@@ -274,7 +324,7 @@ const SignUp = () => {
             <motion.p 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="mt-2 text-sm text-draugr-500"
+              className="mt-2 text-sm text-draugr-500 font-medium"
             >
               {errors.password}
             </motion.p>
@@ -292,6 +342,11 @@ const SignUp = () => {
             تأیید رمز عبور
           </label>
           <div className="relative">
+            <motion.div
+              className="absolute inset-0 rounded-md"
+              variants={inputGlow}
+              animate={focusedInput === 'confirmPassword' ? 'focused' : 'unfocused'}
+            />
             <input
               id="confirmPassword"
               name="confirmPassword"
@@ -299,16 +354,27 @@ const SignUp = () => {
               autoComplete="new-password"
               value={formData.confirmPassword}
               onChange={handleChange}
-              className={`horror-input w-full px-4 py-2 rounded-md bg-ash ${
-                errors.confirmPassword ? 'border-draugr-500' : 'border-gray-700'
-              }`}
+              onFocus={() => setFocusedInput('confirmPassword')}
+              onBlur={() => setFocusedInput(null)}
+              className={`w-full px-4 py-3 rounded-md bg-midnight border-2 ${
+                errors.confirmPassword 
+                  ? 'border-draugr-500 text-draugr-200' 
+                  : focusedInput === 'confirmPassword'
+                    ? 'border-draugr-800 text-white' 
+                    : 'border-gray-800 text-gray-300'
+              } focus:outline-none transition-colors duration-300`}
               placeholder="رمز عبور را مجدداً وارد کنید"
             />
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+            </div>
             {errors.confirmPassword && (
               <motion.p 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="mt-2 text-sm text-draugr-500"
+                className="mt-2 text-sm text-draugr-500 font-medium"
               >
                 {errors.confirmPassword}
               </motion.p>
@@ -327,10 +393,16 @@ const SignUp = () => {
           <motion.button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-gradient-to-r from-draugr-900 to-draugr-700 hover:from-draugr-800 hover:to-draugr-600 text-white py-2 px-4 rounded-md font-medium shadow-horror border border-draugr-800 focus:outline-none focus:ring-2 focus:ring-draugr-500 focus:ring-offset-2 focus:ring-offset-gray-900"
-            whileHover={{ scale: 1.02, boxShadow: '0 0 15px rgba(255, 0, 0, 0.5)' }}
+            className="w-full bg-gradient-to-r from-draugr-900 to-draugr-700 hover:from-draugr-800 hover:to-draugr-600 text-white py-3 px-4 rounded-md font-medium shadow-horror focus:outline-none overflow-hidden relative"
+            whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
+            <motion.div 
+              className="absolute inset-0 bg-draugr-500 opacity-0"
+              whileHover={{ opacity: 0.1 }}
+              transition={{ duration: 0.3 }}
+            />
+            
             {isLoading ? (
               <div className="flex justify-center items-center">
                 <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -343,20 +415,38 @@ const SignUp = () => {
           </motion.button>
         </motion.div>
         
-        {/* Login link */}
+        {/* Auth navigation buttons */}
         <motion.div
           custom={6}
           initial="hidden"
           animate="visible"
           variants={formControls}
-          className="text-center mt-4"
+          className="pt-4 border-t border-gray-800 mt-6"
         >
-          <p className="text-sm text-gray-400">
-            قبلاً ثبت نام کرده‌اید؟{' '}
-            <Link to="/login" className="text-draugr-400 hover:text-draugr-300 font-medium">
-              وارد شوید
+          <div className="flex flex-col space-y-2">
+            <p className="text-sm text-center text-gray-400 mb-3">
+              قبلاً ثبت نام کرده‌اید؟
+            </p>
+            <Link to="/login">
+              <motion.button
+                type="button"
+                className="w-full bg-transparent border-2 border-draugr-800 text-draugr-400 hover:text-draugr-300 hover:border-draugr-700 py-2.5 px-4 rounded-md font-medium focus:outline-none relative overflow-hidden group"
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+              >
+                <motion.div 
+                  className="absolute inset-0 bg-draugr-900 opacity-0 group-hover:opacity-30"
+                  transition={{ duration: 0.3 }}
+                />
+                <div className="flex items-center justify-center">
+                  <span>وارد شوید</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              </motion.button>
             </Link>
-          </p>
+          </div>
         </motion.div>
       </form>
     </AuthLayout>

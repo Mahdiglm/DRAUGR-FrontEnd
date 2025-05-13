@@ -12,6 +12,7 @@ const Login = () => {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [focusedInput, setFocusedInput] = useState(null);
 
   // Input change handler
   const handleChange = (e) => {
@@ -89,6 +90,15 @@ const Login = () => {
             ایمیل
           </label>
           <div className="relative">
+            <motion.div
+              className="absolute inset-0 rounded-md"
+              animate={{
+                boxShadow: focusedInput === 'email' 
+                  ? ['0 0 0 1px rgba(255,0,0,0.3)', '0 0 0 3px rgba(255,0,0,0.15)'] 
+                  : '0 0 0 0 transparent'
+              }}
+              transition={{ duration: 0.3 }}
+            />
             <input
               id="email"
               name="email"
@@ -96,16 +106,28 @@ const Login = () => {
               autoComplete="email"
               value={formData.email}
               onChange={handleChange}
-              className={`horror-input w-full px-4 py-2 rounded-md bg-ash ${
-                errors.email ? 'border-draugr-500' : 'border-gray-700'
-              }`}
+              onFocus={() => setFocusedInput('email')}
+              onBlur={() => setFocusedInput(null)}
+              className={`w-full px-4 py-3 rounded-md bg-midnight border-2 ${
+                errors.email 
+                  ? 'border-draugr-500 text-draugr-200' 
+                  : focusedInput === 'email'
+                    ? 'border-draugr-800 text-white' 
+                    : 'border-gray-800 text-gray-300'
+              } focus:outline-none transition-colors duration-300`}
               placeholder="ایمیل خود را وارد کنید"
             />
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+              </svg>
+            </div>
             {errors.email && (
               <motion.p 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="mt-2 text-sm text-draugr-500"
+                className="mt-2 text-sm text-draugr-500 font-medium"
               >
                 {errors.email}
               </motion.p>
@@ -124,6 +146,15 @@ const Login = () => {
             رمز عبور
           </label>
           <div className="relative">
+            <motion.div
+              className="absolute inset-0 rounded-md"
+              animate={{
+                boxShadow: focusedInput === 'password' 
+                  ? ['0 0 0 1px rgba(255,0,0,0.3)', '0 0 0 3px rgba(255,0,0,0.15)'] 
+                  : '0 0 0 0 transparent'
+              }}
+              transition={{ duration: 0.3 }}
+            />
             <input
               id="password"
               name="password"
@@ -131,15 +162,21 @@ const Login = () => {
               autoComplete="current-password"
               value={formData.password}
               onChange={handleChange}
-              className={`horror-input w-full px-4 py-2 rounded-md bg-ash ${
-                errors.password ? 'border-draugr-500' : 'border-gray-700'
-              }`}
+              onFocus={() => setFocusedInput('password')}
+              onBlur={() => setFocusedInput(null)}
+              className={`w-full px-4 py-3 rounded-md bg-midnight border-2 ${
+                errors.password 
+                  ? 'border-draugr-500 text-draugr-200' 
+                  : focusedInput === 'password'
+                    ? 'border-draugr-800 text-white' 
+                    : 'border-gray-800 text-gray-300'
+              } focus:outline-none transition-colors duration-300`}
               placeholder="رمز عبور خود را وارد کنید"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 left-0 px-3 flex items-center bg-transparent border-0 text-gray-400 hover:text-white focus:outline-none"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors duration-300 focus:outline-none"
             >
               {showPassword ? (
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -157,7 +194,7 @@ const Login = () => {
               <motion.p 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="mt-2 text-sm text-draugr-500"
+                className="mt-2 text-sm text-draugr-500 font-medium"
               >
                 {errors.password}
               </motion.p>
@@ -188,10 +225,16 @@ const Login = () => {
           <motion.button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-gradient-to-r from-draugr-900 to-draugr-700 hover:from-draugr-800 hover:to-draugr-600 text-white py-2 px-4 rounded-md font-medium shadow-horror border border-draugr-800 focus:outline-none focus:ring-2 focus:ring-draugr-500 focus:ring-offset-2 focus:ring-offset-gray-900"
-            whileHover={{ scale: 1.02, boxShadow: '0 0 15px rgba(255, 0, 0, 0.5)' }}
+            className="w-full bg-gradient-to-r from-draugr-900 to-draugr-700 hover:from-draugr-800 hover:to-draugr-600 text-white py-3 px-4 rounded-md font-medium shadow-horror focus:outline-none overflow-hidden relative"
+            whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
+            <motion.div 
+              className="absolute inset-0 bg-draugr-500 opacity-0"
+              whileHover={{ opacity: 0.1 }}
+              transition={{ duration: 0.3 }}
+            />
+            
             {isLoading ? (
               <div className="flex justify-center items-center">
                 <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -204,20 +247,38 @@ const Login = () => {
           </motion.button>
         </motion.div>
         
-        {/* Sign up link */}
+        {/* Auth navigation buttons */}
         <motion.div
           custom={5}
           initial="hidden"
           animate="visible"
           variants={formControls}
-          className="text-center mt-4"
+          className="pt-4 border-t border-gray-800 mt-8"
         >
-          <p className="text-sm text-gray-400">
-            حساب کاربری ندارید؟{' '}
-            <Link to="/signup" className="text-draugr-400 hover:text-draugr-300 font-medium">
-              ثبت نام کنید
+          <div className="flex flex-col space-y-2">
+            <p className="text-sm text-center text-gray-400 mb-3">
+              حساب کاربری ندارید؟
+            </p>
+            <Link to="/signup">
+              <motion.button
+                type="button"
+                className="w-full bg-transparent border-2 border-draugr-800 text-draugr-400 hover:text-draugr-300 hover:border-draugr-700 py-2.5 px-4 rounded-md font-medium focus:outline-none relative overflow-hidden group"
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+              >
+                <motion.div 
+                  className="absolute inset-0 bg-draugr-900 opacity-0 group-hover:opacity-30"
+                  transition={{ duration: 0.3 }}
+                />
+                <div className="flex items-center justify-center">
+                  <span>ثبت نام کنید</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              </motion.button>
             </Link>
-          </p>
+          </div>
         </motion.div>
       </form>
     </AuthLayout>
