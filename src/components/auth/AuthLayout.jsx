@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 // Assets
 // Using an empty file as a placeholder - will play sound conditionally
 import bloodDropSound from '../../assets/blood-drop.mp3';
+import backgroundImage from '../../assets/BackGround-Login.jpg';
 
 const AuthLayout = ({ children, title }) => {
   const [bloodDrops, setBloodDrops] = useState([]);
@@ -43,7 +44,15 @@ const AuthLayout = ({ children, title }) => {
   }, [bloodDrops.length]);
   
   return (
-    <div className="min-h-screen bg-midnight flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div 
+      className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden"
+      style={{
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
       {/* Animated blood drops */}
       {bloodDrops.map(drop => (
         <motion.div
@@ -69,8 +78,8 @@ const AuthLayout = ({ children, title }) => {
         />
       ))}
       
-      {/* Background overlay with subtle texture */}
-      <div className="absolute inset-0 bg-blood-texture opacity-15 z-0"></div>
+      {/* Dark overlay for better readability */}
+      <div className="absolute inset-0 bg-black bg-opacity-60 z-0"></div>
       
       {/* Glowing red border pattern */}
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-draugr-800 to-transparent opacity-70"></div>
@@ -96,7 +105,7 @@ const AuthLayout = ({ children, title }) => {
         
         {/* Form container with horror styling */}
         <motion.div
-          className="bg-charcoal rounded-lg shadow-horror border border-draugr-900 p-8 relative overflow-hidden"
+          className="bg-charcoal bg-opacity-80 backdrop-filter backdrop-blur-sm rounded-lg shadow-horror border border-draugr-900 p-8 relative overflow-hidden"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
