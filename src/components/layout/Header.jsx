@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Header = ({ cartItems, onCartClick }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -7,6 +8,7 @@ const Header = ({ cartItems, onCartClick }) => {
   const [typedText, setTypedText] = useState("");
   const [isTyping, setIsTyping] = useState(true);
   const brandName = "DRAUGR";
+  const navigate = useNavigate();
 
   // Sample categories data with subcategories
   const categories = [
@@ -88,7 +90,8 @@ const Header = ({ cartItems, onCartClick }) => {
       <div className="w-full max-w-7xl mx-auto px-4 flex justify-between items-center">
         <motion.div 
           whileHover={{ scale: 1.05 }}
-          className="text-xl md:text-2xl font-bold flex items-center relative w-44 md:w-56"
+          className="text-xl md:text-2xl font-bold flex items-center relative w-44 md:w-56 cursor-pointer"
+          onClick={() => navigate('/')}
         >
           {/* Fixed width container for the logo text to prevent layout shifts */}
           <div className="absolute left-0 top-0 h-full flex items-center">
@@ -102,10 +105,10 @@ const Header = ({ cartItems, onCartClick }) => {
         
         {/* Desktop Navigation */}
         <nav className="hidden md:flex space-x-8">
-          <NavLink href="#" label="خانه" />
-          <NavLink href="#" label="محصولات" />
-          <NavLink href="#" label="دسته‌بندی‌ها" isCategory={true} categories={categories} />
-          <NavLink href="#" label="درباره ما" />
+          <NavLink to="/" label="خانه" />
+          <NavLink to="/" label="محصولات" />
+          <NavLink isCategory={true} label="دسته‌بندی‌ها" categories={categories} />
+          <NavLink to="/" label="درباره ما" />
         </nav>
         
         <div className="flex items-center space-x-3 md:space-x-4">
@@ -117,6 +120,7 @@ const Header = ({ cartItems, onCartClick }) => {
             }}
             whileTap={{ scale: 0.95 }}
             className="hidden sm:block bg-gradient-to-r from-draugr-900 to-draugr-700 text-white px-4 py-2 rounded-md font-medium border border-draugr-600 hover:border-draugr-500 text-sm ml-3 md:ml-4 transition-all duration-300"
+            onClick={() => navigate('/login')}
           >
             ورود
           </motion.button>
@@ -201,10 +205,10 @@ const Header = ({ cartItems, onCartClick }) => {
                 initial="hidden"
                 animate="show"
               >
-                <MobileNavLink href="#" label="خانه" />
-                <MobileNavLink href="#" label="محصولات" />
-                <MobileNavLink href="#" label="دسته‌بندی‌ها" isCategory={true} categories={categories} />
-                <MobileNavLink href="#" label="درباره ما" />
+                <MobileNavLink to="/" label="خانه" onClick={() => setIsMobileMenuOpen(false)} />
+                <MobileNavLink to="/" label="محصولات" onClick={() => setIsMobileMenuOpen(false)} />
+                <MobileNavLink isCategory={true} label="دسته‌بندی‌ها" categories={categories} />
+                <MobileNavLink to="/" label="درباره ما" onClick={() => setIsMobileMenuOpen(false)} />
                 <motion.button 
                   whileHover={{ scale: 1.02, backgroundColor: "#660000" }}
                   whileTap={{ scale: 0.98 }}
@@ -212,6 +216,10 @@ const Header = ({ cartItems, onCartClick }) => {
                   variants={{
                     hidden: { opacity: 0, y: 20 },
                     show: { opacity: 1, y: 0 }
+                  }}
+                  onClick={() => {
+                    navigate('/login');
+                    setIsMobileMenuOpen(false);
                   }}
                 >
                   ورود
@@ -226,49 +234,64 @@ const Header = ({ cartItems, onCartClick }) => {
 };
 
 // Desktop nav link component with enhanced hover effect
-const NavLink = ({ href, label, isCategory = false, categories = [] }) => (
-  <motion.div className="relative group">
-    <motion.a 
-      href={href} 
-      className="hover:text-draugr-500 ml-8 relative group inline-flex items-center"
-      whileHover={{ y: -2 }}
-    >
-      {label}
-      {isCategory && (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      )}
-      <motion.span 
-        className="absolute -bottom-1 left-0 w-0 h-0.5 bg-draugr-500 transition-all duration-300 group-hover:w-full"
-        whileHover={{ width: "100%" }}
-      ></motion.span>
-    </motion.a>
-    
-    {isCategory && (
-      <AnimatePresence>
-        <motion.div
-          initial={{ opacity: 0, y: -10, scaleY: 0 }}
-          animate={{ opacity: 1, y: 0, scaleY: 1 }}
-          exit={{ opacity: 0, y: -10, scaleY: 0 }}
-          transition={{ 
-            duration: 0.3,
-            staggerChildren: 0.05,
-            delayChildren: 0.1
-          }}
-          style={{ transformOrigin: 'top center' }}
-          className="absolute right-0 mt-2 w-52 rounded-md shadow-lg bg-gradient-to-b from-black to-draugr-900 border border-draugr-700 opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all duration-300 z-50"
+const NavLink = ({ to, label, isCategory = false, categories = [] }) => {
+  const navigate = useNavigate();
+  
+  return (
+    <motion.div className="relative group">
+      {isCategory ? (
+        <motion.div 
+          className="hover:text-draugr-500 ml-8 relative group inline-flex items-center cursor-pointer"
+          whileHover={{ y: -2 }}
         >
-          <div className="rounded-md py-1">
-            {categories.map((category, index) => (
-              <CategoryItem key={index} category={category} index={index} />
-            ))}
-          </div>
+          {label}
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+          <motion.span 
+            className="absolute -bottom-1 left-0 w-0 h-0.5 bg-draugr-500 transition-all duration-300 group-hover:w-full"
+            whileHover={{ width: "100%" }}
+          ></motion.span>
         </motion.div>
-      </AnimatePresence>
-    )}
-  </motion.div>
-);
+      ) : (
+        <motion.div 
+          onClick={() => navigate(to)} 
+          className="hover:text-draugr-500 ml-8 relative group inline-flex items-center cursor-pointer"
+          whileHover={{ y: -2 }}
+        >
+          {label}
+          <motion.span 
+            className="absolute -bottom-1 left-0 w-0 h-0.5 bg-draugr-500 transition-all duration-300 group-hover:w-full"
+            whileHover={{ width: "100%" }}
+          ></motion.span>
+        </motion.div>
+      )}
+      
+      {isCategory && (
+        <AnimatePresence>
+          <motion.div
+            initial={{ opacity: 0, y: -10, scaleY: 0 }}
+            animate={{ opacity: 1, y: 0, scaleY: 1 }}
+            exit={{ opacity: 0, y: -10, scaleY: 0 }}
+            transition={{ 
+              duration: 0.3,
+              staggerChildren: 0.05,
+              delayChildren: 0.1
+            }}
+            style={{ transformOrigin: 'top center' }}
+            className="absolute right-0 mt-2 w-52 rounded-md shadow-lg bg-gradient-to-b from-black to-draugr-900 border border-draugr-700 opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all duration-300 z-50"
+          >
+            <div className="rounded-md py-1">
+              {categories.map((category, index) => (
+                <CategoryItem key={index} category={category} index={index} />
+              ))}
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      )}
+    </motion.div>
+  );
+};
 
 // Category item with subcategories
 const CategoryItem = ({ category, index }) => {
@@ -280,9 +303,8 @@ const CategoryItem = ({ category, index }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <motion.a
-        href="#"
-        className="block px-4 py-2 text-sm text-white hover:bg-draugr-800 hover:text-draugr-300 border-b border-draugr-800 last:border-0 flex justify-between items-center"
+      <motion.div
+        className="block px-4 py-2 text-sm text-white hover:bg-draugr-800 hover:text-draugr-300 border-b border-draugr-800 last:border-0 flex justify-between items-center cursor-pointer"
         variants={{
           hidden: { opacity: 0, x: -20 },
           visible: { opacity: 1, x: 0 }
@@ -306,7 +328,7 @@ const CategoryItem = ({ category, index }) => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         )}
-      </motion.a>
+      </motion.div>
       
       {/* Subcategory dropdown */}
       {category.subcategories && category.subcategories.length > 0 && (
@@ -322,10 +344,9 @@ const CategoryItem = ({ category, index }) => {
             >
               <div className="rounded-md py-1">
                 {category.subcategories.map((subcategory, subIndex) => (
-                  <motion.a
+                  <motion.div
                     key={subIndex}
-                    href="#"
-                    className="block px-4 py-2 text-sm text-white hover:bg-draugr-800 hover:text-draugr-300 border-b border-draugr-800 last:border-0"
+                    className="block px-4 py-2 text-sm text-white hover:bg-draugr-800 hover:text-draugr-300 border-b border-draugr-800 last:border-0 cursor-pointer"
                     variants={{
                       hidden: { opacity: 0, x: 10 },
                       visible: { opacity: 1, x: 0 }
@@ -343,7 +364,7 @@ const CategoryItem = ({ category, index }) => {
                     }}
                   >
                     {subcategory}
-                  </motion.a>
+                  </motion.div>
                 ))}
               </div>
             </motion.div>
@@ -355,9 +376,10 @@ const CategoryItem = ({ category, index }) => {
 };
 
 // Mobile nav link with animation
-const MobileNavLink = ({ href, label, isCategory = false, categories = [] }) => {
+const MobileNavLink = ({ to, label, isCategory = false, categories = [], onClick }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState(null);
+  const navigate = useNavigate();
   
   const toggleSubcategory = (index) => {
     if (expandedCategory === index) {
@@ -367,33 +389,40 @@ const MobileNavLink = ({ href, label, isCategory = false, categories = [] }) => 
     }
   };
   
+  const handleClick = () => {
+    if (isCategory) {
+      setIsOpen(!isOpen);
+    } else if (to && onClick) {
+      navigate(to);
+      onClick();
+    }
+  };
+  
   return (
     <div>
       <motion.div 
-        className="flex items-center justify-between py-2" 
+        className="flex items-center justify-between py-2 cursor-pointer" 
         variants={{
           hidden: { opacity: 0, x: -20 },
           show: { opacity: 1, x: 0 }
         }}
-        onClick={() => isCategory && setIsOpen(!isOpen)}
+        onClick={handleClick}
       >
-        <motion.a 
-          href={isCategory ? "#" : href} 
+        <motion.div 
           className="hover:text-draugr-500 transform transition-all duration-300"
           whileHover={{ x: 5, color: "#ff0000" }}
         >
           {label}
-        </motion.a>
+        </motion.div>
         {isCategory && (
-          <motion.button
-            className="p-1"
+          <motion.div
             animate={{ rotate: isOpen ? 180 : 0 }}
             transition={{ duration: 0.3 }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
-          </motion.button>
+          </motion.div>
         )}
       </motion.div>
       
@@ -410,7 +439,7 @@ const MobileNavLink = ({ href, label, isCategory = false, categories = [] }) => 
               {categories.map((category, index) => (
                 <div key={index} className="border-b border-draugr-800 last:border-0">
                   <motion.div 
-                    className="flex items-center justify-between py-2 px-4 text-sm text-gray-200 hover:text-draugr-500"
+                    className="flex items-center justify-between py-2 px-4 text-sm text-gray-200 hover:text-draugr-500 cursor-pointer"
                     variants={{
                       hidden: { opacity: 0, x: -10 },
                       visible: { opacity: 1, x: 0 }
@@ -449,10 +478,9 @@ const MobileNavLink = ({ href, label, isCategory = false, categories = [] }) => 
                           className="overflow-hidden bg-black bg-opacity-30 border-r border-draugr-700 mr-2"
                         >
                           {category.subcategories.map((subcategory, subIndex) => (
-                            <motion.a
+                            <motion.div
                               key={subIndex}
-                              href="#"
-                              className="block py-2 px-6 text-xs text-gray-300 hover:text-draugr-500"
+                              className="block py-2 px-6 text-xs text-gray-300 hover:text-draugr-500 cursor-pointer"
                               variants={{
                                 hidden: { opacity: 0, x: -5 },
                                 visible: { opacity: 1, x: 0 }
@@ -463,7 +491,7 @@ const MobileNavLink = ({ href, label, isCategory = false, categories = [] }) => 
                               whileHover={{ x: 3 }}
                             >
                               {subcategory}
-                            </motion.a>
+                            </motion.div>
                           ))}
                         </motion.div>
                       )}
