@@ -3,7 +3,7 @@ import footerBackground from '../../assets/Background-Footer.png';
 
 const Footer = () => {
   return (
-    <footer className="text-white py-8 sm:py-12 w-full relative bg-black">
+    <footer className="text-white py-12 sm:py-16 md:py-20 w-full relative bg-black min-h-[400px] sm:min-h-[450px] md:min-h-[500px] flex flex-col justify-center">
       {/* Background image */}
       <div 
         className="absolute inset-0 w-full h-full z-0 opacity-70" 
@@ -18,8 +18,8 @@ const Footer = () => {
       {/* Overlay for better text readability */}
       <div className="absolute inset-0 bg-black opacity-60 z-0"></div>
       
-      <div className="w-full max-w-7xl mx-auto px-4 relative z-10">
-        <div className="grid grid-cols-2 gap-6 sm:grid-cols-2 md:grid-cols-4 md:gap-8">
+      <div className="w-full max-w-7xl mx-auto px-4 relative z-10 py-8">
+        <div className="grid grid-cols-2 gap-6 sm:grid-cols-2 md:grid-cols-4 md:gap-8 mb-8">
           <div className="col-span-2 sm:col-span-2 md:col-span-1 mb-6 md:mb-0">
             <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-draugr-400">فروشگاه DRAUGR</h3>
             <p className="text-gray-300 text-sm sm:text-base">منبع شما برای اقلام فوق‌العاده و آثار افسانه‌ای.</p>
