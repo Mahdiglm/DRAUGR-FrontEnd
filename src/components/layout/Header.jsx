@@ -8,14 +8,32 @@ const Header = ({ cartItems, onCartClick }) => {
   const [isTyping, setIsTyping] = useState(true);
   const brandName = "DRAUGR";
 
-  // Sample categories data
+  // Sample categories data with subcategories
   const categories = [
-    "لباس و پوشاک",
-    "لوازم الکترونیکی",
-    "اکسسوری",
-    "کتاب و سرگرمی",
-    "ابزار و تجهیزات",
-    "خانه و آشپزخانه"
+    {
+      name: "لباس و پوشاک",
+      subcategories: ["لباس مردانه", "لباس زنانه", "کفش", "اکسسوری پوشاک"]
+    },
+    {
+      name: "لوازم الکترونیکی",
+      subcategories: ["موبایل", "لپ تاپ", "تبلت", "لوازم جانبی"]
+    },
+    {
+      name: "اکسسوری",
+      subcategories: ["ساعت", "زیورآلات", "عینک", "کیف و کوله"]
+    },
+    {
+      name: "کتاب و سرگرمی",
+      subcategories: ["کتاب", "بازی", "محصولات فرهنگی", "لوازم تحریر"]
+    },
+    {
+      name: "ابزار و تجهیزات",
+      subcategories: ["ابزار برقی", "ابزار دستی", "لوازم باغبانی", "تجهیزات ایمنی"]
+    },
+    {
+      name: "خانه و آشپزخانه",
+      subcategories: ["لوازم آشپزخانه", "دکوراسیون", "لوازم خواب", "لوازم حمام"]
+    }
   ];
 
   const toggleMobileMenu = () => {
@@ -258,32 +276,10 @@ const NavLink = ({ href, label, isCategory = false, categories = [] }) => (
         >
           <div className="rounded-md py-1">
             {categories.map((category, index) => (
-              <motion.a
-                key={index}
-                href="#"
-                className="block px-4 py-2 text-sm text-white hover:bg-draugr-800 hover:text-draugr-300 border-b border-draugr-800 last:border-0"
-                variants={{
-                  hidden: { opacity: 0, x: -20 },
-                  visible: { opacity: 1, x: 0 }
-                }}
-                initial="hidden"
-                animate="visible"
-                transition={{ 
-                  delay: index * 0.05,
-                  type: "spring",
-                  stiffness: 200,
-                  damping: 10
-                }}
-                whileHover={{ 
-                  x: 5,
-                  textShadow: "0 0 8px rgba(255, 0, 0, 0.8)",
-                  color: "#ff0000"
-                }}
-              >
-                {category}
-              </motion.a>
+              <CategoryItem key={index} category={category} index={index} />
             ))}
           </div>
+          
           {/* Blood drip effect at the bottom of dropdown */}
           <div className="absolute -bottom-6 left-0 right-0 h-6 overflow-hidden">
             <div className="flex justify-around">
@@ -308,9 +304,121 @@ const NavLink = ({ href, label, isCategory = false, categories = [] }) => (
   </motion.div>
 );
 
+// Category item with subcategories
+const CategoryItem = ({ category, index }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  
+  return (
+    <motion.div 
+      className="relative group/item"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <motion.a
+        href="#"
+        className="block px-4 py-2 text-sm text-white hover:bg-draugr-800 hover:text-draugr-300 border-b border-draugr-800 last:border-0 flex justify-between items-center"
+        variants={{
+          hidden: { opacity: 0, x: -20 },
+          visible: { opacity: 1, x: 0 }
+        }}
+        initial="hidden"
+        animate="visible"
+        transition={{ 
+          delay: index * 0.05,
+          type: "spring",
+          stiffness: 200,
+          damping: 10
+        }}
+        whileHover={{ 
+          textShadow: "0 0 8px rgba(255, 0, 0, 0.8)",
+          color: "#ff0000"
+        }}
+      >
+        <span>{category.name}</span>
+        {category.subcategories && category.subcategories.length > 0 && (
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 transform rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        )}
+      </motion.a>
+      
+      {/* Subcategory dropdown */}
+      {category.subcategories && category.subcategories.length > 0 && (
+        <AnimatePresence>
+          {isHovered && (
+            <motion.div
+              className="absolute right-full top-0 w-48 bg-gradient-to-b from-draugr-950 to-black border border-draugr-700 rounded-md shadow-horror mr-1 z-50"
+              initial={{ opacity: 0, x: 20, scaleX: 0.8 }}
+              animate={{ opacity: 1, x: 0, scaleX: 1 }}
+              exit={{ opacity: 0, x: 10, scaleX: 0.8 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              style={{ transformOrigin: 'right center' }}
+            >
+              <div className="rounded-md py-1">
+                {category.subcategories.map((subcategory, subIndex) => (
+                  <motion.a
+                    key={subIndex}
+                    href="#"
+                    className="block px-4 py-2 text-sm text-white hover:bg-draugr-800 hover:text-draugr-300 border-b border-draugr-800 last:border-0"
+                    variants={{
+                      hidden: { opacity: 0, x: 10 },
+                      visible: { opacity: 1, x: 0 }
+                    }}
+                    initial="hidden"
+                    animate="visible"
+                    transition={{ 
+                      delay: subIndex * 0.03,
+                      duration: 0.2
+                    }}
+                    whileHover={{ 
+                      x: -5,
+                      textShadow: "0 0 8px rgba(255, 0, 0, 0.8)",
+                      color: "#ff0000"
+                    }}
+                  >
+                    {subcategory}
+                  </motion.a>
+                ))}
+              </div>
+              
+              {/* Blood drip effect for subcategory dropdown */}
+              <div className="absolute -right-2 top-0 bottom-0 w-2 overflow-hidden">
+                <div className="flex flex-col justify-around h-full">
+                  {[...Array(5)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      className="h-2 w-6 bg-draugr-600 rounded-r-full"
+                      initial={{ x: 6 }}
+                      animate={{ x: 0 }}
+                      transition={{ 
+                        delay: i * 0.05,
+                        duration: 0.3,
+                        ease: "easeOut"
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
+    </motion.div>
+  );
+};
+
 // Mobile nav link with animation
 const MobileNavLink = ({ href, label, isCategory = false, categories = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [expandedCategory, setExpandedCategory] = useState(null);
+
+  const toggleSubcategory = (index) => {
+    if (expandedCategory === index) {
+      setExpandedCategory(null);
+    } else {
+      setExpandedCategory(index);
+    }
+  };
 
   return (
     <div>
@@ -353,21 +461,68 @@ const MobileNavLink = ({ href, label, isCategory = false, categories = [] }) => 
               className="overflow-hidden bg-draugr-950 rounded-md my-1 mr-4 border-r-2 border-draugr-800"
             >
               {categories.map((category, index) => (
-                <motion.a
-                  key={index}
-                  href="#"
-                  className="block py-2 px-4 text-sm text-gray-200 hover:text-draugr-500"
-                  variants={{
-                    hidden: { opacity: 0, x: -10 },
-                    visible: { opacity: 1, x: 0 }
-                  }}
-                  initial="hidden"
-                  animate="visible"
-                  transition={{ delay: index * 0.05 }}
-                  whileHover={{ x: 5 }}
-                >
-                  {category}
-                </motion.a>
+                <div key={index} className="border-b border-draugr-800 last:border-0">
+                  <motion.div 
+                    className="flex items-center justify-between py-2 px-4 text-sm text-gray-200 hover:text-draugr-500"
+                    variants={{
+                      hidden: { opacity: 0, x: -10 },
+                      visible: { opacity: 1, x: 0 }
+                    }}
+                    initial="hidden"
+                    animate="visible"
+                    transition={{ delay: index * 0.05 }}
+                    whileHover={{ x: 5 }}
+                    onClick={() => toggleSubcategory(index)}
+                  >
+                    <span>{category.name}</span>
+                    {category.subcategories && category.subcategories.length > 0 && (
+                      <motion.svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        className="h-3 w-3" 
+                        fill="none" 
+                        viewBox="0 0 24 24" 
+                        stroke="currentColor"
+                        animate={{ rotate: expandedCategory === index ? 180 : 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </motion.svg>
+                    )}
+                  </motion.div>
+                  
+                  {/* Mobile subcategories */}
+                  {category.subcategories && (
+                    <AnimatePresence>
+                      {expandedCategory === index && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden bg-black bg-opacity-30 border-r border-draugr-700 mr-2"
+                        >
+                          {category.subcategories.map((subcategory, subIndex) => (
+                            <motion.a
+                              key={subIndex}
+                              href="#"
+                              className="block py-2 px-6 text-xs text-gray-300 hover:text-draugr-500"
+                              variants={{
+                                hidden: { opacity: 0, x: -5 },
+                                visible: { opacity: 1, x: 0 }
+                              }}
+                              initial="hidden"
+                              animate="visible"
+                              transition={{ delay: subIndex * 0.03 }}
+                              whileHover={{ x: 3 }}
+                            >
+                              {subcategory}
+                            </motion.a>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  )}
+                </div>
               ))}
             </motion.div>
           )}
