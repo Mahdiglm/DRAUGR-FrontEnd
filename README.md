@@ -246,3 +246,79 @@ draugr-shop/
 </p>
 
 </div>
+
+## Authentication Features
+
+The newly added authentication system includes:
+
+- **Login Page**: Modern form with validation and error messages
+- **Signup Page**: Interactive form with password strength meter
+- **Blood Drop Animations**: Creepy blood drops for the horror theme
+- **Responsive Design**: Full mobile support for auth pages
+- **Form Validation**: Client-side validation for all inputs
+
+## Deployment to GitHub Pages
+
+```bash
+# Build and deploy the project
+npm run deploy
+```
+
+## Technologies Used
+
+- React
+- TailwindCSS
+- Framer Motion
+- React Router DOM
+
+## Project Structure
+
+```
+draugr-shop/
+├── public/
+├── src/
+│   ├── assets/
+│   ├── components/
+│   │   ├── auth/
+│   │   │   ├── AuthLayout.jsx     # Shared layout for auth pages
+│   │   │   ├── Login.jsx          # Login form component
+│   │   │   └── SignUp.jsx         # Signup form component
+│   │   ├── cart/
+│   │   ├── layout/
+│   │   │   ├── Header.jsx
+│   │   │   └── Footer.jsx
+│   │   └── product/
+│   ├── utils/
+│   ├── App.jsx
+│   ├── main.jsx
+│   └── index.css
+├── tailwind.config.js
+└── vite.config.js
+```
+
+## Styling
+
+The horror theme is built using Tailwind CSS, with custom gradients and animations. Key styling features include:
+
+- Blood-red color scheme
+- Dark backgrounds with subtle textures
+- Animated blood drops
+- Glowing effects on hover
+- Custom horror shadows
+
+## Localization
+
+The site is fully localized in Persian with RTL (right-to-left) layout. This is done using:
+
+- RTL CSS direction
+- Persian text and translations
+- Vazirmatn font for Persian characters
+
+## Known Issues
+
+- Sound effects may not work in browsers with autoplay restrictions
+- Some animations might be processing-intensive on lower-end devices
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
