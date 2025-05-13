@@ -279,25 +279,6 @@ const NavLink = ({ href, label, isCategory = false, categories = [] }) => (
               <CategoryItem key={index} category={category} index={index} />
             ))}
           </div>
-          
-          {/* Blood drip effect at the bottom of dropdown */}
-          <div className="absolute -bottom-6 left-0 right-0 h-6 overflow-hidden">
-            <div className="flex justify-around">
-              {[...Array(8)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  className="w-2 h-6 bg-draugr-600 rounded-b-full"
-                  initial={{ y: -6 }}
-                  animate={{ y: 0 }}
-                  transition={{ 
-                    delay: i * 0.05,
-                    duration: 0.3,
-                    ease: "easeOut"
-                  }}
-                />
-              ))}
-            </div>
-          </div>
         </motion.div>
       </AnimatePresence>
     )}
@@ -379,25 +360,6 @@ const CategoryItem = ({ category, index }) => {
                     {subcategory}
                   </motion.a>
                 ))}
-              </div>
-              
-              {/* Blood drip effect for subcategory dropdown */}
-              <div className="absolute -right-2 top-0 bottom-0 w-2 overflow-hidden">
-                <div className="flex flex-col justify-around h-full">
-                  {[...Array(5)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      className="h-2 w-6 bg-draugr-600 rounded-r-full"
-                      initial={{ x: 6 }}
-                      animate={{ x: 0 }}
-                      transition={{ 
-                        delay: i * 0.05,
-                        duration: 0.3,
-                        ease: "easeOut"
-                      }}
-                    />
-                  ))}
-                </div>
               </div>
             </motion.div>
           )}
