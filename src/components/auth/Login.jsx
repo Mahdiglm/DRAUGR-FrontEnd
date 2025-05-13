@@ -91,7 +91,7 @@ const Login = () => {
           </label>
           <div className="relative">
             <motion.div
-              className="absolute inset-0 rounded-md"
+              className="absolute inset-0 rounded-md pointer-events-none z-0"
               animate={{
                 boxShadow: focusedInput === 'email' 
                   ? ['0 0 0 1px rgba(255,0,0,0.3)', '0 0 0 3px rgba(255,0,0,0.15)'] 
@@ -108,16 +108,16 @@ const Login = () => {
               onChange={handleChange}
               onFocus={() => setFocusedInput('email')}
               onBlur={() => setFocusedInput(null)}
-              className={`w-full px-4 py-3 rounded-md bg-midnight border-2 ${
+              className={`w-full px-4 py-3 rounded-md bg-midnight bg-opacity-20 border-2 ${
                 errors.email 
                   ? 'border-draugr-500 text-draugr-200' 
                   : focusedInput === 'email'
                     ? 'border-draugr-800 text-white' 
                     : 'border-gray-800 text-gray-300'
-              } focus:outline-none transition-colors duration-300`}
+              } focus:outline-none transition-colors duration-300 relative z-10`}
               placeholder="ایمیل خود را وارد کنید"
             />
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 z-20">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                 <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
@@ -147,7 +147,7 @@ const Login = () => {
           </label>
           <div className="relative">
             <motion.div
-              className="absolute inset-0 rounded-md"
+              className="absolute inset-0 rounded-md pointer-events-none z-0"
               animate={{
                 boxShadow: focusedInput === 'password' 
                   ? ['0 0 0 1px rgba(255,0,0,0.3)', '0 0 0 3px rgba(255,0,0,0.15)'] 
@@ -164,19 +164,19 @@ const Login = () => {
               onChange={handleChange}
               onFocus={() => setFocusedInput('password')}
               onBlur={() => setFocusedInput(null)}
-              className={`w-full px-4 py-3 rounded-md bg-midnight border-2 ${
+              className={`w-full px-4 py-3 rounded-md bg-midnight bg-opacity-20 border-2 ${
                 errors.password 
                   ? 'border-draugr-500 text-draugr-200' 
                   : focusedInput === 'password'
                     ? 'border-draugr-800 text-white' 
                     : 'border-gray-800 text-gray-300'
-              } focus:outline-none transition-colors duration-300`}
+              } focus:outline-none transition-colors duration-300 relative z-10`}
               placeholder="رمز عبور خود را وارد کنید"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors duration-300 focus:outline-none"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors duration-300 focus:outline-none z-20"
             >
               {showPassword ? (
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">

@@ -153,7 +153,7 @@ const SignUp = () => {
           </label>
           <div className="relative">
             <motion.div
-              className="absolute inset-0 rounded-md"
+              className="absolute inset-0 rounded-md pointer-events-none z-0"
               variants={inputGlow}
               animate={focusedInput === 'name' ? 'focused' : 'unfocused'}
             />
@@ -166,16 +166,16 @@ const SignUp = () => {
               onChange={handleChange}
               onFocus={() => setFocusedInput('name')}
               onBlur={() => setFocusedInput(null)}
-              className={`w-full px-4 py-3 rounded-md bg-midnight border-2 ${
+              className={`w-full px-4 py-3 rounded-md bg-midnight bg-opacity-20 border-2 ${
                 errors.name 
                   ? 'border-draugr-500 text-draugr-200' 
                   : focusedInput === 'name'
                     ? 'border-draugr-800 text-white' 
                     : 'border-gray-800 text-gray-300'
-              } focus:outline-none transition-colors duration-300`}
+              } focus:outline-none transition-colors duration-300 relative z-10`}
               placeholder="نام خود را وارد کنید"
             />
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 z-20">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
               </svg>
@@ -204,7 +204,7 @@ const SignUp = () => {
           </label>
           <div className="relative">
             <motion.div
-              className="absolute inset-0 rounded-md"
+              className="absolute inset-0 rounded-md pointer-events-none z-0"
               variants={inputGlow}
               animate={focusedInput === 'email' ? 'focused' : 'unfocused'}
             />
@@ -217,16 +217,16 @@ const SignUp = () => {
               onChange={handleChange}
               onFocus={() => setFocusedInput('email')}
               onBlur={() => setFocusedInput(null)}
-              className={`w-full px-4 py-3 rounded-md bg-midnight border-2 ${
+              className={`w-full px-4 py-3 rounded-md bg-midnight bg-opacity-20 border-2 ${
                 errors.email 
                   ? 'border-draugr-500 text-draugr-200' 
                   : focusedInput === 'email'
                     ? 'border-draugr-800 text-white' 
                     : 'border-gray-800 text-gray-300'
-              } focus:outline-none transition-colors duration-300`}
+              } focus:outline-none transition-colors duration-300 relative z-10`}
               placeholder="ایمیل خود را وارد کنید"
             />
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 z-20">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                 <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
@@ -256,7 +256,7 @@ const SignUp = () => {
           </label>
           <div className="relative">
             <motion.div
-              className="absolute inset-0 rounded-md"
+              className="absolute inset-0 rounded-md pointer-events-none z-0"
               variants={inputGlow}
               animate={focusedInput === 'password' ? 'focused' : 'unfocused'}
             />
@@ -269,19 +269,19 @@ const SignUp = () => {
               onChange={handleChange}
               onFocus={() => setFocusedInput('password')}
               onBlur={() => setFocusedInput(null)}
-              className={`w-full px-4 py-3 rounded-md bg-midnight border-2 ${
+              className={`w-full px-4 py-3 rounded-md bg-midnight bg-opacity-20 border-2 ${
                 errors.password 
                   ? 'border-draugr-500 text-draugr-200' 
                   : focusedInput === 'password'
                     ? 'border-draugr-800 text-white' 
                     : 'border-gray-800 text-gray-300'
-              } focus:outline-none transition-colors duration-300`}
+              } focus:outline-none transition-colors duration-300 relative z-10`}
               placeholder="رمز عبور جدید را وارد کنید"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors duration-300 focus:outline-none"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors duration-300 focus:outline-none z-20"
             >
               {showPassword ? (
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -343,7 +343,7 @@ const SignUp = () => {
           </label>
           <div className="relative">
             <motion.div
-              className="absolute inset-0 rounded-md"
+              className="absolute inset-0 rounded-md pointer-events-none z-0"
               variants={inputGlow}
               animate={focusedInput === 'confirmPassword' ? 'focused' : 'unfocused'}
             />
@@ -356,16 +356,16 @@ const SignUp = () => {
               onChange={handleChange}
               onFocus={() => setFocusedInput('confirmPassword')}
               onBlur={() => setFocusedInput(null)}
-              className={`w-full px-4 py-3 rounded-md bg-midnight border-2 ${
+              className={`w-full px-4 py-3 rounded-md bg-midnight bg-opacity-20 border-2 ${
                 errors.confirmPassword 
                   ? 'border-draugr-500 text-draugr-200' 
                   : focusedInput === 'confirmPassword'
                     ? 'border-draugr-800 text-white' 
                     : 'border-gray-800 text-gray-300'
-              } focus:outline-none transition-colors duration-300`}
+              } focus:outline-none transition-colors duration-300 relative z-10`}
               placeholder="رمز عبور را مجدداً وارد کنید"
             />
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 z-20">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
