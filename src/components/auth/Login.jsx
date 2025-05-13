@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from './AuthLayout';
 
 const Login = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -57,7 +58,7 @@ const Login = () => {
       console.log('Login attempt with:', formData);
       
       // Redirect to home page after successful login
-      // history.push('/');
+      navigate('/');
     }, 2000);
   };
 
