@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link, useLocation } from 'react-router-dom';
 
 const Header = ({ cartItems, onCartClick }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -8,7 +7,6 @@ const Header = ({ cartItems, onCartClick }) => {
   const [typedText, setTypedText] = useState("");
   const [isTyping, setIsTyping] = useState(true);
   const brandName = "DRAUGR";
-  const location = useLocation();
 
   // Sample categories data with subcategories
   const categories = [
@@ -41,11 +39,6 @@ const Header = ({ cartItems, onCartClick }) => {
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
-
-  // Close mobile menu on route change
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [location]);
 
   // Typing animation effect
   useEffect(() => {
@@ -83,21 +76,6 @@ const Header = ({ cartItems, onCartClick }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Blood drop animation for logo - removing this
-  const bloodDropVariants = {
-    initial: { y: -5, opacity: 0 },
-    animate: { 
-      y: 15, 
-      opacity: [0, 1, 1, 0],
-      transition: { 
-        duration: 2,
-        repeat: Infinity,
-        repeatDelay: 4,
-        ease: "easeInOut" 
-      }
-    }
-  };
-
   return (
     <motion.header 
       initial={{ opacity: 0, y: -50 }}
@@ -113,56 +91,35 @@ const Header = ({ cartItems, onCartClick }) => {
           className="text-xl md:text-2xl font-bold flex items-center relative w-44 md:w-56"
         >
           {/* Fixed width container for the logo text to prevent layout shifts */}
-          <Link to="/" className="absolute left-0 top-0 h-full flex items-center">
+          <div className="absolute left-0 top-0 h-full flex items-center">
             <span className="blood-text animate-pulse-slow relative">
               <span className="inline-block min-w-[76px] md:min-w-[96px]">{typedText || '\u00A0'}</span>
               <span className={`inline-block w-0.5 h-6 bg-draugr-500 absolute ml-1 ${isTyping ? 'animate-pulse' : 'opacity-0'}`}></span>
             </span>
             <span className="mr-1"> فروشگاه</span>
-          </Link>
+          </div>
         </motion.div>
         
         {/* Desktop Navigation */}
         <nav className="hidden md:flex space-x-8">
-          <NavLink to="/" label="خانه" active={location.pathname === '/'} />
-          <NavLink to="/products" label="محصولات" active={location.pathname === '/products'} />
-          <NavLink to="#" label="دسته‌بندی‌ها" isCategory={true} categories={categories} />
-          <NavLink to="/about" label="درباره ما" active={location.pathname === '/about'} />
+          <NavLink href="#" label="خانه" />
+          <NavLink href="#" label="محصولات" />
+          <NavLink href="#" label="دسته‌بندی‌ها" isCategory={true} categories={categories} />
+          <NavLink href="#" label="درباره ما" />
         </nav>
         
         <div className="flex items-center space-x-3 md:space-x-4">
-          {/* Login/Sign Up Buttons */}
-          {location.pathname !== '/login' && location.pathname !== '/signup' && (
-            <div className="hidden sm:flex space-x-2">
-              <Link to="/login">
-                <motion.button 
-                  whileHover={{ 
-                    scale: 1.05, 
-                    boxShadow: '0 0 12px rgba(255, 0, 0, 0.7)',
-                    textShadow: '0 0 8px rgba(255, 255, 255, 0.8)'
-                  }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-transparent text-white px-3 py-1.5 rounded-md font-medium border border-draugr-800 hover:border-draugr-500 text-sm ml-2 transition-all duration-300"
-                >
-                  ورود
-                </motion.button>
-              </Link>
-              
-              <Link to="/signup">
-                <motion.button 
-                  whileHover={{ 
-                    scale: 1.05, 
-                    boxShadow: '0 0 12px rgba(255, 0, 0, 0.7)',
-                    textShadow: '0 0 8px rgba(255, 255, 255, 0.8)'
-                  }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-gradient-to-r from-draugr-900 to-draugr-700 text-white px-3 py-1.5 rounded-md font-medium border border-draugr-600 hover:border-draugr-500 text-sm transition-all duration-300"
-                >
-                  ثبت نام
-                </motion.button>
-              </Link>
-            </div>
-          )}
+          <motion.button 
+            whileHover={{ 
+              scale: 1.05, 
+              boxShadow: '0 0 12px rgba(255, 0, 0, 0.7)',
+              textShadow: '0 0 8px rgba(255, 255, 255, 0.8)'
+            }}
+            whileTap={{ scale: 0.95 }}
+            className="hidden sm:block bg-gradient-to-r from-draugr-900 to-draugr-700 text-white px-4 py-2 rounded-md font-medium border border-draugr-600 hover:border-draugr-500 text-sm ml-3 md:ml-4 transition-all duration-300"
+          >
+            ورود
+          </motion.button>
 
           <motion.div 
             whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
@@ -227,38 +184,39 @@ const Header = ({ cartItems, onCartClick }) => {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="md:hidden bg-charcoal shadow-2xl overflow-hidden"
+            className="md:hidden bg-charcoal overflow-hidden w-full border-t border-draugr-900"
           >
-            <div className="px-4 py-2">
-              <MobileNavLink to="/" label="خانه" active={location.pathname === '/'} />
-              <MobileNavLink to="/products" label="محصولات" active={location.pathname === '/products'} />
-              <MobileNavLink to="#" label="دسته‌بندی‌ها" isCategory={true} categories={categories} />
-              <MobileNavLink to="/about" label="درباره ما" active={location.pathname === '/about'} />
-              
-              {/* Mobile Login/Signup */}
-              {location.pathname !== '/login' && location.pathname !== '/signup' && (
-                <div className="py-2 flex justify-evenly">
-                  <Link to="/login" className="w-1/2 ml-1">
-                    <motion.button 
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="w-full bg-transparent text-white px-3 py-2 rounded-md font-medium border border-draugr-800 text-sm transition-all duration-300"
-                    >
-                      ورود
-                    </motion.button>
-                  </Link>
-                  
-                  <Link to="/signup" className="w-1/2 mr-1">
-                    <motion.button 
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="w-full bg-gradient-to-r from-draugr-900 to-draugr-700 text-white px-3 py-2 rounded-md font-medium border border-draugr-600 text-sm transition-all duration-300"
-                    >
-                      ثبت نام
-                    </motion.button>
-                  </Link>
-                </div>
-              )}
+            <div className="w-full max-w-7xl mx-auto px-4 py-3">
+              <motion.nav 
+                className="flex flex-col space-y-3"
+                variants={{
+                  hidden: { opacity: 0 },
+                  show: {
+                    opacity: 1,
+                    transition: {
+                      staggerChildren: 0.1
+                    }
+                  }
+                }}
+                initial="hidden"
+                animate="show"
+              >
+                <MobileNavLink href="#" label="خانه" />
+                <MobileNavLink href="#" label="محصولات" />
+                <MobileNavLink href="#" label="دسته‌بندی‌ها" isCategory={true} categories={categories} />
+                <MobileNavLink href="#" label="درباره ما" />
+                <motion.button 
+                  whileHover={{ scale: 1.02, backgroundColor: "#660000" }}
+                  whileTap={{ scale: 0.98 }}
+                  className="sm:hidden bg-gradient-to-r from-draugr-900 to-draugr-700 text-white px-4 py-2 rounded-md font-medium border border-draugr-600 text-sm self-start mt-2"
+                  variants={{
+                    hidden: { opacity: 0, y: 20 },
+                    show: { opacity: 1, y: 0 }
+                  }}
+                >
+                  ورود
+                </motion.button>
+              </motion.nav>
             </div>
           </motion.div>
         )}
@@ -267,32 +225,49 @@ const Header = ({ cartItems, onCartClick }) => {
   );
 };
 
-// Updated NavLink component to use Link from react-router-dom
-const NavLink = ({ to, label, active = false, isCategory = false, categories = [] }) => (
-  <div className="relative group">
-    <Link to={to}>
-      <motion.span
-        className={`text-sm inline-block py-2 pr-4 pl-3 cursor-pointer ${
-          active ? 'text-draugr-500' : 'text-gray-200'
-        } hover:text-draugr-400`}
-        whileHover={{ y: -2 }}
-        transition={{ type: "spring", stiffness: 300 }}
-      >
-        {label}
-      </motion.span>
-    </Link>
+// Desktop nav link component with enhanced hover effect
+const NavLink = ({ href, label, isCategory = false, categories = [] }) => (
+  <motion.div className="relative group">
+    <motion.a 
+      href={href} 
+      className="hover:text-draugr-500 ml-8 relative group inline-flex items-center"
+      whileHover={{ y: -2 }}
+    >
+      {label}
+      {isCategory && (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      )}
+      <motion.span 
+        className="absolute -bottom-1 left-0 w-0 h-0.5 bg-draugr-500 transition-all duration-300 group-hover:w-full"
+        whileHover={{ width: "100%" }}
+      ></motion.span>
+    </motion.a>
     
-    {/* Dropdown for Categories */}
     {isCategory && (
-      <div className="absolute invisible group-hover:visible opacity-0 group-hover:opacity-100 bg-charcoal border border-draugr-900 rounded-md shadow-horror w-56 right-0 mt-1 transition-all duration-300 z-20">
-        <div className="py-2">
-          {categories.map((category, index) => (
-            <CategoryItem key={index} category={category} index={index} />
-          ))}
-        </div>
-      </div>
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0, y: -10, scaleY: 0 }}
+          animate={{ opacity: 1, y: 0, scaleY: 1 }}
+          exit={{ opacity: 0, y: -10, scaleY: 0 }}
+          transition={{ 
+            duration: 0.3,
+            staggerChildren: 0.05,
+            delayChildren: 0.1
+          }}
+          style={{ transformOrigin: 'top center' }}
+          className="absolute right-0 mt-2 w-52 rounded-md shadow-lg bg-gradient-to-b from-black to-draugr-900 border border-draugr-700 opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all duration-300 z-50"
+        >
+          <div className="rounded-md py-1">
+            {categories.map((category, index) => (
+              <CategoryItem key={index} category={category} index={index} />
+            ))}
+          </div>
+        </motion.div>
+      </AnimatePresence>
     )}
-  </div>
+  </motion.div>
 );
 
 // Category item with subcategories
@@ -379,85 +354,126 @@ const CategoryItem = ({ category, index }) => {
   );
 };
 
-// Update MobileNavLink to use Link from react-router-dom
-const MobileNavLink = ({ to, label, active = false, isCategory = false, categories = [] }) => {
-  const [isSubcategoryOpen, setIsSubcategoryOpen] = useState(Array(categories.length).fill(false));
+// Mobile nav link with animation
+const MobileNavLink = ({ href, label, isCategory = false, categories = [] }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [expandedCategory, setExpandedCategory] = useState(null);
   
   const toggleSubcategory = (index) => {
-    setIsSubcategoryOpen(prev => {
-      const newState = [...prev];
-      newState[index] = !newState[index];
-      return newState;
-    });
+    if (expandedCategory === index) {
+      setExpandedCategory(null);
+    } else {
+      setExpandedCategory(index);
+    }
   };
   
   return (
-    <div className="py-1 border-b border-gray-800">
-      {isCategory ? (
-        <div>
-          <motion.div 
-            className="flex items-center justify-between py-2 text-gray-200 hover:text-draugr-400 cursor-pointer"
-            onClick={() => {}}
-            whileHover={{ backgroundColor: 'rgba(255, 0, 0, 0.05)' }}
+    <div>
+      <motion.div 
+        className="flex items-center justify-between py-2" 
+        variants={{
+          hidden: { opacity: 0, x: -20 },
+          show: { opacity: 1, x: 0 }
+        }}
+        onClick={() => isCategory && setIsOpen(!isOpen)}
+      >
+        <motion.a 
+          href={isCategory ? "#" : href} 
+          className="hover:text-draugr-500 transform transition-all duration-300"
+          whileHover={{ x: 5, color: "#ff0000" }}
+        >
+          {label}
+        </motion.a>
+        {isCategory && (
+          <motion.button
+            className="p-1"
+            animate={{ rotate: isOpen ? 180 : 0 }}
+            transition={{ duration: 0.3 }}
           >
-            <span className="text-sm">{label}</span>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
-          </motion.div>
-          <div className="pl-4">
-            {categories.map((category, index) => (
-              <div key={index} className="border-r border-gray-800 mr-2">
-                <motion.div 
-                  className="flex items-center justify-between py-2 text-gray-300 hover:text-draugr-400 cursor-pointer pr-2"
-                  onClick={() => toggleSubcategory(index)}
-                  whileHover={{ backgroundColor: 'rgba(255, 0, 0, 0.05)' }}
-                >
-                  <span className="text-sm">{category.name}</span>
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    className={`h-4 w-4 transition-transform duration-200 ${isSubcategoryOpen[index] ? 'transform rotate-180' : ''}`} 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
-                    stroke="currentColor"
+          </motion.button>
+        )}
+      </motion.div>
+      
+      {isCategory && (
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="overflow-hidden bg-draugr-950 rounded-md my-1 mr-4 border-r-2 border-draugr-800"
+            >
+              {categories.map((category, index) => (
+                <div key={index} className="border-b border-draugr-800 last:border-0">
+                  <motion.div 
+                    className="flex items-center justify-between py-2 px-4 text-sm text-gray-200 hover:text-draugr-500"
+                    variants={{
+                      hidden: { opacity: 0, x: -10 },
+                      visible: { opacity: 1, x: 0 }
+                    }}
+                    initial="hidden"
+                    animate="visible"
+                    transition={{ delay: index * 0.05 }}
+                    whileHover={{ x: 5 }}
+                    onClick={() => toggleSubcategory(index)}
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </motion.div>
-                <AnimatePresence>
-                  {isSubcategoryOpen[index] && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="pl-4 border-r border-gray-800 mr-2"
-                    >
-                      {category.subcategories.map((subcategory, subIndex) => (
-                        <motion.div 
-                          key={subIndex}
-                          className="py-2 text-sm text-gray-400 hover:text-draugr-400 cursor-pointer pr-2"
-                          whileHover={{ x: 5, backgroundColor: 'rgba(255, 0, 0, 0.05)' }}
+                    <span>{category.name}</span>
+                    {category.subcategories && category.subcategories.length > 0 && (
+                      <motion.svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        className="h-3 w-3" 
+                        fill="none" 
+                        viewBox="0 0 24 24" 
+                        stroke="currentColor"
+                        animate={{ rotate: expandedCategory === index ? 180 : 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </motion.svg>
+                    )}
+                  </motion.div>
+                  
+                  {/* Mobile subcategories */}
+                  {category.subcategories && (
+                    <AnimatePresence>
+                      {expandedCategory === index && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden bg-black bg-opacity-30 border-r border-draugr-700 mr-2"
                         >
-                          {subcategory}
+                          {category.subcategories.map((subcategory, subIndex) => (
+                            <motion.a
+                              key={subIndex}
+                              href="#"
+                              className="block py-2 px-6 text-xs text-gray-300 hover:text-draugr-500"
+                              variants={{
+                                hidden: { opacity: 0, x: -5 },
+                                visible: { opacity: 1, x: 0 }
+                              }}
+                              initial="hidden"
+                              animate="visible"
+                              transition={{ delay: subIndex * 0.03 }}
+                              whileHover={{ x: 3 }}
+                            >
+                              {subcategory}
+                            </motion.a>
+                          ))}
                         </motion.div>
-                      ))}
-                    </motion.div>
+                      )}
+                    </AnimatePresence>
                   )}
-                </AnimatePresence>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <Link to={to}>
-          <motion.div 
-            className={`py-2 text-sm ${active ? 'text-draugr-500' : 'text-gray-200'} hover:text-draugr-400`}
-            whileHover={{ x: 5, backgroundColor: 'rgba(255, 0, 0, 0.05)' }}
-          >
-            {label}
-          </motion.div>
-        </Link>
+                </div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       )}
     </div>
   );
