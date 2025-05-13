@@ -1,10 +1,34 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
-import App from './App.jsx'
+import './App.css'
+
+// Components
+import ErrorBoundary from './components/shared/ErrorBoundary'
+
+// Layouts
+import MainLayout from './components/layout/MainLayout'
+
+// Pages
+import HomePage from './components/pages/HomePage'
+import ProductDetail from './components/product/ProductDetail'
+import Login from './components/auth/Login'
+import SignUp from './components/auth/SignUp'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <App />
+    <ErrorBoundary>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<MainLayout />}>
+            <Route index element={<HomePage />} />
+            <Route path="product/:id" element={<ProductDetail />} />
+            <Route path="login" element={<Login />} />
+            <Route path="signup" element={<SignUp />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </ErrorBoundary>
   </StrictMode>,
 )
