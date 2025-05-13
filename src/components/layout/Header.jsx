@@ -184,15 +184,43 @@ const Header = ({ cartItems, onCartClick }) => {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="md:hidden bg-charcoal overflow-hidden w-full border-t border-draugr-900"
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="md:hidden fixed top-0 right-0 h-screen w-3/4 bg-gradient-to-b from-black to-draugr-950 shadow-[-10px_0px_30px_rgba(0,0,0,0.5)] z-50 overflow-y-auto"
+            style={{ backdropFilter: 'blur(8px)' }}
           >
-            <div className="w-full max-w-7xl mx-auto px-4 py-3">
+            <div className="w-full h-full flex flex-col">
+              {/* Menu Header with Close Button */}
+              <div className="p-4 flex justify-between items-center border-b border-draugr-800">
+                <span className="blood-text text-xl font-bold">{brandName}</span>
+                <motion.button
+                  whileHover={{ scale: 1.1, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={toggleMobileMenu}
+                  className="text-white p-1 rounded-full hover:bg-draugr-900"
+                >
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    className="h-6 w-6" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M6 18L18 6M6 6l12 12" 
+                    />
+                  </svg>
+                </motion.button>
+              </div>
+              
+              {/* Menu Items */}
               <motion.nav 
-                className="flex flex-col space-y-3"
+                className="flex flex-col p-4 flex-grow"
                 variants={{
                   hidden: { opacity: 0 },
                   show: {
@@ -209,10 +237,13 @@ const Header = ({ cartItems, onCartClick }) => {
                 <MobileNavLink to="/" label="محصولات" onClick={() => setIsMobileMenuOpen(false)} />
                 <MobileNavLink isCategory={true} label="دسته‌بندی‌ها" categories={categories} />
                 <MobileNavLink to="/" label="درباره ما" onClick={() => setIsMobileMenuOpen(false)} />
+                
+                <div className="border-t border-draugr-800 my-4"></div>
+                
                 <motion.button 
                   whileHover={{ scale: 1.02, backgroundColor: "#660000" }}
                   whileTap={{ scale: 0.98 }}
-                  className="sm:hidden bg-gradient-to-r from-draugr-900 to-draugr-700 text-white px-4 py-2 rounded-md font-medium border border-draugr-600 text-sm self-start mt-2"
+                  className="bg-gradient-to-r from-draugr-800 to-draugr-600 text-white px-4 py-3 rounded-md font-medium border border-draugr-600 text-sm mt-2 shadow-[0_0_15px_rgba(255,0,0,0.2)] w-full flex items-center justify-center"
                   variants={{
                     hidden: { opacity: 0, y: 20 },
                     show: { opacity: 1, y: 0 }
@@ -222,10 +253,29 @@ const Header = ({ cartItems, onCartClick }) => {
                     setIsMobileMenuOpen(false);
                   }}
                 >
-                  ورود
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                  </svg>
+                  ورود به حساب کاربری
                 </motion.button>
               </motion.nav>
+              
+              {/* Footer */}
+              <div className="p-4 border-t border-draugr-800 mt-auto">
+                <div className="text-sm text-gray-400">
+                  © 2023 DRAUGR فروشگاه
+                </div>
+              </div>
             </div>
+            
+            {/* Background overlay */}
+            <motion.div 
+              className="fixed inset-0 z-40 bg-black"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.6 }}
+              exit={{ opacity: 0 }}
+              onClick={toggleMobileMenu}
+            />
           </motion.div>
         )}
       </AnimatePresence>
@@ -399,18 +449,18 @@ const MobileNavLink = ({ to, label, isCategory = false, categories = [], onClick
   };
   
   return (
-    <div>
+    <motion.div className="mb-3">
       <motion.div 
-        className="flex items-center justify-between py-2 cursor-pointer" 
+        className="flex items-center justify-between py-3 cursor-pointer border-b border-draugr-900 hover:border-draugr-700 transition-colors duration-300" 
         variants={{
-          hidden: { opacity: 0, x: -20 },
+          hidden: { opacity: 0, x: 20 },
           show: { opacity: 1, x: 0 }
         }}
         onClick={handleClick}
       >
         <motion.div 
-          className="hover:text-draugr-500 transform transition-all duration-300"
-          whileHover={{ x: 5, color: "#ff0000" }}
+          className="text-lg font-medium hover:text-draugr-500 transform transition-all duration-300"
+          whileHover={{ x: 5, color: "#ff0000", textShadow: "0 0 8px rgba(255, 0, 0, 0.3)" }}
         >
           {label}
         </motion.div>
@@ -418,6 +468,7 @@ const MobileNavLink = ({ to, label, isCategory = false, categories = [], onClick
           <motion.div
             animate={{ rotate: isOpen ? 180 : 0 }}
             transition={{ duration: 0.3 }}
+            className="bg-draugr-900 rounded-full p-1"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -434,20 +485,20 @@ const MobileNavLink = ({ to, label, isCategory = false, categories = [], onClick
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="overflow-hidden bg-draugr-950 rounded-md my-1 mr-4 border-r-2 border-draugr-800"
+              className="overflow-hidden rounded-md my-1 mr-4 border-r-2 border-draugr-700"
             >
               {categories.map((category, index) => (
-                <div key={index} className="border-b border-draugr-800 last:border-0">
+                <div key={index} className="border-b border-draugr-900 last:border-0">
                   <motion.div 
-                    className="flex items-center justify-between py-2 px-4 text-sm text-gray-200 hover:text-draugr-500 cursor-pointer"
+                    className="flex items-center justify-between py-3 px-4 text-sm text-gray-200 hover:text-draugr-500 cursor-pointer"
                     variants={{
-                      hidden: { opacity: 0, x: -10 },
+                      hidden: { opacity: 0, x: 10 },
                       visible: { opacity: 1, x: 0 }
                     }}
                     initial="hidden"
                     animate="visible"
                     transition={{ delay: index * 0.05 }}
-                    whileHover={{ x: 5 }}
+                    whileHover={{ x: 5, backgroundColor: "rgba(255, 0, 0, 0.1)" }}
                     onClick={() => toggleSubcategory(index)}
                   >
                     <span>{category.name}</span>
@@ -466,7 +517,7 @@ const MobileNavLink = ({ to, label, isCategory = false, categories = [], onClick
                     )}
                   </motion.div>
                   
-                  {/* Mobile subcategories */}
+                  {/* Mobile subcategories with enhanced styling */}
                   {category.subcategories && (
                     <AnimatePresence>
                       {expandedCategory === index && (
@@ -474,13 +525,13 @@ const MobileNavLink = ({ to, label, isCategory = false, categories = [], onClick
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="overflow-hidden bg-black bg-opacity-30 border-r border-draugr-700 mr-2"
+                          transition={{ duration: 0.3 }}
+                          className="overflow-hidden bg-black bg-opacity-30 border-r border-draugr-700 mr-2 rounded-b-md"
                         >
                           {category.subcategories.map((subcategory, subIndex) => (
                             <motion.div
                               key={subIndex}
-                              className="block py-2 px-6 text-xs text-gray-300 hover:text-draugr-500 cursor-pointer"
+                              className="py-2 px-6 text-sm text-gray-300 hover:text-draugr-500 cursor-pointer hover:bg-draugr-950 border-b border-draugr-900 last:border-0 flex items-center"
                               variants={{
                                 hidden: { opacity: 0, x: -5 },
                                 visible: { opacity: 1, x: 0 }
@@ -490,6 +541,14 @@ const MobileNavLink = ({ to, label, isCategory = false, categories = [], onClick
                               transition={{ delay: subIndex * 0.03 }}
                               whileHover={{ x: 3 }}
                             >
+                              <motion.span
+                                className="w-1 h-1 rounded-full bg-draugr-700 inline-block mr-2"
+                                variants={{
+                                  hidden: { scale: 0 },
+                                  visible: { scale: 1 }
+                                }}
+                                transition={{ delay: subIndex * 0.03 + 0.2 }}
+                              />
                               {subcategory}
                             </motion.div>
                           ))}
@@ -503,7 +562,7 @@ const MobileNavLink = ({ to, label, isCategory = false, categories = [], onClick
           )}
         </AnimatePresence>
       )}
-    </div>
+    </motion.div>
   );
 };
 
