@@ -66,7 +66,7 @@ const AuthLayout = ({ children, title }) => {
         
         {/* Form container with enhanced horror styling */}
         <motion.div
-          className="relative bg-charcoal bg-opacity-85 backdrop-filter backdrop-blur-lg rounded shadow-horror p-8 overflow-hidden"
+          className="relative bg-charcoal bg-opacity-20 backdrop-filter backdrop-blur-lg rounded shadow-horror p-8 overflow-hidden"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -91,9 +91,9 @@ const AuthLayout = ({ children, title }) => {
           />
           
           {/* Subtle texture overlay */}
-          <div className="absolute inset-0 bg-midnight opacity-10" 
+          <div className="absolute inset-0 bg-midnight opacity-20" 
             style={{
-              backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'20\' height=\'20\' viewBox=\'0 0 20 20\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.03\' fill-rule=\'evenodd\'%3E%3Ccircle cx=\'3\' cy=\'3\' r=\'1\'/%3E%3Ccircle cx=\'13\' cy=\'13\' r=\'1\'/%3E%3C/g%3E%3C/svg%3E")'
+              backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'20\' height=\'20\' viewBox=\'0 0 20 20\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.05\' fill-rule=\'evenodd\'%3E%3Ccircle cx=\'3\' cy=\'3\' r=\'1\'/%3E%3Ccircle cx=\'13\' cy=\'13\' r=\'1\'/%3E%3C/g%3E%3C/svg%3E")'
             }}
           />
           
