@@ -130,8 +130,8 @@ button:focus-visible {
   
   .horror-input {
     @apply bg-charcoal border border-gray-800 text-white focus:border-draugr-500 focus:ring-1 focus:ring-draugr-500 transition-all duration-300;
-  }
-  
+}
+
   .horror-button {
     @apply bg-gradient-to-r from-draugr-900 to-draugr-700 text-white hover:from-draugr-800 hover:to-draugr-600 transform hover:scale-105 transition-all duration-300;
   }
@@ -202,7 +202,7 @@ button:focus-visible {
 ::-webkit-scrollbar-thumb {
   background: #660000;
   border-radius: 4px;
-}
+  }
 
 ::-webkit-scrollbar-thumb:hover {
   background: #990000;
@@ -220,7 +220,7 @@ button:focus-visible {
 /* Theme-based scrollbars */
 body.theme-vampire::-webkit-scrollbar-thumb {
   background: var(--vampire-primary);
-}
+  }
 
 body.theme-vampire::-webkit-scrollbar-thumb:hover {
   background: var(--vampire-secondary);

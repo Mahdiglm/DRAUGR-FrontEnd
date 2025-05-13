@@ -137,7 +137,7 @@ function App() {
 
         <div className="w-full flex justify-center items-center">
           <div className="max-w-7xl mx-auto px-4 relative z-10 text-center">
-            <motion.div 
+    <motion.div
               className="max-w-3xl mx-auto"
               style={{ y: textY, opacity: opacityHero }}
             >
@@ -153,7 +153,7 @@ function App() {
               </motion.h1>
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+      animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.6 }}
                 className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 text-gray-200 font-medium"
                 style={{ textShadow: '0 1px 2px rgba(0, 0, 0, 0.8)' }}
@@ -196,7 +196,7 @@ function App() {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.8 }}
             className="mb-8 text-center"
-          >
+    >
             <h2 className="text-3xl md:text-4xl font-bold text-white text-shadow-horror mb-4">
               <span className="relative inline-block">
                 محصولات ویژه
@@ -209,21 +209,21 @@ function App() {
               </span>
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto">محصولات برتر و منحصر به فرد ما را کشف کنید، هر کدام با ویژگی‌های خاص طراحی شده‌اند.</p>
-          </motion.div>
+    </motion.div>
           
           <ProductList 
             products={products} 
             onAddToCart={addToCart} 
             title="" 
           />
-        </div>
+      </div>
         
         {/* Glowing border at bottom */}
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-draugr-800 to-transparent opacity-70"></div>
       </motion.section>
       
       <Footer />
-    </div>
+      </div>
   )
 }
 
