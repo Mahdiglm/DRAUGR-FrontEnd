@@ -81,6 +81,15 @@ const AuthLayout = ({ children, title }) => {
       {/* Dark overlay for better readability */}
       <div className="absolute inset-0 bg-black bg-opacity-60 z-0"></div>
       
+      {/* Bottom gradient overlay for smooth transition to footer */}
+      <div 
+        className="absolute bottom-0 left-0 right-0 h-32 z-0" 
+        style={{
+          background: 'linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.95))',
+          pointerEvents: 'none'
+        }}
+      ></div>
+      
       {/* Glowing red border pattern */}
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-draugr-800 to-transparent opacity-70"></div>
       <div className="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-draugr-800 to-transparent opacity-70"></div>

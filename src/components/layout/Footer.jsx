@@ -15,6 +15,15 @@ const Footer = () => {
         }}
       />
       
+      {/* Top gradient overlay for smooth transition from login/signup pages */}
+      <div 
+        className="absolute top-0 left-0 right-0 h-32 z-0" 
+        style={{
+          background: 'linear-gradient(to top, transparent, rgba(0, 0, 0, 0.95))',
+          pointerEvents: 'none'
+        }}
+      ></div>
+      
       {/* Overlay for better text readability */}
       <div className="absolute inset-0 bg-black opacity-50 z-0"></div>
       
