@@ -30,7 +30,7 @@ const HomePage = () => {
         transition={{ duration: 0.8, delay: 0.2 }}
         className="py-12 sm:py-16 md:py-20 w-full relative overflow-hidden"
         style={{ 
-          minHeight: '80vh', 
+          minHeight: '93.4vh', 
           display: 'flex', 
           alignItems: 'center',
           backgroundImage: `url(${heroBackground || fallbackBg})`,
