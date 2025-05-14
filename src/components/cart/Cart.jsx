@@ -146,12 +146,12 @@ const Cart = ({ items, removeItem, isOpen, onClose, addToCartPlus }) => {
                             
                             {/* Quantity controls */}
                             <div className="flex items-center mt-2">
-                              <div className="flex space-x-3 rtl:space-x-reverse bg-gray-100 rounded-lg p-1">
+                              <div className="flex space-x-3 rtl:space-x-reverse bg-gray-50 rounded-lg p-1 border border-gray-200 shadow-sm">
                                 <motion.button
-                                  whileHover={{ scale: 1.1 }}
+                                  whileHover={{ scale: 1.1, backgroundColor: "#f87171" }}
                                   whileTap={{ scale: 0.95 }}
                                   onClick={() => removeItem(item.id)}
-                                  className="w-6 h-6 flex items-center justify-center rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                  className="w-7 h-7 flex items-center justify-center rounded-full bg-white text-gray-700 hover:text-white hover:bg-red-400 border border-gray-200 shadow-sm transition-colors duration-200"
                                   aria-label="کاهش تعداد"
                                 >
                                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -159,12 +159,12 @@ const Cart = ({ items, removeItem, isOpen, onClose, addToCartPlus }) => {
                                   </svg>
                                 </motion.button>
                                 
-                                <span className="flex items-center justify-center w-8 text-sm font-medium">
+                                <span className="flex items-center justify-center w-8 text-sm font-bold text-gray-800">
                                   {item.quantity || 1}
                                 </span>
                                 
                                 <motion.button
-                                  whileHover={{ scale: 1.1 }}
+                                  whileHover={{ scale: 1.1, backgroundColor: "#4ade80" }}
                                   whileTap={{ scale: 0.95 }}
                                   onClick={() => {
                                     // We need to simulate adding the same product
@@ -172,7 +172,7 @@ const Cart = ({ items, removeItem, isOpen, onClose, addToCartPlus }) => {
                                     delete productToAdd.quantity; // Remove quantity so addToCart logic works
                                     addToCartPlus(productToAdd);
                                   }}
-                                  className="w-6 h-6 flex items-center justify-center rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                  className="w-7 h-7 flex items-center justify-center rounded-full bg-white text-gray-700 hover:text-white hover:bg-green-400 border border-gray-200 shadow-sm transition-colors duration-200"
                                   aria-label="افزایش تعداد"
                                 >
                                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
