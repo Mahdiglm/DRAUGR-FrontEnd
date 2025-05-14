@@ -6,6 +6,7 @@ import Header from './Header';
 import Footer from './Footer';
 import Cart from '../cart/Cart';
 import DevTools from '../shared/DevTools';
+import ScrollToTop from '../shared/ScrollToTop';
 
 const MainLayout = () => {
   const [cartItems, setCartItems] = useState([]);
@@ -108,6 +109,7 @@ const MainLayout = () => {
 
   return (
     <div className="w-full font-vazirmatn bg-midnight dark">
+      <ScrollToTop />
       <Header cartItems={cartItems} onCartClick={toggleCart} />
       
       <Cart 

@@ -7,6 +7,7 @@ const ProductCard = ({ product, onAddToCart }) => {
   const navigate = useNavigate();
 
   const handleViewDetails = () => {
+    window.scrollTo(0, 0);
     navigate(`/product/${id}`);
   };
 
