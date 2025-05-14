@@ -151,12 +151,10 @@ const Cart = ({ items, removeItem, isOpen, onClose, addToCartPlus }) => {
                                   whileHover={{ scale: 1.05 }}
                                   whileTap={{ scale: 0.95 }}
                                   onClick={() => removeItem(item.id)}
-                                  className="w-7 h-7 flex items-center justify-center rounded-full bg-white text-gray-700 border border-gray-200 shadow-sm"
+                                  className="w-7 h-7 flex items-center justify-center rounded-full bg-black text-white border border-gray-200 shadow-sm"
                                   aria-label="کاهش تعداد"
                                 >
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-                                  </svg>
+                                  <span className="text-xl font-bold">-</span>
                                 </motion.button>
                                 
                                 <span className="flex items-center justify-center w-8 text-sm font-bold text-gray-800">
@@ -172,12 +170,10 @@ const Cart = ({ items, removeItem, isOpen, onClose, addToCartPlus }) => {
                                     delete productToAdd.quantity; // Remove quantity so addToCart logic works
                                     addToCartPlus(productToAdd);
                                   }}
-                                  className="w-7 h-7 flex items-center justify-center rounded-full bg-white text-gray-700 border border-gray-200 shadow-sm"
+                                  className="w-7 h-7 flex items-center justify-center rounded-full bg-black text-white border border-gray-200 shadow-sm"
                                   aria-label="افزایش تعداد"
                                 >
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                                  </svg>
+                                  <span className="text-xl font-bold">+</span>
                                 </motion.button>
                               </div>
                             </div>
