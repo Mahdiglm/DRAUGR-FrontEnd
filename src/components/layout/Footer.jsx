@@ -58,7 +58,6 @@ const Footer = () => {
                 </a>
               </div>
             </div>
-            <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-draugr-600 to-transparent"></div>
           </div>
           <div>
             <h4 className="font-bold mb-4 text-sm sm:text-base text-draugr-400">فروشگاه</h4>
