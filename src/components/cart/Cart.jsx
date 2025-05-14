@@ -2,11 +2,18 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Cart = ({ items, removeItem, isOpen, onClose, addToCartPlus }) => {
-  // Calculate total price considering quantities
-  const totalPrice = items.reduce((total, item) => total + (item.price * (item.quantity || 1)), 0);
+  // Calculate total price considering quantities - fixed calculation
+  const totalPrice = items.reduce((total, item) => {
+    const itemQuantity = item.quantity || 1;
+    const itemPrice = parseFloat(item.price) || 0;
+    return total + (itemPrice * itemQuantity);
+  }, 0);
   
-  // Calculate total number of items (sum of quantities)
-  const totalQuantity = items.reduce((total, item) => total + (item.quantity || 1), 0);
+  // Calculate total number of items (sum of quantities) - fixed calculation
+  const totalQuantity = items.reduce((total, item) => {
+    const itemQuantity = item.quantity || 1;
+    return total + itemQuantity;
+  }, 0);
 
   return (
     <AnimatePresence>
@@ -198,13 +205,15 @@ const Cart = ({ items, removeItem, isOpen, onClose, addToCartPlus }) => {
                 className="p-4 sm:p-5 border-t border-gray-200 bg-white shadow-[0_-5px_15px_rgba(0,0,0,0.05)]"
               >
                 <div className="grid grid-cols-2 gap-3 mb-4">
-                  <div className="bg-gray-50 p-3 rounded-xl text-center">
+                  {/* Improved item count display */}
+                  <div className="bg-gray-50 p-3 rounded-xl text-center shadow-sm">
                     <p className="text-xs text-gray-500 mb-1">تعداد اقلام</p>
-                    <p className="text-lg font-bold">{totalQuantity}</p>
+                    <p className="text-lg font-bold text-gray-800">{totalQuantity}</p>
                   </div>
-                  <div className="bg-draugr-50 p-3 rounded-xl text-center">
+                  {/* Improved price display */}
+                  <div className="bg-draugr-50 p-3 rounded-xl text-center shadow-sm">
                     <p className="text-xs text-gray-500 mb-1">مجموع قیمت</p>
-                    <p className="text-lg font-bold text-draugr-900">{totalPrice.toLocaleString('fa-IR')}</p>
+                    <p className="text-lg font-bold text-draugr-900">{totalPrice.toLocaleString('fa-IR')} <span className="text-xs">تومان</span></p>
                   </div>
                 </div>
                 
