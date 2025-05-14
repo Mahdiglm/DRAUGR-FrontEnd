@@ -140,7 +140,7 @@ const SignUp = () => {
   
   return (
     <AuthLayout title="ثبت نام">
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-5">
         {/* Name field */}
         <motion.div
           custom={1}
@@ -166,7 +166,7 @@ const SignUp = () => {
               onChange={handleChange}
               onFocus={() => setFocusedInput('name')}
               onBlur={() => setFocusedInput(null)}
-              className={`w-full px-4 py-3 rounded-md bg-transparent backdrop-blur-sm border-2 ${
+              className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-md bg-transparent backdrop-blur-sm border-2 ${
                 errors.name 
                   ? 'border-draugr-500 text-draugr-200' 
                   : focusedInput === 'name'
@@ -217,7 +217,7 @@ const SignUp = () => {
               onChange={handleChange}
               onFocus={() => setFocusedInput('email')}
               onBlur={() => setFocusedInput(null)}
-              className={`w-full px-4 py-3 rounded-md bg-transparent backdrop-blur-sm border-2 ${
+              className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-md bg-transparent backdrop-blur-sm border-2 ${
                 errors.email 
                   ? 'border-draugr-500 text-draugr-200' 
                   : focusedInput === 'email'
@@ -269,7 +269,7 @@ const SignUp = () => {
               onChange={handleChange}
               onFocus={() => setFocusedInput('password')}
               onBlur={() => setFocusedInput(null)}
-              className={`w-full px-4 py-3 rounded-md bg-transparent backdrop-blur-sm border-2 ${
+              className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-md bg-transparent backdrop-blur-sm border-2 ${
                 errors.password 
                   ? 'border-draugr-500 text-draugr-200' 
                   : focusedInput === 'password'
@@ -356,7 +356,7 @@ const SignUp = () => {
               onChange={handleChange}
               onFocus={() => setFocusedInput('confirmPassword')}
               onBlur={() => setFocusedInput(null)}
-              className={`w-full px-4 py-3 rounded-md bg-transparent backdrop-blur-sm border-2 ${
+              className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-md bg-transparent backdrop-blur-sm border-2 ${
                 errors.confirmPassword 
                   ? 'border-draugr-500 text-draugr-200' 
                   : focusedInput === 'confirmPassword'
@@ -393,7 +393,7 @@ const SignUp = () => {
           <motion.button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-gradient-to-r from-draugr-900 to-draugr-700 hover:from-draugr-800 hover:to-draugr-600 text-white py-3 px-4 rounded-md font-medium shadow-horror focus:outline-none overflow-hidden relative"
+            className="w-full bg-gradient-to-r from-draugr-900 to-draugr-700 hover:from-draugr-800 hover:to-draugr-600 text-white py-2 sm:py-3 px-4 rounded-md font-medium shadow-horror focus:outline-none overflow-hidden relative"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >

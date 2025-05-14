@@ -49,12 +49,12 @@ const AuthLayout = ({ children, title }) => {
       </div>
       
       {/* Main content container */}
-      <div className="w-full max-w-md relative z-20">
+      <div className="w-full max-w-md sm:max-w-md md:max-w-md relative z-20">
         {/* Logo with typing animation */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-6 sm:mb-8">
           <Link to="/">
             <motion.div 
-              className="text-4xl font-bold text-draugr-500 text-shadow-horror"
+              className="text-3xl sm:text-4xl font-bold text-draugr-500 text-shadow-horror"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 1 }}
@@ -66,16 +66,16 @@ const AuthLayout = ({ children, title }) => {
         
         {/* Form container with enhanced horror styling */}
         <motion.div
-          className="relative bg-charcoal bg-opacity-20 backdrop-filter backdrop-blur-lg rounded shadow-horror p-8 overflow-hidden"
+          className="relative bg-charcoal bg-opacity-20 backdrop-filter backdrop-blur-lg rounded shadow-horror p-4 sm:p-6 md:p-8 overflow-hidden"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
           {/* Angular decorative corners */}
-          <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-draugr-500 opacity-80"></div>
-          <div className="absolute top-0 right-0 w-12 h-12 border-t-2 border-r-2 border-draugr-500 opacity-80"></div>
-          <div className="absolute bottom-0 left-0 w-12 h-12 border-b-2 border-l-2 border-draugr-500 opacity-80"></div>
-          <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-draugr-500 opacity-80"></div>
+          <div className="absolute top-0 left-0 w-8 sm:w-12 h-8 sm:h-12 border-t-2 border-l-2 border-draugr-500 opacity-80"></div>
+          <div className="absolute top-0 right-0 w-8 sm:w-12 h-8 sm:h-12 border-t-2 border-r-2 border-draugr-500 opacity-80"></div>
+          <div className="absolute bottom-0 left-0 w-8 sm:w-12 h-8 sm:h-12 border-b-2 border-l-2 border-draugr-500 opacity-80"></div>
+          <div className="absolute bottom-0 right-0 w-8 sm:w-12 h-8 sm:h-12 border-b-2 border-r-2 border-draugr-500 opacity-80"></div>
           
           {/* Subtle animated border glow */}
           <motion.div 
@@ -98,7 +98,7 @@ const AuthLayout = ({ children, title }) => {
           />
           
           {/* Section title */}
-          <h2 className="text-2xl font-bold text-center mb-8 text-white relative z-10">
+          <h2 className="text-xl sm:text-2xl font-bold text-center mb-6 sm:mb-8 text-white relative z-10">
             <motion.span 
               className="relative inline-block"
               initial={{ opacity: 0, y: -10 }}
