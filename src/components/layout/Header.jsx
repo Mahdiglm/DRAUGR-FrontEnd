@@ -95,11 +95,11 @@ const Header = ({ cartItems, onCartClick }) => {
         >
           {/* Fixed width container for the logo text to prevent layout shifts */}
           <div className="absolute left-0 top-0 h-full flex items-center">
-            <span className="blood-text animate-pulse-slow relative">
-              <span className="inline-block min-w-[76px] md:min-w-[96px]">{typedText || '\u00A0'}</span>
-              <span className={`inline-block w-0.5 h-6 bg-draugr-500 absolute ml-6 ${isTyping ? 'animate-pulse' : 'opacity-0'}`}></span>
-            </span>
-            <span className="ml-3 mr-3"> فروشگاه</span>
+            <div className="flex items-center gap-4">
+              <div className="blood-text animate-pulse-slow">{typedText || '\u00A0'}</div>
+              <div className="h-6 w-0.5 bg-draugr-500 animate-pulse"></div>
+              <div>فروشگاه</div>
+            </div>
           </div>
         </motion.div>
         
