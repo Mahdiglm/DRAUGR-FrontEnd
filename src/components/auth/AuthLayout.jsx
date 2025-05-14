@@ -8,7 +8,7 @@ import backgroundImage from '../../assets/BackGround-Login.jpg';
 const AuthLayout = ({ children, title }) => {
   return (
     <div 
-      className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden"
+      className="min-h-screen flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden"
       style={{
         backgroundImage: `url(${backgroundImage})`,
         backgroundSize: 'cover',
@@ -48,13 +48,13 @@ const AuthLayout = ({ children, title }) => {
         />
       </div>
       
-      {/* Main content container */}
-      <div className="w-full max-w-md sm:max-w-md md:max-w-md relative z-20">
+      {/* Main content container - Slimmer on mobile */}
+      <div className="w-full max-w-xs sm:max-w-sm md:max-w-md relative z-20">
         {/* Logo with typing animation */}
-        <div className="flex justify-center mb-6 sm:mb-8">
+        <div className="flex justify-center mb-4 sm:mb-6">
           <Link to="/">
             <motion.div 
-              className="text-3xl sm:text-4xl font-bold text-draugr-500 text-shadow-horror"
+              className="text-2xl sm:text-3xl font-bold text-draugr-500 text-shadow-horror"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 1 }}
@@ -64,24 +64,24 @@ const AuthLayout = ({ children, title }) => {
           </Link>
         </div>
         
-        {/* Form container with enhanced horror styling */}
+        {/* Form container with enhanced horror styling - More compact */}
         <motion.div
-          className="relative bg-charcoal bg-opacity-20 backdrop-filter backdrop-blur-lg rounded shadow-horror p-4 sm:p-6 md:p-8 overflow-hidden"
+          className="relative bg-black/40 backdrop-filter backdrop-blur-md rounded-lg shadow-horror p-4 sm:p-5 overflow-hidden border border-draugr-900/50"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          {/* Angular decorative corners */}
-          <div className="absolute top-0 left-0 w-8 sm:w-12 h-8 sm:h-12 border-t-2 border-l-2 border-draugr-500 opacity-80"></div>
-          <div className="absolute top-0 right-0 w-8 sm:w-12 h-8 sm:h-12 border-t-2 border-r-2 border-draugr-500 opacity-80"></div>
-          <div className="absolute bottom-0 left-0 w-8 sm:w-12 h-8 sm:h-12 border-b-2 border-l-2 border-draugr-500 opacity-80"></div>
-          <div className="absolute bottom-0 right-0 w-8 sm:w-12 h-8 sm:h-12 border-b-2 border-r-2 border-draugr-500 opacity-80"></div>
+          {/* Minimal corner accents */}
+          <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-draugr-500/80"></div>
+          <div className="absolute top-0 right-0 w-4 h-4 border-t border-r border-draugr-500/80"></div>
+          <div className="absolute bottom-0 left-0 w-4 h-4 border-b border-l border-draugr-500/80"></div>
+          <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-draugr-500/80"></div>
           
           {/* Subtle animated border glow */}
           <motion.div 
-            className="absolute inset-0 rounded pointer-events-none"
+            className="absolute inset-0 rounded-lg pointer-events-none"
             animate={{ 
-              boxShadow: ['0 0 0 1px rgba(255,0,0,0.2)', '0 0 0 2px rgba(255,0,0,0.4)', '0 0 0 1px rgba(255,0,0,0.2)']
+              boxShadow: ['0 0 0 1px rgba(255,0,0,0.1)', '0 0 0 1px rgba(255,0,0,0.2)', '0 0 0 1px rgba(255,0,0,0.1)']
             }}
             transition={{ 
               duration: 4, 
@@ -90,15 +90,8 @@ const AuthLayout = ({ children, title }) => {
             }}
           />
           
-          {/* Subtle texture overlay */}
-          <div className="absolute inset-0 bg-midnight opacity-20" 
-            style={{
-              backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'20\' height=\'20\' viewBox=\'0 0 20 20\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.05\' fill-rule=\'evenodd\'%3E%3Ccircle cx=\'3\' cy=\'3\' r=\'1\'/%3E%3Ccircle cx=\'13\' cy=\'13\' r=\'1\'/%3E%3C/g%3E%3C/svg%3E")'
-            }}
-          />
-          
-          {/* Section title */}
-          <h2 className="text-xl sm:text-2xl font-bold text-center mb-6 sm:mb-8 text-white relative z-10">
+          {/* Section title - Smaller, more minimal */}
+          <h2 className="text-lg sm:text-xl font-bold text-center mb-4 sm:mb-5 text-white relative z-10">
             <motion.span 
               className="relative inline-block"
               initial={{ opacity: 0, y: -10 }}
@@ -107,9 +100,9 @@ const AuthLayout = ({ children, title }) => {
             >
               {title}
               <motion.span 
-                className="absolute -bottom-2 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-draugr-500 to-transparent"
+                className="absolute -bottom-1 left-0 right-0 h-px bg-gradient-to-r from-transparent via-draugr-500 to-transparent"
                 initial={{ width: 0, opacity: 0 }}
-                animate={{ width: '100%', opacity: 1 }}
+                animate={{ width: '100%', opacity: 0.8 }}
                 transition={{ delay: 0.6, duration: 0.6 }}
               ></motion.span>
             </motion.span>
