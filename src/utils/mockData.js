@@ -1,10 +1,16 @@
+// Import product images
+import product1 from '../assets/Product_1.jpg';
+import product2 from '../assets/Product_2.jpg';
+import product3 from '../assets/Product_3.jpg';
+import product4 from '../assets/Product_4.jpg';
+
 export const products = [
   {
     id: 1,
     name: "شمشیر DRAUGR",
     description: "یک شمشیر باستانی نوردیک آغشته به جادوی یخ، گرفته شده از اعماق یک گور اسکایریم.",
     price: 199.99,
-    imageUrl: "https://picsum.photos/id/1/500/500",
+    imageUrl: product1,
     category: "weapons"
   },
   {
@@ -12,7 +18,7 @@ export const products = [
     name: "کلاه‌خود نوردیک",
     description: "بازسازی اصیل از طراحی کلاه‌خود باستانی نوردیک، با شاخ‌های محافظ و حکاکی‌های رونی.",
     price: 149.99,
-    imageUrl: "https://picsum.photos/id/2/500/500",
+    imageUrl: product2,
     category: "armor"
   },
   {
@@ -20,7 +26,7 @@ export const products = [
     name: "معجون شفا",
     description: "به سرعت نقاط سلامتی را بازیابی می‌کند. ساخته شده با گل‌های کوهستانی و سایر مواد مخفی.",
     price: 29.99,
-    imageUrl: "https://picsum.photos/id/3/500/500",
+    imageUrl: product3,
     category: "potions"
   },
   {
@@ -28,23 +34,7 @@ export const products = [
     name: "طومار باستانی",
     description: "طوماری اسرارآمیز با رون‌های قدرتمند که دانش فراموش شده را آشکار می‌کند.",
     price: 89.99,
-    imageUrl: "https://picsum.photos/id/4/500/500",
-    category: "magic"
-  },
-  {
-    id: 5,
-    name: "سپر DRAUGR",
-    description: "سپر سنگینی که زمانی توسط جنگجویان باستانی نوردیک حمل می‌شد. محافظت عالی در برابر حملات فیزیکی و جادویی.",
-    price: 179.99,
-    imageUrl: "https://picsum.photos/id/5/500/500",
-    category: "armor"
-  },
-  {
-    id: 6,
-    name: "سنگ روح",
-    description: "کریستال اسرارآمیز قادر به ذخیره روح‌ها برای مقاصد افسونگری.",
-    price: 59.99,
-    imageUrl: "https://picsum.photos/id/6/500/500",
+    imageUrl: product4,
     category: "magic"
   }
 ];
