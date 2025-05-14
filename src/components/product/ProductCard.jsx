@@ -32,7 +32,7 @@ const ProductCard = ({ product, onAddToCart }) => {
       ></div>
       <div className="p-4 sm:p-6 flex-grow flex flex-col">
         <h3 
-          className="font-bold text-lg sm:text-xl mb-1 sm:mb-2 cursor-pointer hover:text-draugr-600"
+          className="font-bold text-lg sm:text-xl mb-1 sm:mb-2 cursor-pointer text-draugr-900 hover:text-draugr-600 transition-colors duration-300"
           onClick={handleViewDetails}
         >
           {name}
