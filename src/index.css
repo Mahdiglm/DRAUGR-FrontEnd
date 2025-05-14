@@ -64,6 +64,10 @@ a:hover {
   text-shadow: 0 0 8px rgba(255, 0, 0, 0.4);
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 html, body {
   margin: 0;
   padding: 0;
@@ -72,6 +76,7 @@ html, body {
   overflow-x: hidden;
   direction: rtl;
   background-color: #121212;
+  scroll-padding-top: 0;
 }
 
 body {
@@ -240,4 +245,11 @@ body.theme-werewolf::-webkit-scrollbar-thumb {
 
 body.theme-werewolf::-webkit-scrollbar-thumb:hover {
   background: var(--werewolf-secondary);
+}
+
+/* Ensure scroll restoration is manual for all browsers */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }

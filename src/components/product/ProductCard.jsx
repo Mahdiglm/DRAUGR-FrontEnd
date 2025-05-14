@@ -7,8 +7,21 @@ const ProductCard = ({ product, onAddToCart }) => {
   const navigate = useNavigate();
 
   const handleViewDetails = () => {
+    // Set scroll behavior to auto for instant scrolling
+    document.documentElement.style.scrollBehavior = 'auto';
+    
+    // Force scroll to top before navigation
     window.scrollTo(0, 0);
+    document.body.scrollTop = 0; // For Safari
+    document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+    
+    // Navigate to product detail
     navigate(`/product/${id}`);
+    
+    // Reset scroll behavior to smooth after navigation
+    setTimeout(() => {
+      document.documentElement.style.scrollBehavior = 'smooth';
+    }, 100);
   };
 
   const handleAddToCart = (e) => {

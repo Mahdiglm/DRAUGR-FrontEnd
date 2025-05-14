@@ -365,20 +365,20 @@ const NavLink = ({ to, label, isCategory = false, categories = [] }) => {
       {isCategory && (
         <AnimatePresence>
           {(isMenuOpen || isHovered) && (
-            <motion.div
-              initial={{ opacity: 0, y: -10, scaleY: 0 }}
-              animate={{ opacity: 1, y: 0, scaleY: 1 }}
-              exit={{ opacity: 0, y: -10, scaleY: 0 }}
-              transition={{ 
-                duration: 0.3,
-                staggerChildren: 0.05,
-                delayChildren: 0.1
-              }}
-              style={{ transformOrigin: 'top center' }}
+          <motion.div
+            initial={{ opacity: 0, y: -10, scaleY: 0 }}
+            animate={{ opacity: 1, y: 0, scaleY: 1 }}
+            exit={{ opacity: 0, y: -10, scaleY: 0 }}
+            transition={{ 
+              duration: 0.3,
+              staggerChildren: 0.05,
+              delayChildren: 0.1
+            }}
+            style={{ transformOrigin: 'top center' }}
               className="absolute right-0 mt-2 w-52 rounded-md shadow-lg bg-gradient-to-b from-black to-draugr-900 border border-draugr-700 transition-all duration-300 z-50"
-            >
-              <div className="rounded-md py-1">
-                {categories.map((category, index) => (
+          >
+            <div className="rounded-md py-1">
+              {categories.map((category, index) => (
                   <CategoryItem 
                     key={index} 
                     category={category} 
@@ -387,9 +387,9 @@ const NavLink = ({ to, label, isCategory = false, categories = [] }) => {
                     onActivate={() => setActiveSubmenuIndex(index)}
                     onDeactivate={() => setActiveSubmenuIndex(null)}
                   />
-                ))}
-              </div>
-            </motion.div>
+              ))}
+            </div>
+          </motion.div>
           )}
         </AnimatePresence>
       )}

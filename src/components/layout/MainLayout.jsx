@@ -80,6 +80,32 @@ const MainLayout = () => {
     };
   }, []);
 
+  // Add effect to manage scroll behavior
+  useEffect(() => {
+    // Ensure pages always start at the top
+    if (history.scrollRestoration) {
+      history.scrollRestoration = 'manual';
+    }
+    
+    // Force scroll to top on component mount
+    window.scrollTo(0, 0);
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+    
+    // Add event listener for page visibility change
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        window.scrollTo(0, 0);
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
   // Audio effect on page load
   useEffect(() => {
     const playSpookySound = () => {

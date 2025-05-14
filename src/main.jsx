@@ -4,6 +4,14 @@ import { HashRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import './App.css'
 
+// Set default scroll behavior for the entire application
+document.documentElement.style.scrollBehavior = 'smooth';
+
+// Ensure pages load at the top by default
+if (typeof window !== 'undefined') {
+  window.history.scrollRestoration = 'manual';
+}
+
 // Components
 import ErrorBoundary from './components/shared/ErrorBoundary'
 
