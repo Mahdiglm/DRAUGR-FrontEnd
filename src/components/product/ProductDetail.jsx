@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { products } from '../../utils/mockData';
+import productBackground from '../../assets/BackGround-Product.jpg';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -47,12 +48,52 @@ const ProductDetail = () => {
   };
   
   return (
-    <div className="py-12 sm:py-16 md:py-20 bg-gradient-to-b from-charcoal to-midnight min-h-screen">
+    <div 
+      className="py-12 sm:py-16 md:py-20 bg-gradient-to-b from-charcoal to-midnight min-h-screen relative overflow-hidden"
+      style={{
+        backgroundImage: `url(${productBackground})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      {/* Dark overlay for better readability */}
+      <div className="absolute inset-0 bg-black bg-opacity-70 z-0"></div>
+      
+      {/* Bottom gradient overlay for smooth transition to footer */}
+      <div 
+        className="absolute bottom-0 left-0 right-0 h-32 z-0" 
+        style={{
+          background: 'linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.95))',
+          pointerEvents: 'none'
+        }}
+      ></div>
+      
+      {/* Subtle fog animations in background */}
+      <div className="absolute inset-0 z-[1] opacity-20">
+        <motion.div 
+          className="absolute inset-0"
+          animate={{ 
+            backgroundPosition: ['0% 0%', '100% 100%']
+          }}
+          transition={{ 
+            duration: 60, 
+            ease: "linear", 
+            repeat: Infinity,
+            repeatType: "reverse" 
+          }}
+          style={{
+            backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 2000 2000\' fill=\'none\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\' opacity=\'0.4\'/%3E%3C/svg%3E")',
+            backgroundSize: '200% 200%'
+          }}
+        />
+      </div>
+      
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className="container mx-auto px-4"
+        className="container mx-auto px-4 relative z-10"
       >
         <div className="bg-black bg-opacity-50 rounded-lg overflow-hidden shadow-horror p-4 sm:p-6 md:p-8">
           <motion.button

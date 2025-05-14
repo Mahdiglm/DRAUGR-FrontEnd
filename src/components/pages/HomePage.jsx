@@ -6,6 +6,7 @@ import ProductList from '../product/ProductList';
 import { products } from '../../utils/mockData';
 // Try with relative path to asset folder
 import heroBackground from '../../assets/Background-Hero.jpg';
+import mainBackground from '../../assets/BackGround-Main.jpg';
 
 const HomePage = () => {
   const { addToCart } = useOutletContext();
@@ -89,9 +90,44 @@ const HomePage = () => {
         animate={{ opacity: 1 }}
         transition={{ duration: 1.2 }}
         className="py-12 sm:py-16 md:py-20 bg-gradient-to-b from-charcoal to-midnight w-full relative overflow-hidden"
+        style={{
+          backgroundImage: `url(${mainBackground})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
       >
-        {/* Dark overlay with subtle texture */}
-        <div className="absolute inset-0 bg-blood-texture opacity-15"></div>
+        {/* Dark overlay for better readability */}
+        <div className="absolute inset-0 bg-black bg-opacity-70 z-0"></div>
+        
+        {/* Bottom gradient overlay for smooth transition to footer */}
+        <div 
+          className="absolute bottom-0 left-0 right-0 h-32 z-0" 
+          style={{
+            background: 'linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.95))',
+            pointerEvents: 'none'
+          }}
+        ></div>
+        
+        {/* Subtle fog animations in background */}
+        <div className="absolute inset-0 z-[1] opacity-20">
+          <motion.div 
+            className="absolute inset-0"
+            animate={{ 
+              backgroundPosition: ['0% 0%', '100% 100%']
+            }}
+            transition={{ 
+              duration: 60, 
+              ease: "linear", 
+              repeat: Infinity,
+              repeatType: "reverse" 
+            }}
+            style={{
+              backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 2000 2000\' fill=\'none\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\' opacity=\'0.4\'/%3E%3C/svg%3E")',
+              backgroundSize: '200% 200%'
+            }}
+          />
+        </div>
         
         {/* Glowing border at top */}
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-draugr-800 to-transparent opacity-70"></div>
@@ -122,6 +158,7 @@ const HomePage = () => {
             products={products} 
             onAddToCart={addToCart} 
             title="" 
+            backgroundType="product"
           />
         </div>
         
