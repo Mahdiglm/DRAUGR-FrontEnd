@@ -30,9 +30,9 @@ const Footer = () => {
       <div className="w-full max-w-7xl mx-auto px-4 relative z-10 py-12 md:py-16">
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-2 md:grid-cols-4 md:gap-12 mb-12">
           {/* Redesigned first section */}
-          <div className="col-span-2 sm:col-span-2 md:col-span-1 mb-8 md:mb-0 relative overflow-hidden">
+          <div className="col-span-2 sm:col-span-2 md:col-span-1 mb-8 md:mb-0 relative overflow-hidden flex flex-col items-center text-center">
             <div className="relative z-10">
-              <h3 className="text-lg sm:text-2xl font-bold mb-4 sm:mb-6 text-white flex items-center">
+              <h3 className="text-lg sm:text-2xl font-bold mb-4 sm:mb-6 text-white flex items-center justify-center">
                 <span className="bg-gradient-to-r from-draugr-500 to-draugr-400 bg-clip-text text-transparent">DRAUGR</span>
                 <span className="text-white mx-2">|</span>
                 <span className="text-sm text-gray-300">فروشگاه</span>
@@ -40,7 +40,7 @@ const Footer = () => {
               <p className="text-gray-300 text-sm sm:text-base leading-relaxed relative">
                 منبع شما برای اقلام فوق‌العاده و آثار افسانه‌ای با بیش از ۱۰ سال تجربه در ارائه بهترین محصولات.
               </p>
-              <div className="flex mt-6 space-x-4 rtl:space-x-reverse">
+              <div className="flex mt-6 space-x-4 rtl:space-x-reverse justify-center">
                 <a href="#" className="bg-gray-800 bg-opacity-50 hover:bg-draugr-600 p-2 rounded-full transition-all duration-300 transform hover:-translate-y-1">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z" />
@@ -78,8 +78,8 @@ const Footer = () => {
             </ul>
           </div>
           {/* Redesigned newsletter section */}
-          <div className="col-span-2 sm:col-span-2 md:col-span-1">
-            <h4 className="font-bold mb-4 text-sm sm:text-base text-draugr-400 flex items-center">
+          <div className="col-span-2 sm:col-span-2 md:col-span-1 flex flex-col items-center text-center">
+            <h4 className="font-bold mb-4 text-sm sm:text-base text-draugr-400 flex items-center justify-center">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-draugr-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
@@ -109,7 +109,7 @@ const Footer = () => {
               </div>
             </div>
             
-            <div className="mt-6 flex items-center">
+            <div className="mt-6 flex items-center justify-center w-full">
               <span className="text-xs text-gray-400 ml-2">پرداخت امن:</span>
               <div className="flex space-x-2 rtl:space-x-reverse">
                 <div className="w-10 h-6 bg-white rounded-sm flex items-center justify-center">
