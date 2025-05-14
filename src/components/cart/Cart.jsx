@@ -83,8 +83,9 @@ const Cart = ({ items, removeItem, isOpen, onClose, addToCartPlus }) => {
                   </motion.button>
                 </motion.div>
               ) : (
-                <div className="p-5 sm:p-6">
-                  <ul className="divide-y divide-gray-200 space-y-1">
+                <div className="p-4 sm:p-5">
+                  {/* Improved cart items list with subtle dividers and better spacing */}
+                  <ul className="divide-y divide-gray-100 space-y-0.5">
                     <AnimatePresence>
                       {items.map((item, index) => (
                         <motion.li
@@ -98,10 +99,10 @@ const Cart = ({ items, removeItem, isOpen, onClose, addToCartPlus }) => {
                             layout: { duration: 0.3 }
                           }}
                           layout
-                          className="py-4 flex items-center group rounded-lg hover:bg-gray-50 transition-colors duration-300 -mx-2 px-2"
+                          className="py-3 flex items-center group rounded-xl hover:bg-gray-50/80 transition-colors duration-300 border border-transparent hover:border-gray-100"
                         >
-                          {/* Product image with shadow on hover */}
-                          <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-lg overflow-hidden flex-shrink-0 mr-4 group-hover:shadow-md transition-shadow duration-300">
+                          {/* Product image with improved size and position */}
+                          <div className="h-20 w-20 sm:h-22 sm:w-22 rounded-xl overflow-hidden flex-shrink-0 mr-3 group-hover:shadow-lg transition-all duration-300">
                             {item.imageUrl ? (
                               <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
                             ) : (
@@ -113,13 +114,13 @@ const Cart = ({ items, removeItem, isOpen, onClose, addToCartPlus }) => {
                             )}
                           </div>
                           
-                          {/* Product details with improved typography */}
-                          <div className="flex-1 flex flex-col">
-                            <div className="flex justify-between">
+                          {/* Product details with improved layout */}
+                          <div className="flex-1 flex flex-col min-w-0 overflow-hidden pr-1">
+                            <div className="flex justify-between items-start">
                               <div className="flex items-start">
-                                <h3 className="text-sm sm:text-base font-medium text-gray-900 group-hover:text-draugr-700 transition-colors duration-300">{item.name}</h3>
+                                <h3 className="text-sm sm:text-base font-bold text-gray-900 group-hover:text-draugr-700 transition-colors duration-300 truncate max-w-[140px] sm:max-w-[160px]">{item.name}</h3>
                                 {item.quantity > 1 && (
-                                  <span className="mr-2 bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded-md text-xs font-medium">
+                                  <span className="mr-1.5 bg-draugr-50 text-draugr-700 px-1.5 py-0.5 rounded-md text-xs font-medium flex-shrink-0">
                                     {item.quantity}×
                                   </span>
                                 )}
@@ -134,27 +135,29 @@ const Cart = ({ items, removeItem, isOpen, onClose, addToCartPlus }) => {
                                 className="text-gray-400 p-1 -mt-1 -mr-1 focus:outline-none"
                                 aria-label={`حذف ${item.name} از سبد خرید`}
                               >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                   <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
                                 </svg>
                               </motion.button>
                             </div>
+                            
+                            {/* Price information with improved visibility */}
                             <div className="flex justify-between items-end mt-1">
-                              <p className="text-xs sm:text-sm text-gray-500">{(item.quantity || 1) + " × " + item.price.toLocaleString('fa-IR') + " تومان"}</p>
-                              <p className="text-sm sm:text-base font-medium text-draugr-900">{((item.price * (item.quantity || 1))).toLocaleString('fa-IR')} تومان</p>
+                              <p className="text-xs sm:text-sm text-gray-500 font-medium">{(item.quantity || 1) + " × " + item.price.toLocaleString('fa-IR') + " تومان"}</p>
+                              <p className="text-sm sm:text-base font-bold text-draugr-900">{((item.price * (item.quantity || 1))).toLocaleString('fa-IR')} <span className="text-xs">تومان</span></p>
                             </div>
                             
-                            {/* Quantity controls */}
-                            <div className="flex items-center mt-2">
-                              <div className="flex space-x-3 rtl:space-x-reverse bg-gray-50 rounded-lg p-1 border border-gray-200 shadow-sm">
+                            {/* Improved quantity controls with better positioning */}
+                            <div className="flex items-center justify-end mt-2">
+                              <div className="flex space-x-2 rtl:space-x-reverse bg-gray-50 rounded-lg p-0.5 border border-gray-100 shadow-sm">
                                 <motion.button
                                   whileHover={{ scale: 1.05 }}
                                   whileTap={{ scale: 0.95 }}
                                   onClick={() => removeItem(item.id)}
-                                  className="w-7 h-7 flex items-center justify-center rounded-full bg-black text-white border border-gray-200 shadow-sm"
+                                  className="w-7 h-7 flex items-center justify-center rounded-full bg-black text-white shadow-sm"
                                   aria-label="کاهش تعداد"
                                 >
-                                  <span className="text-xl font-bold">-</span>
+                                  <span className="text-xl font-bold leading-none">-</span>
                                 </motion.button>
                                 
                                 <span className="flex items-center justify-center w-8 text-sm font-bold text-gray-800">
@@ -170,10 +173,10 @@ const Cart = ({ items, removeItem, isOpen, onClose, addToCartPlus }) => {
                                     delete productToAdd.quantity; // Remove quantity so addToCart logic works
                                     addToCartPlus(productToAdd);
                                   }}
-                                  className="w-7 h-7 flex items-center justify-center rounded-full bg-black text-white border border-gray-200 shadow-sm"
+                                  className="w-7 h-7 flex items-center justify-center rounded-full bg-black text-white shadow-sm"
                                   aria-label="افزایش تعداد"
                                 >
-                                  <span className="text-xl font-bold">+</span>
+                                  <span className="text-xl font-bold leading-none">+</span>
                                 </motion.button>
                               </div>
                             </div>
@@ -186,30 +189,30 @@ const Cart = ({ items, removeItem, isOpen, onClose, addToCartPlus }) => {
               )}
             </div>
 
-            {/* Footer with checkout button and total */}
+            {/* Footer with checkout button and total - improved layout */}
             {items.length > 0 && (
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="p-5 sm:p-6 border-t border-gray-200 bg-white shadow-[0_-5px_15px_rgba(0,0,0,0.05)]"
+                className="p-4 sm:p-5 border-t border-gray-200 bg-white shadow-[0_-5px_15px_rgba(0,0,0,0.05)]"
               >
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="bg-gray-50 p-3 rounded-lg text-center">
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div className="bg-gray-50 p-3 rounded-xl text-center">
                     <p className="text-xs text-gray-500 mb-1">تعداد اقلام</p>
                     <p className="text-lg font-bold">{totalQuantity}</p>
                   </div>
-                  <div className="bg-gray-50 p-3 rounded-lg text-center">
+                  <div className="bg-draugr-50 p-3 rounded-xl text-center">
                     <p className="text-xs text-gray-500 mb-1">مجموع قیمت</p>
                     <p className="text-lg font-bold text-draugr-900">{totalPrice.toLocaleString('fa-IR')}</p>
                   </div>
                 </div>
                 
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   <motion.button
                     whileHover={{ scale: 1.02, y: -2 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full bg-gradient-to-r from-draugr-800 to-draugr-600 text-white py-3 px-4 rounded-lg font-medium text-sm sm:text-base shadow-md hover:shadow-lg transition-all duration-300"
+                    className="w-full bg-gradient-to-r from-draugr-800 to-draugr-600 text-white py-3 px-4 rounded-xl font-medium text-sm sm:text-base shadow-md hover:shadow-lg transition-all duration-300"
                   >
                     تکمیل خرید
                   </motion.button>
@@ -217,13 +220,13 @@ const Cart = ({ items, removeItem, isOpen, onClose, addToCartPlus }) => {
                   <motion.button
                     whileHover={{ backgroundColor: "#f8f8f8" }}
                     onClick={onClose}
-                    className="w-full py-2 px-4 border border-gray-300 rounded-lg text-sm sm:text-base text-gray-700 hover:bg-gray-50 transition-colors duration-300"
+                    className="w-full py-2.5 px-4 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-700 hover:bg-gray-50 transition-colors duration-300"
                   >
                     ادامه خرید
                   </motion.button>
                 </div>
                 
-                <div className="mt-4 pt-3 border-t border-gray-200">
+                <div className="mt-3 pt-2.5 border-t border-gray-100">
                   <div className="flex justify-between text-xs text-gray-500">
                     <span>حمل و نقل:</span>
                     <span className="font-medium">متغیر</span>
@@ -246,17 +249,17 @@ const Cart = ({ items, removeItem, isOpen, onClose, addToCartPlus }) => {
 const styleElement = document.createElement('style');
 styleElement.textContent = `
   .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
+    width: 5px;
   }
   .custom-scrollbar::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: #f5f5f5;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 3px;
+    background: #d1d1d1;
+    border-radius: 5px;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #a1a1a1;
+    background: #b1b1b1;
   }
 `;
 document.head.appendChild(styleElement);
