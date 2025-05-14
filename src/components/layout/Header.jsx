@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -290,13 +290,47 @@ const Header = ({ cartItems, onCartClick }) => {
 // Desktop nav link component with enhanced hover effect
 const NavLink = ({ to, label, isCategory = false, categories = [] }) => {
   const navigate = useNavigate();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+  
+  // Add click outside handler
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+    
+    const handleScroll = () => {
+      setIsMenuOpen(false);
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('scroll', handleScroll);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [isMenuOpen]);
+  
+  const handleCategoryClick = (e) => {
+    if (isCategory) {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsMenuOpen(!isMenuOpen);
+    }
+  };
   
   return (
-    <motion.div className="relative group">
+    <motion.div className="relative group" ref={menuRef}>
       {isCategory ? (
         <motion.div 
           className="hover:text-draugr-500 ml-8 relative group inline-flex items-center cursor-pointer"
           whileHover={{ y: -2 }}
+          onClick={handleCategoryClick}
         >
           {label}
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -321,24 +355,26 @@ const NavLink = ({ to, label, isCategory = false, categories = [] }) => {
       
       {isCategory && (
         <AnimatePresence>
-          <motion.div
-            initial={{ opacity: 0, y: -10, scaleY: 0 }}
-            animate={{ opacity: 1, y: 0, scaleY: 1 }}
-            exit={{ opacity: 0, y: -10, scaleY: 0 }}
-            transition={{ 
-              duration: 0.3,
-              staggerChildren: 0.05,
-              delayChildren: 0.1
-            }}
-            style={{ transformOrigin: 'top center' }}
-            className="absolute right-0 mt-2 w-52 rounded-md shadow-lg bg-gradient-to-b from-black to-draugr-900 border border-draugr-700 opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all duration-300 z-50"
-          >
-            <div className="rounded-md py-1">
-              {categories.map((category, index) => (
-                <CategoryItem key={index} category={category} index={index} />
-              ))}
-            </div>
-          </motion.div>
+          {(isMenuOpen || menuRef.current?.parentElement?.matches(':hover')) && (
+            <motion.div
+              initial={{ opacity: 0, y: -10, scaleY: 0 }}
+              animate={{ opacity: 1, y: 0, scaleY: 1 }}
+              exit={{ opacity: 0, y: -10, scaleY: 0 }}
+              transition={{ 
+                duration: 0.3,
+                staggerChildren: 0.05,
+                delayChildren: 0.1
+              }}
+              style={{ transformOrigin: 'top center' }}
+              className="absolute right-0 mt-2 w-52 rounded-md shadow-lg bg-gradient-to-b from-black to-draugr-900 border border-draugr-700 transition-all duration-300 z-50"
+            >
+              <div className="rounded-md py-1">
+                {categories.map((category, index) => (
+                  <CategoryItem key={index} category={category} index={index} />
+                ))}
+              </div>
+            </motion.div>
+          )}
         </AnimatePresence>
       )}
     </motion.div>
@@ -348,12 +384,45 @@ const NavLink = ({ to, label, isCategory = false, categories = [] }) => {
 // Category item with subcategories
 const CategoryItem = ({ category, index }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [isSubMenuOpen, setIsSubMenuOpen] = useState(false);
+  const itemRef = useRef(null);
+  
+  // Close submenu when clicking outside
+  useEffect(() => {
+    if (!isSubMenuOpen) return;
+    
+    const handleClickOutside = (event) => {
+      if (itemRef.current && !itemRef.current.contains(event.target)) {
+        setIsSubMenuOpen(false);
+      }
+    };
+    
+    const handleScroll = () => {
+      setIsSubMenuOpen(false);
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('scroll', handleScroll);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [isSubMenuOpen]);
+  
+  const handleCategoryClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsSubMenuOpen(!isSubMenuOpen);
+  };
   
   return (
     <motion.div 
       className="relative group/item"
+      ref={itemRef}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={handleCategoryClick}
     >
       <motion.div
         className="block px-4 py-2 text-sm text-white hover:bg-draugr-800 hover:text-draugr-300 border-b border-draugr-800 last:border-0 flex justify-between items-center cursor-pointer"
@@ -385,7 +454,7 @@ const CategoryItem = ({ category, index }) => {
       {/* Subcategory dropdown */}
       {category.subcategories && category.subcategories.length > 0 && (
         <AnimatePresence>
-          {isHovered && (
+          {(isHovered || isSubMenuOpen) && (
             <motion.div
               className="absolute right-full top-0 w-48 bg-gradient-to-b from-draugr-950 to-black border border-draugr-700 rounded-md shadow-horror mr-1 z-50"
               initial={{ opacity: 0, x: 20, scaleX: 0.8 }}
