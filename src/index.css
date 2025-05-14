@@ -81,7 +81,7 @@ html, body {
 
 /* Adding blur effect when mobile menu is open */
 body.menu-open .main-content {
-  filter: blur(20px);
+  filter: blur(8px);
   transition: filter 0.4s ease;
 }
 

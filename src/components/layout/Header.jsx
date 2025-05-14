@@ -198,7 +198,7 @@ const Header = ({ cartItems, onCartClick }) => {
           <>
             {/* Background overlay with strong blur effect */}
             <motion.div 
-              className="fixed inset-0 z-40 bg-black/90"
+              className="fixed inset-0 z-40 bg-black/70"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -206,9 +206,9 @@ const Header = ({ cartItems, onCartClick }) => {
               onClick={toggleMobileMenu}
               style={{ 
                 cursor: 'pointer',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                MozBackdropFilter: 'blur(20px)'
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                MozBackdropFilter: 'blur(10px)'
               }}
             />
 
