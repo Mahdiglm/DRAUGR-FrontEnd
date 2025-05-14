@@ -158,7 +158,6 @@ const HomePage = () => {
             products={products} 
             onAddToCart={addToCart} 
             title="" 
-            backgroundType="product"
           />
         </div>
         
