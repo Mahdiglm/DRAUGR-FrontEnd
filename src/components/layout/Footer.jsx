@@ -89,11 +89,11 @@ const Footer = () => {
             
             <div className="bg-gradient-to-r from-gray-900 to-gray-800 p-4 rounded-lg border border-gray-700 shadow-lg">
               <div className="mb-4">
-                <input 
-                  type="email" 
-                  placeholder="ایمیل شما" 
+              <input 
+                type="email" 
+                placeholder="ایمیل شما" 
                   className="bg-gray-800 text-white px-4 py-3 rounded-md w-full text-xs sm:text-sm focus:outline-none border border-gray-700 focus:border-draugr-500 focus:ring-1 focus:ring-draugr-500 transition-all duration-300"
-                />
+              />
               </div>
               <button className="w-full bg-gradient-to-r from-draugr-800 to-draugr-600 text-white px-4 py-3 rounded-md text-xs sm:text-sm hover:from-draugr-700 hover:to-draugr-500 transition-all duration-300 font-medium flex items-center justify-center group">
                 <span>عضویت در خبرنامه</span>

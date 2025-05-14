@@ -8,7 +8,7 @@ import backgroundImage from '../../assets/BackGround-Login.jpg';
 const AuthLayout = ({ children, title }) => {
   return (
     <div 
-      className="min-h-screen flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden"
+      className="min-h-screen flex items-center justify-center py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden"
       style={{
         backgroundImage: `url(${backgroundImage})`,
         backgroundSize: 'cover',
@@ -48,13 +48,13 @@ const AuthLayout = ({ children, title }) => {
         />
       </div>
       
-      {/* Main content container - Slimmer on mobile */}
-      <div className="w-full max-w-xs sm:max-w-sm md:max-w-md relative z-20">
+      {/* Main content container - Slimmer on mobile, wider on desktop */}
+      <div className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl relative z-20">
         {/* Logo with typing animation */}
-        <div className="flex justify-center mb-4 sm:mb-6">
+        <div className="flex justify-center mb-4 sm:mb-6 md:mb-8">
           <Link to="/">
             <motion.div 
-              className="text-2xl sm:text-3xl font-bold text-draugr-500 text-shadow-horror"
+              className="text-2xl sm:text-3xl md:text-4xl font-bold text-draugr-500 text-shadow-horror"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 1 }}
@@ -64,18 +64,18 @@ const AuthLayout = ({ children, title }) => {
           </Link>
         </div>
         
-        {/* Form container with enhanced horror styling - More compact */}
+        {/* Form container with enhanced horror styling - More compact on mobile, spacious on desktop */}
         <motion.div
-          className="relative bg-black/40 backdrop-filter backdrop-blur-md rounded-lg shadow-horror p-4 sm:p-5 overflow-hidden border border-draugr-900/50"
+          className="relative bg-black/40 backdrop-filter backdrop-blur-md rounded-lg shadow-horror p-4 sm:p-5 md:p-7 lg:p-8 overflow-hidden border border-draugr-900/50"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          {/* Minimal corner accents */}
-          <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-draugr-500/80"></div>
-          <div className="absolute top-0 right-0 w-4 h-4 border-t border-r border-draugr-500/80"></div>
-          <div className="absolute bottom-0 left-0 w-4 h-4 border-b border-l border-draugr-500/80"></div>
-          <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-draugr-500/80"></div>
+          {/* Corner accents - smaller on mobile, larger on desktop */}
+          <div className="absolute top-0 left-0 w-4 sm:w-5 md:w-6 h-4 sm:h-5 md:h-6 border-t border-l border-draugr-500/80"></div>
+          <div className="absolute top-0 right-0 w-4 sm:w-5 md:w-6 h-4 sm:h-5 md:h-6 border-t border-r border-draugr-500/80"></div>
+          <div className="absolute bottom-0 left-0 w-4 sm:w-5 md:w-6 h-4 sm:h-5 md:h-6 border-b border-l border-draugr-500/80"></div>
+          <div className="absolute bottom-0 right-0 w-4 sm:w-5 md:w-6 h-4 sm:h-5 md:h-6 border-b border-r border-draugr-500/80"></div>
           
           {/* Subtle animated border glow */}
           <motion.div 
@@ -90,8 +90,8 @@ const AuthLayout = ({ children, title }) => {
             }}
           />
           
-          {/* Section title - Smaller, more minimal */}
-          <h2 className="text-lg sm:text-xl font-bold text-center mb-4 sm:mb-5 text-white relative z-10">
+          {/* Section title - Smaller on mobile, larger on desktop */}
+          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-center mb-4 sm:mb-5 md:mb-7 text-white relative z-10">
             <motion.span 
               className="relative inline-block"
               initial={{ opacity: 0, y: -10 }}
@@ -100,7 +100,7 @@ const AuthLayout = ({ children, title }) => {
             >
               {title}
               <motion.span 
-                className="absolute -bottom-1 left-0 right-0 h-px bg-gradient-to-r from-transparent via-draugr-500 to-transparent"
+                className="absolute -bottom-1 sm:-bottom-2 left-0 right-0 h-px sm:h-0.5 bg-gradient-to-r from-transparent via-draugr-500 to-transparent"
                 initial={{ width: 0, opacity: 0 }}
                 animate={{ width: '100%', opacity: 0.8 }}
                 transition={{ delay: 0.6, duration: 0.6 }}

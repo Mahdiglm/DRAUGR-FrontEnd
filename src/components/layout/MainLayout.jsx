@@ -50,9 +50,9 @@ const MainLayout = () => {
       showTemporaryMessage(`یک عدد از ${product.name} از سبد خرید کم شد`);
     } else {
       // Remove the item completely
-      setCartItems(cartItems.filter(item => item.id !== productId));
-      if (product) {
-        showTemporaryMessage(`${product.name} از سبد خرید حذف شد`);
+    setCartItems(cartItems.filter(item => item.id !== productId));
+    if (product) {
+      showTemporaryMessage(`${product.name} از سبد خرید حذف شد`);
       }
     }
   };
