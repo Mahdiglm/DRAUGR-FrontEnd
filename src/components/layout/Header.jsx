@@ -302,10 +302,9 @@ const NavLink = ({ to, label, isCategory = false, categories = [] }) => {
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
-          <motion.span 
+          <span 
             className="absolute -bottom-1 left-0 w-0 h-0.5 bg-draugr-500 transition-all duration-300 group-hover:w-full"
-            whileHover={{ width: "100%" }}
-          ></motion.span>
+          ></span>
         </motion.div>
       ) : (
         <motion.div 
@@ -314,10 +313,9 @@ const NavLink = ({ to, label, isCategory = false, categories = [] }) => {
           whileHover={{ y: -2 }}
         >
           {label}
-          <motion.span 
+          <span 
             className="absolute -bottom-1 left-0 w-0 h-0.5 bg-draugr-500 transition-all duration-300 group-hover:w-full"
-            whileHover={{ width: "100%" }}
-          ></motion.span>
+          ></span>
         </motion.div>
       )}
       
