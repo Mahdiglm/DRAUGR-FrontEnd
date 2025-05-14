@@ -291,6 +291,8 @@ const Header = ({ cartItems, onCartClick }) => {
 const NavLink = ({ to, label, isCategory = false, categories = [] }) => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [activeSubmenuIndex, setActiveSubmenuIndex] = useState(null);
   const menuRef = useRef(null);
   
   // Add click outside handler
@@ -300,11 +302,13 @@ const NavLink = ({ to, label, isCategory = false, categories = [] }) => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setIsMenuOpen(false);
+        setActiveSubmenuIndex(null);
       }
     };
     
     const handleScroll = () => {
       setIsMenuOpen(false);
+      setActiveSubmenuIndex(null);
     };
     
     document.addEventListener('mousedown', handleClickOutside);
@@ -325,7 +329,12 @@ const NavLink = ({ to, label, isCategory = false, categories = [] }) => {
   };
   
   return (
-    <motion.div className="relative group" ref={menuRef}>
+    <motion.div 
+      className="relative group" 
+      ref={menuRef}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       {isCategory ? (
         <motion.div 
           className="hover:text-draugr-500 ml-8 relative group inline-flex items-center cursor-pointer"
@@ -355,7 +364,7 @@ const NavLink = ({ to, label, isCategory = false, categories = [] }) => {
       
       {isCategory && (
         <AnimatePresence>
-          {(isMenuOpen || menuRef.current?.parentElement?.matches(':hover')) && (
+          {(isMenuOpen || isHovered) && (
             <motion.div
               initial={{ opacity: 0, y: -10, scaleY: 0 }}
               animate={{ opacity: 1, y: 0, scaleY: 1 }}
@@ -370,7 +379,14 @@ const NavLink = ({ to, label, isCategory = false, categories = [] }) => {
             >
               <div className="rounded-md py-1">
                 {categories.map((category, index) => (
-                  <CategoryItem key={index} category={category} index={index} />
+                  <CategoryItem 
+                    key={index} 
+                    category={category} 
+                    index={index} 
+                    isActive={activeSubmenuIndex === index}
+                    onActivate={() => setActiveSubmenuIndex(index)}
+                    onDeactivate={() => setActiveSubmenuIndex(null)}
+                  />
                 ))}
               </div>
             </motion.div>
@@ -382,38 +398,18 @@ const NavLink = ({ to, label, isCategory = false, categories = [] }) => {
 };
 
 // Category item with subcategories
-const CategoryItem = ({ category, index }) => {
+const CategoryItem = ({ category, index, isActive, onActivate, onDeactivate }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [isSubMenuOpen, setIsSubMenuOpen] = useState(false);
   const itemRef = useRef(null);
-  
-  // Close submenu when clicking outside
-  useEffect(() => {
-    if (!isSubMenuOpen) return;
-    
-    const handleClickOutside = (event) => {
-      if (itemRef.current && !itemRef.current.contains(event.target)) {
-        setIsSubMenuOpen(false);
-      }
-    };
-    
-    const handleScroll = () => {
-      setIsSubMenuOpen(false);
-    };
-    
-    document.addEventListener('mousedown', handleClickOutside);
-    window.addEventListener('scroll', handleScroll);
-    
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [isSubMenuOpen]);
   
   const handleCategoryClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsSubMenuOpen(!isSubMenuOpen);
+    if (isActive) {
+      onDeactivate();
+    } else {
+      onActivate();
+    }
   };
   
   return (
@@ -454,7 +450,7 @@ const CategoryItem = ({ category, index }) => {
       {/* Subcategory dropdown */}
       {category.subcategories && category.subcategories.length > 0 && (
         <AnimatePresence>
-          {(isHovered || isSubMenuOpen) && (
+          {(isHovered || isActive) && (
             <motion.div
               className="absolute right-full top-0 w-48 bg-gradient-to-b from-draugr-950 to-black border border-draugr-700 rounded-md shadow-horror mr-1 z-50"
               initial={{ opacity: 0, x: 20, scaleX: 0.8 }}
