@@ -1,9 +1,12 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const Cart = ({ items, removeItem, isOpen, onClose }) => {
-  const totalPrice = items.reduce((total, item) => total + item.price, 0);
-  const itemCount = items.length;
+const Cart = ({ items, removeItem, isOpen, onClose, addToCartPlus }) => {
+  // Calculate total price considering quantities
+  const totalPrice = items.reduce((total, item) => total + (item.price * (item.quantity || 1)), 0);
+  
+  // Calculate total number of items (sum of quantities)
+  const totalQuantity = items.reduce((total, item) => total + (item.quantity || 1), 0);
 
   return (
     <AnimatePresence>
@@ -31,13 +34,13 @@ const Cart = ({ items, removeItem, isOpen, onClose }) => {
             <div className="p-5 sm:p-6 border-b border-gray-200 flex justify-between items-center bg-white shadow-sm">
               <div className="flex items-center">
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-900">سبد خرید</h2>
-                {itemCount > 0 && (
+                {totalQuantity > 0 && (
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     className="mr-2 bg-draugr-600 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center"
                   >
-                    {itemCount}
+                    {totalQuantity}
                   </motion.div>
                 )}
               </div>
@@ -113,7 +116,14 @@ const Cart = ({ items, removeItem, isOpen, onClose }) => {
                           {/* Product details with improved typography */}
                           <div className="flex-1 flex flex-col">
                             <div className="flex justify-between">
-                              <h3 className="text-sm sm:text-base font-medium text-gray-900 group-hover:text-draugr-700 transition-colors duration-300">{item.name}</h3>
+                              <div className="flex items-start">
+                                <h3 className="text-sm sm:text-base font-medium text-gray-900 group-hover:text-draugr-700 transition-colors duration-300">{item.name}</h3>
+                                {item.quantity > 1 && (
+                                  <span className="mr-2 bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded-md text-xs font-medium">
+                                    {item.quantity}×
+                                  </span>
+                                )}
+                              </div>
                               <motion.button
                                 whileHover={{ scale: 1.2, color: "#ef4444" }}
                                 whileTap={{ scale: 0.9 }}
@@ -130,8 +140,46 @@ const Cart = ({ items, removeItem, isOpen, onClose }) => {
                               </motion.button>
                             </div>
                             <div className="flex justify-between items-end mt-1">
-                              <p className="text-xs sm:text-sm text-gray-500">{"1 × " + item.price.toLocaleString('fa-IR') + " تومان"}</p>
-                              <p className="text-sm sm:text-base font-medium text-draugr-900">{item.price.toLocaleString('fa-IR')} تومان</p>
+                              <p className="text-xs sm:text-sm text-gray-500">{(item.quantity || 1) + " × " + item.price.toLocaleString('fa-IR') + " تومان"}</p>
+                              <p className="text-sm sm:text-base font-medium text-draugr-900">{((item.price * (item.quantity || 1))).toLocaleString('fa-IR')} تومان</p>
+                            </div>
+                            
+                            {/* Quantity controls */}
+                            <div className="flex items-center mt-2">
+                              <div className="flex space-x-3 rtl:space-x-reverse bg-gray-100 rounded-lg p-1">
+                                <motion.button
+                                  whileHover={{ scale: 1.1 }}
+                                  whileTap={{ scale: 0.95 }}
+                                  onClick={() => removeItem(item.id)}
+                                  className="w-6 h-6 flex items-center justify-center rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                  aria-label="کاهش تعداد"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                                  </svg>
+                                </motion.button>
+                                
+                                <span className="flex items-center justify-center w-8 text-sm font-medium">
+                                  {item.quantity || 1}
+                                </span>
+                                
+                                <motion.button
+                                  whileHover={{ scale: 1.1 }}
+                                  whileTap={{ scale: 0.95 }}
+                                  onClick={() => {
+                                    // We need to simulate adding the same product
+                                    const productToAdd = { ...item };
+                                    delete productToAdd.quantity; // Remove quantity so addToCart logic works
+                                    addToCartPlus(productToAdd);
+                                  }}
+                                  className="w-6 h-6 flex items-center justify-center rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                  aria-label="افزایش تعداد"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                                  </svg>
+                                </motion.button>
+                              </div>
                             </div>
                           </div>
                         </motion.li>
@@ -153,7 +201,7 @@ const Cart = ({ items, removeItem, isOpen, onClose }) => {
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div className="bg-gray-50 p-3 rounded-lg text-center">
                     <p className="text-xs text-gray-500 mb-1">تعداد اقلام</p>
-                    <p className="text-lg font-bold">{itemCount}</p>
+                    <p className="text-lg font-bold">{totalQuantity}</p>
                   </div>
                   <div className="bg-gray-50 p-3 rounded-lg text-center">
                     <p className="text-xs text-gray-500 mb-1">مجموع قیمت</p>

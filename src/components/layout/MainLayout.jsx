@@ -15,15 +15,44 @@ const MainLayout = () => {
 
   // Expose these functions through React Context in a real app
   const addToCart = (product) => {
-    setCartItems([...cartItems, product]);
+    // Check if the product is already in the cart
+    const existingItemIndex = cartItems.findIndex(item => item.id === product.id);
+    
+    if (existingItemIndex !== -1) {
+      // If product already exists, increment its quantity
+      const updatedCartItems = [...cartItems];
+      if (!updatedCartItems[existingItemIndex].quantity) {
+        updatedCartItems[existingItemIndex].quantity = 1; // Initialize quantity if it doesn't exist
+      }
+      updatedCartItems[existingItemIndex].quantity += 1;
+      setCartItems(updatedCartItems);
+    } else {
+      // If product doesn't exist, add it with quantity 1
+      const productWithQuantity = { ...product, quantity: 1 };
+      setCartItems([...cartItems, productWithQuantity]);
+    }
+    
     showTemporaryMessage(`${product.name} به سبد خرید اضافه شد`);
   };
 
   const removeFromCart = (productId) => {
     const product = cartItems.find(item => item.id === productId);
-    setCartItems(cartItems.filter(item => item.id !== productId));
-    if (product) {
-      showTemporaryMessage(`${product.name} از سبد خرید حذف شد`);
+    
+    if (product && product.quantity > 1) {
+      // If quantity > 1, just decrement the quantity
+      const updatedCartItems = cartItems.map(item => 
+        item.id === productId 
+          ? { ...item, quantity: item.quantity - 1 } 
+          : item
+      );
+      setCartItems(updatedCartItems);
+      showTemporaryMessage(`یک عدد از ${product.name} از سبد خرید کم شد`);
+    } else {
+      // Remove the item completely
+      setCartItems(cartItems.filter(item => item.id !== productId));
+      if (product) {
+        showTemporaryMessage(`${product.name} از سبد خرید حذف شد`);
+      }
     }
   };
 
@@ -86,6 +115,7 @@ const MainLayout = () => {
         removeItem={removeFromCart} 
         isOpen={isCartOpen} 
         onClose={() => setIsCartOpen(false)} 
+        addToCartPlus={addToCart}
       />
 
       {/* Floating Message */}
