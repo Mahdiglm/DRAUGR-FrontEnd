@@ -97,7 +97,7 @@ const Header = ({ cartItems, onCartClick }) => {
           <div className="absolute left-0 top-0 h-full flex items-center">
             <span className="blood-text animate-pulse-slow relative">
               <span className="inline-block min-w-[76px] md:min-w-[96px] pr-2">{typedText || '\u00A0'}</span>
-              <span className={`inline-block w-0.5 h-6 bg-draugr-500 absolute ml-2 ${isTyping ? 'animate-pulse' : 'opacity-0'}`}></span>
+              <span className={`inline-block w-0.5 h-6 bg-draugr-500 absolute ml-4 ${isTyping ? 'animate-pulse' : 'opacity-0'}`}></span>
             </span>
             <span className="mr-3"> فروشگاه</span>
           </div>
