@@ -148,16 +148,15 @@ const Cart = ({ items, removeItem, isOpen, onClose, addToCartPlus }) => {
                             <div className="flex items-center mt-2">
                               <div className="flex space-x-3 rtl:space-x-reverse bg-gray-50 rounded-lg p-1 border border-gray-200 shadow-sm">
                                 <motion.button
-                                  whileHover={{ scale: 1.1, backgroundColor: "#f87171" }}
+                                  whileHover={{ scale: 1.05 }}
                                   whileTap={{ scale: 0.95 }}
                                   onClick={() => removeItem(item.id)}
-                                  className="w-7 h-7 flex items-center justify-center rounded-full bg-white text-gray-700 hover:text-white hover:bg-red-400 border border-gray-200 shadow-sm transition-colors duration-200 relative group"
+                                  className="w-7 h-7 flex items-center justify-center rounded-full bg-white text-gray-700 border border-gray-200 shadow-sm"
                                   aria-label="کاهش تعداد"
                                 >
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
                                   </svg>
-                                  <span className="absolute -top-7 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">کاهش</span>
                                 </motion.button>
                                 
                                 <span className="flex items-center justify-center w-8 text-sm font-bold text-gray-800">
@@ -165,7 +164,7 @@ const Cart = ({ items, removeItem, isOpen, onClose, addToCartPlus }) => {
                                 </span>
                                 
                                 <motion.button
-                                  whileHover={{ scale: 1.1, backgroundColor: "#4ade80" }}
+                                  whileHover={{ scale: 1.05 }}
                                   whileTap={{ scale: 0.95 }}
                                   onClick={() => {
                                     // We need to simulate adding the same product
@@ -173,13 +172,12 @@ const Cart = ({ items, removeItem, isOpen, onClose, addToCartPlus }) => {
                                     delete productToAdd.quantity; // Remove quantity so addToCart logic works
                                     addToCartPlus(productToAdd);
                                   }}
-                                  className="w-7 h-7 flex items-center justify-center rounded-full bg-white text-gray-700 hover:text-white hover:bg-green-400 border border-gray-200 shadow-sm transition-colors duration-200 relative group"
+                                  className="w-7 h-7 flex items-center justify-center rounded-full bg-white text-gray-700 border border-gray-200 shadow-sm"
                                   aria-label="افزایش تعداد"
                                 >
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
                                   </svg>
-                                  <span className="absolute -top-7 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">افزایش</span>
                                 </motion.button>
                               </div>
                             </div>
