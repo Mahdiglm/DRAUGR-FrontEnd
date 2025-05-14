@@ -40,33 +40,34 @@ const ProductCard = ({ product, onAddToCart }) => {
       className="bg-white rounded-lg overflow-hidden shadow-lg h-full flex flex-col"
     >
       <div 
-        className="h-52 sm:h-64 md:h-72 bg-cover bg-center cursor-pointer relative overflow-hidden" 
+        className="h-64 sm:h-72 md:h-80 bg-cover bg-center cursor-pointer relative overflow-hidden" 
         style={{ 
           backgroundImage: imageUrl ? `url(${imageUrl})` : 'none',
           backgroundSize: 'cover',
-          backgroundPosition: 'center'
+          backgroundPosition: 'center',
+          transition: 'transform 0.3s ease'
         }}
         onClick={handleViewDetails}
       >
         {/* Image gradient overlay for better visibility */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
       </div>
-      <div className="p-3 sm:p-4 flex-grow flex flex-col">
+      <div className="p-2 flex-grow flex flex-col min-h-0">
         <h3 
-          className="font-bold text-lg sm:text-xl mb-1 cursor-pointer text-draugr-900 hover:text-draugr-600 transition-colors duration-300 line-clamp-1"
+          className="font-bold text-lg truncate cursor-pointer text-draugr-900 hover:text-draugr-600 transition-colors duration-300"
           onClick={handleViewDetails}
         >
           {name}
         </h3>
-        <p className="text-gray-700 text-sm sm:text-base mb-2 sm:mb-3 flex-grow line-clamp-2">{description}</p>
-        <div className="flex justify-between items-center mt-auto">
-          <span className="font-bold text-base sm:text-xl">{price.toFixed(2)} تومان</span>
-          <div className="flex gap-2">
+        <p className="text-gray-700 text-sm mb-2 line-clamp-1">{description}</p>
+        <div className="flex justify-between items-center">
+          <span className="font-bold text-base">{price.toFixed(2)} تومان</span>
+          <div className="flex gap-1">
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={handleAddToCart}
-              className="bg-black text-white p-2 rounded-full w-9 h-9 flex items-center justify-center"
+              className="bg-black text-white p-1.5 rounded-full w-8 h-8 flex items-center justify-center"
               aria-label={`افزودن ${name} به سبد خرید`}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -77,7 +78,7 @@ const ProductCard = ({ product, onAddToCart }) => {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={handleViewDetails}
-              className="bg-draugr-800 text-white p-2 rounded-full w-9 h-9 flex items-center justify-center"
+              className="bg-draugr-800 text-white p-1.5 rounded-full w-8 h-8 flex items-center justify-center"
               aria-label={`مشاهده جزئیات ${name}`}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
