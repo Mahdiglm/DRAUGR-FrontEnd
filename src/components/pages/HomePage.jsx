@@ -147,9 +147,6 @@ const HomePage = () => {
           />
         </div>
         
-        {/* Glowing border at top */}
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-draugr-800 to-transparent opacity-70"></div>
-        
         {/* Content container with enhanced styling */}
         <div className="relative z-10 container mx-auto px-4">
           <motion.div
@@ -178,9 +175,6 @@ const HomePage = () => {
             title="" 
           />
         </div>
-        
-        {/* Glowing border at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-draugr-800 to-transparent opacity-70"></div>
       </motion.section>
     </>
   );
