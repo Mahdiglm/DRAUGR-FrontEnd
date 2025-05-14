@@ -40,18 +40,25 @@ const ProductCard = ({ product, onAddToCart }) => {
       className="bg-white rounded-lg overflow-hidden shadow-lg h-full flex flex-col"
     >
       <div 
-        className="h-48 sm:h-56 md:h-64 bg-cover bg-center cursor-pointer" 
-        style={{ backgroundImage: imageUrl ? `url(${imageUrl})` : 'none' }}
+        className="h-52 sm:h-64 md:h-72 bg-cover bg-center cursor-pointer relative overflow-hidden" 
+        style={{ 
+          backgroundImage: imageUrl ? `url(${imageUrl})` : 'none',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }}
         onClick={handleViewDetails}
-      ></div>
-      <div className="p-4 sm:p-6 flex-grow flex flex-col">
+      >
+        {/* Image gradient overlay for better visibility */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+      </div>
+      <div className="p-3 sm:p-4 flex-grow flex flex-col">
         <h3 
-          className="font-bold text-lg sm:text-xl mb-1 sm:mb-2 cursor-pointer text-draugr-900 hover:text-draugr-600 transition-colors duration-300"
+          className="font-bold text-lg sm:text-xl mb-1 cursor-pointer text-draugr-900 hover:text-draugr-600 transition-colors duration-300 line-clamp-1"
           onClick={handleViewDetails}
         >
           {name}
         </h3>
-        <p className="text-gray-700 text-sm sm:text-base mb-3 sm:mb-4 flex-grow line-clamp-3">{description}</p>
+        <p className="text-gray-700 text-sm sm:text-base mb-2 sm:mb-3 flex-grow line-clamp-2">{description}</p>
         <div className="flex justify-between items-center mt-auto">
           <span className="font-bold text-base sm:text-xl">{price.toFixed(2)} تومان</span>
           <div className="flex gap-2">
