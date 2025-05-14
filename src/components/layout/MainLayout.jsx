@@ -161,9 +161,10 @@ const MainLayout = () => {
       </AnimatePresence>
 
       {/* Main Content */}
-      <Outlet context={{ addToCart, cartItems, showTemporaryMessage }} />
-      
-      <Footer />
+      <main className="main-content">
+        <Outlet context={{ addToCart, cartItems, showTemporaryMessage }} />
+        <Footer />
+      </main>
       
       {/* Development Tools */}
       <DevTools />

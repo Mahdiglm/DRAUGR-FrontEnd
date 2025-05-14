@@ -40,7 +40,19 @@ const Header = ({ cartItems, onCartClick }) => {
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
+    if (!isMobileMenuOpen) {
+      document.body.classList.add('menu-open');
+    } else {
+      document.body.classList.remove('menu-open');
+    }
   };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      document.body.classList.remove('menu-open');
+    };
+  }, []);
 
   // Typing animation effect
   useEffect(() => {
@@ -184,14 +196,20 @@ const Header = ({ cartItems, onCartClick }) => {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
-            {/* Background overlay - moved outside the menu but inside AnimatePresence */}
+            {/* Background overlay with strong blur effect */}
             <motion.div 
-              className="fixed inset-0 z-40 bg-black"
+              className="fixed inset-0 z-40 bg-black/90"
               initial={{ opacity: 0 }}
-              animate={{ opacity: 0.6 }}
+              animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
               onClick={toggleMobileMenu}
-              style={{ cursor: 'pointer' }}
+              style={{ 
+                cursor: 'pointer',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                MozBackdropFilter: 'blur(20px)'
+              }}
             />
 
             {/* Menu content */}
@@ -201,7 +219,6 @@ const Header = ({ cartItems, onCartClick }) => {
               exit={{ opacity: 0, x: '100%' }}
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
               className="md:hidden fixed top-0 right-0 h-screen w-3/4 bg-gradient-to-b from-black to-draugr-950 shadow-[-10px_0px_30px_rgba(0,0,0,0.5)] z-50 overflow-y-auto"
-              style={{ backdropFilter: 'blur(8px)' }}
             >
               <div className="w-full h-full flex flex-col">
                 {/* Menu Header with Close Button */}

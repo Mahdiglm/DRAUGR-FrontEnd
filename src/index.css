@@ -79,6 +79,16 @@ html, body {
   scroll-padding-top: 0;
 }
 
+/* Adding blur effect when mobile menu is open */
+body.menu-open .main-content {
+  filter: blur(20px);
+  transition: filter 0.4s ease;
+}
+
+body.menu-open {
+  overflow: hidden;
+}
+
 body {
   display: flex;
   flex-direction: column;
