@@ -196,9 +196,9 @@ const Header = ({ cartItems, onCartClick }) => {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
-            {/* Background overlay with strong blur effect */}
+            {/* Background overlay with subtle blur effect */}
             <motion.div 
-              className="fixed inset-0 z-40 bg-black/70"
+              className="fixed inset-0 z-40 bg-black/60"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -206,9 +206,9 @@ const Header = ({ cartItems, onCartClick }) => {
               onClick={toggleMobileMenu}
               style={{ 
                 cursor: 'pointer',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
-                MozBackdropFilter: 'blur(10px)'
+                backdropFilter: 'blur(6px)',
+                WebkitBackdropFilter: 'blur(6px)',
+                MozBackdropFilter: 'blur(6px)'
               }}
             />
 
