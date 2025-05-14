@@ -25,15 +25,25 @@ const MainLayout = () => {
       if (!updatedCartItems[existingItemIndex].quantity) {
         updatedCartItems[existingItemIndex].quantity = 1; // Initialize quantity if it doesn't exist
       }
-      updatedCartItems[existingItemIndex].quantity += 1;
+      
+      // If product comes with quantity (from product detail page), add that amount
+      const quantityToAdd = product.quantity || 1;
+      updatedCartItems[existingItemIndex].quantity += quantityToAdd;
+      
       setCartItems(updatedCartItems);
     } else {
-      // If product doesn't exist, add it with quantity 1
-      const productWithQuantity = { ...product, quantity: 1 };
+      // If product doesn't exist, add it with quantity from product or default to 1
+      const productWithQuantity = { 
+        ...product, 
+        quantity: product.quantity || 1
+      };
       setCartItems([...cartItems, productWithQuantity]);
     }
     
-    showTemporaryMessage(`${product.name} به سبد خرید اضافه شد`);
+    // No need to show message here since the product page already shows one
+    if (!product.quantity) {
+      showTemporaryMessage(`${product.name} به سبد خرید اضافه شد`);
+    }
   };
 
   const removeFromCart = (productId) => {

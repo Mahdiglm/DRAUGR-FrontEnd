@@ -31,10 +31,12 @@ const ProductDetail = () => {
   }
   
   const handleAddToCart = () => {
-    // Add product to cart the specified number of times
-    for (let i = 0; i < quantity; i++) {
-      addToCart(product);
-    }
+    // Create a copy of the product with the selected quantity
+    const productWithQuantity = { ...product, quantity: quantity };
+    
+    // Add to cart with the specified quantity
+    addToCart(productWithQuantity);
+    
     // Show confirmation message
     showTemporaryMessage(`${quantity} عدد ${product.name} به سبد خرید اضافه شد`);
   };
