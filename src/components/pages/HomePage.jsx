@@ -43,6 +43,15 @@ const HomePage = () => {
         {/* Dark overlay for better text readability */}
         <div className="absolute inset-0 bg-black opacity-50"></div>
 
+        {/* Bottom gradient overlay for smooth transition */}
+        <div 
+          className="absolute bottom-0 left-0 right-0 h-32 z-10" 
+          style={{
+            background: 'linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.95))',
+            pointerEvents: 'none'
+          }}
+        ></div>
+
         <div className="w-full flex justify-center items-center">
           <div className="max-w-7xl mx-auto px-4 relative z-10 text-center">
             <motion.div
@@ -99,6 +108,15 @@ const HomePage = () => {
       >
         {/* Dark overlay for better readability */}
         <div className="absolute inset-0 bg-black bg-opacity-70 z-0"></div>
+        
+        {/* Top gradient overlay for smooth transition from hero section */}
+        <div 
+          className="absolute top-0 left-0 right-0 h-32 z-0" 
+          style={{
+            background: 'linear-gradient(to top, transparent, rgba(0, 0, 0, 0.95))',
+            pointerEvents: 'none'
+          }}
+        ></div>
         
         {/* Bottom gradient overlay for smooth transition to footer */}
         <div 
