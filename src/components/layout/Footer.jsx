@@ -33,7 +33,6 @@ const Footer = () => {
           <div className="col-span-2 sm:col-span-2 md:col-span-1 mb-8 md:mb-0 relative overflow-hidden">
             <div className="relative z-10">
               <h3 className="text-lg sm:text-2xl font-bold mb-4 sm:mb-6 text-white flex items-center">
-                <span className="bg-draugr-600 w-2 h-10 mr-3 rounded-sm inline-block transform -skew-x-12"></span>
                 <span className="bg-gradient-to-r from-draugr-500 to-draugr-400 bg-clip-text text-transparent">DRAUGR</span>
                 <span className="text-white mx-2">|</span>
                 <span className="text-sm text-gray-300">فروشگاه</span>
