@@ -148,7 +148,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
 
       {/* Pagination Controls */}
       {pages.length > 1 && (
-        <div className="flex justify-center space-x-6 mt-6">
+        <div className="flex justify-center space-x-12 mt-6">
           {pages.map((_, index) => (
             <motion.button
               key={index}
