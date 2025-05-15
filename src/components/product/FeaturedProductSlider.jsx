@@ -165,7 +165,6 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
             }}
           />
         </div>
-        <div className="absolute inset-0 bg-white dark:bg-gray-900 bg-opacity-30 dark:bg-opacity-30 backdrop-blur-md rounded-xl -z-20"></div>
         
         {/* Mobile view is stacked */}
         {isMobile && (
