@@ -9,6 +9,102 @@ import { products, categories } from '../../utils/mockData';
 // Using only a fallback background image URL
 const shopBackground = "https://images.unsplash.com/photo-1574015974293-817f0ebf0e95?q=80&w=1800&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
 
+// Custom CSS for glowing effects and enhanced styling
+const enhancedStyles = `
+  .sidebar-horror {
+    background: linear-gradient(145deg, #1a1a1a, #111111);
+    box-shadow: 
+      0 10px 30px -10px rgba(0, 0, 0, 0.9),
+      0 0 10px 2px rgba(154, 36, 50, 0.3),
+      inset 0 0 15px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(154, 36, 50, 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .sidebar-horror::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(239, 35, 60, 0.6), transparent);
+    animation: glowPulse 4s ease-in-out infinite;
+    z-index: 1;
+  }
+  
+  .sidebar-horror::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: linear-gradient(to right, transparent, rgba(154, 36, 50, 0.4), transparent);
+    filter: blur(3px);
+    z-index: 0;
+  }
+  
+  @keyframes glowPulse {
+    0% { opacity: 0.3; }
+    50% { opacity: 0.8; }
+    100% { opacity: 0.3; }
+  }
+  
+  .horror-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(239, 35, 60, 0.4), transparent);
+    margin: 16px 0;
+    position: relative;
+  }
+  
+  .horror-divider::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 1px;
+    background: inherit;
+    top: 1px;
+    left: 0;
+    filter: blur(1px);
+  }
+  
+  .filter-content {
+    position: relative;
+    z-index: 10;
+  }
+  
+  .filter-title {
+    text-shadow: 0 0 8px rgba(239, 35, 60, 0.6);
+    position: relative;
+    display: inline-block;
+  }
+  
+  .filter-title::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(239, 35, 60, 0.8), transparent);
+  }
+  
+  .noise-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='a'%3E%3CfeTurbulence baseFrequency='.8' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)' opacity='.08'/%3E%3C/svg%3E");
+    opacity: 0.2;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    z-index: 2;
+  }
+`;
+
 // Filter icons
 const FilterIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -132,6 +228,9 @@ const ShopPage = () => {
         backgroundAttachment: 'fixed'
       }}
     >
+      {/* Custom styles */}
+      <style dangerouslySetInnerHTML={{ __html: enhancedStyles }} />
+      
       {/* Dark overlay for better readability */}
       <div className="absolute inset-0 bg-black bg-opacity-80 z-0"></div>
       
@@ -185,93 +284,102 @@ const ShopPage = () => {
                 transition={{ duration: 0.3 }}
                 className="fixed inset-0 bg-black bg-opacity-80 z-50 md:hidden overflow-auto"
               >
-                <div className="bg-charcoal h-full w-4/5 max-w-sm overflow-auto p-4 border-r border-draugr-800">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-bold text-white">فیلترها</h3>
-                    <button 
-                      onClick={() => setIsFilterMenuOpen(false)}
-                      className="text-white p-1 rounded-full hover:bg-draugr-900"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                  
-                  {/* Mobile Filter Content - Same as desktop */}
-                  <div className="space-y-6">
-                    {/* Search */}
-                    <div>
-                      <h4 className="text-lg font-medium text-white mb-2">جستجو</h4>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
-                          placeholder="جستجوی محصولات..."
-                          className="w-full bg-ash text-white py-2 px-3 pr-10 rounded-md focus:outline-none focus:ring-1 focus:ring-draugr-500"
-                        />
-                        <span className="absolute left-3 top-2.5 text-gray-400">
-                          <SearchIcon />
-                        </span>
+                <div className="sidebar-horror h-full w-4/5 max-w-sm overflow-auto p-5 border-r border-draugr-800">
+                  <div className="filter-content">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-xl font-bold text-white filter-title">فیلترها</h3>
+                      <button 
+                        onClick={() => setIsFilterMenuOpen(false)}
+                        className="text-white p-1 rounded-full hover:bg-draugr-900"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                    
+                    {/* Mobile Filter Content - Same as desktop */}
+                    <div className="space-y-6">
+                      {/* Search */}
+                      <div>
+                        <h4 className="text-lg font-medium text-white mb-2 filter-title">جستجو</h4>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            placeholder="جستجوی محصولات..."
+                            className="w-full bg-ash bg-opacity-70 text-white py-2 px-3 pr-10 rounded-md focus:outline-none focus:ring-1 focus:ring-draugr-500"
+                          />
+                          <span className="absolute left-3 top-2.5 text-gray-400">
+                            <SearchIcon />
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="horror-divider"></div>
+                      
+                      {/* Categories */}
+                      <div>
+                        <h4 className="text-lg font-medium text-white mb-2 filter-title">دسته‌بندی‌ها</h4>
+                        <div className="space-y-1 max-h-48 overflow-y-auto scrollbar-hide">
+                          {expandedCategories.map(category => (
+                            <div key={category.id} className="flex items-center">
+                              <input
+                                type="checkbox"
+                                id={`mobile-category-${category.slug}`}
+                                checked={selectedCategories.includes(category.slug)}
+                                onChange={() => toggleCategory(category.slug)}
+                                className="hidden"
+                              />
+                              <label
+                                htmlFor={`mobile-category-${category.slug}`}
+                                className={`block w-full px-3 py-2 rounded-md cursor-pointer transition-all ${
+                                  selectedCategories.includes(category.slug)
+                                    ? 'bg-draugr-800 text-white shadow-[0_0_10px_rgba(239,35,60,0.2)]'
+                                    : 'text-gray-300 hover:bg-ash hover:bg-opacity-50'
+                                }`}
+                              >
+                                {category.name}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div className="horror-divider"></div>
+                      
+                      {/* Sort By */}
+                      <div>
+                        <h4 className="text-lg font-medium text-white mb-2 filter-title">مرتب‌سازی</h4>
+                        <select
+                          value={sortBy}
+                          onChange={(e) => setSortBy(e.target.value)}
+                          className="w-full bg-ash bg-opacity-70 text-white py-2 px-3 rounded-md focus:outline-none focus:ring-1 focus:ring-draugr-500"
+                        >
+                          <option value="newest">جدیدترین</option>
+                          <option value="price-low">ارزان‌ترین</option>
+                          <option value="price-high">گران‌ترین</option>
+                          <option value="name">بر اساس نام</option>
+                        </select>
+                      </div>
+                      
+                      <div className="horror-divider"></div>
+                      
+                      {/* Reset Filters */}
+                      <div className="pt-2">
+                        <motion.button
+                          onClick={resetFilters}
+                          className="w-full bg-vampire-dark text-white py-2 px-4 rounded-md border border-draugr-700 hover:bg-vampire-primary transition-all hover:shadow-[0_0_15px_rgba(239,35,60,0.4)]"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          پاک کردن فیلترها
+                        </motion.button>
                       </div>
                     </div>
-                    
-                    {/* Categories */}
-                    <div>
-                      <h4 className="text-lg font-medium text-white mb-2">دسته‌بندی‌ها</h4>
-                      <div className="space-y-1 max-h-48 overflow-y-auto scrollbar-hide">
-                        {expandedCategories.map(category => (
-                          <div key={category.id} className="flex items-center">
-                            <input
-                              type="checkbox"
-                              id={`mobile-category-${category.slug}`}
-                              checked={selectedCategories.includes(category.slug)}
-                              onChange={() => toggleCategory(category.slug)}
-                              className="hidden"
-                            />
-                            <label
-                              htmlFor={`mobile-category-${category.slug}`}
-                              className={`block w-full px-3 py-2 rounded-md cursor-pointer transition-colors ${
-                                selectedCategories.includes(category.slug)
-                                  ? 'bg-draugr-800 text-white'
-                                  : 'text-gray-300 hover:bg-ash'
-                              }`}
-                            >
-                              {category.name}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    {/* Sort By */}
-                    <div>
-                      <h4 className="text-lg font-medium text-white mb-2">مرتب‌سازی</h4>
-                      <select
-                        value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value)}
-                        className="w-full bg-ash text-white py-2 px-3 rounded-md focus:outline-none focus:ring-1 focus:ring-draugr-500"
-                      >
-                        <option value="newest">جدیدترین</option>
-                        <option value="price-low">ارزان‌ترین</option>
-                        <option value="price-high">گران‌ترین</option>
-                        <option value="name">بر اساس نام</option>
-                      </select>
-                    </div>
-                    
-                    {/* Reset Filters */}
-                    <div className="pt-2">
-                      <motion.button
-                        onClick={resetFilters}
-                        className="w-full bg-vampire-dark text-white py-2 px-4 rounded-md border border-draugr-800 hover:bg-vampire-primary transition-colors"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        پاک کردن فیلترها
-                      </motion.button>
-                    </div>
                   </div>
+                  <div className="noise-overlay"></div>
                 </div>
               </motion.div>
             )}
@@ -282,85 +390,110 @@ const ShopPage = () => {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="hidden md:block w-64 lg:w-72 bg-charcoal p-4 rounded-lg shadow-horror border border-draugr-900/50 h-fit sticky top-24"
+            className="hidden md:block w-64 lg:w-72 relative h-fit sticky top-24"
           >
-            <h3 className="text-xl font-bold text-white mb-4 flex items-center">
-              <FilterIcon />
-              <span className="mr-2">فیلترها</span>
-            </h3>
-            
-            <div className="space-y-6">
-              {/* Search */}
-              <div>
-                <h4 className="text-lg font-medium text-white mb-2">جستجو</h4>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="جستجوی محصولات..."
-                    className="w-full bg-ash text-white py-2 px-3 pr-10 rounded-md focus:outline-none focus:ring-1 focus:ring-draugr-500"
-                  />
-                  <span className="absolute left-3 top-2.5 text-gray-400">
-                    <SearchIcon />
-                  </span>
-                </div>
-              </div>
-              
-              {/* Categories */}
-              <div>
-                <h4 className="text-lg font-medium text-white mb-2">دسته‌بندی‌ها</h4>
-                <div className="space-y-1 max-h-48 overflow-y-auto scrollbar-hide">
-                  {expandedCategories.map(category => (
-                    <div key={category.id} className="flex items-center">
+            <div className="sidebar-horror p-5 rounded-lg">
+              <div className="filter-content">
+                <motion.h3 
+                  className="text-xl font-bold text-white mb-4 flex items-center filter-title"
+                  animate={{ textShadow: ['0 0 4px rgba(239,35,60,0.3)', '0 0 8px rgba(239,35,60,0.6)', '0 0 4px rgba(239,35,60,0.3)'] }}
+                  transition={{ duration: 4, repeat: Infinity }}
+                >
+                  <FilterIcon />
+                  <span className="mr-2">فیلترها</span>
+                </motion.h3>
+                
+                <div className="space-y-6">
+                  {/* Search */}
+                  <div>
+                    <h4 className="text-lg font-medium text-white mb-2 filter-title">جستجو</h4>
+                    <div className="relative">
                       <input
-                        type="checkbox"
-                        id={`category-${category.slug}`}
-                        checked={selectedCategories.includes(category.slug)}
-                        onChange={() => toggleCategory(category.slug)}
-                        className="hidden"
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="جستجوی محصولات..."
+                        className="w-full bg-ash bg-opacity-70 text-white py-2 px-3 pr-10 rounded-md focus:outline-none focus:ring-1 focus:ring-draugr-500 focus:shadow-[0_0_10px_rgba(239,35,60,0.3)]"
                       />
-                      <label
-                        htmlFor={`category-${category.slug}`}
-                        className={`block w-full px-3 py-2 rounded-md cursor-pointer transition-colors ${
-                          selectedCategories.includes(category.slug)
-                            ? 'bg-draugr-800 text-white'
-                            : 'text-gray-300 hover:bg-ash'
-                        }`}
-                      >
-                        {category.name}
-                      </label>
+                      <span className="absolute left-3 top-2.5 text-gray-400">
+                        <SearchIcon />
+                      </span>
                     </div>
-                  ))}
+                  </div>
+                  
+                  <div className="horror-divider"></div>
+                  
+                  {/* Categories */}
+                  <div>
+                    <h4 className="text-lg font-medium text-white mb-2 filter-title">دسته‌بندی‌ها</h4>
+                    <motion.div 
+                      className="space-y-1 max-h-48 overflow-y-auto scrollbar-hide"
+                    >
+                      {expandedCategories.map(category => (
+                        <div key={category.id} className="flex items-center">
+                          <input
+                            type="checkbox"
+                            id={`category-${category.slug}`}
+                            checked={selectedCategories.includes(category.slug)}
+                            onChange={() => toggleCategory(category.slug)}
+                            className="hidden"
+                          />
+                          <motion.label
+                            htmlFor={`category-${category.slug}`}
+                            className={`block w-full px-3 py-2 rounded-md cursor-pointer transition-all ${
+                              selectedCategories.includes(category.slug)
+                                ? 'bg-draugr-800 text-white shadow-[0_0_10px_rgba(239,35,60,0.2)]'
+                                : 'text-gray-300 hover:bg-ash hover:bg-opacity-50'
+                            }`}
+                            whileHover={{ 
+                              x: 3,
+                              transition: { type: "spring", stiffness: 400 }
+                            }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            {category.name}
+                          </motion.label>
+                        </div>
+                      ))}
+                    </motion.div>
+                  </div>
+                  
+                  <div className="horror-divider"></div>
+                  
+                  {/* Sort By */}
+                  <div>
+                    <h4 className="text-lg font-medium text-white mb-2 filter-title">مرتب‌سازی</h4>
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="w-full bg-ash bg-opacity-70 text-white py-2 px-3 rounded-md focus:outline-none focus:ring-1 focus:ring-draugr-500"
+                    >
+                      <option value="newest">جدیدترین</option>
+                      <option value="price-low">ارزان‌ترین</option>
+                      <option value="price-high">گران‌ترین</option>
+                      <option value="name">بر اساس نام</option>
+                    </select>
+                  </div>
+                  
+                  <div className="horror-divider"></div>
+                  
+                  {/* Reset Filters */}
+                  <div className="pt-2">
+                    <motion.button
+                      onClick={resetFilters}
+                      className="w-full bg-vampire-dark text-white py-2 px-4 rounded-md border border-draugr-700 hover:bg-vampire-primary transition-all hover:shadow-[0_0_15px_rgba(239,35,60,0.4)]"
+                      whileHover={{ 
+                        scale: 1.03,
+                        boxShadow: "0 0 15px rgba(239,35,60,0.4)"
+                      }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      پاک کردن فیلترها
+                    </motion.button>
+                  </div>
                 </div>
               </div>
-              
-              {/* Sort By */}
-              <div>
-                <h4 className="text-lg font-medium text-white mb-2">مرتب‌سازی</h4>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full bg-ash text-white py-2 px-3 rounded-md focus:outline-none focus:ring-1 focus:ring-draugr-500"
-                >
-                  <option value="newest">جدیدترین</option>
-                  <option value="price-low">ارزان‌ترین</option>
-                  <option value="price-high">گران‌ترین</option>
-                  <option value="name">بر اساس نام</option>
-                </select>
-              </div>
-              
-              {/* Reset Filters */}
-              <div className="pt-2">
-                <motion.button
-                  onClick={resetFilters}
-                  className="w-full bg-vampire-dark text-white py-2 px-4 rounded-md border border-draugr-800 hover:bg-vampire-primary transition-colors"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  پاک کردن فیلترها
-                </motion.button>
-              </div>
+              <div className="noise-overlay"></div>
             </div>
           </motion.div>
           
