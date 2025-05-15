@@ -7,12 +7,17 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
   const [pages, setPages] = useState([]);
   const [isMobile, setIsMobile] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
+  const [isHovering, setIsHovering] = useState(false);
   const timerRef = useRef(null);
   const sliderRef = useRef(null);
   const controls = useAnimation();
   
-  // Desktop: 2 products per page, Mobile: 1 product per page
-  const getProductsPerPage = () => isMobile ? 1 : 2;
+  // Desktop: 3 products per page (changed from 2), Mobile: 1 product per page
+  const getProductsPerPage = () => {
+    if (window.innerWidth < 768) return 1; // Mobile
+    if (window.innerWidth < 1280) return 2; // Tablet/Small desktop
+    return 3; // Large desktop
+  };
 
   // Check if we're on mobile
   useEffect(() => {
@@ -50,7 +55,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
 
   // Auto-scroll logic
   useEffect(() => {
-    if (pages.length <= 1) return;
+    if (pages.length <= 1 || isHovering) return;
     
     const autoScroll = () => {
       setCurrentPage((prevPage) => (prevPage + 1) % pages.length);
@@ -63,7 +68,11 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
         clearInterval(timerRef.current);
       }
     };
-  }, [pages]);
+  }, [pages, isHovering]);
+
+  // Pause auto-scroll on hover
+  const handleMouseEnter = () => setIsHovering(true);
+  const handleMouseLeave = () => setIsHovering(false);
 
   // Manual navigation
   const goToPage = (pageIndex) => {
@@ -71,9 +80,12 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
       clearInterval(timerRef.current);
     }
     setCurrentPage(pageIndex);
-    timerRef.current = setInterval(() => {
-      setCurrentPage((prevPage) => (prevPage + 1) % pages.length);
-    }, 5000);
+    
+    if (!isHovering) {
+      timerRef.current = setInterval(() => {
+        setCurrentPage((prevPage) => (prevPage + 1) % pages.length);
+      }, 5000);
+    }
   };
 
   // Handle swipe for mobile touch events
@@ -98,11 +110,41 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
       // Reset timer when user manually navigates
       if (timerRef.current) {
         clearInterval(timerRef.current);
-        timerRef.current = setInterval(() => {
-          setCurrentPage((prevPage) => (prevPage + 1) % pages.length);
-        }, 5000);
+        
+        if (!isHovering) {
+          timerRef.current = setInterval(() => {
+            setCurrentPage((prevPage) => (prevPage + 1) % pages.length);
+          }, 5000);
+        }
       }
     }
+  };
+
+  const slideVariants = {
+    enter: (direction) => ({
+      x: direction > 0 ? '100%' : '-100%',
+      opacity: 0,
+      scale: 0.95,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.5,
+        type: "spring",
+        stiffness: 300,
+        damping: 30
+      }
+    },
+    exit: (direction) => ({
+      x: direction < 0 ? '100%' : '-100%',
+      opacity: 0,
+      scale: 0.95,
+      transition: { 
+        duration: 0.4 
+      }
+    })
   };
 
   if (!products || products.length === 0 || pages.length === 0) {
@@ -110,170 +152,212 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
   }
 
   return (
-    <div className="relative w-full overflow-visible py-6 md:py-16 mt-4 md:mt-8">
-      {/* Main Slider with touch events for mobile */}
+    <div 
+      className="relative w-full overflow-visible py-6 md:py-16 mt-4 md:mt-8"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      {/* Glass-effect header bar */}
+      <div className="relative z-10 mb-6 flex justify-between items-center">
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100 
+                      border-b-2 border-draugr-500 inline-block pb-1">
+          محصولات ویژه
+        </h2>
+        
+        {!isMobile && pages.length > 1 && (
+          <div className="flex items-center gap-3">
+            <motion.button 
+              onClick={() => goToPage(currentPage === 0 ? pages.length - 1 : currentPage - 1)}
+              className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-draugr-100 dark:hover:bg-draugr-900 
+                         text-gray-600 dark:text-gray-300 hover:text-draugr-600 dark:hover:text-draugr-400 focus:outline-none
+                         border border-gray-300 dark:border-gray-700 hover:border-draugr-300 dark:hover:border-draugr-700
+                         transition-all duration-300"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </motion.button>
+            
+            <div className="flex space-x-1">
+              {pages.map((_, index) => (
+                <motion.button
+                  key={index}
+                  onClick={() => goToPage(index)}
+                  className={`w-2.5 h-2.5 rounded-full mx-1 transition-all duration-300 ${
+                    currentPage === index 
+                      ? 'bg-draugr-500 scale-125' 
+                      : 'bg-gray-400 dark:bg-gray-600 hover:bg-draugr-400 dark:hover:bg-draugr-700'
+                  }`}
+                  whileHover={{ scale: 1.3 }}
+                  whileTap={{ scale: 0.9 }}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
+              ))}
+            </div>
+            
+            <motion.button 
+              onClick={() => goToPage((currentPage + 1) % pages.length)}
+              className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-draugr-100 dark:hover:bg-draugr-900 
+                         text-gray-600 dark:text-gray-300 hover:text-draugr-600 dark:hover:text-draugr-400 focus:outline-none
+                         border border-gray-300 dark:border-gray-700 hover:border-draugr-300 dark:hover:border-draugr-700
+                         transition-all duration-300"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </motion.button>
+          </div>
+        )}
+      </div>
+
+      {/* Main Slider with touch events */}
       <div 
         ref={sliderRef}
         className="relative min-h-[500px] sm:min-h-[520px] md:min-h-[480px] w-full overflow-visible"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        <AnimatePresence mode="wait">
+        {/* Slider background with subtle pattern */}
+        <div className="absolute inset-0 -z-20 bg-gradient-to-tr from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl opacity-50"></div>
+        <div className="absolute inset-0 -z-10 opacity-5 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMyMjIiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIgMS44LTQgNC00czQgMS44IDQgNC0xLjggNC00IDQtNC0xLjgtNC00bTAtMTZjMC0yLjIgMS44LTQgNC00czQgMS44IDQgNC0xLjggNC00IDQtNC0xLjgtNC00bTAgMzJjMC0yLjIgMS44LTQgNC00czQgMS44IDQgNC0xLjggNC00IDQtNC0xLjgtNC00TTIwIDM0YzAtMi4yIDEuOC00IDQtNHM0IDEuOCA0IDQtMS44IDQtNCA0LTQtMS44LTQtNG0wLTE2YzAtMi4yIDEuOC00IDQtNHM0IDEuOCA0IDQtMS44IDQtNCA0LTQtMS44LTQtNG0wIDMyYzAtMi4yIDEuOC00IDQtNHM0IDEuOCA0IDQtMS44IDQtNCA0LTQtMS44LTQtNG00IDAiLz48L2c+PC9nPjwvc3ZnPg==')]"></div>
+        
+        <AnimatePresence initial={false} custom={currentPage}>
           <motion.div
             key={currentPage}
-            initial={{ opacity: 0, x: 100 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -100 }}
-            transition={{ duration: 0.7, ease: "easeInOut" }}
-            className={`w-full h-full flex ${isMobile ? 'flex-col items-center justify-center' : 'flex-row justify-center items-center gap-6'}`}
+            custom={currentPage}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            className={`w-full h-full flex ${isMobile ? 'flex-col items-center justify-center' : 'flex-row justify-around items-center gap-4'}`}
           >
-            {pages[currentPage].map((product) => (
+            {pages[currentPage].map((product, index) => (
               <motion.div
                 key={product.id}
-                className={`${isMobile ? 'w-full max-w-xs mx-auto' : 'w-full md:w-1/2 lg:w-2/5 xl:w-1/3 max-w-sm'}`}
-                whileHover={{ scale: 1.05, zIndex: 10 }}
-                initial={{ scale: 0.9, filter: 'blur(0px)' }}
+                className={`${isMobile ? 'w-full max-w-xs mx-auto my-2' : 'w-full md:w-1/2 lg:w-1/3 xl:w-1/4 max-w-sm px-2'}`}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ 
-                  scale: 1, 
-                  filter: 'blur(0px)',
+                  opacity: 1, 
+                  y: 0,
                   transition: { 
-                    duration: 1, 
+                    delay: index * 0.15,
+                    duration: 0.5,
                     ease: "easeOut" 
-                  } 
+                  }
+                }}
+                whileHover={{ 
+                  scale: 1.05, 
+                  zIndex: 10,
+                  boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" 
+                }}
+                transition={{
+                  type: "spring",
+                  stiffness: 400,
+                  damping: 17
                 }}
               >
-                <ProductCard product={product} onAddToCart={onAddToCart} isHighlighted={true} />
+                <div className="relative transform transition-all duration-300 hover:-translate-y-1">
+                  <ProductCard product={product} onAddToCart={onAddToCart} isHighlighted={true} />
+                  
+                  {/* Subtle highlight effect */}
+                  <motion.div 
+                    className="absolute inset-0 rounded-xl bg-draugr-500 -z-10"
+                    initial={{ opacity: 0 }}
+                    whileHover={{ opacity: 0.07 }}
+                  />
+                </div>
               </motion.div>
             ))}
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Mobile Carousel Indicators - Clearer and more touch-friendly */}
-      {isMobile && pages.length > 1 && (
-        <div className="flex justify-center items-center mt-4 mb-2">
-          {pages.map((_, index) => (
-            <motion.button
-              key={index}
-              onClick={() => goToPage(index)}
-              className={`w-8 h-2 mx-1 rounded-full transition-all duration-300 ${
-                currentPage === index ? 'bg-draugr-500 scale-110' : 'bg-gray-600'
-              }`}
-              whileTap={{ scale: 0.9 }}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Swipe Hint Animation for Mobile - Visual feedback to encourage swiping */}
+      {/* Mobile-specific components */}
       {isMobile && (
-        <motion.div 
-          className="text-center text-gray-400 text-xs mt-1 mb-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.7 }}
-          transition={{ delay: 2 }}
-        >
-          ← برای مشاهده بیشتر به چپ و راست بکشید →
-        </motion.div>
-      )}
-
-      {/* Desktop-only Background Products (Blurred) */}
-      {!isMobile && (
-        <div className="absolute inset-0 -z-10 flex flex-wrap justify-center items-center opacity-30">
-          {products.map((product, index) => {
-            // Skip products currently in focus
-            const currentProducts = pages[currentPage] || [];
-            const isActive = currentProducts.some(p => p.id === product.id);
-            
-            if (isActive) return null; // Skip displaying currently active products
-            
-            // Determine if this item should be on the left or right side
-            const isRightSide = index % 2 === 0;
-            
-            // Calculate the x-position values for side placement
-            const xPosition = isRightSide ? 150 : -150; // Even more to the sides
-
-            // Determine if this product will be active in the next page
-            const nextPageIndex = (currentPage + 1) % pages.length;
-            const nextPageProducts = pages[nextPageIndex] || [];
-            const willBeActive = nextPageProducts.some(p => p.id === product.id);
-            
-            return (
-              <motion.div
-                key={`bg-${product.id}`}
-                className="w-1/3 lg:w-1/4 p-2 transform"
-                initial={{ 
-                  filter: 'blur(3px)', 
-                  scale: 0.85, 
-                  opacity: 0.7,
-                  x: isRightSide ? 100 : -100,
-                }}
-                animate={{ 
-                  filter: willBeActive ? 'blur(2px)' : 'blur(3px)', 
-                  scale: willBeActive ? 0.9 : 0.85, 
-                  opacity: willBeActive ? 0.8 : 0.7,
-                  x: xPosition,
-                  y: (Math.floor(index / 2) - 1) * 30 - 20,
-                  rotate: (isRightSide ? 1 : -1) * (index % 3) * 2,
-                  transition: {
-                    duration: willBeActive ? 1.5 : 2,
-                    ease: willBeActive ? "anticipate" : "easeInOut"
-                  }
-                }}
-                transition={{ 
-                  duration: 2,
-                  ease: "easeInOut"
-                }}
-              >
-                <div className={`opacity-70 ${willBeActive ? 'grayscale-[50%]' : 'grayscale-[70%]'} transition-all duration-1000`}>
-                  <ProductCard product={product} onAddToCart={null} isDisabled={true} />
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Desktop Pagination Controls - Larger, easier to click */}
-      {!isMobile && pages.length > 1 && (
-        <div className="flex justify-center space-x-3 mt-6">
-          {pages.map((_, index) => (
-            <motion.button
-              key={index}
-              onClick={() => goToPage(index)}
-              className={`w-3 h-3 rounded-full mx-4 transition duration-300 ${
-                currentPage === index ? 'bg-draugr-500 scale-125' : 'bg-gray-400'
-              }`}
-              whileHover={{ scale: 1.5 }}
-              whileTap={{ scale: 0.9 }}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Mobile Navigation Arrows - Large touch targets for easy navigation */}
-      {isMobile && pages.length > 1 && (
         <>
-          <motion.button 
-            onClick={() => goToPage(currentPage === 0 ? pages.length - 1 : currentPage - 1)}
-            className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 p-2 rounded-r-md z-20"
-            whileTap={{ scale: 0.9 }}
+          {/* Mobile Carousel Indicators - Clearer and more touch-friendly */}
+          {pages.length > 1 && (
+            <div className="flex justify-center items-center mt-6 mb-3">
+              {pages.map((_, index) => (
+                <motion.button
+                  key={index}
+                  onClick={() => goToPage(index)}
+                  className={`w-8 h-2 mx-1 rounded-full transition-all duration-300 ${
+                    currentPage === index 
+                      ? 'bg-draugr-500 scale-110' 
+                      : 'bg-gray-400 dark:bg-gray-600'
+                  }`}
+                  whileTap={{ scale: 0.9 }}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Swipe Hint Animation for Mobile */}
+          <motion.div 
+            className="text-center text-gray-400 dark:text-gray-500 text-xs mt-2 mb-4 flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.7 }}
+            transition={{ delay: 2 }}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
             </svg>
-          </motion.button>
-          
-          <motion.button 
-            onClick={() => goToPage((currentPage + 1) % pages.length)}
-            className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 p-2 rounded-l-md z-20"
-            whileTap={{ scale: 0.9 }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            <span>برای مشاهده بیشتر به چپ و راست بکشید</span>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>
-          </motion.button>
+          </motion.div>
+
+          {/* Mobile Navigation Arrows - Enhanced design */}
+          {pages.length > 1 && (
+            <>
+              <motion.button 
+                onClick={() => goToPage(currentPage === 0 ? pages.length - 1 : currentPage - 1)}
+                className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-white dark:bg-gray-800 
+                           bg-opacity-80 dark:bg-opacity-80 p-3 rounded-full shadow-lg z-20
+                           border border-gray-200 dark:border-gray-700"
+                whileHover={{ scale: 1.1, backgroundColor: 'rgba(255, 255, 255, 0.9)' }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-700 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </motion.button>
+              
+              <motion.button 
+                onClick={() => goToPage((currentPage + 1) % pages.length)}
+                className="absolute right-1 top-1/2 transform -translate-y-1/2 bg-white dark:bg-gray-800 
+                           bg-opacity-80 dark:bg-opacity-80 p-3 rounded-full shadow-lg z-20
+                           border border-gray-200 dark:border-gray-700"
+                whileHover={{ scale: 1.1, backgroundColor: 'rgba(255, 255, 255, 0.9)' }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-700 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </motion.button>
+            </>
+          )}
         </>
+      )}
+
+      {/* Progress indicator at the bottom */}
+      {pages.length > 1 && (
+        <div className="w-full mt-4 bg-gray-200 dark:bg-gray-700 h-1 rounded-full overflow-hidden">
+          <motion.div 
+            className="h-full bg-draugr-500"
+            initial={{ width: 0 }}
+            animate={{ 
+              width: `${((currentPage + 1) / pages.length) * 100}%`,
+              transition: { duration: 0.3, ease: "easeInOut" }
+            }}
+          />
+        </div>
       )}
     </div>
   );
