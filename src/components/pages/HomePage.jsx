@@ -16,15 +16,16 @@ const letterWrapperVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.2,
-      delayChildren: 0.2,
+      staggerChildren: 0.1,
+      delayChildren: 0.1,
     },
   },
   exit: {
     opacity: 0,
     transition: {
-      staggerChildren: 0.1,
+      staggerChildren: 0.05,
       staggerDirection: -1,
+      duration: 0.2,
     },
   }
 };
@@ -32,9 +33,9 @@ const letterWrapperVariants = {
 const letterVariants = {
   hidden: {
     opacity: 0,
-    y: 50,
-    rotateX: 90,
-    filter: "blur(10px)",
+    y: 30,
+    rotateX: 70,
+    filter: "blur(8px)",
   },
   visible: (i) => ({
     opacity: 1,
@@ -43,63 +44,31 @@ const letterVariants = {
     filter: "blur(0px)",
     transition: {
       type: "spring",
-      damping: 12,
+      damping: 10,
       stiffness: 100,
-      delay: i * 0.075,
+      delay: i * 0.05,
     },
   }),
   exit: (i) => ({
     opacity: 0,
-    y: -20,
-    filter: "blur(10px)",
+    y: -15,
+    filter: "blur(8px)",
     transition: {
-      duration: 0.3,
-      delay: i * 0.04,
+      duration: 0.2,
+      delay: i * 0.02,
     },
   }),
 };
 
-// Dripping blood animation for each letter
-const BloodDrip = ({ index }) => {
-  return (
-    <motion.div
-      className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 bg-draugr-500 z-0"
-      initial={{ height: 0, opacity: 0 }}
-      animate={{ 
-        height: ['0px', `${Math.random() * 30 + 20}px`], 
-        opacity: [0, 0.9, 0]
-      }}
-      transition={{ 
-        delay: 2 + index * 0.1,
-        duration: 2,
-        times: [0, 0.6, 1],
-        ease: "easeOut"
-      }}
-    >
-      <motion.div 
-        className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-2 h-2 rounded-full bg-draugr-500"
-        initial={{ scale: 0 }}
-        animate={{ scale: [0, 1.2, 0] }}
-        transition={{ 
-          delay: 2.5 + index * 0.1,
-          duration: 1.5,
-          times: [0, 0.5, 1],
-          ease: "easeOut"
-        }}
-      />
-    </motion.div>
-  );
-};
-
 // Particles system for the intro
 const Particles = () => {
-  // Generate random particles
-  const particles = Array.from({ length: 100 }).map((_, i) => ({
+  // Generate fewer particles for performance
+  const particles = Array.from({ length: 50 }).map((_, i) => ({
     id: i,
     x: Math.random() * 100,
     y: Math.random() * 100,
-    size: Math.random() * 3 + 1,
-    velocity: Math.random() * 0.3 + 0.1,
+    size: Math.random() * 2 + 1,
+    velocity: Math.random() * 0.2 + 0.1,
   }));
 
   return (
@@ -119,9 +88,9 @@ const Particles = () => {
             opacity: [0.7, 0],
           }}
           transition={{
-            duration: 2 + particle.velocity * 10,
+            duration: 1 + particle.velocity * 5,
             repeat: Infinity,
-            delay: Math.random() * 2,
+            delay: Math.random(),
             ease: "linear",
           }}
         />
@@ -135,18 +104,19 @@ const HomePage = () => {
   const heroRef = useRef(null);
   const [showIntro, setShowIntro] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const [contentLoaded, setContentLoaded] = useState(false);
   
-  // Handle initial loading
+  // Handle initial loading - much faster now
   useEffect(() => {
-    // Hide loader after everything is loaded
+    // Hide loader almost immediately
     const handleLoad = () => {
       // Ensure we start at the top of the page
       window.scrollTo(0, 0);
       
-      // Short timeout to ensure smoother transition
+      // Very short timeout to ensure smoother transition
       setTimeout(() => {
         setIsLoading(false);
-      }, 500);
+      }, 100);
     };
 
     // Check if the page is already loaded
@@ -158,14 +128,26 @@ const HomePage = () => {
     }
   }, []);
   
-  // Handle intro completion
+  // Preload content in background while showing intro
+  useEffect(() => {
+    if (!isLoading && showIntro) {
+      // Start loading content immediately in background
+      const preloadTimer = setTimeout(() => {
+        setContentLoaded(true);
+      }, 500);
+      
+      return () => clearTimeout(preloadTimer);
+    }
+  }, [isLoading, showIntro]);
+  
+  // Handle intro completion - reduced to 2 seconds
   useEffect(() => {
     const timer = setTimeout(() => {
       // Force scroll to top before showing main content
       window.scrollTo({
         top: 0,
         left: 0,
-        behavior: 'auto' // Use 'auto' for immediate scroll without animation
+        behavior: 'auto'
       });
       
       // Set scroll behavior to auto for immediate scroll
@@ -173,8 +155,8 @@ const HomePage = () => {
       
       // Multiple scroll approaches for better cross-browser compatibility
       window.scrollTo(0, 0);
-      document.body.scrollTop = 0; // For Safari
-      document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+      document.body.scrollTop = 0;
+      document.documentElement.scrollTop = 0;
       
       // Now transition to main content
       setShowIntro(false);
@@ -182,9 +164,9 @@ const HomePage = () => {
       // Reset scroll behavior after a short delay
       setTimeout(() => {
         document.documentElement.style.scrollBehavior = 'smooth';
-      }, 100);
+      }, 50);
       
-    }, 5000); // Show intro for 5 seconds
+    }, 2000);
     
     return () => clearTimeout(timer);
   }, []);
@@ -215,7 +197,7 @@ const HomePage = () => {
 
   return (
     <>
-      {/* Initial loading overlay */}
+      {/* Initial loading overlay - faster disappearing */}
       <AnimatePresence>
         {isLoading && (
           <motion.div
@@ -223,7 +205,7 @@ const HomePage = () => {
             className="fixed inset-0 z-[100] bg-black flex items-center justify-center"
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.2 }}
           >
             <motion.div
               animate={{ 
@@ -231,7 +213,7 @@ const HomePage = () => {
                 scale: [0.9, 1.1, 0.9]
               }}
               transition={{ 
-                duration: 2,
+                duration: 1.5,
                 repeat: Infinity,
                 ease: "easeInOut" 
               }}
@@ -241,6 +223,14 @@ const HomePage = () => {
         )}
       </AnimatePresence>
 
+      {/* Preload content in background (hidden) */}
+      {contentLoaded && showIntro && (
+        <div className="hidden">
+          <img src={heroBackground} alt="preload hero" />
+          <img src={mainBackground} alt="preload main" />
+        </div>
+      )}
+
       <AnimatePresence mode="wait">
         {showIntro ? (
           <motion.div
@@ -249,17 +239,17 @@ const HomePage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.3 }}
           >
             {/* Background pulse effect */}
             <motion.div
               className="absolute inset-0 bg-gradient-radial from-vampire-dark to-midnight opacity-40"
               animate={{ 
-                scale: [1, 1.2, 1],
-                opacity: [0.3, 0.5, 0.3] 
+                scale: [1, 1.1, 1],
+                opacity: [0.3, 0.4, 0.3]
               }}
               transition={{ 
-                duration: 4,
+                duration: 2,
                 repeat: Infinity,
                 repeatType: "reverse",
                 ease: "easeInOut"
@@ -271,11 +261,11 @@ const HomePage = () => {
             {/* Vignette effect */}
             <div className="absolute inset-0 bg-radial-vignette pointer-events-none" />
             
-            {/* Glitch overlay */}
+            {/* Glitch overlay - subtle */}
             <motion.div 
-              className="absolute inset-0 bg-noise opacity-10 mix-blend-overlay pointer-events-none"
-              animate={{ opacity: [0.07, 0.12, 0.07] }}
-              transition={{ duration: 2, repeat: Infinity }}
+              className="absolute inset-0 bg-noise opacity-8 mix-blend-overlay pointer-events-none"
+              animate={{ opacity: [0.05, 0.08, 0.05] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
             />
             
             {/* Brand name animation - Explicitly set LTR direction */}
@@ -285,7 +275,7 @@ const HomePage = () => {
               initial="hidden"
               animate="visible"
               exit="exit"
-              style={{ direction: "ltr" }} /* Explicit LTR direction */
+              style={{ direction: "ltr" }}
             >
               {"DRAUGR".split('').map((letter, index) => (
                 <div key={index} className="relative mx-1 md:mx-3">
@@ -300,7 +290,6 @@ const HomePage = () => {
                   >
                     {letter}
                   </motion.span>
-                  <BloodDrip index={index} />
                 </div>
               ))}
             </motion.div>
@@ -310,7 +299,7 @@ const HomePage = () => {
             key="main-content"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.5 }}
             onAnimationStart={() => {
               // Force scroll to top when animation starts
               window.scrollTo(0, 0);
@@ -323,7 +312,7 @@ const HomePage = () => {
               ref={heroRef}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
               className="py-12 sm:py-16 md:py-20 w-full relative overflow-hidden"
               style={{ 
                 minHeight: '93.4vh', 
@@ -356,7 +345,7 @@ const HomePage = () => {
                     <motion.h1 
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: 0.4 }}
+                      transition={{ duration: 0.4, delay: 0.2 }}
                       className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 text-shadow-horror"
                     >
                       <span className="text-draugr-500 font-bold text-shadow-horror">
@@ -366,7 +355,7 @@ const HomePage = () => {
                     <motion.p
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: 0.6 }}
+                      transition={{ duration: 0.4, delay: 0.3 }}
                       className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 text-gray-200 font-medium"
                       style={{ textShadow: '0 1px 2px rgba(0, 0, 0, 0.8)' }}
                     >
@@ -394,7 +383,7 @@ const HomePage = () => {
             <motion.section 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 1.2 }}
+              transition={{ duration: 0.8 }}
               className="py-12 sm:py-16 md:py-20 bg-gradient-to-b from-charcoal to-midnight w-full relative overflow-hidden"
               style={{
                 backgroundImage: `url(${mainBackground})`,
@@ -449,7 +438,7 @@ const HomePage = () => {
                 <motion.div
                   initial={{ y: 30, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.3, duration: 0.8 }}
+                  transition={{ delay: 0.2, duration: 0.5 }}
                   className="mb-8 text-center"
                 >
                   <h2 className="text-3xl md:text-4xl font-bold text-white text-shadow-horror mb-4">
@@ -459,7 +448,7 @@ const HomePage = () => {
                         className="absolute -bottom-2 left-0 right-0 h-0.5 bg-draugr-500"
                         initial={{ width: 0, left: '50%', right: '50%' }}
                         animate={{ width: '100%', left: 0, right: 0 }}
-                        transition={{ delay: 0.5, duration: 0.8 }}
+                        transition={{ delay: 0.3, duration: 0.5 }}
                       ></motion.span>
                     </span>
                   </h2>
