@@ -40,10 +40,18 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      whileHover={isDisabled ? {} : { y: -10 }}
+      whileHover={isDisabled ? {} : { 
+        y: -10,
+        transition: { 
+          type: "spring", 
+          stiffness: 300, 
+          damping: 20 
+        }
+      }}
       className={`bg-white rounded-lg overflow-hidden shadow-lg h-full flex flex-col
         ${isHighlighted ? 'shadow-xl shadow-gray-900/20' : ''}
         ${isDisabled ? 'pointer-events-none' : 'cursor-pointer'}
+        transform-gpu
       `}
     >
       <div 

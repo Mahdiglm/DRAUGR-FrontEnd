@@ -172,7 +172,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
       onMouseLeave={handleMouseLeave}
     >
       {/* Slider container with subtle background */}
-      <div className="relative flex flex-col md:flex-row justify-center items-center min-h-[580px] md:min-h-[520px] w-full overflow-visible">
+      <div className="relative flex flex-col md:flex-row justify-center items-center min-h-[580px] md:min-h-[520px] w-full overflow-visible pt-12">
         {/* Ambient background and shadows */}
         <div className="absolute inset-0 z-[1] opacity-20">
           <motion.div 
@@ -195,13 +195,13 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
         
         {/* Mobile view is stacked */}
         {isMobile && (
-          <div className="w-full px-4">
+          <div className="w-full px-4 pt-4 overflow-visible">
             {productGroups.map((group, groupIndex) => (
               <div key={`group-${groupIndex}`} className="flex flex-col gap-6 w-full">
                 {group.map((product, productIndex) => (
                   <motion.div
                     key={`product-${product.id}-${productIndex}`}
-                    className="w-full max-w-xs mx-auto"
+                    className="w-full max-w-xs mx-auto overflow-visible"
                     variants={getCardPositionVariants(true, productIndex === 0 ? 'left' : 'right')}
                     initial="background"
                     animate={activeGroup === groupIndex ? "foreground" : "background"}
@@ -218,7 +218,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
 
         {/* Desktop view with foreground/background layout */}
         {!isMobile && (
-          <div className="w-full max-w-6xl flex justify-center items-center relative mx-auto">
+          <div className="w-full max-w-6xl flex justify-center items-center relative mx-auto overflow-visible">
             {productGroups.map((group, groupIndex) => (
               <React.Fragment key={`group-${groupIndex}`}>
                 {group.map((product, productIndex) => {
@@ -227,7 +227,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
                   return (
                     <motion.div
                       key={`product-${product.id}-${productIndex}`}
-                      className={`absolute md:w-1/3 lg:w-[30%] transform ${position === 'left' ? 'left-[10%] md:left-[18%]' : 'right-[10%] md:right-[18%]'}`}
+                      className={`absolute md:w-1/3 lg:w-[30%] transform ${position === 'left' ? 'left-[10%] md:left-[18%]' : 'right-[10%] md:right-[18%]'} overflow-visible`}
                       variants={getCardPositionVariants(activeGroup === groupIndex, position)}
                       initial={isVisible ? "background" : false}
                       animate={activeGroup === groupIndex ? "foreground" : "background"}
