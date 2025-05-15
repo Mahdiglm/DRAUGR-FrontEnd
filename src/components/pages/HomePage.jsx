@@ -140,6 +140,9 @@ const HomePage = () => {
   useEffect(() => {
     // Hide loader after everything is loaded
     const handleLoad = () => {
+      // Ensure we start at the top of the page
+      window.scrollTo(0, 0);
+      
       // Short timeout to ensure smoother transition
       setTimeout(() => {
         setIsLoading(false);
@@ -158,11 +161,48 @@ const HomePage = () => {
   // Handle intro completion
   useEffect(() => {
     const timer = setTimeout(() => {
+      // Force scroll to top before showing main content
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'auto' // Use 'auto' for immediate scroll without animation
+      });
+      
+      // Set scroll behavior to auto for immediate scroll
+      document.documentElement.style.scrollBehavior = 'auto';
+      
+      // Multiple scroll approaches for better cross-browser compatibility
+      window.scrollTo(0, 0);
+      document.body.scrollTop = 0; // For Safari
+      document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+      
+      // Now transition to main content
       setShowIntro(false);
+      
+      // Reset scroll behavior after a short delay
+      setTimeout(() => {
+        document.documentElement.style.scrollBehavior = 'smooth';
+      }, 100);
+      
     }, 5000); // Show intro for 5 seconds
     
     return () => clearTimeout(timer);
   }, []);
+  
+  // Add effect to ensure we're at the top when transitioning from intro to main content
+  useEffect(() => {
+    if (!showIntro) {
+      // Force scroll to top immediately when main content appears
+      window.scrollTo(0, 0);
+      document.body.scrollTop = 0;
+      document.documentElement.scrollTop = 0;
+      
+      // Prevent default scrollRestoration behavior
+      if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+      }
+    }
+  }, [showIntro]);
   
   // Parallax effect
   const { scrollY } = useScroll();
@@ -271,6 +311,12 @@ const HomePage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8 }}
+            onAnimationStart={() => {
+              // Force scroll to top when animation starts
+              window.scrollTo(0, 0);
+              document.body.scrollTop = 0;
+              document.documentElement.scrollTop = 0;
+            }}
           >
             {/* Hero Section with Parallax */}
             <motion.section
