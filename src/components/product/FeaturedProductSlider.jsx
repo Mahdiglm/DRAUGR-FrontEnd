@@ -3,395 +3,328 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ProductCard from './ProductCard';
 
 const FeaturedProductSlider = ({ products, onAddToCart }) => {
-  const [currentPage, setCurrentPage] = useState(0);
-  const [pages, setPages] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
-  const [isTouch, setIsTouch] = useState(false);
-  const [touchStart, setTouchStart] = useState(0);
-  const [direction, setDirection] = useState(0);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [progress, setProgress] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const timerRef = useRef(null);
+  const containerRef = useRef(null);
   
-  const sliderRef = useRef(null);
-  const autoPlayRef = useRef(null);
-  const progressRef = useRef(null);
-  const progressInterval = useRef(null);
-
-  // Adaptive products per page based on screen size
-  const getProductsPerPage = () => {
+  // Determine products per view based on screen size
+  const getProductsPerView = () => {
     if (window.innerWidth < 640) return 1; // Mobile
     if (window.innerWidth < 1024) return 2; // Tablet
     return 3; // Desktop
   };
-
-  // Check device type
-  useEffect(() => {
-    const checkDevice = () => {
-      setIsMobile(window.innerWidth < 768);
-      setIsTouch('ontouchstart' in window);
-    };
-    
-    checkDevice();
-    window.addEventListener('resize', checkDevice);
-    
-    return () => window.removeEventListener('resize', checkDevice);
-  }, []);
-
-  // Handle mouse movement for parallax effects
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      if (!isMobile && sliderRef.current) {
-        const { left, top, width, height } = sliderRef.current.getBoundingClientRect();
-        const x = (e.clientX - left) / width;
-        const y = (e.clientY - top) / height;
-        setMousePosition({ x, y });
-      }
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [isMobile]);
   
-  // Prepare pages based on screen size
+  // Create page groups
+  const createPages = (items) => {
+    if (!items || !items.length) return [];
+    
+    const productsPerView = getProductsPerView();
+    const pages = [];
+    
+    for (let i = 0; i < items.length; i += productsPerView) {
+      pages.push(items.slice(i, i + productsPerView));
+    }
+    
+    return pages;
+  };
+  
+  const [pages, setPages] = useState([]);
+  
+  // Check screen size and update views
   useEffect(() => {
-    if (!products || products.length === 0) return;
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 640);
+      setPages(createPages(products));
+    };
     
-    const productsPerPage = getProductsPerPage();
-    const totalPages = Math.ceil(products.length / productsPerPage);
-    const pagesArray = [];
+    handleResize(); // Initial check
+    window.addEventListener('resize', handleResize);
     
-    for (let i = 0; i < totalPages; i++) {
-      const start = i * productsPerPage;
-      const pageProducts = products.slice(start, start + productsPerPage);
-      pagesArray.push(pageProducts);
-    }
-    
-    setPages(pagesArray);
-    
-    // Reset current page if needed
-    if (currentPage >= pagesArray.length) {
-      setCurrentPage(0);
-    }
-  }, [products, isMobile]);
-
-  // Progress bar effect
+    return () => window.removeEventListener('resize', handleResize);
+  }, [products]);
+  
+  // Auto-rotation
   useEffect(() => {
-    if (pages.length <= 1) return;
+    if (!pages.length || pages.length <= 1 || isPaused) return;
     
-    clearInterval(progressInterval.current);
-    setProgress(0);
+    timerRef.current = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % pages.length);
+    }, 5000);
     
-    progressInterval.current = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(progressInterval.current);
-          // Move to next slide
-          setCurrentPage(current => (current + 1) % pages.length);
-          return 0;
-        }
-        return prev + 0.5;
-      });
-    }, 50);
+    return () => clearInterval(timerRef.current);
+  }, [pages.length, isPaused]);
+  
+  // Go to specific slide
+  const goToSlide = (index) => {
+    clearInterval(timerRef.current);
+    setCurrentIndex(index);
     
-    return () => clearInterval(progressInterval.current);
-  }, [currentPage, pages.length]);
-
-  // Auto advance slides
-  useEffect(() => {
-    if (pages.length <= 1 || isDragging) return;
-    
-    clearTimeout(autoPlayRef.current);
-    
-    autoPlayRef.current = setTimeout(() => {
-      setDirection(1);
-      setCurrentPage(prev => (prev + 1) % pages.length);
-    }, 10000); // 10 seconds
-    
-    return () => clearTimeout(autoPlayRef.current);
-  }, [currentPage, pages.length, isDragging]);
-
-  const goToPage = (pageIndex) => {
-    setDirection(pageIndex > currentPage ? 1 : -1);
-    setCurrentPage(pageIndex);
-    setProgress(0);
-    clearInterval(progressInterval.current);
-  };
-
-  // Handle touch/mouse events
-  const handleDragStart = (e) => {
-    setIsDragging(true);
-    setStartX(e.clientX || e.touches[0].clientX);
-  };
-
-  const handleDragEnd = (e) => {
-    setIsDragging(false);
-    const endX = e.clientX || e.changedTouches[0].clientX;
-    const threshold = 100; // Minimum distance to trigger slide change
-    
-    if (startX - endX > threshold) {
-      // Swiped left, go to next
-      goToPage((currentPage + 1) % pages.length);
-    } else if (endX - startX > threshold) {
-      // Swiped right, go to previous
-      goToPage(currentPage === 0 ? pages.length - 1 : currentPage - 1);
+    if (!isPaused) {
+      timerRef.current = setInterval(() => {
+        setCurrentIndex((prev) => (prev + 1) % pages.length);
+      }, 5000);
     }
   };
-
-  const handleDragMove = (e) => {
-    if (!isDragging) return;
-    e.preventDefault();
+  
+  // Next/Prev handlers
+  const handlePrev = () => {
+    const newIndex = currentIndex === 0 ? pages.length - 1 : currentIndex - 1;
+    goToSlide(newIndex);
   };
-
-  // Animation variants
-  const slideVariants = {
-    enter: (direction) => ({
-      x: direction > 0 ? '100%' : '-100%',
-      opacity: 0,
-      filter: 'blur(12px)',
-      scale: 0.95,
-    }),
-    center: {
-      x: 0,
-      opacity: 1,
-      filter: 'blur(0px)',
-      scale: 1,
-      transition: {
-        x: { type: 'spring', stiffness: 300, damping: 30 },
-        opacity: { duration: 0.6 },
-        filter: { duration: 0.4 },
-        scale: { duration: 0.4 }
-      }
-    },
-    exit: (direction) => ({
-      x: direction < 0 ? '100%' : '-100%',
-      opacity: 0,
-      filter: 'blur(8px)',
-      scale: 0.95,
-      transition: { 
-        duration: 0.4 
-      }
-    })
+  
+  const handleNext = () => {
+    const newIndex = (currentIndex + 1) % pages.length;
+    goToSlide(newIndex);
   };
-
-  // Card animation variants
-  const cardVariants = {
-    initial: { opacity: 0, y: 30 },
-    animate: index => ({
-      opacity: 1,
-      y: 0,
-      transition: {
-        delay: index * 0.15,
-        duration: 0.6,
-        ease: [0.25, 0.1, 0.25, 1.0]
+  
+  // Handle pause/play
+  const togglePause = () => {
+    setIsPaused(!isPaused);
+  };
+  
+  // Swipe handlers for mobile
+  const handleTouchStart = useRef({ x: 0 });
+  const handleTouchMove = useRef({ x: 0 });
+  
+  const onTouchStart = (e) => {
+    handleTouchStart.current.x = e.touches[0].clientX;
+  };
+  
+  const onTouchMove = (e) => {
+    handleTouchMove.current.x = e.touches[0].clientX;
+  };
+  
+  const onTouchEnd = () => {
+    const diff = handleTouchStart.current.x - handleTouchMove.current.x;
+    const threshold = 50; // Minimum swipe distance
+    
+    if (Math.abs(diff) > threshold) {
+      if (diff > 0) {
+        // Swiped left, go to next
+        handleNext();
+      } else {
+        // Swiped right, go to previous
+        handlePrev();
       }
-    }),
-    hover: {
-      y: -12,
-      boxShadow: "0 30px 60px rgba(0,0,0,0.2)", 
-      transition: { duration: 0.3, ease: "easeOut" }
     }
   };
-
+  
+  // Render empty state
   if (!products || products.length === 0 || pages.length === 0) {
-    return <div className="text-center py-8">محصولی برای نمایش وجود ندارد</div>;
+    return <div className="text-center py-8 text-gray-500">محصولی برای نمایش وجود ندارد</div>;
   }
-
+  
   return (
-    <div className="relative w-full mt-8 mb-16 overflow-visible">
-      {/* Norse ornamental decorations */}
-      <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-64 h-10 bg-no-repeat bg-contain bg-center opacity-20 dark:opacity-30 pointer-events-none"
-           style={{ backgroundImage: "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNDAgMzAiPjxwYXRoIGQ9Ik0wLDE1YzAtLDEwLDYwLDEwLDEyMCwwYzYwLDEwLDEyMCwxMCwxMjAsMHMtNjAsLTEwLC0xMjAsMCwwLCwwLC0xMjAsMFoiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2EwMjcyZiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNMjAsMTVsMTAsLTEwbDEwLDEwbC0xMCwxMFptNDAtMjB2NDBNMTAwLDE1bDEwLC0xMGwxMCwxMGwtMTAsMTBabTQwLC0yMHY0ME0xODAsMTVsMTAsLTEwbDEwLDEwbC0xMCwxMFoiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2EwMjcyZiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48L3N2Zz4=')" }}
-      />
-
-      {/* Section Title */}
-      <div className="relative text-center mb-10">
-        <h2 className="text-3xl md:text-4xl font-bold relative inline-block">
-          <span className="relative z-10 px-2 text-gray-900 dark:text-gray-100">محصولات ویژه</span>
-          <span className="absolute inset-0 bg-gradient-to-r from-transparent via-draugr-200 dark:via-draugr-900/30 to-transparent -z-10 transform skew-x-12 scale-110"></span>
+    <div 
+      ref={containerRef}
+      className="relative py-8 md:py-12 overflow-hidden"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      {/* Title with Norse-inspired styling */}
+      <div className="mb-8 flex justify-between items-center">
+        <h2 className="text-2xl md:text-3xl font-bold relative group overflow-hidden">
+          <span className="relative z-10 bg-gradient-to-r from-gray-800 to-draugr-900 bg-clip-text text-transparent dark:from-gray-200 dark:to-draugr-200">
+            محصولات ویژه
+          </span>
+          <motion.span 
+            className="absolute bottom-0 left-0 h-0.5 bg-draugr-500 dark:bg-draugr-400" 
+            initial={{ width: 0 }}
+            animate={{ width: '100%' }}
+            transition={{ duration: 0.8, ease: "easeInOut" }}
+          />
         </h2>
-        <div className="mt-3 w-full max-w-xl mx-auto flex items-center justify-center">
-          <div className="h-px bg-gray-200 dark:bg-gray-700 flex-grow mr-3"></div>
-          <svg viewBox="0 0 30 30" className="h-5 w-5 text-draugr-500 transform -rotate-45">
-            <path d="M15,3L2,15l13,12l13-12L15,3z" fill="currentColor"/>
-          </svg>
-          <div className="h-px bg-gray-200 dark:bg-gray-700 flex-grow ml-3"></div>
-        </div>
-      </div>
-
-      {/* Main Slider */}
-      <div 
-        ref={sliderRef}
-        className="relative w-full overflow-hidden rounded-xl min-h-[500px] md:min-h-[450px] shadow-2xl"
-        style={{
-          background: "linear-gradient(to bottom, rgba(15,15,20,0.02), rgba(15,15,20,0.08))",
-          boxShadow: "0 20px 80px -20px rgba(0,0,0,0.2), 0 0 20px rgba(0,0,0,0.05) inset"
-        }}
-        onTouchStart={handleDragStart}
-        onTouchMove={handleDragMove}
-        onTouchEnd={handleDragEnd}
-        onMouseDown={!isTouch ? handleDragStart : undefined}
-        onMouseMove={!isTouch ? handleDragMove : undefined}
-        onMouseUp={!isTouch ? handleDragEnd : undefined}
-        onMouseLeave={!isTouch && isDragging ? handleDragEnd : undefined}
-      >
-        {/* Atmospheric background with subtle pattern */}
-        <div 
-          className="absolute inset-0 opacity-10 dark:opacity-20 pointer-events-none"
-          style={{ 
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23${isMobile ? '333' : '222'}' fill-opacity='0.3' fill-rule='evenodd'/%3E%3C/svg%3E")`,
-            backgroundSize: '80px 80px',
-            transform: !isMobile ? `translateX(${(mousePosition.x - 0.5) * -20}px) translateY(${(mousePosition.y - 0.5) * -20}px)` : 'none'
-          }}
-        />
         
-        {/* Mist/fog overlay */}
-        <div 
-          className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-white/10 dark:from-transparent dark:via-gray-900/5 dark:to-gray-900/10 mix-blend-overlay pointer-events-none"
-          style={{
-            transform: !isMobile ? `translateX(${(mousePosition.x - 0.5) * -10}px) translateY(${(mousePosition.y - 0.5) * -10}px)` : 'none'
-          }}
-        />
-
-        {/* Slider Content */}
-        <AnimatePresence initial={false} custom={direction} mode="wait">
-          <motion.div
-            key={currentPage}
-            custom={direction}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            drag={!isMobile && !isTouch ? "x" : false}
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.1}
-            onDragEnd={(e, { offset, velocity }) => {
-              const swipe = offset.x > 100 ? -1 : offset.x < -100 ? 1 : 0;
-              if (swipe !== 0) {
-                setDirection(swipe);
-                setCurrentPage((prev) => {
-                  if (swipe === 1) return (prev + 1) % pages.length;
-                  return prev === 0 ? pages.length - 1 : prev - 1;
-                });
-              }
-            }}
-            className="w-full h-full relative"
-          >
-            <div className={`relative w-full h-full flex ${isMobile ? 'flex-col' : 'flex-row'} justify-around items-center gap-4 p-4 md:p-8`}>
-              {pages[currentPage].map((product, index) => (
-                <motion.div
-                  key={product.id}
-                  className={`relative ${isMobile ? 'w-full max-w-xs' : 'w-full md:w-1/2 lg:w-1/3 xl:w-1/4'} max-w-sm`}
-                  variants={cardVariants}
-                  custom={index}
-                  initial="initial"
-                  animate="animate"
-                  whileHover="hover"
-                >
-                  <div className="relative group">
-                    {/* Glow effect for cards on hover */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-draugr-500/0 to-draugr-500/0 group-hover:from-draugr-500/5 group-hover:to-draugr-500/20 dark:group-hover:from-draugr-400/5 dark:group-hover:to-draugr-400/10 rounded-xl transition-all duration-500 -z-10 opacity-0 group-hover:opacity-100"></div>
-                    
-                    {/* Card with subtle hover animation */}
-                    <div className="transform transition-all duration-500 group-hover:-translate-y-2">
-                      <ProductCard product={product} onAddToCart={onAddToCart} isHighlighted={true} />
-                    </div>
-                    
-                    {/* Runic symbol appears on hover */}
-                    <motion.div 
-                      className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 text-draugr-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-                      initial={{ scale: 0.5 }}
-                      animate={{ 
-                        scale: [0.5, 1.1, 1],
-                        rotate: [0, -5, 0, 5, 0]
-                      }}
-                      transition={{ duration: 0.5, delay: 0.1 }}
-                    >
-                      <svg viewBox="0 0 24 24" className="h-6 w-6" stroke="currentColor" fill="none">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 22V2M2 12h20M17 7l-5 5-5-5M7 17l5-5 5 5" />
-                      </svg>
-                    </motion.div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Navigation Elements */}
-        {pages.length > 1 && (
-          <>
-            {/* Custom runic navigation arrows */}
-            <button
-              onClick={() => goToPage(currentPage === 0 ? pages.length - 1 : currentPage - 1)}
-              className="absolute left-3 md:left-6 top-1/2 transform -translate-y-1/2 bg-white/80 dark:bg-gray-800/80 text-gray-800 dark:text-gray-200 p-3 rounded-full shadow-lg z-20 backdrop-blur-sm border border-gray-200 dark:border-gray-700 hover:bg-white dark:hover:bg-gray-800 transition-all duration-300"
+        {/* Controls for desktop */}
+        {!isMobile && (
+          <div className="flex items-center space-x-2 rtl:space-x-reverse">
+            <motion.button
+              className="p-2 rounded-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:text-draugr-500 dark:hover:text-draugr-400 transition focus:outline-none"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handlePrev}
               aria-label="Previous slide"
             >
-              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
-            </button>
-            
-            <button
-              onClick={() => goToPage((currentPage + 1) % pages.length)}
-              className="absolute right-3 md:right-6 top-1/2 transform -translate-y-1/2 bg-white/80 dark:bg-gray-800/80 text-gray-800 dark:text-gray-200 p-3 rounded-full shadow-lg z-20 backdrop-blur-sm border border-gray-200 dark:border-gray-700 hover:bg-white dark:hover:bg-gray-800 transition-all duration-300"
+            </motion.button>
+            <motion.button
+              className="p-2 rounded-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:text-draugr-500 dark:hover:text-draugr-400 transition focus:outline-none"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={togglePause}
+              aria-label={isPaused ? "Play slides" : "Pause slides"}
+            >
+              {isPaused ? (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              )}
+            </motion.button>
+            <motion.button
+              className="p-2 rounded-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:text-draugr-500 dark:hover:text-draugr-400 transition focus:outline-none"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleNext}
               aria-label="Next slide"
             >
-              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
               </svg>
-            </button>
-
-            {/* Custom runic indicators */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center justify-center space-x-2 z-20">
-              {pages.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => goToPage(index)}
-                  className={`relative p-1 focus:outline-none group transition-transform duration-300 transform ${currentPage === index ? 'scale-110' : 'scale-100'} hover:scale-110`}
-                  aria-label={`Go to slide ${index + 1}`}
-                >
-                  <svg 
-                    className={`w-5 h-5 ${currentPage === index ? 'text-draugr-500' : 'text-gray-400 dark:text-gray-600'} group-hover:text-draugr-400`} 
-                    viewBox="0 0 20 20" 
-                    fill="currentColor"
-                  >
-                    <path d="M10,1L1,10l9,9l9-9L10,1z" />
-                  </svg>
-                  
-                  {currentPage === index && (
-                    <motion.div 
-                      layoutId="activeIndicator"
-                      className="absolute inset-0 -z-10 bg-white dark:bg-gray-800 rounded-full opacity-70 shadow-md"
-                      transition={{ duration: 0.3 }}
-                    />
-                  )}
-                </button>
-              ))}
-            </div>
-          </>
+            </motion.button>
+          </div>
         )}
       </div>
       
-      {/* Progress bar - Norse inspired */}
-      {pages.length > 1 && (
-        <div className="w-full mt-8 relative h-1 bg-gray-200 dark:bg-gray-800 overflow-hidden rounded-full max-w-3xl mx-auto">
-          <motion.div 
-            className="absolute top-0 left-0 h-full bg-gradient-to-r from-draugr-700 via-draugr-500 to-draugr-700 rounded-full"
-            style={{ width: `${progress}%` }}
-          />
+      {/* Main slider container */}
+      <div 
+        className="relative overflow-hidden rounded-lg mx-auto"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        {/* Subtle pattern background with Norse-inspired design */}
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 opacity-75"></div>
+        <div className="absolute inset-0 -z-10 opacity-5 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAzNGMwLTIuMiAxLjgtNCA0LTRzNCAxLjggNCA0LTEuOCA0LTQgNC00LTEuOC00LTRNMjAgMzRjMC0yLjIgMS44LTQgNC00czQgMS44IDQgNC0xLjggNC00IDQtNC0xLjgtNC00TTM2IDE4YzAtMi4yIDEuOC00IDQtNHM0IDEuOCA0IDQtMS44IDQtNCA0LTQtMS44LTQtNCIgc3Ryb2tlPSIjMzMzIiBzdHJva2Utd2lkdGg9IjIiLz48cGF0aCBkPSJNMzAgNDZMMTUgNDYiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0ic3F1YXJlIi8+PC9nPjwvc3ZnPg==')]"></div>
+        
+        {/* Slider content */}
+        <div className="min-h-[460px] sm:min-h-[500px] p-4 md:p-6">
+          <AnimatePresence mode="wait">
+            <motion.div 
+              key={currentIndex}
+              className={`grid ${
+                isMobile 
+                  ? 'grid-cols-1 gap-4'
+                  : pages[currentIndex].length === 1
+                    ? 'grid-cols-1 max-w-md mx-auto'
+                    : pages[currentIndex].length === 2
+                      ? 'grid-cols-2 gap-6 md:gap-8'
+                      : 'grid-cols-1 md:grid-cols-3 gap-6 md:gap-8'
+              }`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              {pages[currentIndex].map((product, idx) => (
+                <motion.div
+                  key={product.id}
+                  className="relative transform overflow-hidden rounded-xl p-3 bg-white dark:bg-gray-800 shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col justify-between"
+                  initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                  animate={{ 
+                    scale: [0.9, 1.05, 1],
+                    opacity: 1,
+                    y: 0,
+                    transition: { 
+                      delay: idx * 0.2,
+                      duration: 0.8,
+                      times: [0, 0.6, 1],
+                      ease: "easeOut" 
+                    }
+                  }}
+                  exit={{ 
+                    scale: 0.9,
+                    opacity: 0,
+                    y: -20,
+                    transition: { duration: 0.3, ease: "easeIn" }
+                  }}
+                  whileHover={{ 
+                    y: -8,
+                    transition: { 
+                      duration: 0.3,
+                      ease: "easeOut" 
+                    }
+                  }}
+                >
+                  {/* Product aura effect (subtle glow) */}
+                  <motion.div 
+                    className="absolute inset-0 -z-10 bg-gradient-to-tr from-draugr-50 via-transparent to-transparent dark:from-draugr-900 opacity-0 rounded-xl"
+                    initial={{ opacity: 0 }}
+                    whileHover={{ opacity: 0.4 }}
+                    transition={{ duration: 0.3 }}
+                  />
+                  
+                  {/* Rune symbol decorative element */}
+                  <div className="absolute top-3 right-3 opacity-10 dark:opacity-5">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 2L8 22M12 2L16 22M4 9H20M4 17H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  
+                  {/* Product card */}
+                  <ProductCard product={product} onAddToCart={onAddToCart} isHighlighted={true} />
+                </motion.div>
+              ))}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
+      
+      {/* Mobile navigation controls */}
+      {isMobile && pages.length > 1 && (
+        <div className="flex justify-center items-center space-x-4 rtl:space-x-reverse mt-4">
+          <motion.button
+            className="p-3 rounded-full bg-white dark:bg-gray-800 shadow-md text-gray-700 dark:text-gray-300 focus:outline-none border border-gray-200 dark:border-gray-700"
+            whileTap={{ scale: 0.9 }}
+            onClick={handlePrev}
+            aria-label="Previous slide"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+            </svg>
+          </motion.button>
           
-          {/* Decorative elements */}
-          <div className="absolute top-1/2 left-0 transform -translate-y-1/2 w-2 h-2 rounded-full bg-draugr-500"></div>
-          <div className="absolute top-1/2 right-0 transform -translate-y-1/2 w-2 h-2 rounded-full bg-draugr-500"></div>
+          {/* Dots indicator for mobile */}
+          <div className="flex space-x-2 rtl:space-x-reverse">
+            {pages.map((_, idx) => (
+              <motion.button
+                key={idx}
+                className={`w-2.5 h-2.5 rounded-full ${
+                  idx === currentIndex 
+                    ? 'bg-draugr-500' 
+                    : 'bg-gray-300 dark:bg-gray-600'
+                }`}
+                whileHover={{ scale: 1.2 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => goToSlide(idx)}
+                aria-label={`Go to slide ${idx + 1}`}
+              />
+            ))}
+          </div>
+          
+          <motion.button
+            className="p-3 rounded-full bg-white dark:bg-gray-800 shadow-md text-gray-700 dark:text-gray-300 focus:outline-none border border-gray-200 dark:border-gray-700"
+            whileTap={{ scale: 0.9 }}
+            onClick={handleNext}
+            aria-label="Next slide"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+            </svg>
+          </motion.button>
         </div>
       )}
       
-      {/* Norse ornamental bottom decorations */}
-      <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 rotate-180 w-64 h-10 bg-no-repeat bg-contain bg-center opacity-20 dark:opacity-30 pointer-events-none"
-           style={{ backgroundImage: "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNDAgMzAiPjxwYXRoIGQ9Ik0wLDE1YzAtLDEwLDYwLDEwLDEyMCwwYzYwLDEwLDEyMCwxMCwxMjAsMHMtNjAsLTEwLC0xMjAsMCwwLCwwLC0xMjAsMFoiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2EwMjcyZiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNMjAsMTVsMTAsLTEwbDEwLDEwbC0xMCwxMFptNDAtMjB2NDBNMTAwLDE1bDEwLC0xMGwxMCwxMGwtMTAsMTBabTQwLC0yMHY0ME0xODAsMTVsMTAsLTEwbDEwLDEwbC0xMCwxMFoiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2EwMjcyZiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48L3N2Zz4=')" }}
-      />
+      {/* Progress indicator */}
+      {pages.length > 1 && (
+        <div className="w-full h-0.5 mt-6 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <motion.div 
+            className="h-full bg-draugr-500 dark:bg-draugr-400"
+            initial={{ width: '0%' }}
+            animate={{ 
+              width: `${((currentIndex + 1) / pages.length) * 100}%` 
+            }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+          />
+        </div>
+      )}
     </div>
   );
 };
