@@ -380,7 +380,7 @@ const NavLink = ({ to, label, isNested = false, navItem }) => {
       <motion.div
         whileHover={{ y: -2 }}
         whileTap={{ y: 0 }}
-        className={`cursor-pointer text-white text-sm font-medium px-2 py-2 mx-1 rounded-md transition-colors duration-200 ${
+        className={`cursor-pointer text-white text-sm font-medium px-2 py-2 mx-1 rounded-md transition-colors duration-200 relative group ${
           isHovering ? 'text-draugr-500 bg-black bg-opacity-80' : 'hover:text-draugr-300'
         }`}
         onClick={() => isNested ? null : navigate(to)}
@@ -399,6 +399,8 @@ const NavLink = ({ to, label, isNested = false, navItem }) => {
             </svg>
           )}
         </div>
+        {/* Animated red underline on hover */}
+        <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-draugr-500 transition-all duration-300 group-hover:w-full"></span>
       </motion.div>
       
       {/* Enhanced dropdown menu with multiple columns for shop */}
