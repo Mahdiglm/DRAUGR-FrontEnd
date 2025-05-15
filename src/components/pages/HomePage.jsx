@@ -111,22 +111,6 @@ const HomePage = () => {
     transition: 'transform 0.2s ease-out',
   };
 
-  // Text animations for title letters
-  const titleVariants = {
-    hidden: { opacity: 0 },
-    visible: (i) => ({
-      opacity: 1,
-      y: 0,
-      transition: {
-        delay: i * 0.1,
-        duration: 0.8,
-        ease: [0.2, 0.65, 0.3, 0.9]
-      }
-    })
-  };
-
-  const titleText = "اقلام خارق‌العاده را برای ماجراجویی خود کشف کنید";
-
   return (
     <>
       {/* Hero Section with Advanced Effects */}
@@ -330,26 +314,41 @@ const HomePage = () => {
               <motion.h1 
                 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 text-shadow-horror relative"
               >
-                <span className="relative block">
-                  {titleText.split('').map((char, i) => (
-                    <motion.span
-                      key={i}
-                      custom={i}
-                      initial="hidden"
-                      animate="visible"
-                      variants={titleVariants}
-                      className={char === ' ' ? 'inline-block pr-2' : 'inline-block'}
-                      style={{
-                        color: i < 15 ? '#ef233c' : 'white', // Color first few words differently
-                        textShadow: i < 15 ? '0 0 8px rgba(239,35,60,0.8)' : '0 1px 2px rgba(0,0,0,0.8)'
-                      }}
-                    >
-                      {char}
-                    </motion.span>
-                  ))}
-                </span>
+                {/* Replace character-by-character animation with a word-by-word approach that preserves Persian text */}
+                <motion.span 
+                  className="relative block text-draugr-500"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ 
+                    duration: 0.8, 
+                    delay: 0.2,
+                    ease: [0.2, 0.65, 0.3, 0.9]
+                  }}
+                  style={{
+                    textShadow: '0 0 8px rgba(239,35,60,0.8)',
+                    display: 'inline-block'
+                  }}
+                >
+                  اقلام خارق‌العاده را
+                </motion.span>{' '}
+                <motion.span
+                  className="relative text-white"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ 
+                    duration: 0.8, 
+                    delay: 0.5,
+                    ease: [0.2, 0.65, 0.3, 0.9]
+                  }}
+                  style={{
+                    textShadow: '0 1px 2px rgba(0,0,0,0.8)',
+                    display: 'inline-block'
+                  }}
+                >
+                  برای ماجراجویی خود کشف کنید
+                </motion.span>
                 
-                {/* Animated underline */}
+                {/* Animated underline - keep this */}
                 <motion.span 
                   className="absolute -bottom-2 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-draugr-500 to-transparent"
                   initial={{ width: 0, left: '50%', right: '50%', opacity: 0 }}
@@ -546,17 +545,29 @@ const HomePage = () => {
             className="mb-8 text-center"
           >
             <h2 className="text-3xl md:text-4xl font-bold text-white text-shadow-horror mb-4">
-              <span className="relative inline-block">
+              <motion.span 
+                className="relative inline-block"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+              >
                 محصولات ویژه
                 <motion.span 
                   className="absolute -bottom-2 left-0 right-0 h-0.5 bg-draugr-500"
-                  initial={{ width: 0, left: '50%', right: '50%' }}
-                  animate={{ width: '100%', left: 0, right: 0 }}
+                  initial={{ width: 0, left: '50%', right: '50%', opacity: 0 }}
+                  animate={{ width: '100%', left: 0, right: 0, opacity: 1 }}
                   transition={{ delay: 0.5, duration: 0.8 }}
                 ></motion.span>
-              </span>
+              </motion.span>
             </h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">محصولات برتر و منحصر به فرد ما را کشف کنید، هر کدام با ویژگی‌های خاص طراحی شده‌اند.</p>
+            <motion.p 
+              className="text-gray-400 max-w-2xl mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+            >
+              محصولات برتر و منحصر به فرد ما را کشف کنید، هر کدام با ویژگی‌های خاص طراحی شده‌اند.
+            </motion.p>
           </motion.div>
           
           <ProductList 
