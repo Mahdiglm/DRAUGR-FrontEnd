@@ -59,7 +59,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
   return (
     <div className="relative w-full overflow-hidden py-12">
       {/* Main Slider */}
-      <div className="relative h-auto md:h-[480px] w-full overflow-hidden">
+      <div className="relative h-auto md:h-[480px] w-full overflow-hidden z-10">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentPage}
@@ -67,17 +67,16 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -100 }}
             transition={{ duration: 0.7, ease: "easeInOut" }}
-            className="w-full h-full flex flex-col md:flex-row gap-6 justify-center items-center"
+            className="w-full h-full flex flex-col md:flex-row gap-8 justify-center items-center"
           >
             {pages[currentPage].map((product) => (
               <motion.div
                 key={product.id}
-                className="w-full md:w-1/2 lg:w-2/5 xl:w-1/3 max-w-sm"
-                whileHover={{ scale: 1.05, zIndex: 10 }}
-                initial={{ scale: 0.9, filter: 'blur(0px)' }}
+                className="w-full md:w-1/2 lg:w-2/5 xl:w-1/3 max-w-sm mx-auto relative z-20"
+                whileHover={{ scale: 1.05, zIndex: 30 }}
+                initial={{ scale: 0.95 }}
                 animate={{ 
-                  scale: 1, 
-                  filter: 'blur(0px)',
+                  scale: 1,
                   transition: { 
                     duration: 1, 
                     ease: "easeOut" 
@@ -92,7 +91,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
       </div>
 
       {/* Background Products (Blurred) */}
-      <div className="absolute inset-0 -z-10 flex flex-wrap justify-center items-center opacity-30">
+      <div className="absolute inset-0 -z-0 flex flex-wrap justify-center items-center opacity-30">
         {products.map((product, index) => {
           // Skip products currently in focus
           const currentProducts = pages[currentPage] || [];
@@ -100,22 +99,30 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           
           if (isActive) return null;
           
+          // Determine if this item should be on the left or right side
+          const isRightSide = index % 2 === 0;
+          
           return (
             <motion.div
               key={`bg-${product.id}`}
-              className="w-1/4 lg:w-1/5 p-2 transform"
-              initial={{ filter: 'blur(4px)', scale: 0.7, opacity: 0.6 }}
+              className="w-1/3 lg:w-1/4 p-2 transform"
+              initial={{ 
+                filter: 'blur(3px)', 
+                scale: 0.85, 
+                opacity: 0.7,
+                x: isRightSide ? 100 : -100,
+              }}
               animate={{ 
-                filter: 'blur(4px)', 
-                scale: 0.7, 
-                opacity: 0.6,
-                x: (index % 5 - 2) * 10,
-                y: (Math.floor(index / 5) - 1) * 10,
-                rotate: (index % 2 === 0 ? 1 : -1) * (index % 5) * 2,
+                filter: 'blur(3px)', 
+                scale: 0.85, 
+                opacity: 0.7,
+                x: isRightSide ? 120 : -120, // Move items further to the sides
+                y: (Math.floor(index / 2) - 1) * 30,
+                rotate: (isRightSide ? 1 : -1) * (index % 3) * 2,
               }}
               transition={{ duration: 2 }}
             >
-              <div className="opacity-60 grayscale">
+              <div className="opacity-70 grayscale-[70%]">
                 <ProductCard product={product} onAddToCart={null} isDisabled={true} />
               </div>
             </motion.div>
