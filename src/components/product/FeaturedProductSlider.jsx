@@ -126,24 +126,6 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Title with subtle animation */}
-      <motion.div 
-        className="relative mb-12 text-center"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7 }}
-      >
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100 inline-block">
-          محصولات ویژه
-        </h2>
-        <motion.div 
-          className="h-0.5 mt-1 bg-draugr-500"
-          initial={{ width: 0 }}
-          animate={{ width: "100%" }}
-          transition={{ duration: 0.7, delay: 0.3 }}
-        />
-      </motion.div>
-
       {/* Slider container with subtle background */}
       <div className="relative flex flex-col md:flex-row justify-center items-center min-h-[580px] md:min-h-[520px] w-full overflow-visible">
         {/* Ambient background and shadows */}
@@ -181,16 +163,6 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
                   >
                     <div className="relative rounded-xl overflow-hidden transition-all">
                       <ProductCard product={product} onAddToCart={onAddToCart} isHighlighted={activeGroup === groupIndex} />
-                      
-                      {/* Card embellishments */}
-                      <motion.div 
-                        className="absolute inset-0 border-2 border-draugr-500 rounded-xl opacity-0 pointer-events-none"
-                        animate={{ 
-                          opacity: activeGroup === groupIndex ? 0.3 : 0,
-                          scale: activeGroup === groupIndex ? 1 : 1.05 
-                        }}
-                        transition={{ duration: 0.5 }}
-                      />
                     </div>
                   </motion.div>
                 ))}
@@ -220,26 +192,6 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
                           product={product} 
                           onAddToCart={activeGroup === groupIndex ? onAddToCart : null} 
                           isHighlighted={activeGroup === groupIndex}
-                        />
-                        
-                        {/* Beautiful shadow for foreground cards */}
-                        <motion.div 
-                          className="absolute -inset-1 bg-gradient-to-r from-draugr-500/20 via-draugr-500/10 to-draugr-500/20 rounded-xl -z-10"
-                          animate={{ 
-                            opacity: activeGroup === groupIndex ? 1 : 0,
-                            scale: activeGroup === groupIndex ? 1.03 : 1
-                          }}
-                          transition={{ duration: 0.6 }}
-                        />
-
-                        {/* Highlight accent */}
-                        <motion.div 
-                          className="absolute inset-0 border-2 border-draugr-500 rounded-xl opacity-0 pointer-events-none"
-                          animate={{ 
-                            opacity: activeGroup === groupIndex ? 0.15 : 0,
-                            scale: activeGroup === groupIndex ? 1 : 1.05 
-                          }}
-                          transition={{ duration: 0.5 }}
                         />
                       </div>
                     </motion.div>
