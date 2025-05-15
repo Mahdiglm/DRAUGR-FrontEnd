@@ -3,217 +3,237 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ProductCard from './ProductCard';
 
 const FeaturedProductSlider = ({ products, onAddToCart }) => {
-  const [currentPage, setCurrentPage] = useState(0);
-  const [pages, setPages] = useState([]);
+  const [activePair, setActivePair] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
-  const [isHovering, setIsHovering] = useState(false);
   const timerRef = useRef(null);
-  const sliderRef = useRef(null);
-
-  // Always show 2 items on desktop, 1 on mobile
-  const getProductsPerPage = () => isMobile ? 1 : 2;
-
-  // Check device type
+  const [isHovering, setIsHovering] = useState(false);
+  
+  // Check if we're on mobile
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
     
-    checkMobile();
+    checkMobile(); // Initial check
     window.addEventListener('resize', checkMobile);
     
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Prepare pages based on screen size
-  useEffect(() => {
-    if (!products || products.length === 0) return;
-    
-    const productsPerPage = getProductsPerPage();
-    const totalPages = Math.ceil(products.length / productsPerPage);
-    const pagesArray = [];
-    
-    for (let i = 0; i < totalPages; i++) {
-      const start = i * productsPerPage;
-      const pageProducts = products.slice(start, start + productsPerPage);
-      pagesArray.push(pageProducts);
-    }
-    
-    setPages(pagesArray);
-    
-    // Reset current page if needed
-    if (currentPage >= pagesArray.length) {
-      setCurrentPage(0);
-    }
-  }, [products, isMobile, currentPage]);
+  // Only show 4 products max
+  const displayProducts = products?.length > 4 ? products.slice(0, 4) : products;
+  
+  // Define product pairs (2 products per pair)
+  const pairs = displayProducts && displayProducts.length >= 2 
+    ? [
+        [displayProducts[0], displayProducts[1]],
+        [displayProducts[2] || displayProducts[0], displayProducts[3] || displayProducts[1]]
+      ]
+    : [];
 
-  // Auto-slide functionality
+  // Auto transition between pairs
   useEffect(() => {
-    if (pages.length <= 1 || isHovering) return;
+    if (pairs.length <= 1 || isHovering) return;
     
-    const autoScroll = () => {
-      setCurrentPage((prevPage) => (prevPage + 1) % pages.length);
+    const autoRotate = () => {
+      setActivePair(prev => (prev === 0 ? 1 : 0));
     };
     
-    timerRef.current = setInterval(autoScroll, 5000);
+    timerRef.current = setInterval(autoRotate, 5000);
     
     return () => {
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
     };
-  }, [pages, isHovering]);
+  }, [pairs.length, isHovering]);
 
   // Pause auto-scroll on hover
   const handleMouseEnter = () => setIsHovering(true);
   const handleMouseLeave = () => setIsHovering(false);
-
-  // Navigation
-  const goToPage = (pageIndex) => {
+  
+  // Toggle between pairs manually
+  const togglePair = () => {
+    setActivePair(prev => (prev === 0 ? 1 : 0));
+    
+    // Reset timer
     if (timerRef.current) {
       clearInterval(timerRef.current);
-    }
-    setCurrentPage(pageIndex);
-    
-    if (!isHovering) {
-      timerRef.current = setInterval(() => {
-        setCurrentPage((prevPage) => (prevPage + 1) % pages.length);
-      }, 5000);
+      
+      if (!isHovering) {
+        timerRef.current = setInterval(() => {
+          setActivePair(prev => (prev === 0 ? 1 : 0));
+        }, 5000);
+      }
     }
   };
 
-  // Empty state
-  if (!products || products.length === 0 || pages.length === 0) {
-    return <div className="text-center py-8 text-gray-500">محصولی برای نمایش وجود ندارد</div>;
+  if (!products || products.length === 0 || pairs.length === 0) {
+    return <div className="text-center py-8">محصولی برای نمایش وجود ندارد</div>;
   }
+
+  // Get the active and inactive pairs
+  const activePairProducts = pairs[activePair];
+  const inactivePairProducts = pairs[activePair === 0 ? 1 : 0];
 
   return (
     <div 
-      className="relative w-full my-10"
+      className="relative w-full py-8 md:py-16 overflow-hidden"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Title - Simple and elegant */}
-      <h2 className="text-2xl font-medium text-gray-800 dark:text-gray-100 mb-8 text-center">
-        <span className="border-b border-draugr-500 pb-1">محصولات ویژه</span>
-      </h2>
-      
-      {/* Main slider container */}
-      <div 
-        ref={sliderRef}
-        className="overflow-hidden"
-      >
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={currentPage}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5, ease: "easeInOut" }}
-            className="flex justify-center items-stretch gap-6 px-4"
-          >
-            {pages[currentPage].map((product) => (
-              <motion.div
-                key={product.id}
-                className="w-full md:w-1/3 max-w-sm mx-auto"
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ 
-                  scale: 1, 
-                  opacity: 1,
-                  transition: { 
-                    duration: 0.8,
-                    ease: [0.25, 0.1, 0.25, 1]
-                  }
-                }}
-                exit={{ 
-                  scale: 0.95, 
-                  opacity: 0,
-                  transition: {
-                    duration: 0.5
-                  }
-                }}
-              >
-                <div className="h-full">
-                  <ProductCard product={product} onAddToCart={onAddToCart} isHighlighted={true} />
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </AnimatePresence>
+      {/* Section Header */}
+      <div className="relative z-10 mb-8 flex items-center justify-between">
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100 
+                      border-b-2 border-draugr-500 inline-block pb-1">
+          محصولات ویژه
+        </h2>
+        
+        {/* Manual Navigation Control */}
+        <motion.button
+          onClick={togglePair}
+          className="px-4 py-2 text-sm bg-transparent border border-gray-300 dark:border-gray-700 
+                   text-gray-700 dark:text-gray-300 rounded-full hover:border-draugr-500 
+                   hover:text-draugr-500 dark:hover:text-draugr-400 transition-all duration-300"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          مشاهده بیشتر
+        </motion.button>
       </div>
-      
-      {/* Simple dot indicators */}
-      {pages.length > 1 && (
-        <div className="flex justify-center space-x-1 mt-8">
-          {pages.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => goToPage(index)}
-              aria-label={`Go to slide ${index + 1}`}
-              className={`w-2 h-2 rounded-full mx-1 transition-all duration-300 ${
-                currentPage === index 
-                  ? 'bg-draugr-500 scale-125' 
-                  : 'bg-gray-300 dark:bg-gray-600'
-              }`}
-            />
-          ))}
-        </div>
-      )}
-      
-      {/* Subtle navigation arrows */}
-      {pages.length > 1 && !isMobile && (
-        <>
-          <button 
-            onClick={() => goToPage(currentPage === 0 ? pages.length - 1 : currentPage - 1)}
-            className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center 
-                     text-gray-400 hover:text-draugr-500 transition-colors duration-300
-                     opacity-60 hover:opacity-100 focus:outline-none"
-            aria-label="Previous slide"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          
-          <button 
-            onClick={() => goToPage((currentPage + 1) % pages.length)}
-            className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center 
-                     text-gray-400 hover:text-draugr-500 transition-colors duration-300
-                     opacity-60 hover:opacity-100 focus:outline-none"
-            aria-label="Next slide"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </>
-      )}
-      
-      {/* Mobile swipe indicator - Subtle hint */}
-      {isMobile && pages.length > 1 && (
-        <div className="flex justify-center items-center mt-4 opacity-60">
-          <svg className="w-4 h-4 text-gray-400 mx-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
-          </svg>
-          <svg className="w-4 h-4 text-gray-400 mx-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-          </svg>
-        </div>
-      )}
-      
-      {/* Minimal progress bar */}
-      {pages.length > 1 && (
-        <div className="w-1/3 mx-auto mt-6 h-px bg-gray-200 dark:bg-gray-700 overflow-hidden rounded-full">
+
+      {/* Main Slider Container */}
+      <div className="relative min-h-[450px] md:min-h-[500px] w-full">
+        {/* Subtle Background Gradient */}
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-transparent via-gray-50/30 dark:via-gray-900/30 to-transparent rounded-xl"></div>
+        
+        {/* Progress Dots */}
+        <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 z-30 flex space-x-2">
           <motion.div 
-            className="h-full bg-draugr-500"
-            initial={{ width: 0 }}
+            className={`w-2 h-2 rounded-full bg-draugr-500 transition-all duration-300`}
             animate={{ 
-              width: `${((currentPage + 1) / pages.length) * 100}%`,
-              transition: { duration: 0.3, ease: "easeInOut" }
+              scale: activePair === 0 ? 1.2 : 0.8,
+              opacity: activePair === 0 ? 1 : 0.5
+            }}
+          />
+          <motion.div 
+            className={`w-2 h-2 rounded-full bg-draugr-500 transition-all duration-300`}
+            animate={{ 
+              scale: activePair === 1 ? 1.2 : 0.8,
+              opacity: activePair === 1 ? 1 : 0.5
             }}
           />
         </div>
+        
+        {/* Inactive (Background) Products - Blurred and Dimmed */}
+        <div className="absolute inset-0 flex justify-center items-center">
+          {inactivePairProducts.map((product, index) => (
+            <motion.div
+              key={`inactive-${product.id}`}
+              className={`absolute ${isMobile ? 'w-3/4' : 'w-1/3'} max-w-sm px-2 z-0
+                        ${index === 0 ? '-translate-x-8 md:-translate-x-12' : 'translate-x-8 md:translate-x-12'}`}
+              initial={false}
+              animate={{
+                filter: 'blur(3px)',
+                opacity: 0.6,
+                scale: 0.85,
+                y: 20,
+                transition: { duration: 0.8, ease: 'easeInOut' }
+              }}
+            >
+              <div className="grayscale-[30%]">
+                <ProductCard product={product} onAddToCart={null} isHighlighted={false} />
+              </div>
+            </motion.div>
+          ))}
+        </div>
+        
+        {/* Active (Foreground) Products - Sharp and Prominent */}
+        <div className="absolute inset-0 flex justify-center items-center">
+          {activePairProducts.map((product, index) => (
+            <motion.div
+              key={`active-${product.id}`}
+              className={`relative ${isMobile ? 'w-4/5' : 'w-2/5'} max-w-sm px-3 z-10
+                        ${index === 0 ? '-translate-x-6 md:-translate-x-8' : 'translate-x-6 md:translate-x-8'}`}
+              initial={{ 
+                opacity: 0, 
+                scale: 0.9, 
+                y: 15 
+              }}
+              animate={{ 
+                opacity: 1, 
+                scale: 1, 
+                y: 0,
+                filter: 'blur(0px)',
+                transition: { 
+                  duration: 0.8, 
+                  ease: 'easeOut',
+                  scale: {
+                    type: 'spring',
+                    stiffness: 300,
+                    damping: 20
+                  }
+                }
+              }}
+            >
+              <div className="transform transition-all duration-500 hover:-translate-y-2">
+                <ProductCard 
+                  product={product} 
+                  onAddToCart={onAddToCart} 
+                  isHighlighted={true} 
+                />
+                
+                {/* Elegant Spotlight Effect */}
+                <motion.div 
+                  className="absolute inset-0 rounded-xl bg-white dark:bg-draugr-900 -z-10"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 0.03 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.8 }}
+                />
+                
+                {/* Subtle Radial Gradient for Depth */}
+                <div className="absolute inset-0 -z-20 bg-radial-gradient rounded-xl opacity-40"></div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+        
+        {/* Mobile Navigation Hint */}
+        {isMobile && (
+          <motion.div 
+            className="absolute bottom-10 left-1/2 transform -translate-x-1/2 text-xs text-gray-500
+                      flex items-center space-x-1"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.7 }}
+            transition={{ delay: 2, duration: 1 }}
+          >
+            <span>برای تغییر ضربه بزنید</span>
+          </motion.div>
+        )}
+      </div>
+      
+      {/* Custom Mobile Touch Area */}
+      {isMobile && (
+        <motion.button 
+          className="absolute inset-0 z-20 w-full h-full cursor-pointer bg-transparent"
+          onClick={togglePair}
+          whileTap={{ scale: 0.98 }}
+        />
       )}
+      
+      {/* Progress Bar */}
+      <div className="w-full mt-6 h-0.5 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+        <motion.div 
+          className="h-full bg-draugr-500"
+          initial={{ width: 0 }}
+          animate={{
+            width: activePair === 0 ? '50%' : '100%',
+            transition: { duration: 5, ease: "linear" }
+          }}
+          key={activePair} // Reset animation when active pair changes
+        />
+      </div>
     </div>
   );
 };
