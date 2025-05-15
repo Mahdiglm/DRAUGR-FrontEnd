@@ -109,6 +109,12 @@ const HomePage = () => {
   const [isExiting, setIsExiting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   
+  // For testing - reset intro animation
+  const resetIntroAnimation = () => {
+    localStorage.removeItem('hasSeenDraugrIntro');
+    window.location.reload();
+  };
+  
   // Check if user has already seen the intro
   useEffect(() => {
     const hasSeenIntro = localStorage.getItem('hasSeenDraugrIntro');
@@ -348,6 +354,16 @@ const HomePage = () => {
           ease: "easeOut"
         }}
       >
+        {/* FOR TESTING ONLY - Remove in production */}
+        <div className="fixed bottom-4 right-4 z-50">
+          <button 
+            onClick={resetIntroAnimation}
+            className="bg-black bg-opacity-50 text-white text-xs px-3 py-1 rounded-md"
+          >
+            Reset Intro (Test Only)
+          </button>
+        </div>
+        
         {/* Hero Section with Parallax */}
         <motion.section
           ref={heroRef}
