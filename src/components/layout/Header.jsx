@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 const Header = ({ cartItems, onCartClick }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -9,6 +9,7 @@ const Header = ({ cartItems, onCartClick }) => {
   const [isTyping, setIsTyping] = useState(true);
   const brandName = "DRAUGR";
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Sample categories data with subcategories
   const categories = [
@@ -38,6 +39,14 @@ const Header = ({ cartItems, onCartClick }) => {
     }
   ];
 
+  // Listen for route changes and close mobile menu when navigation occurs
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      setIsMobileMenuOpen(false);
+      document.body.classList.remove('menu-open');
+    }
+  }, [location.pathname]);
+
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
     if (!isMobileMenuOpen) {
@@ -49,9 +58,10 @@ const Header = ({ cartItems, onCartClick }) => {
 
   // Cleanup on unmount
   useEffect(() => {
+    // Ensure menu-open class is removed on unmount
     return () => {
       document.body.classList.remove('menu-open');
-  };
+    };
   }, []);
 
   // Typing animation effect
@@ -527,8 +537,10 @@ const MobileNavLink = ({ to, label, isCategory = false, categories = [], onClick
     if (isCategory) {
       setIsOpen(!isOpen);
     } else if (to && onClick) {
+      // Ensure menu-open class is removed before navigation
+      document.body.classList.remove('menu-open');
       navigate(to);
-      onClick();
+      if (onClick) onClick();
     }
   };
   
