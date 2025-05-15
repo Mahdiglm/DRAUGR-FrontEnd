@@ -15,8 +15,13 @@ const ProductList = ({ products = [], onAddToCart, title = "محصولات", bac
     'clothing': 'پوشاک',
     'electronics': 'الکترونیک',
     'home': 'خانه',
-    'accessories': 'لوازم جانبی',
+    'accessories': 'اکسسوری',
     'books': 'کتاب',
+    'weapons': 'سلاح‌ها',
+    'armor': 'زره‌ها',
+    'potions': 'معجون‌ها',
+    'magic': 'اقلام جادویی',
+    'rare_books': 'کتاب‌های نایاب'
   };
   
   // Filter products based on selected category
