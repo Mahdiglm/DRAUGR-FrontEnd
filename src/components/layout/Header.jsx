@@ -52,11 +52,6 @@ const Header = ({ cartItems, onCartClick }) => {
       subcategories: []
     },
     {
-      name: "تماس با ما",
-      path: "/contact",
-      subcategories: []
-    },
-    {
       name: "بلاگ / مقالات",
       path: "/blog",
       subcategories: []
@@ -302,7 +297,7 @@ const Header = ({ cartItems, onCartClick }) => {
                   </div>
 
                   {/* Login Button (Mobile) */}
-                  <motion.button
+                  <motion.button 
                     whileTap={{ scale: 0.95 }}
                     className="w-full bg-gradient-to-r from-draugr-900 to-draugr-700 text-white py-3 rounded-md font-medium border border-draugr-600 hover:border-draugr-500 mt-6 transition-all duration-300"
                     onClick={() => {
@@ -355,7 +350,7 @@ const NavLink = ({ to, label, isNested = false, navItem }) => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
-  
+    
   // Close dropdown on scroll
   useEffect(() => {
     const handleScroll = () => {
@@ -396,8 +391,8 @@ const NavLink = ({ to, label, isNested = false, navItem }) => {
               stroke="currentColor"
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          )}
+          </svg>
+        )}
         </div>
         {/* Animated red underline on hover */}
         <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-draugr-500 transition-all duration-300 group-hover:w-full"></span>
@@ -405,7 +400,7 @@ const NavLink = ({ to, label, isNested = false, navItem }) => {
       
       {/* Enhanced dropdown menu with multiple columns for shop */}
       {isNested && isHovering && navItem.name === "فروشگاه" && (
-        <motion.div
+            <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 10 }}
@@ -416,7 +411,7 @@ const NavLink = ({ to, label, isNested = false, navItem }) => {
             maxHeight: '80vh',
             overflowY: 'auto'
           }}
-        >
+            >
           {/* Multi-column layout for Shop */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 p-3">
             {navItem.subcategories.map((category, idx) => (
@@ -441,17 +436,17 @@ const NavLink = ({ to, label, isNested = false, navItem }) => {
                       <Link 
                         to={`/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}`}
                         className="block px-4 py-1.5 text-sm text-gray-300 hover:bg-draugr-900 hover:text-white transition-colors rounded"
-                      >
+                  >
                         {category.name}
                       </Link>
                     </li>
                   )}
                 </ul>
               </div>
-            ))}
-          </div>
-        </motion.div>
-      )}
+                ))}
+              </div>
+            </motion.div>
+          )}
     </div>
   );
 };
@@ -461,7 +456,7 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeCategory, setActiveCategory] = useState(-1);
   const navigate = useNavigate();
-
+  
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
   };
@@ -469,7 +464,7 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
   const toggleCategory = (index) => {
     setActiveCategory(activeCategory === index ? -1 : index);
   };
-
+  
   const handleClick = () => {
     if (!isNested) {
       navigate(to);
@@ -478,7 +473,7 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
       toggleExpanded();
     }
   };
-
+  
   return (
     <div className="border-b border-draugr-800 last:border-b-0">
       <div 
@@ -496,18 +491,18 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
             animate={{ rotate: isExpanded ? 180 : 0 }}
             transition={{ duration: 0.3 }}
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </motion.svg>
         )}
       </div>
       
       {/* Only show subcategories for فروشگاه (Shop) */}
       {isNested && isExpanded && navItem.name === "فروشگاه" && (
-        <motion.div
+            <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.3 }}
+              transition={{ duration: 0.3 }}
           className="bg-draugr-950 pl-4 py-2"
         >
           {/* Special accordion style for Shop in mobile view */}
@@ -520,31 +515,31 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
                     e.stopPropagation();
                     toggleCategory(idx);
                   }}
-                >
+                  >
                   <span className="text-sm font-medium text-draugr-400">{category.name}</span>
                   {category.items && category.items.length > 0 && (
-                    <motion.svg 
-                      xmlns="http://www.w3.org/2000/svg" 
+                      <motion.svg 
+                        xmlns="http://www.w3.org/2000/svg" 
                       className="h-4 w-4" 
-                      fill="none" 
-                      viewBox="0 0 24 24" 
-                      stroke="currentColor"
+                        fill="none" 
+                        viewBox="0 0 24 24" 
+                        stroke="currentColor"
                       animate={{ rotate: activeCategory === idx ? 180 : 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </motion.svg>
-                  )}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </motion.svg>
+                    )}
                 </div>
-                
+                  
                 {category.items && category.items.length > 0 && activeCategory === idx && (
-                  <motion.div
+                        <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.2 }}
                     className="pr-2 pl-4 py-1"
-                  >
+                        >
                     {category.items.map((item, itemIdx) => (
                       <Link 
                         key={itemIdx}
@@ -554,9 +549,9 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
                       >
                         {item}
                       </Link>
-                    ))}
-                  </motion.div>
-                )}
+                          ))}
+                        </motion.div>
+                      )}
                 
                 {(!category.items || category.items.length === 0) && (
                   <Link 
@@ -566,11 +561,11 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
                   >
                     {category.name}
                   </Link>
-                )}
-              </div>
-            ))}
+                  )}
+                </div>
+              ))}
           </div>
-        </motion.div>
+            </motion.div>
       )}
     </div>
   );
