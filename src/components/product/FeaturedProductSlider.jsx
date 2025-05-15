@@ -110,11 +110,11 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
   }
 
   return (
-    <div className="relative w-full overflow-hidden py-6 md:py-12">
+    <div className="relative w-full overflow-visible py-6 md:py-16 mt-4 md:mt-8">
       {/* Main Slider with touch events for mobile */}
       <div 
         ref={sliderRef}
-        className="relative min-h-[500px] sm:min-h-[520px] md:min-h-[480px] w-full overflow-hidden"
+        className="relative min-h-[500px] sm:min-h-[520px] md:min-h-[480px] w-full overflow-visible"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
@@ -213,7 +213,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
                   scale: willBeActive ? 0.9 : 0.85, 
                   opacity: willBeActive ? 0.8 : 0.7,
                   x: xPosition,
-                  y: (Math.floor(index / 2) - 1) * 30,
+                  y: (Math.floor(index / 2) - 1) * 30 - 20,
                   rotate: (isRightSide ? 1 : -1) * (index % 3) * 2,
                   transition: {
                     duration: willBeActive ? 1.5 : 2,
