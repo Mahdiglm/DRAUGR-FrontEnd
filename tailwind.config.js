@@ -71,6 +71,7 @@ module.exports = {
           'vampire-gradient': 'linear-gradient(to right, rgba(25, 9, 11, 0.95), rgba(74, 0, 0, 0.9))',
           'witch-gradient': 'linear-gradient(to right, rgba(21, 20, 26, 0.95), rgba(59, 45, 64, 0.9))',
           'werewolf-gradient': 'linear-gradient(to right, rgba(31, 26, 14, 0.95), rgba(94, 79, 43, 0.9))',
+          'radial-gradient': 'radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.6) 80%, rgba(0, 0, 0, 0.8) 100%)',
         },
         boxShadow: {
           'horror': '0 4px 14px 0 rgba(255, 0, 0, 0.3)',
