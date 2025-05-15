@@ -118,17 +118,17 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
             stiffness: 300,
             damping: 25,
             mass: 1.2,
-            duration: 0.5
+            duration: 0.5  // Faster transition
           }
         },
         background: {
-          opacity: 0.4,
-          scale: 0.95,
-          filter: "blur(1px)",
-          y: 20,
+          opacity: 0.4,  // Improved opacity
+          scale: 0.95,   // Less scaling for better visibility
+          filter: "blur(1px)", // Reduced blur 
+          y: 20,         // Less vertical offset
           zIndex: 10,
           transition: {
-            duration: 0.5
+            duration: 0.5  // Faster transition
           }
         }
       };
@@ -137,7 +137,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
     // Desktop: position cards on left/right based on their index
     return {
       foreground: {
-        x: position === 'left' ? '-3%' : '3%',
+        x: position === 'left' ? '-5%' : '5%',
         opacity: 1,
         scale: 1,
         filter: "blur(0px)",
@@ -147,19 +147,19 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           type: "spring",
           stiffness: 300,
           damping: 25,
-          mass: 1,
-          duration: 0.5
+          mass: 1,      // Lower mass for faster animations
+          duration: 0.5  // Faster transition
         }
       },
       background: {
-        x: position === 'left' ? '-28%' : '28%',
-        opacity: 0.4,
-        scale: 0.85,
-        filter: "blur(1px)",
-        rotateY: position === 'left' ? 8 : -8,
+        x: position === 'left' ? '-40%' : '40%',  // Less extreme positions
+        opacity: 0.5,                            // Improved opacity
+        scale: 0.9,                              // Less scaling down
+        filter: "blur(1px)",                      // Reduced blur
+        rotateY: position === 'left' ? 5 : -5,    // Less rotation
         zIndex: 10,
         transition: {
-          duration: 0.5
+          duration: 0.5                           // Faster transition
         }
       }
     };
@@ -195,18 +195,18 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
         
         {/* Mobile view is stacked */}
         {isMobile && (
-          <div className="w-full px-6 pt-8 overflow-visible">
+          <div className="w-full px-4 pt-8 overflow-visible">
             {productGroups.map((group, groupIndex) => (
-              <div key={`group-${groupIndex}`} className="flex flex-col gap-10 w-full mb-12">
+              <div key={`group-${groupIndex}`} className="flex flex-col gap-8 w-full mb-8">
                 {group.map((product, productIndex) => (
                   <motion.div
                     key={`product-${product.id}-${productIndex}`}
-                    className="w-full max-w-xs mx-auto overflow-visible mt-6"
+                    className="w-full max-w-xs mx-auto overflow-visible mt-4"
                     variants={getCardPositionVariants(true, productIndex === 0 ? 'left' : 'right')}
                     initial="background"
                     animate={activeGroup === groupIndex ? "foreground" : "background"}
                   >
-                    <div className="relative rounded-xl overflow-hidden transition-all shadow-lg shadow-gray-800/10">
+                    <div className="relative rounded-xl overflow-hidden transition-all">
                       <ProductCard product={product} onAddToCart={onAddToCart} isHighlighted={activeGroup === groupIndex} />
                     </div>
                   </motion.div>
@@ -227,12 +227,12 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
                   return (
                     <motion.div
                       key={`product-${product.id}-${productIndex}`}
-                      className={`absolute md:w-[40%] lg:w-[36%] transform ${position === 'left' ? 'left-[5%] md:left-[16%]' : 'right-[5%] md:right-[16%]'} overflow-visible mt-10`}
+                      className={`absolute md:w-1/3 lg:w-[30%] transform ${position === 'left' ? 'left-[10%] md:left-[18%]' : 'right-[10%] md:right-[18%]'} overflow-visible mt-10`}
                       variants={getCardPositionVariants(activeGroup === groupIndex, position)}
                       initial={isVisible ? "background" : false}
                       animate={activeGroup === groupIndex ? "foreground" : "background"}
                     >
-                      <div className="relative rounded-xl overflow-hidden transition-all shadow-xl shadow-black/20">
+                      <div className="relative rounded-xl overflow-hidden transition-all">
                         <ProductCard 
                           product={product} 
                           onAddToCart={activeGroup === groupIndex ? onAddToCart : null} 
@@ -252,9 +252,9 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           {[0, 1].map((groupIndex) => (
             <motion.button
               key={`pagination-${groupIndex}`}
-              className="w-12 h-1.5 mx-1 rounded-full bg-gray-300 dark:bg-gray-600 focus:outline-none"
+              className="w-8 h-2 mx-1 rounded-full bg-gray-300 dark:bg-gray-600 focus:outline-none"
               animate={{
-                backgroundColor: activeGroup === groupIndex ? "#1a1a1a" : "#d1d5db",
+                backgroundColor: activeGroup === groupIndex ? "#333333" : "#d1d5db",
                 opacity: activeGroup === groupIndex ? 1 : 0.5,
                 scale: activeGroup === groupIndex ? 1.1 : 1
               }}
@@ -272,9 +272,9 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
         
         {/* Manual navigation buttons (subtle) */}
         <motion.button 
-          className="absolute left-2 md:left-6 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-gray-900/60 dark:bg-gray-800/80 flex items-center justify-center 
-                    backdrop-blur-sm z-30 text-white border border-gray-700 shadow-md"
-          whileHover={{ scale: 1.1, backgroundColor: "rgba(0, 0, 0, 0.7)" }}
+          className="absolute left-2 md:left-6 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-white/70 dark:bg-gray-800/70 flex items-center justify-center 
+                    backdrop-blur-sm z-30 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 shadow-md"
+          whileHover={{ scale: 1.1, backgroundColor: "rgba(255, 255, 255, 0.9)" }}
           whileTap={{ scale: 0.95 }}
           initial={{ opacity: 0.7 }}
           animate={{ opacity: 0.7 }}
@@ -290,9 +290,9 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           </svg>
         </motion.button>
         <motion.button 
-          className="absolute right-2 md:right-6 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-gray-900/60 dark:bg-gray-800/80 flex items-center justify-center 
-                    backdrop-blur-sm z-30 text-white border border-gray-700 shadow-md"
-          whileHover={{ scale: 1.1, backgroundColor: "rgba(0, 0, 0, 0.7)" }}
+          className="absolute right-2 md:right-6 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-white/70 dark:bg-gray-800/70 flex items-center justify-center 
+                    backdrop-blur-sm z-30 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 shadow-md"
+          whileHover={{ scale: 1.1, backgroundColor: "rgba(255, 255, 255, 0.9)" }}
           whileTap={{ scale: 0.95 }}
           initial={{ opacity: 0.7 }}
           animate={{ opacity: 0.7 }}
