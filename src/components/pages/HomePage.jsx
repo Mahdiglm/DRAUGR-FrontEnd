@@ -254,20 +254,6 @@ const HomePage = () => {
         />
         
         <motion.div
-          className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-draugr-500 to-transparent z-10"
-          animate={{ 
-            opacity: [0.2, 0.8, 0.2],
-            backgroundPosition: ['100% 0%', '0% 0%']
-          }}
-          transition={{ 
-            duration: 8, 
-            ease: "easeInOut", 
-            repeat: Infinity,
-            delay: 2
-          }}
-        />
-        
-        <motion.div
           className="absolute inset-y-0 left-0 w-[1px] bg-gradient-to-b from-transparent via-draugr-500 to-transparent z-10"
           animate={{ 
             opacity: [0.2, 0.8, 0.2],
@@ -451,35 +437,6 @@ const HomePage = () => {
             </motion.div>
           </div>
         </div>
-        
-        {/* Scroll indicator */}
-        <motion.div 
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex flex-col items-center"
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ 
-            opacity: [0, 1, 0],
-            y: [0, 10, 0]
-          }}
-          transition={{ 
-            duration: 2,
-            repeat: Infinity,
-            repeatDelay: 0.5
-          }}
-        >
-          <span className="text-white text-sm mb-2 opacity-80">پایین بکشید</span>
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            className="h-5 w-5 text-draugr-500"
-            viewBox="0 0 20 20" 
-            fill="currentColor"
-          >
-            <path 
-              fillRule="evenodd" 
-              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" 
-              clipRule="evenodd" 
-            />
-          </svg>
-        </motion.div>
       </motion.section>
 
       {/* Featured Products */}
