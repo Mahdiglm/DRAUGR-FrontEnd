@@ -148,12 +148,12 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
 
       {/* Pagination Controls */}
       {pages.length > 1 && (
-        <div className="flex justify-center space-x-12 mt-6">
+        <div className="flex justify-center space-x-3 mt-6">
           {pages.map((_, index) => (
             <motion.button
               key={index}
               onClick={() => goToPage(index)}
-              className={`w-3 h-3 rounded-full transition duration-300 ${
+              className={`w-3 h-3 rounded-full mx-4 transition duration-300 ${
                 currentPage === index ? 'bg-draugr-500 scale-125' : 'bg-gray-400'
               }`}
               whileHover={{ scale: 1.5 }}
