@@ -42,7 +42,7 @@ const MainLayout = () => {
     
     // No need to show message here since the product page already shows one
     if (!product.quantity) {
-      showTemporaryMessage(`${product.name} به سبد خرید اضافه شد`);
+    showTemporaryMessage(`${product.name} به سبد خرید اضافه شد`);
     }
   };
 
@@ -180,8 +180,8 @@ const MainLayout = () => {
 
       {/* Main Content */}
       <main className="main-content">
-        <Outlet context={{ addToCart, cartItems, showTemporaryMessage }} />
-        <Footer />
+      <Outlet context={{ addToCart, cartItems, showTemporaryMessage }} />
+      <Footer />
       </main>
       
       {/* Development Tools */}
