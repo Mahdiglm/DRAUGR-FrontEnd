@@ -105,9 +105,23 @@ const Particles = () => {
 const HomePage = () => {
   const { addToCart } = useOutletContext();
   const heroRef = useRef(null);
-  const [showIntro, setShowIntro] = useState(true);
+  const [showIntro, setShowIntro] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Check if user has already seen the intro
+  useEffect(() => {
+    const hasSeenIntro = localStorage.getItem('hasSeenDraugrIntro');
+    
+    if (hasSeenIntro) {
+      // Skip intro if user has already seen it
+      setShowIntro(false);
+      setIsLoading(false);
+    } else {
+      // Show intro for first-time visitors
+      setShowIntro(true);
+    }
+  }, []);
   
   // Handle initial loading - immediate load
   useEffect(() => {
@@ -127,6 +141,8 @@ const HomePage = () => {
   
   // Handle intro completion - reduced to 1 second
   useEffect(() => {
+    if (!showIntro) return; // Skip if intro not shown
+    
     const timer = setTimeout(() => {
       // Start exit animation
       setIsExiting(true);
@@ -140,12 +156,15 @@ const HomePage = () => {
         
         // Now transition to main content
         setShowIntro(false);
+        
+        // Set flag in localStorage that user has seen the intro
+        localStorage.setItem('hasSeenDraugrIntro', 'true');
       }, 600); // Time for exit animation to complete
       
     }, 1000); // Reduced to 1 second
     
     return () => clearTimeout(timer);
-  }, []);
+  }, [showIntro]);
   
   // Parallax effect
   const { scrollY } = useScroll();
