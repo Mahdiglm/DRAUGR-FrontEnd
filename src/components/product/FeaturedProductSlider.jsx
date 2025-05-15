@@ -248,7 +248,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
         )}
 
         {/* Elegant pagination indicators */}
-        <div className="absolute bottom-[-10px] left-1/2 transform -translate-x-1/2 flex space-x-3 z-30">
+        <div className="absolute bottom-[-24px] left-0 right-0 mx-auto w-fit flex justify-center items-center space-x-4 z-30">
           {[0, 1].map((groupIndex) => (
             <motion.button
               key={`pagination-${groupIndex}`}
