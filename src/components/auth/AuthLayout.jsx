@@ -6,6 +6,18 @@ import { Link } from 'react-router-dom';
 import backgroundImage from '../../assets/BackGround-Login.jpg';
 
 const AuthLayout = ({ children, title }) => {
+  // Ensure menu-open class is removed when the auth pages are mounted
+  useEffect(() => {
+    // Remove menu-open class to prevent blur effect on auth pages
+    document.body.classList.remove('menu-open');
+    
+    // Cleanup on unmount
+    return () => {
+      // Ensure class is also removed when navigating away
+      document.body.classList.remove('menu-open');
+    };
+  }, []);
+
   return (
     <div 
       className="min-h-screen flex items-center justify-center py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden"
