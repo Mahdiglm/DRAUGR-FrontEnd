@@ -167,12 +167,12 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
 
   return (
     <div 
-      className="relative w-full py-12 md:py-20 overflow-visible"
+      className="relative w-full py-16 md:py-24 overflow-visible"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       {/* Slider container with subtle background */}
-      <div className="relative flex flex-col md:flex-row justify-center items-center min-h-[580px] md:min-h-[520px] w-full overflow-visible pt-12">
+      <div className="relative flex flex-col md:flex-row justify-center items-center min-h-[600px] md:min-h-[550px] w-full overflow-visible pt-16">
         {/* Ambient background and shadows */}
         <div className="absolute inset-0 z-[1] opacity-20">
           <motion.div 
@@ -195,13 +195,13 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
         
         {/* Mobile view is stacked */}
         {isMobile && (
-          <div className="w-full px-4 pt-4 overflow-visible">
+          <div className="w-full px-4 pt-8 overflow-visible">
             {productGroups.map((group, groupIndex) => (
-              <div key={`group-${groupIndex}`} className="flex flex-col gap-6 w-full">
+              <div key={`group-${groupIndex}`} className="flex flex-col gap-8 w-full mb-8">
                 {group.map((product, productIndex) => (
                   <motion.div
                     key={`product-${product.id}-${productIndex}`}
-                    className="w-full max-w-xs mx-auto overflow-visible"
+                    className="w-full max-w-xs mx-auto overflow-visible mt-4"
                     variants={getCardPositionVariants(true, productIndex === 0 ? 'left' : 'right')}
                     initial="background"
                     animate={activeGroup === groupIndex ? "foreground" : "background"}
@@ -227,7 +227,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
                   return (
                     <motion.div
                       key={`product-${product.id}-${productIndex}`}
-                      className={`absolute md:w-1/3 lg:w-[30%] transform ${position === 'left' ? 'left-[10%] md:left-[18%]' : 'right-[10%] md:right-[18%]'} overflow-visible`}
+                      className={`absolute md:w-1/3 lg:w-[30%] transform ${position === 'left' ? 'left-[10%] md:left-[18%]' : 'right-[10%] md:right-[18%]'} overflow-visible mt-10`}
                       variants={getCardPositionVariants(activeGroup === groupIndex, position)}
                       initial={isVisible ? "background" : false}
                       animate={activeGroup === groupIndex ? "foreground" : "background"}
@@ -248,7 +248,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
         )}
 
         {/* Elegant pagination indicators */}
-        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-3 z-30">
+        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-3 z-30">
           {[0, 1].map((groupIndex) => (
             <motion.button
               key={`pagination-${groupIndex}`}

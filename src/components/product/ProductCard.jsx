@@ -41,11 +41,12 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       whileHover={isDisabled ? {} : { 
-        y: -10,
+        y: -5,
+        scale: 1.02,
         transition: { 
           type: "spring", 
-          stiffness: 300, 
-          damping: 20 
+          stiffness: 200, 
+          damping: 25 
         }
       }}
       className={`bg-white rounded-lg overflow-hidden shadow-lg h-full flex flex-col
