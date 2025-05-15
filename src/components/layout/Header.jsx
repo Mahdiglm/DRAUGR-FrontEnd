@@ -16,7 +16,7 @@ const Header = ({ cartItems, onCartClick }) => {
     {
       name: "خانه",
       path: "/",
-      subcategories: ["بنر تخفیف و پیشنهاد ویژه", "نمایش دسته‌بندی‌ها", "معرفی برند/فروشگاه"]
+      subcategories: []
     },
     {
       name: "فروشگاه",
@@ -39,27 +39,27 @@ const Header = ({ cartItems, onCartClick }) => {
     {
       name: "پیشنهادات ویژه",
       path: "/special-offers",
-      subcategories: ["تخفیف‌ها", "محصولات جدید", "پک‌های هدیه یا ست‌های خاص"]
+      subcategories: []
     },
     {
       name: "پیگیری سفارش",
       path: "/order-tracking",
-      subcategories: ["رهگیری با کد سفارش", "وضعیت سفارش"]
+      subcategories: []
     },
     {
       name: "درباره ما",
       path: "/about",
-      subcategories: ["داستان برند", "فلسفه طراحی", "هدف فروشگاه"]
+      subcategories: []
     },
     {
       name: "تماس با ما",
       path: "/contact",
-      subcategories: ["شماره پشتیبانی", "آدرس ایمیل / شبکه‌های اجتماعی", "فرم تماس مستقیم"]
+      subcategories: []
     },
     {
       name: "بلاگ / مقالات",
       path: "/blog",
-      subcategories: ["معرفی آیتم‌های خاص", "بررسی کتاب‌های نایاب", "استایل گاید پوشاک خاص"]
+      subcategories: []
     }
   ];
 
@@ -156,7 +156,7 @@ const Header = ({ cartItems, onCartClick }) => {
               key={index}
               to={item.path} 
               label={item.name} 
-              isNested={!!item.subcategories && item.subcategories.length > 0}
+              isNested={item.name === "فروشگاه" && item.subcategories.length > 0}
               navItem={item}
             />
           ))}
@@ -294,7 +294,7 @@ const Header = ({ cartItems, onCartClick }) => {
                         key={index}
                         to={item.path} 
                         label={item.name} 
-                        isNested={!!item.subcategories && item.subcategories.length > 0}
+                        isNested={item.name === "فروشگاه" && item.subcategories.length > 0}
                         navItem={item}
                         onClick={toggleMobileMenu}
                       />
@@ -402,7 +402,7 @@ const NavLink = ({ to, label, isNested = false, navItem }) => {
       </motion.div>
       
       {/* Enhanced dropdown menu with multiple columns for shop */}
-      {isNested && isHovering && (
+      {isNested && isHovering && navItem.name === "فروشگاه" && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -410,59 +410,44 @@ const NavLink = ({ to, label, isNested = false, navItem }) => {
           transition={{ duration: 0.2 }}
           className="absolute top-full right-0 mt-1 py-2 bg-black border border-draugr-800 shadow-lg rounded-md z-10 overflow-hidden min-w-fit text-right"
           style={{ 
-            minWidth: navItem.name === "فروشگاه" ? '650px' : '200px',
+            minWidth: '650px',
             maxHeight: '80vh',
             overflowY: 'auto'
           }}
         >
-          {navItem.name === "فروشگاه" ? (
-            // Special multi-column layout for Shop
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 p-3">
-              {navItem.subcategories.map((category, idx) => (
-                <div key={idx} className="p-2">
-                  <h3 className="text-draugr-500 font-bold text-sm pb-2 border-b border-draugr-900 mb-2">
-                    {category.name}
-                  </h3>
-                  <ul className="space-y-1">
-                    {category.items && category.items.length > 0 ? (
-                      category.items.map((item, itemIdx) => (
-                        <li key={itemIdx}>
-                          <Link 
-                            to={`/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}/${item.toLowerCase().replace(/\s+/g, '-')}`}
-                            className="block px-4 py-1.5 text-sm text-gray-300 hover:bg-draugr-900 hover:text-white transition-colors rounded"
-                          >
-                            {item}
-                          </Link>
-                        </li>
-                      ))
-                    ) : (
-                      <li>
+          {/* Multi-column layout for Shop */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 p-3">
+            {navItem.subcategories.map((category, idx) => (
+              <div key={idx} className="p-2">
+                <h3 className="text-draugr-500 font-bold text-sm pb-2 border-b border-draugr-900 mb-2">
+                  {category.name}
+                </h3>
+                <ul className="space-y-1">
+                  {category.items && category.items.length > 0 ? (
+                    category.items.map((item, itemIdx) => (
+                      <li key={itemIdx}>
                         <Link 
-                          to={`/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}`}
+                          to={`/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}/${item.toLowerCase().replace(/\s+/g, '-')}`}
                           className="block px-4 py-1.5 text-sm text-gray-300 hover:bg-draugr-900 hover:text-white transition-colors rounded"
                         >
-                          {category.name}
+                          {item}
                         </Link>
                       </li>
-                    )}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          ) : (
-            // Standard dropdown for other menu items
-            <div className="min-w-[200px]">
-              {navItem.subcategories && navItem.subcategories.map((subItem, idx) => (
-                <Link 
-                  key={idx}
-                  to={`${to}/${typeof subItem === 'string' ? subItem.toLowerCase().replace(/\s+/g, '-') : subItem.name.toLowerCase().replace(/\s+/g, '-')}`}
-                  className="block px-4 py-2 text-sm text-gray-300 hover:bg-draugr-900 hover:text-white transition-colors"
-                >
-                  {typeof subItem === 'string' ? subItem : subItem.name}
-                </Link>
-              ))}
-            </div>
-          )}
+                    ))
+                  ) : (
+                    <li>
+                      <Link 
+                        to={`/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}`}
+                        className="block px-4 py-1.5 text-sm text-gray-300 hover:bg-draugr-900 hover:text-white transition-colors rounded"
+                      >
+                        {category.name}
+                      </Link>
+                    </li>
+                  )}
+                </ul>
+              </div>
+            ))}
+          </div>
         </motion.div>
       )}
     </div>
@@ -514,7 +499,8 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
         )}
       </div>
       
-      {isNested && isExpanded && (
+      {/* Only show subcategories for فروشگاه (Shop) */}
+      {isNested && isExpanded && navItem.name === "فروشگاه" && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
@@ -522,82 +508,66 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
           transition={{ duration: 0.3 }}
           className="bg-draugr-950 pl-4 py-2"
         >
-          {navItem.name === "فروشگاه" ? (
-            // Special accordion style for Shop in mobile view
-            <div className="space-y-1">
-              {navItem.subcategories.map((category, idx) => (
-                <div key={idx} className="border-b border-draugr-800 last:border-b-0 pb-2">
-                  <div 
-                    className="flex justify-between items-center py-2 px-2 text-white cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleCategory(idx);
-                    }}
-                  >
-                    <span className="text-sm font-medium text-draugr-400">{category.name}</span>
-                    {category.items && category.items.length > 0 && (
-                      <motion.svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        className="h-4 w-4" 
-                        fill="none" 
-                        viewBox="0 0 24 24" 
-                        stroke="currentColor"
-                        animate={{ rotate: activeCategory === idx ? 180 : 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </motion.svg>
-                    )}
-                  </div>
-                  
-                  {category.items && category.items.length > 0 && activeCategory === idx && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="pr-2 pl-4 py-1"
+          {/* Special accordion style for Shop in mobile view */}
+          <div className="space-y-1">
+            {navItem.subcategories.map((category, idx) => (
+              <div key={idx} className="border-b border-draugr-800 last:border-b-0 pb-2">
+                <div 
+                  className="flex justify-between items-center py-2 px-2 text-white cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleCategory(idx);
+                  }}
+                >
+                  <span className="text-sm font-medium text-draugr-400">{category.name}</span>
+                  {category.items && category.items.length > 0 && (
+                    <motion.svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      className="h-4 w-4" 
+                      fill="none" 
+                      viewBox="0 0 24 24" 
+                      stroke="currentColor"
+                      animate={{ rotate: activeCategory === idx ? 180 : 0 }}
+                      transition={{ duration: 0.3 }}
                     >
-                      {category.items.map((item, itemIdx) => (
-                        <Link 
-                          key={itemIdx}
-                          to={`/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}/${item.toLowerCase().replace(/\s+/g, '-')}`}
-                          className="block py-1.5 text-xs text-gray-400 hover:text-gray-200"
-                          onClick={onClick}
-                        >
-                          {item}
-                        </Link>
-                      ))}
-                    </motion.div>
-                  )}
-                  
-                  {(!category.items || category.items.length === 0) && (
-                    <Link 
-                      to={`/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}`}
-                      className="block py-1.5 px-2 text-xs text-gray-400 hover:text-gray-200"
-                      onClick={onClick}
-                    >
-                      {category.name}
-                    </Link>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </motion.svg>
                   )}
                 </div>
-              ))}
-            </div>
-          ) : (
-            // Standard submenu for other menu items in mobile view
-            <div className="space-y-1">
-              {navItem.subcategories && navItem.subcategories.map((subItem, idx) => (
-                <Link 
-                  key={idx}
-                  to={`${to}/${typeof subItem === 'string' ? subItem.toLowerCase().replace(/\s+/g, '-') : subItem.name.toLowerCase().replace(/\s+/g, '-')}`}
-                  className="block py-2 text-sm text-gray-400 hover:text-gray-200"
-                  onClick={onClick}
-                >
-                  {typeof subItem === 'string' ? subItem : subItem.name}
-                </Link>
-              ))}
-            </div>
-          )}
+                
+                {category.items && category.items.length > 0 && activeCategory === idx && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="pr-2 pl-4 py-1"
+                  >
+                    {category.items.map((item, itemIdx) => (
+                      <Link 
+                        key={itemIdx}
+                        to={`/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}/${item.toLowerCase().replace(/\s+/g, '-')}`}
+                        className="block py-1.5 text-xs text-gray-400 hover:text-gray-200"
+                        onClick={onClick}
+                      >
+                        {item}
+                      </Link>
+                    ))}
+                  </motion.div>
+                )}
+                
+                {(!category.items || category.items.length === 0) && (
+                  <Link 
+                    to={`/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}`}
+                    className="block py-1.5 px-2 text-xs text-gray-400 hover:text-gray-200"
+                    onClick={onClick}
+                  >
+                    {category.name}
+                  </Link>
+                )}
+              </div>
+            ))}
+          </div>
         </motion.div>
       )}
     </div>
