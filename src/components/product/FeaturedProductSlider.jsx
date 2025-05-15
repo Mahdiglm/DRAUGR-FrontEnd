@@ -6,7 +6,9 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
   const [activeGroup, setActiveGroup] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   const timerRef = useRef(null);
+  const componentMounted = useRef(true);
   
   // Check if we're on mobile
   useEffect(() => {
@@ -18,6 +20,45 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
     window.addEventListener('resize', checkMobile);
     
     return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Setup visibility detection to handle tab switching
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        setIsVisible(false);
+        if (timerRef.current) {
+          clearTimeout(timerRef.current);
+          timerRef.current = null;
+        }
+      } else {
+        setIsVisible(true);
+        // Reset to first group when becoming visible again
+        setActiveGroup(0);
+      }
+    };
+
+    // Handle visibility changes (tab switching)
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Handle focus/blur events for more reliability
+    window.addEventListener('blur', () => setIsVisible(false));
+    window.addEventListener('focus', () => {
+      setIsVisible(true);
+      setActiveGroup(0);
+    });
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', () => setIsVisible(false));
+      window.removeEventListener('focus', () => setIsVisible(true));
+      
+      // Clean up the timer when component unmounts
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+      componentMounted.current = false;
+    };
   }, []);
 
   // Ensure we have exactly 4 products
@@ -35,20 +76,24 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
     [displayProducts[2], displayProducts[3]]
   ];
 
-  // Auto-rotation logic
+  // Auto-rotation logic - improved with visibility check
   useEffect(() => {
-    if (isHovering) return;
+    // Only rotate when component is visible and not being hovered
+    if (isHovering || !isVisible) return;
     
     timerRef.current = setTimeout(() => {
-      setActiveGroup((prev) => (prev === 0 ? 1 : 0));
+      if (componentMounted.current) {
+        setActiveGroup((prev) => (prev === 0 ? 1 : 0));
+      }
     }, 5000);
     
     return () => {
       if (timerRef.current) {
         clearTimeout(timerRef.current);
+        timerRef.current = null;
       }
     };
-  }, [activeGroup, isHovering]);
+  }, [activeGroup, isHovering, isVisible]);
 
   // Pause rotation on hover
   const handleMouseEnter = () => setIsHovering(true);
@@ -69,21 +114,21 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           y: 0,
           zIndex: 20,
           transition: {
-            type: "spring",
+            type: "spring", 
             stiffness: 300,
             damping: 25,
             mass: 1.2,
-            duration: 0.7
+            duration: 0.5  // Faster transition
           }
         },
         background: {
-          opacity: 0.3,
-          scale: 0.92,
-          filter: "blur(2px)",
-          y: 30,
+          opacity: 0.4,  // Improved opacity
+          scale: 0.95,   // Less scaling for better visibility
+          filter: "blur(1px)", // Reduced blur 
+          y: 20,         // Less vertical offset
           zIndex: 10,
           transition: {
-            duration: 0.7
+            duration: 0.5  // Faster transition
           }
         }
       };
@@ -102,19 +147,19 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           type: "spring",
           stiffness: 300,
           damping: 25,
-          mass: 1.2,
-          duration: 0.7
+          mass: 1,      // Lower mass for faster animations
+          duration: 0.5  // Faster transition
         }
       },
       background: {
-        x: position === 'left' ? '-45%' : '45%', 
-        opacity: 0.3,
-        scale: 0.85,
-        filter: "blur(2px)",
-        rotateY: position === 'left' ? 10 : -10,
+        x: position === 'left' ? '-40%' : '40%',  // Less extreme positions
+        opacity: 0.5,                            // Improved opacity
+        scale: 0.9,                              // Less scaling down
+        filter: "blur(1px)",                      // Reduced blur
+        rotateY: position === 'left' ? 5 : -5,    // Less rotation
         zIndex: 10,
         transition: {
-          duration: 0.7
+          duration: 0.5                           // Faster transition
         }
       }
     };
@@ -184,7 +229,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
                       key={`product-${product.id}-${productIndex}`}
                       className={`absolute md:w-1/3 lg:w-[30%] transform ${position === 'left' ? 'left-[10%] md:left-[18%]' : 'right-[10%] md:right-[18%]'}`}
                       variants={getCardPositionVariants(activeGroup === groupIndex, position)}
-                      initial="background"
+                      initial={isVisible ? "background" : false}
                       animate={activeGroup === groupIndex ? "foreground" : "background"}
                     >
                       <div className="relative rounded-xl overflow-hidden transition-all">
