@@ -1,656 +1,398 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useAnimation, useMotionValue, useTransform, useSpring } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import ProductCard from './ProductCard';
 
 const FeaturedProductSlider = ({ products, onAddToCart }) => {
-  // States for tracking current view and interaction
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [viewMode, setViewMode] = useState('showcase'); // 'showcase', 'grid', 'focus'
-  const [hoveringProduct, setHoveringProduct] = useState(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pages, setPages] = useState([]);
   const [isMobile, setIsMobile] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isTouch, setIsTouch] = useState(false);
+  const [touchStart, setTouchStart] = useState(0);
+  const [direction, setDirection] = useState(0);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [progress, setProgress] = useState(0);
   
-  // Refs and animation controls
-  const containerRef = useRef(null);
-  const showcaseRef = useRef(null);
-  const controls = useAnimation();
-  
-  // Interactive motion values
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const rotateX = useTransform(mouseY, [-300, 300], [10, -10]);
-  const rotateY = useTransform(mouseX, [-300, 300], [-10, 10]);
-  
-  // Spring physics for smoother animations
-  const springConfig = { damping: 20, stiffness: 200 };
-  const scaleSpring = useSpring(1, springConfig);
-  
-  // Handle mouse position for 3D effect
-  const handleMouseMove = (e) => {
-    if (!containerRef.current || viewMode !== 'showcase') return;
-    
-    const rect = containerRef.current.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    
-    mouseX.set(e.clientX - centerX);
-    mouseY.set(e.clientY - centerY);
+  const sliderRef = useRef(null);
+  const autoPlayRef = useRef(null);
+  const progressRef = useRef(null);
+  const progressInterval = useRef(null);
+
+  // Adaptive products per page based on screen size
+  const getProductsPerPage = () => {
+    if (window.innerWidth < 640) return 1; // Mobile
+    if (window.innerWidth < 1024) return 2; // Tablet
+    return 3; // Desktop
   };
-  
-  // Media query for responsive design
+
+  // Check device type
   useEffect(() => {
-    const checkMobile = () => {
+    const checkDevice = () => {
       setIsMobile(window.innerWidth < 768);
-      
-      // Switch to grid view on mobile automatically
-      if (window.innerWidth < 768 && viewMode === 'showcase') {
-        setViewMode('grid');
+      setIsTouch('ontouchstart' in window);
+    };
+    
+    checkDevice();
+    window.addEventListener('resize', checkDevice);
+    
+    return () => window.removeEventListener('resize', checkDevice);
+  }, []);
+
+  // Handle mouse movement for parallax effects
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isMobile && sliderRef.current) {
+        const { left, top, width, height } = sliderRef.current.getBoundingClientRect();
+        const x = (e.clientX - left) / width;
+        const y = (e.clientY - top) / height;
+        setMousePosition({ x, y });
       }
     };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    // Simulate loading state
-    const loadingTimer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1500);
-    
-    return () => {
-      window.removeEventListener('resize', checkMobile);
-      clearTimeout(loadingTimer);
-    };
-  }, [viewMode]);
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [isMobile]);
   
-  // Pre-load images
+  // Prepare pages based on screen size
   useEffect(() => {
     if (!products || products.length === 0) return;
     
-    const preloadImages = () => {
-      products.forEach((product) => {
-        const img = new Image();
-        img.src = product.image;
+    const productsPerPage = getProductsPerPage();
+    const totalPages = Math.ceil(products.length / productsPerPage);
+    const pagesArray = [];
+    
+    for (let i = 0; i < totalPages; i++) {
+      const start = i * productsPerPage;
+      const pageProducts = products.slice(start, start + productsPerPage);
+      pagesArray.push(pageProducts);
+    }
+    
+    setPages(pagesArray);
+    
+    // Reset current page if needed
+    if (currentPage >= pagesArray.length) {
+      setCurrentPage(0);
+    }
+  }, [products, isMobile]);
+
+  // Progress bar effect
+  useEffect(() => {
+    if (pages.length <= 1) return;
+    
+    clearInterval(progressInterval.current);
+    setProgress(0);
+    
+    progressInterval.current = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(progressInterval.current);
+          // Move to next slide
+          setCurrentPage(current => (current + 1) % pages.length);
+          return 0;
+        }
+        return prev + 0.5;
       });
-    };
+    }, 50);
     
-    preloadImages();
-  }, [products]);
-  
-  // Handle product navigation
-  const goToProduct = (index) => {
-    setCurrentIndex(index);
-  };
-  
-  const nextProduct = () => {
-    if (!products || products.length === 0) return;
-    setCurrentIndex((prev) => (prev + 1) % products.length);
-  };
-  
-  const prevProduct = () => {
-    if (!products || products.length === 0) return;
-    setCurrentIndex((prev) => (prev === 0 ? products.length - 1 : prev - 1));
-  };
-  
-  // Toggle between view modes
-  const toggleViewMode = (mode) => {
-    setViewMode(mode);
+    return () => clearInterval(progressInterval.current);
+  }, [currentPage, pages.length]);
+
+  // Auto advance slides
+  useEffect(() => {
+    if (pages.length <= 1 || isDragging) return;
     
-    // Reset position when changing modes
-    if (mode === 'showcase') {
-      setCurrentIndex(0);
+    clearTimeout(autoPlayRef.current);
+    
+    autoPlayRef.current = setTimeout(() => {
+      setDirection(1);
+      setCurrentPage(prev => (prev + 1) % pages.length);
+    }, 10000); // 10 seconds
+    
+    return () => clearTimeout(autoPlayRef.current);
+  }, [currentPage, pages.length, isDragging]);
+
+  const goToPage = (pageIndex) => {
+    setDirection(pageIndex > currentPage ? 1 : -1);
+    setCurrentPage(pageIndex);
+    setProgress(0);
+    clearInterval(progressInterval.current);
+  };
+
+  // Handle touch/mouse events
+  const handleDragStart = (e) => {
+    setIsDragging(true);
+    setStartX(e.clientX || e.touches[0].clientX);
+  };
+
+  const handleDragEnd = (e) => {
+    setIsDragging(false);
+    const endX = e.clientX || e.changedTouches[0].clientX;
+    const threshold = 100; // Minimum distance to trigger slide change
+    
+    if (startX - endX > threshold) {
+      // Swiped left, go to next
+      goToPage((currentPage + 1) % pages.length);
+    } else if (endX - startX > threshold) {
+      // Swiped right, go to previous
+      goToPage(currentPage === 0 ? pages.length - 1 : currentPage - 1);
     }
   };
-  
-  // Handle product hover
-  const handleProductHover = (product) => {
-    if (viewMode !== 'grid') return;
-    setHoveringProduct(product);
-    scaleSpring.set(1.05);
+
+  const handleDragMove = (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
   };
-  
-  const handleProductLeave = () => {
-    setHoveringProduct(null);
-    scaleSpring.set(1);
-  };
-  
-  if (!products || products.length === 0) {
-    return (
-      <div className="flex justify-center items-center h-[500px] text-gray-400">
-        <span className="text-xl">محصولی برای نمایش وجود ندارد</span>
-      </div>
-    );
-  }
-  
-  // Variants for animations
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { 
+
+  // Animation variants
+  const slideVariants = {
+    enter: (direction) => ({
+      x: direction > 0 ? '100%' : '-100%',
+      opacity: 0,
+      filter: 'blur(12px)',
+      scale: 0.95,
+    }),
+    center: {
+      x: 0,
       opacity: 1,
-      transition: { 
-        duration: 0.8,
-        staggerChildren: 0.1
-      }
-    }
-  };
-  
-  const itemVariants = {
-    hidden: { opacity: 0, y: 50 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { 
-        type: "spring",
-        stiffness: 150,
-        damping: 20
-      }
-    }
-  };
-  
-  const showcaseVariants = {
-    initial: { scale: 0.9, opacity: 0, rotateY: -15 },
-    animate: { 
-      scale: 1, 
-      opacity: 1, 
-      rotateY: 0,
-      transition: { 
-        type: "spring",
-        stiffness: 150,
-        damping: 20,
-        delay: 0.2
+      filter: 'blur(0px)',
+      scale: 1,
+      transition: {
+        x: { type: 'spring', stiffness: 300, damping: 30 },
+        opacity: { duration: 0.6 },
+        filter: { duration: 0.4 },
+        scale: { duration: 0.4 }
       }
     },
-    exit: { 
-      scale: 0.9,
+    exit: (direction) => ({
+      x: direction < 0 ? '100%' : '-100%',
       opacity: 0,
-      rotateY: 15,
-      transition: {
-        duration: 0.5
+      filter: 'blur(8px)',
+      scale: 0.95,
+      transition: { 
+        duration: 0.4 
       }
+    })
+  };
+
+  // Card animation variants
+  const cardVariants = {
+    initial: { opacity: 0, y: 30 },
+    animate: index => ({
+      opacity: 1,
+      y: 0,
+      transition: {
+        delay: index * 0.15,
+        duration: 0.6,
+        ease: [0.25, 0.1, 0.25, 1.0]
+      }
+    }),
+    hover: {
+      y: -12,
+      boxShadow: "0 30px 60px rgba(0,0,0,0.2)", 
+      transition: { duration: 0.3, ease: "easeOut" }
     }
   };
-  
-  // Loading animation component
-  const LoadingAnimation = () => (
-    <div className="absolute inset-0 flex justify-center items-center z-10">
-      <div className="relative w-20 h-20">
-        {[...Array(3)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute inset-0 border-2 border-draugr-500 rounded-full"
-            initial={{ scale: 0, opacity: 0.8 }}
-            animate={{ 
-              scale: [0, 1.2, 1.5],
-              opacity: [0.8, 0.4, 0]
-            }}
-            transition={{
-              duration: 1.5,
-              repeat: Infinity,
-              delay: i * 0.3,
-              ease: "easeOut"
-            }}
-          />
-        ))}
-        <motion.div 
-          className="absolute inset-0 flex justify-center items-center text-draugr-500"
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.5 }}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zm-1 13.5v-1a1 1 0 112 0v1a1 1 0 11-2 0zm2-3a1 1 0 01-1 1h-.5a1 1 0 01-.5-.5c0-.1-.1-.2-.2-.3 0-.1-.1-.1-.1-.2 0 0 0-.1-.1-.1L9 12c-.3-.3-.5-.6-.5-1 0-.5.2-.9.5-1.2l1.2-1.2c.1-.1.2-.3.3-.4.1-.2.2-.3.2-.5 0-.4-.3-.8-.7-.8-.2 0-.4.1-.5.2-.1.1-.2.3-.3.4-.2.3-.6.5-1 .2-.4-.2-.5-.6-.3-1 .5-.9 1.5-1.5 2.6-1.5 1.7 0 3 1.3 3 3 0 .6-.2 1.2-.6 1.7-.4.4-.8.9-1.3 1.3-.2.2-.3.3-.3.4 0 .1-.1.2-.1.3 0 .2.2.4.4.4h.5a1 1 0 011 1z" clipRule="evenodd" />
-          </svg>
-        </motion.div>
-      </div>
-    </div>
-  );
-  
+
+  if (!products || products.length === 0 || pages.length === 0) {
+    return <div className="text-center py-8">محصولی برای نمایش وجود ندارد</div>;
+  }
+
   return (
-    <motion.div 
-      ref={containerRef}
-      className="relative min-h-[600px] md:min-h-[700px] w-full py-8 md:py-12 px-4 overflow-hidden"
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-      onMouseMove={handleMouseMove}
-    >
-      {/* Dark atmospheric background with particles */}
-      <div className="absolute inset-0 -z-20 bg-gradient-to-b from-gray-900 via-gray-800 to-black overflow-hidden">
-        {/* Animated particles */}
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 bg-gray-200 rounded-full opacity-30"
-            style={{
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              y: [0, Math.random() * -100 - 50],
-              opacity: [0.3, 0],
-              scale: [1, Math.random() * 2]
-            }}
-            transition={{
-              duration: 5 + Math.random() * 10,
-              repeat: Infinity,
-              delay: Math.random() * 5,
-              ease: "easeOut"
-            }}
-          />
-        ))}
+    <div className="relative w-full mt-8 mb-16 overflow-visible">
+      {/* Norse ornamental decorations */}
+      <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-64 h-10 bg-no-repeat bg-contain bg-center opacity-20 dark:opacity-30 pointer-events-none"
+           style={{ backgroundImage: "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNDAgMzAiPjxwYXRoIGQ9Ik0wLDE1YzAtLDEwLDYwLDEwLDEyMCwwYzYwLDEwLDEyMCwxMCwxMjAsMHMtNjAsLTEwLC0xMjAsMCwwLCwwLC0xMjAsMFoiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2EwMjcyZiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNMjAsMTVsMTAsLTEwbDEwLDEwbC0xMCwxMFptNDAtMjB2NDBNMTAwLDE1bDEwLC0xMGwxMCwxMGwtMTAsMTBabTQwLC0yMHY0ME0xODAsMTVsMTAsLTEwbDEwLDEwbC0xMCwxMFoiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2EwMjcyZiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48L3N2Zz4=')" }}
+      />
+
+      {/* Section Title */}
+      <div className="relative text-center mb-10">
+        <h2 className="text-3xl md:text-4xl font-bold relative inline-block">
+          <span className="relative z-10 px-2 text-gray-900 dark:text-gray-100">محصولات ویژه</span>
+          <span className="absolute inset-0 bg-gradient-to-r from-transparent via-draugr-200 dark:via-draugr-900/30 to-transparent -z-10 transform skew-x-12 scale-110"></span>
+        </h2>
+        <div className="mt-3 w-full max-w-xl mx-auto flex items-center justify-center">
+          <div className="h-px bg-gray-200 dark:bg-gray-700 flex-grow mr-3"></div>
+          <svg viewBox="0 0 30 30" className="h-5 w-5 text-draugr-500 transform -rotate-45">
+            <path d="M15,3L2,15l13,12l13-12L15,3z" fill="currentColor"/>
+          </svg>
+          <div className="h-px bg-gray-200 dark:bg-gray-700 flex-grow ml-3"></div>
+        </div>
+      </div>
+
+      {/* Main Slider */}
+      <div 
+        ref={sliderRef}
+        className="relative w-full overflow-hidden rounded-xl min-h-[500px] md:min-h-[450px] shadow-2xl"
+        style={{
+          background: "linear-gradient(to bottom, rgba(15,15,20,0.02), rgba(15,15,20,0.08))",
+          boxShadow: "0 20px 80px -20px rgba(0,0,0,0.2), 0 0 20px rgba(0,0,0,0.05) inset"
+        }}
+        onTouchStart={handleDragStart}
+        onTouchMove={handleDragMove}
+        onTouchEnd={handleDragEnd}
+        onMouseDown={!isTouch ? handleDragStart : undefined}
+        onMouseMove={!isTouch ? handleDragMove : undefined}
+        onMouseUp={!isTouch ? handleDragEnd : undefined}
+        onMouseLeave={!isTouch && isDragging ? handleDragEnd : undefined}
+      >
+        {/* Atmospheric background with subtle pattern */}
+        <div 
+          className="absolute inset-0 opacity-10 dark:opacity-20 pointer-events-none"
+          style={{ 
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23${isMobile ? '333' : '222'}' fill-opacity='0.3' fill-rule='evenodd'/%3E%3C/svg%3E")`,
+            backgroundSize: '80px 80px',
+            transform: !isMobile ? `translateX(${(mousePosition.x - 0.5) * -20}px) translateY(${(mousePosition.y - 0.5) * -20}px)` : 'none'
+          }}
+        />
         
-        {/* Radial gradient overlay */}
-        <div className="absolute inset-0 bg-radial-gradient from-draugr-800/20 via-transparent to-transparent" />
+        {/* Mist/fog overlay */}
+        <div 
+          className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-white/10 dark:from-transparent dark:via-gray-900/5 dark:to-gray-900/10 mix-blend-overlay pointer-events-none"
+          style={{
+            transform: !isMobile ? `translateX(${(mousePosition.x - 0.5) * -10}px) translateY(${(mousePosition.y - 0.5) * -10}px)` : 'none'
+          }}
+        />
+
+        {/* Slider Content */}
+        <AnimatePresence initial={false} custom={direction} mode="wait">
+          <motion.div
+            key={currentPage}
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            drag={!isMobile && !isTouch ? "x" : false}
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.1}
+            onDragEnd={(e, { offset, velocity }) => {
+              const swipe = offset.x > 100 ? -1 : offset.x < -100 ? 1 : 0;
+              if (swipe !== 0) {
+                setDirection(swipe);
+                setCurrentPage((prev) => {
+                  if (swipe === 1) return (prev + 1) % pages.length;
+                  return prev === 0 ? pages.length - 1 : prev - 1;
+                });
+              }
+            }}
+            className="w-full h-full relative"
+          >
+            <div className={`relative w-full h-full flex ${isMobile ? 'flex-col' : 'flex-row'} justify-around items-center gap-4 p-4 md:p-8`}>
+              {pages[currentPage].map((product, index) => (
+                <motion.div
+                  key={product.id}
+                  className={`relative ${isMobile ? 'w-full max-w-xs' : 'w-full md:w-1/2 lg:w-1/3 xl:w-1/4'} max-w-sm`}
+                  variants={cardVariants}
+                  custom={index}
+                  initial="initial"
+                  animate="animate"
+                  whileHover="hover"
+                >
+                  <div className="relative group">
+                    {/* Glow effect for cards on hover */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-draugr-500/0 to-draugr-500/0 group-hover:from-draugr-500/5 group-hover:to-draugr-500/20 dark:group-hover:from-draugr-400/5 dark:group-hover:to-draugr-400/10 rounded-xl transition-all duration-500 -z-10 opacity-0 group-hover:opacity-100"></div>
+                    
+                    {/* Card with subtle hover animation */}
+                    <div className="transform transition-all duration-500 group-hover:-translate-y-2">
+                      <ProductCard product={product} onAddToCart={onAddToCart} isHighlighted={true} />
+                    </div>
+                    
+                    {/* Runic symbol appears on hover */}
+                    <motion.div 
+                      className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 text-draugr-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                      initial={{ scale: 0.5 }}
+                      animate={{ 
+                        scale: [0.5, 1.1, 1],
+                        rotate: [0, -5, 0, 5, 0]
+                      }}
+                      transition={{ duration: 0.5, delay: 0.1 }}
+                    >
+                      <svg viewBox="0 0 24 24" className="h-6 w-6" stroke="currentColor" fill="none">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 22V2M2 12h20M17 7l-5 5-5-5M7 17l5-5 5 5" />
+                      </svg>
+                    </motion.div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Navigation Elements */}
+        {pages.length > 1 && (
+          <>
+            {/* Custom runic navigation arrows */}
+            <button
+              onClick={() => goToPage(currentPage === 0 ? pages.length - 1 : currentPage - 1)}
+              className="absolute left-3 md:left-6 top-1/2 transform -translate-y-1/2 bg-white/80 dark:bg-gray-800/80 text-gray-800 dark:text-gray-200 p-3 rounded-full shadow-lg z-20 backdrop-blur-sm border border-gray-200 dark:border-gray-700 hover:bg-white dark:hover:bg-gray-800 transition-all duration-300"
+              aria-label="Previous slide"
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            
+            <button
+              onClick={() => goToPage((currentPage + 1) % pages.length)}
+              className="absolute right-3 md:right-6 top-1/2 transform -translate-y-1/2 bg-white/80 dark:bg-gray-800/80 text-gray-800 dark:text-gray-200 p-3 rounded-full shadow-lg z-20 backdrop-blur-sm border border-gray-200 dark:border-gray-700 hover:bg-white dark:hover:bg-gray-800 transition-all duration-300"
+              aria-label="Next slide"
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+
+            {/* Custom runic indicators */}
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center justify-center space-x-2 z-20">
+              {pages.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToPage(index)}
+                  className={`relative p-1 focus:outline-none group transition-transform duration-300 transform ${currentPage === index ? 'scale-110' : 'scale-100'} hover:scale-110`}
+                  aria-label={`Go to slide ${index + 1}`}
+                >
+                  <svg 
+                    className={`w-5 h-5 ${currentPage === index ? 'text-draugr-500' : 'text-gray-400 dark:text-gray-600'} group-hover:text-draugr-400`} 
+                    viewBox="0 0 20 20" 
+                    fill="currentColor"
+                  >
+                    <path d="M10,1L1,10l9,9l9-9L10,1z" />
+                  </svg>
+                  
+                  {currentPage === index && (
+                    <motion.div 
+                      layoutId="activeIndicator"
+                      className="absolute inset-0 -z-10 bg-white dark:bg-gray-800 rounded-full opacity-70 shadow-md"
+                      transition={{ duration: 0.3 }}
+                    />
+                  )}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
       </div>
       
-      {/* Cinematic overlay filter */}
-      <div className="absolute inset-0 -z-10 mix-blend-overlay bg-gradient-to-tr from-draugr-900/10 to-gray-900/30" />
-      
-      {/* Loading animation */}
-      <AnimatePresence>
-        {isLoading && <LoadingAnimation />}
-      </AnimatePresence>
-      
-      {/* Header with title and view toggles */}
-      <motion.div 
-        className="relative z-10 mb-8 md:mb-12 flex flex-col md:flex-row justify-between items-center gap-4"
-        variants={itemVariants}
-      >
-        <h2 className="text-3xl md:text-4xl font-bold text-white">
-          <span className="text-draugr-500">محصولات</span> ویژه
-        </h2>
-        
-        {/* View mode toggles */}
-        <div className="flex items-center gap-3 bg-gray-800/70 backdrop-blur-sm p-2 rounded-full">
-          <motion.button
-            onClick={() => toggleViewMode('showcase')}
-            className={`p-2 rounded-full ${viewMode === 'showcase' 
-              ? 'bg-draugr-500 text-white' 
-              : 'text-gray-300 hover:bg-gray-700'}`}
-            whileTap={{ scale: 0.9 }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
-            </svg>
-          </motion.button>
-          
-          <motion.button
-            onClick={() => toggleViewMode('grid')}
-            className={`p-2 rounded-full ${viewMode === 'grid' 
-              ? 'bg-draugr-500 text-white' 
-              : 'text-gray-300 hover:bg-gray-700'}`}
-            whileTap={{ scale: 0.9 }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-            </svg>
-          </motion.button>
-          
-          <motion.button
-            onClick={() => toggleViewMode('focus')}
-            className={`p-2 rounded-full ${viewMode === 'focus' 
-              ? 'bg-draugr-500 text-white' 
-              : 'text-gray-300 hover:bg-gray-700'}`}
-            whileTap={{ scale: 0.9 }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M5 8a1 1 0 011-1h1V6a1 1 0 012 0v1h1a1 1 0 110 2H9v1a1 1 0 11-2 0V9H6a1 1 0 01-1-1z" />
-              <path fillRule="evenodd" d="M2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8zm6-4a4 4 0 100 8 4 4 0 000-8z" clipRule="evenodd" />
-            </svg>
-          </motion.button>
-        </div>
-      </motion.div>
-      
-      {/* Main content container */}
-      <motion.div 
-        className="relative w-full h-full"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        {/* 3D Showcase View */}
-        {viewMode === 'showcase' && (
-          <div 
-            ref={showcaseRef}
-            className="relative perspective-1000 h-[400px] md:h-[500px] w-full overflow-visible"
-          >
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={`showcase-${currentIndex}`}
-                className="absolute inset-0 flex items-center justify-center"
-                variants={showcaseVariants}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                style={{
-                  rotateX: rotateX,
-                  rotateY: rotateY,
-                  transformStyle: 'preserve-3d'
-                }}
-              >
-                <div className="relative w-full max-w-2xl mx-auto">
-                  {/* Main product display */}
-                  <motion.div 
-                    className="relative z-20 transform-gpu"
-                    initial={{ y: 100, opacity: 0 }}
-                    animate={{ 
-                      y: 0, 
-                      opacity: 1,
-                      transition: { delay: 0.2, duration: 0.6 }
-                    }}
-                  >
-                    <div className="bg-gradient-to-b from-gray-800/80 to-black/90 backdrop-blur-sm p-6 rounded-xl border border-gray-700/50 shadow-xl">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {/* Product image */}
-                        <div className="md:col-span-1 relative overflow-hidden rounded-lg">
-                          <motion.div
-                            className="w-full h-64 md:h-80 relative"
-                            initial={{ scale: 1.1 }}
-                            animate={{ scale: 1 }}
-                            transition={{ duration: 0.6 }}
-                          >
-                            <div className="w-full h-full flex items-center justify-center">
-                              <ProductCard 
-                                product={products[currentIndex]} 
-                                onAddToCart={onAddToCart} 
-                                isHighlighted={true}
-                              />
-                            </div>
-                          </motion.div>
-                        </div>
-                        
-                        {/* Product details */}
-                        <div className="md:col-span-2 flex flex-col justify-between">
-                          <div>
-                            <motion.h3 
-                              className="text-2xl md:text-3xl font-bold text-white mb-2"
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: 0.4 }}
-                            >
-                              {products[currentIndex].name}
-                            </motion.h3>
-                            
-                            <motion.div 
-                              className="flex items-center mb-4"
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              transition={{ delay: 0.5 }}
-                            >
-                              {/* Star rating display */}
-                              <div className="flex text-yellow-500">
-                                {[...Array(5)].map((_, i) => (
-                                  <svg 
-                                    key={i} 
-                                    xmlns="http://www.w3.org/2000/svg" 
-                                    className={`h-5 w-5 ${i < (products[currentIndex].rating || 4) ? 'text-yellow-500' : 'text-gray-500'}`} 
-                                    viewBox="0 0 20 20" 
-                                    fill="currentColor"
-                                  >
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                  </svg>
-                                ))}
-                              </div>
-                              
-                              <span className="text-gray-400 mr-2 text-sm">
-                                ({products[currentIndex].reviewCount || Math.floor(Math.random() * 50) + 10} نظر)
-                              </span>
-                            </motion.div>
-                            
-                            <motion.p 
-                              className="text-gray-300 mb-4"
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              transition={{ delay: 0.6 }}
-                            >
-                              {products[currentIndex].description || 'توضیحات محصول در اینجا نمایش داده می‌شود. این محصول با کیفیت بالا و طراحی منحصر به فرد ارائه می‌شود.'}
-                            </motion.p>
-                            
-                            {/* Product features */}
-                            <motion.ul 
-                              className="text-gray-400 mb-4 list-disc list-inside"
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              transition={{ delay: 0.7 }}
-                            >
-                              <li>کیفیت برتر</li>
-                              <li>طراحی منحصر به فرد</li>
-                              <li>گارانتی اصالت کالا</li>
-                            </motion.ul>
-                          </div>
-                          
-                          <motion.div 
-                            className="flex flex-wrap items-center gap-4 mt-4"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.8 }}
-                          >
-                            <span className="text-2xl font-bold text-draugr-500">
-                              {products[currentIndex].price?.toLocaleString('fa-IR') || '۱,۲۰۰,۰۰۰'} تومان
-                            </span>
-                            
-                            <motion.button
-                              className="px-6 py-2 bg-draugr-500 text-white rounded-lg shadow-lg hover:bg-draugr-600 transition-colors duration-300"
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                              onClick={() => onAddToCart?.(products[currentIndex])}
-                            >
-                              افزودن به سبد خرید
-                            </motion.button>
-                          </motion.div>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                  
-                  {/* Product navigation controls */}
-                  <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 flex justify-between px-4 z-30">
-                    <motion.button
-                      className="bg-gray-900/80 text-white p-3 rounded-full shadow-xl backdrop-blur-sm border border-gray-700/50"
-                      whileHover={{ scale: 1.1, backgroundColor: 'rgba(30, 30, 30, 0.9)' }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={prevProduct}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                      </svg>
-                    </motion.button>
-                    
-                    <motion.button
-                      className="bg-gray-900/80 text-white p-3 rounded-full shadow-xl backdrop-blur-sm border border-gray-700/50"
-                      whileHover={{ scale: 1.1, backgroundColor: 'rgba(30, 30, 30, 0.9)' }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={nextProduct}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </motion.button>
-                  </div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-            
-            {/* Progress indicator */}
-            <div className="absolute bottom-4 left-0 right-0 flex justify-center">
-              <div className="flex gap-2">
-                {products.map((_, index) => (
-                  <motion.button
-                    key={index}
-                    className={`w-2 h-2 rounded-full ${index === currentIndex ? 'bg-draugr-500' : 'bg-gray-600'}`}
-                    whileHover={{ scale: 1.5 }}
-                    whileTap={{ scale: 0.8 }}
-                    onClick={() => goToProduct(index)}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {/* Grid View */}
-        {viewMode === 'grid' && (
+      {/* Progress bar - Norse inspired */}
+      {pages.length > 1 && (
+        <div className="w-full mt-8 relative h-1 bg-gray-200 dark:bg-gray-800 overflow-hidden rounded-full max-w-3xl mx-auto">
           <motion.div 
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            {products.map((product, index) => (
-              <motion.div
-                key={product.id || index}
-                className="relative"
-                variants={itemVariants}
-                onHoverStart={() => handleProductHover(product)}
-                onHoverEnd={handleProductLeave}
-                whileHover={{ 
-                  scale: 1.05,
-                  zIndex: 10,
-                  transition: { duration: 0.2 }
-                }}
-              >
-                <div className="bg-gradient-to-b from-gray-800/80 to-black/90 backdrop-blur-sm p-4 rounded-xl border border-gray-700/50 shadow-xl h-full">
-                  <ProductCard product={product} onAddToCart={onAddToCart} isHighlighted={hoveringProduct === product} />
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
-        
-        {/* Focus View */}
-        {viewMode === 'focus' && (
-          <div className="relative h-[500px] w-full">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={`focus-${currentIndex}`}
-                className="absolute inset-0 flex items-center justify-center"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ 
-                  opacity: 1, 
-                  scale: 1,
-                  transition: {
-                    duration: 0.5,
-                    ease: "easeOut"
-                  }
-                }}
-                exit={{ 
-                  opacity: 0,
-                  scale: 0.8,
-                  transition: {
-                    duration: 0.3
-                  }
-                }}
-              >
-                <div className="bg-gradient-to-b from-gray-800/90 to-black/95 backdrop-blur-lg p-6 rounded-xl border border-gray-700/50 shadow-2xl max-w-3xl w-full">
-                  <div className="flex flex-col md:flex-row gap-8">
-                    <div className="w-full md:w-1/2 relative">
-                      <motion.div
-                        className="relative overflow-hidden rounded-lg shadow-2xl"
-                        initial={{ x: -50, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        transition={{ delay: 0.2 }}
-                      >
-                        <ProductCard product={products[currentIndex]} onAddToCart={null} isHighlighted={true} />
-                        
-                        {/* Image effect overlay */}
-                        <motion.div 
-                          className="absolute inset-0 bg-gradient-to-t from-draugr-900/30 to-transparent pointer-events-none"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: 0.5 }}
-                        />
-                      </motion.div>
-                    </div>
-                    
-                    <div className="w-full md:w-1/2">
-                      <motion.h3 
-                        className="text-2xl font-bold text-white mb-3"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                      >
-                        {products[currentIndex].name}
-                      </motion.h3>
-                      
-                      <motion.div 
-                        className="mb-4"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.4 }}
-                      >
-                        <span className="text-2xl font-bold text-draugr-500">
-                          {products[currentIndex].price?.toLocaleString('fa-IR') || '۱,۲۰۰,۰۰۰'} تومان
-                        </span>
-                      </motion.div>
-                      
-                      <motion.p 
-                        className="text-gray-300 mb-6"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.5 }}
-                      >
-                        {products[currentIndex].description || 'توضیحات کامل محصول با جزئیات در اینجا نمایش داده می‌شود. این محصول با کیفیت بالا و طراحی منحصر به فرد ارائه می‌شود.'}
-                      </motion.p>
-                      
-                      <motion.div 
-                        className="flex flex-wrap gap-3 mb-6"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.6 }}
-                      >
-                        <span className="px-3 py-1 bg-gray-700 text-gray-200 rounded-full text-sm">جدید</span>
-                        <span className="px-3 py-1 bg-draugr-600 text-white rounded-full text-sm">پرفروش</span>
-                        <span className="px-3 py-1 bg-gray-700 text-gray-200 rounded-full text-sm">موجود</span>
-                      </motion.div>
-                      
-                      <motion.div 
-                        className="flex gap-3"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.7 }}
-                      >
-                        <motion.button
-                          className="px-6 py-3 bg-draugr-500 text-white rounded-lg shadow-lg hover:bg-draugr-600 transition-colors duration-300 w-full"
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => onAddToCart?.(products[currentIndex])}
-                        >
-                          افزودن به سبد خرید
-                        </motion.button>
-                      </motion.div>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-            
-            {/* Side navigation for Focus view */}
-            <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 flex justify-between px-4 z-30 pointer-events-none">
-              <motion.button
-                className="bg-gray-900/80 text-white p-3 rounded-full shadow-xl backdrop-blur-sm border border-gray-700/50 pointer-events-auto"
-                whileHover={{ scale: 1.1, backgroundColor: 'rgba(30, 30, 30, 0.9)' }}
-                whileTap={{ scale: 0.9 }}
-                onClick={prevProduct}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </motion.button>
-              
-              <motion.button
-                className="bg-gray-900/80 text-white p-3 rounded-full shadow-xl backdrop-blur-sm border border-gray-700/50 pointer-events-auto"
-                whileHover={{ scale: 1.1, backgroundColor: 'rgba(30, 30, 30, 0.9)' }}
-                whileTap={{ scale: 0.9 }}
-                onClick={nextProduct}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </motion.button>
-            </div>
-          </div>
-        )}
-      </motion.div>
-    </motion.div>
+            className="absolute top-0 left-0 h-full bg-gradient-to-r from-draugr-700 via-draugr-500 to-draugr-700 rounded-full"
+            style={{ width: `${progress}%` }}
+          />
+          
+          {/* Decorative elements */}
+          <div className="absolute top-1/2 left-0 transform -translate-y-1/2 w-2 h-2 rounded-full bg-draugr-500"></div>
+          <div className="absolute top-1/2 right-0 transform -translate-y-1/2 w-2 h-2 rounded-full bg-draugr-500"></div>
+        </div>
+      )}
+      
+      {/* Norse ornamental bottom decorations */}
+      <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 rotate-180 w-64 h-10 bg-no-repeat bg-contain bg-center opacity-20 dark:opacity-30 pointer-events-none"
+           style={{ backgroundImage: "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNDAgMzAiPjxwYXRoIGQ9Ik0wLDE1YzAtLDEwLDYwLDEwLDEyMCwwYzYwLDEwLDEyMCwxMCwxMjAsMHMtNjAsLTEwLC0xMjAsMCwwLCwwLC0xMjAsMFoiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2EwMjcyZiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNMjAsMTVsMTAsLTEwbDEwLDEwbC0xMCwxMFptNDAtMjB2NDBNMTAwLDE1bDEwLC0xMGwxMCwxMGwtMTAsMTBabTQwLC0yMHY0ME0xODAsMTVsMTAsLTEwbDEwLDEwbC0xMCwxMFoiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2EwMjcyZiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48L3N2Zz4=')" }}
+      />
+    </div>
   );
 };
 
