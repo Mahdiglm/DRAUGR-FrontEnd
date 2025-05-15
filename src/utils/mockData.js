@@ -3,6 +3,8 @@ import product1 from '../assets/Product_1.jpg';
 import product2 from '../assets/Product_2.jpg';
 import product3 from '../assets/Product_3.jpg';
 import product4 from '../assets/Product_4.jpg';
+// Temp solution: reuse existing images until new ones are added
+// Once actual Product_5 through Product_15 images are added, import them here
 
 export const products = [
   {
@@ -36,6 +38,86 @@ export const products = [
     price: 89.99,
     imageUrl: product4,
     category: "magic"
+  },
+  {
+    id: 5,
+    name: "گردنبند مقدس",
+    description: "گردنبندی با قدرت محافظت در برابر ارواح خبیث، ساخته شده از نقره و سنگ‌های قیمتی.",
+    price: 79.99,
+    imageUrl: product1, // Temporarily using product1 until Product_5 is available
+    category: "accessories"
+  },
+  {
+    id: 6,
+    name: "دستبند محافظ",
+    description: "دستبندی با نقوش باستانی که نیروی دفاعی خود را به دارنده منتقل می‌کند.",
+    price: 59.99,
+    imageUrl: product2, // Temporarily using product2 until Product_6 is available
+    category: "accessories"
+  },
+  {
+    id: 7,
+    name: "فندک اژدها",
+    description: "فندکی به شکل سر اژدها که شعله‌های آن هرگز خاموش نمی‌شود.",
+    price: 39.99,
+    imageUrl: product3, // Temporarily using product3 until Product_7 is available
+    category: "accessories"
+  },
+  {
+    id: 8,
+    name: "ویجا بورد نفرین شده",
+    description: "تخته ویجا باستانی برای ارتباط با ارواح، استفاده با احتیاط توصیه می‌شود.",
+    price: 129.99,
+    imageUrl: product4, // Temporarily using product4 until Product_8 is available
+    category: "accessories"
+  },
+  {
+    id: 9,
+    name: "پیک گیتار استخوانی",
+    description: "پیک گیتاری ساخته شده از استخوان‌های باستانی، برای صدایی عمیق و تاریک.",
+    price: 19.99,
+    imageUrl: product1, // Temporarily using product1 until Product_9 is available
+    category: "accessories"
+  },
+  {
+    id: 10,
+    name: "زیرسیگاری جمجمه",
+    description: "زیرسیگاری به شکل جمجمه انسان، دست‌ساز با جزئیات دقیق.",
+    price: 49.99,
+    imageUrl: product2, // Temporarily using product2 until Product_10 is available
+    category: "accessories"
+  },
+  {
+    id: 11,
+    name: "ماگ استخوانی",
+    description: "ماگی با طراحی استخوانی برای نوشیدنی‌های گرم، ساخته شده از سرامیک با کیفیت.",
+    price: 34.99,
+    imageUrl: product3, // Temporarily using product3 until Product_11 is available
+    category: "accessories"
+  },
+  {
+    id: 12,
+    name: "کتاب نفرین‌ها",
+    description: "کتاب کمیاب و قدیمی حاوی نفرین‌های باستانی، با صفحات چرمی دست‌ساز.",
+    price: 159.99,
+    imageUrl: product4, // Temporarily using product4 until Product_12 is available
+    category: "rare_books"
+  },
+  {
+    id: 13,
+    name: "چوب بیسبال خون‌آلود",
+    description: "چوب بیسبال قدیمی با لکه‌های قرمز و داستانی مرموز پشت آن.",
+    price: 89.99,
+    imageUrl: product1, // Temporarily using product1 until Product_13 is available
+    category: "accessories"
+  },
+  {
+    id: 14,
+    name: "وست چرمی",
+    description: "وست چرمی سیاه با طرح‌های فلزی و گوتیک، مناسب برای طرفداران سبک تاریک.",
+    price: 199.99,
+    imageUrl: product2, // Temporarily using product2 until Product_14 is available
+    category: "accessories"
   }
 ];
 
@@ -43,5 +125,7 @@ export const categories = [
   { id: 1, name: "سلاح‌ها", slug: "weapons" },
   { id: 2, name: "زره‌ها", slug: "armor" },
   { id: 3, name: "معجون‌ها", slug: "potions" },
-  { id: 4, name: "اقلام جادویی", slug: "magic" }
+  { id: 4, name: "اقلام جادویی", slug: "magic" },
+  { id: 5, name: "اکسسوری", slug: "accessories" },
+  { id: 6, name: "کتاب‌های نایاب", slug: "rare_books" }
 ]; 
