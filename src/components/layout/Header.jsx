@@ -11,31 +11,55 @@ const Header = ({ cartItems, onCartClick }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Sample categories data with subcategories
-  const categories = [
+  // Updated navigation structure based on new requirements
+  const navigationItems = [
     {
-      name: "لباس و پوشاک",
-      subcategories: ["لباس مردانه", "لباس زنانه", "کفش", "اکسسوری پوشاک"]
+      name: "خانه",
+      path: "/",
+      subcategories: ["بنر تخفیف و پیشنهاد ویژه", "نمایش دسته‌بندی‌ها", "معرفی برند/فروشگاه"]
     },
     {
-      name: "لوازم الکترونیکی",
-      subcategories: ["موبایل", "لپ تاپ", "تبلت", "لوازم جانبی"]
+      name: "فروشگاه",
+      path: "/shop",
+      subcategories: [
+        {
+          name: "اکسسوری",
+          items: ["دستبند", "گردنبند", "پیک", "فندک", "وست", "کامیک", "ویجا بورد", "زیرسیگاری", "ماگ", "چوب بیسبال ها"]
+        },
+        {
+          name: "کتاب‌های نایاب",
+          items: []
+        },
+        {
+          name: "انجیل شیطانی",
+          items: []
+        }
+      ]
     },
     {
-      name: "اکسسوری",
-      subcategories: ["ساعت", "زیورآلات", "عینک", "کیف و کوله"]
+      name: "پیشنهادات ویژه",
+      path: "/special-offers",
+      subcategories: ["تخفیف‌ها", "محصولات جدید", "پک‌های هدیه یا ست‌های خاص"]
     },
     {
-      name: "کتاب و سرگرمی",
-      subcategories: ["کتاب", "بازی", "محصولات فرهنگی", "لوازم تحریر"]
+      name: "پیگیری سفارش",
+      path: "/order-tracking",
+      subcategories: ["رهگیری با کد سفارش", "وضعیت سفارش"]
     },
     {
-      name: "ابزار و تجهیزات",
-      subcategories: ["ابزار برقی", "ابزار دستی", "لوازم باغبانی", "تجهیزات ایمنی"]
+      name: "درباره ما",
+      path: "/about",
+      subcategories: ["داستان برند", "فلسفه طراحی", "هدف فروشگاه"]
     },
     {
-      name: "خانه و آشپزخانه",
-      subcategories: ["لوازم آشپزخانه", "دکوراسیون", "لوازم خواب", "لوازم حمام"]
+      name: "تماس با ما",
+      path: "/contact",
+      subcategories: ["شماره پشتیبانی", "آدرس ایمیل / شبکه‌های اجتماعی", "فرم تماس مستقیم"]
+    },
+    {
+      name: "بلاگ / مقالات",
+      path: "/blog",
+      subcategories: ["معرفی آیتم‌های خاص", "بررسی کتاب‌های نایاب", "استایل گاید پوشاک خاص"]
     }
   ];
 
@@ -126,11 +150,16 @@ const Header = ({ cartItems, onCartClick }) => {
         </motion.div>
         
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex space-x-8">
-          <NavLink to="/" label="خانه" />
-          <NavLink to="/shop" label="فروشگاه" />
-          <NavLink isCategory={true} label="دسته‌بندی‌ها" categories={categories} />
-          <NavLink to="/" label="درباره ما" />
+        <nav className="hidden md:flex space-x-4">
+          {navigationItems.map((item, index) => (
+            <NavLink 
+              key={index}
+              to={item.path} 
+              label={item.name} 
+              isNested={!!item.subcategories && item.subcategories.length > 0}
+              navItem={item}
+            />
+          ))}
         </nav>
         
         <div className="flex items-center space-x-3 md:space-x-4">
@@ -257,53 +286,32 @@ const Header = ({ cartItems, onCartClick }) => {
                   </motion.button>
                 </div>
                 
-                {/* Menu Items */}
-                <motion.nav 
-                  className="flex flex-col p-4 flex-grow"
-                  variants={{
-                    hidden: { opacity: 0 },
-                    show: {
-                      opacity: 1,
-                      transition: {
-                        staggerChildren: 0.1
-                      }
-                    }
-                  }}
-                  initial="hidden"
-                  animate="show"
-                >
-                  <MobileNavLink to="/" label="خانه" onClick={() => setIsMobileMenuOpen(false)} />
-                  <MobileNavLink to="/shop" label="فروشگاه" onClick={() => setIsMobileMenuOpen(false)} />
-                  <MobileNavLink isCategory={true} label="دسته‌بندی‌ها" categories={categories} />
-                  <MobileNavLink to="/" label="درباره ما" onClick={() => setIsMobileMenuOpen(false)} />
-                  
-                  <div className="border-t border-draugr-800 my-4"></div>
-                  
-                  <motion.button 
-                    whileHover={{ scale: 1.02, backgroundColor: "#660000" }}
-                    whileTap={{ scale: 0.98 }}
-                    className="bg-gradient-to-r from-draugr-800 to-draugr-600 text-white px-4 py-3 rounded-md font-medium border border-draugr-600 text-sm mt-2 shadow-[0_0_15px_rgba(255,0,0,0.2)] w-full flex items-center justify-center"
-                    variants={{
-                      hidden: { opacity: 0, y: 20 },
-                      show: { opacity: 1, y: 0 }
-                    }}
+                {/* Mobile Navigation Links */}
+                <div className="py-4 px-4 overflow-y-auto flex-1">
+                  <div className="flex flex-col space-y-1">
+                    {navigationItems.map((item, index) => (
+                      <MobileNavLink 
+                        key={index}
+                        to={item.path} 
+                        label={item.name} 
+                        isNested={!!item.subcategories && item.subcategories.length > 0}
+                        navItem={item}
+                        onClick={toggleMobileMenu}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Login Button (Mobile) */}
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    className="w-full bg-gradient-to-r from-draugr-900 to-draugr-700 text-white py-3 rounded-md font-medium border border-draugr-600 hover:border-draugr-500 mt-6 transition-all duration-300"
                     onClick={() => {
                       navigate('/login');
-                      setIsMobileMenuOpen(false);
+                      toggleMobileMenu();
                     }}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                    </svg>
-                    ورود به حساب کاربری
+                    ورود / ثبت نام
                   </motion.button>
-                </motion.nav>
-                
-                {/* Footer */}
-                <div className="p-4 border-t border-draugr-800 mt-auto">
-                  <div className="text-sm text-gray-400">
-                    © 2023 DRAUGR فروشگاه
-                  </div>
                 </div>
               </div>
             </motion.div>
@@ -314,351 +322,285 @@ const Header = ({ cartItems, onCartClick }) => {
   );
 };
 
-// Desktop nav link component with enhanced hover effect
-const NavLink = ({ to, label, isCategory = false, categories = [] }) => {
+// Updated NavLink component for desktop navigation
+const NavLink = ({ to, label, isNested = false, navItem }) => {
+  const [isHovering, setIsHovering] = useState(false);
+  const timeoutRef = useRef(null);
+  const dropdownRef = useRef(null);
   const navigate = useNavigate();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-  const [activeSubmenuIndex, setActiveSubmenuIndex] = useState(null);
-  const menuRef = useRef(null);
   
-  // Add click outside handler
+  // Handle mouseenter with delay to prevent accidental hover
+  const handleMouseEnter = () => {
+    clearTimeout(timeoutRef.current);
+    setIsHovering(true);
+  };
+  
+  // Handle mouseleave with delay to allow movement to dropdown
+  const handleMouseLeave = () => {
+    timeoutRef.current = setTimeout(() => {
+      setIsHovering(false);
+    }, 100);
+  };
+  
+  // Handle clicks outside the dropdown
   useEffect(() => {
-    if (!isMenuOpen) return;
-    
     const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setIsMenuOpen(false);
-        setActiveSubmenuIndex(null);
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsHovering(false);
       }
     };
     
-    const handleScroll = () => {
-      setIsMenuOpen(false);
-      setActiveSubmenuIndex(null);
-    };
-    
     document.addEventListener('mousedown', handleClickOutside);
-    window.addEventListener('scroll', handleScroll);
-    
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+  
+  // Close dropdown on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (isHovering) {
+        setIsHovering(false);
+      }
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [isMenuOpen]);
-  
-  const handleCategoryClick = (e) => {
-    if (isCategory) {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsMenuOpen(!isMenuOpen);
-    }
-  };
+  }, [isHovering]);
   
   return (
-    <motion.div 
-      className="relative group" 
-      ref={menuRef}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      {isCategory ? (
-        <motion.div 
-          className="hover:text-draugr-500 ml-8 relative group inline-flex items-center cursor-pointer"
-          whileHover={{ y: -2 }}
-          onClick={handleCategoryClick}
-        >
-          {label}
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-          <span 
-            className="absolute -bottom-1 left-0 w-0 h-0.5 bg-draugr-500 transition-all duration-300 group-hover:w-full"
-          ></span>
-        </motion.div>
-      ) : (
-        <motion.div 
-          onClick={() => navigate(to)} 
-          className="hover:text-draugr-500 ml-8 relative group inline-flex items-center cursor-pointer"
-          whileHover={{ y: -2 }}
-        >
-          {label}
-          <span 
-            className="absolute -bottom-1 left-0 w-0 h-0.5 bg-draugr-500 transition-all duration-300 group-hover:w-full"
-          ></span>
-        </motion.div>
-      )}
-      
-      {isCategory && (
-        <AnimatePresence>
-          {(isMenuOpen || isHovered) && (
-          <motion.div
-            initial={{ opacity: 0, y: -10, scaleY: 0 }}
-            animate={{ opacity: 1, y: 0, scaleY: 1 }}
-            exit={{ opacity: 0, y: -10, scaleY: 0 }}
-            transition={{ 
-              duration: 0.3,
-              staggerChildren: 0.05,
-              delayChildren: 0.1
-            }}
-            style={{ transformOrigin: 'top center' }}
-              className="absolute right-0 mt-2 w-52 rounded-md shadow-lg bg-gradient-to-b from-black to-draugr-900 border border-draugr-700 transition-all duration-300 z-50"
-          >
-            <div className="rounded-md py-1">
-              {categories.map((category, index) => (
-                  <CategoryItem 
-                    key={index} 
-                    category={category} 
-                    index={index} 
-                    isActive={activeSubmenuIndex === index}
-                    onActivate={() => setActiveSubmenuIndex(index)}
-                    onDeactivate={() => setActiveSubmenuIndex(null)}
-                  />
-              ))}
-            </div>
-          </motion.div>
-          )}
-        </AnimatePresence>
-      )}
-    </motion.div>
-  );
-};
-
-// Category item with subcategories
-const CategoryItem = ({ category, index, isActive, onActivate, onDeactivate }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const itemRef = useRef(null);
-  
-  const handleCategoryClick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (isActive) {
-      onDeactivate();
-    } else {
-      onActivate();
-    }
-  };
-  
-  return (
-    <motion.div 
-      className="relative group/item"
-      ref={itemRef}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={handleCategoryClick}
+    <div 
+      className="relative"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      ref={dropdownRef}
     >
       <motion.div
-        className="block px-4 py-2 text-sm text-white hover:bg-draugr-800 hover:text-draugr-300 border-b border-draugr-800 last:border-0 flex justify-between items-center cursor-pointer"
-        variants={{
-          hidden: { opacity: 0, x: -20 },
-          visible: { opacity: 1, x: 0 }
-        }}
-        initial="hidden"
-        animate="visible"
-        transition={{ 
-          delay: index * 0.05,
-          type: "spring",
-          stiffness: 200,
-          damping: 10
-        }}
-        whileHover={{ 
-          textShadow: "0 0 8px rgba(255, 0, 0, 0.8)",
-          color: "#ff0000"
-        }}
+        whileHover={{ y: -2 }}
+        whileTap={{ y: 0 }}
+        className={`cursor-pointer text-white text-sm font-medium px-2 py-2 mx-1 rounded-md transition-colors duration-200 ${
+          isHovering ? 'text-draugr-500 bg-black bg-opacity-80' : 'hover:text-draugr-300'
+        }`}
+        onClick={() => isNested ? null : navigate(to)}
       >
-        <span>{category.name}</span>
-        {category.subcategories && category.subcategories.length > 0 && (
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 transform rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        )}
+        <div className="flex items-center space-x-1 rtl:space-x-reverse">
+          <span>{label}</span>
+          {isNested && (
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              className={`h-4 w-4 transition-transform ${isHovering ? 'rotate-180' : ''}`} 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          )}
+        </div>
       </motion.div>
       
-      {/* Subcategory dropdown */}
-      {category.subcategories && category.subcategories.length > 0 && (
-        <AnimatePresence>
-          {(isHovered || isActive) && (
-            <motion.div
-              className="absolute right-full top-0 w-48 bg-gradient-to-b from-draugr-950 to-black border border-draugr-700 rounded-md shadow-horror mr-1 z-50"
-              initial={{ opacity: 0, x: 20, scaleX: 0.8 }}
-              animate={{ opacity: 1, x: 0, scaleX: 1 }}
-              exit={{ opacity: 0, x: 10, scaleX: 0.8 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              style={{ transformOrigin: 'right center' }}
-            >
-              <div className="rounded-md py-1">
-                {category.subcategories.map((subcategory, subIndex) => (
-                  <motion.div
-                    key={subIndex}
-                    className="block px-4 py-2 text-sm text-white hover:bg-draugr-800 hover:text-draugr-300 border-b border-draugr-800 last:border-0 cursor-pointer"
-                    variants={{
-                      hidden: { opacity: 0, x: 10 },
-                      visible: { opacity: 1, x: 0 }
-                    }}
-                    initial="hidden"
-                    animate="visible"
-                    transition={{ 
-                      delay: subIndex * 0.03,
-                      duration: 0.2
-                    }}
-                    whileHover={{ 
-                      x: -5,
-                      textShadow: "0 0 8px rgba(255, 0, 0, 0.8)",
-                      color: "#ff0000"
-                    }}
-                  >
-                    {subcategory}
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
+      {/* Enhanced dropdown menu with multiple columns for shop */}
+      {isNested && isHovering && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 10 }}
+          transition={{ duration: 0.2 }}
+          className="absolute top-full right-0 mt-1 py-2 bg-black border border-draugr-800 shadow-lg rounded-md z-10 overflow-hidden min-w-fit text-right"
+          style={{ 
+            minWidth: navItem.name === "فروشگاه" ? '650px' : '200px',
+            maxHeight: '80vh',
+            overflowY: 'auto'
+          }}
+        >
+          {navItem.name === "فروشگاه" ? (
+            // Special multi-column layout for Shop
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 p-3">
+              {navItem.subcategories.map((category, idx) => (
+                <div key={idx} className="p-2">
+                  <h3 className="text-draugr-500 font-bold text-sm pb-2 border-b border-draugr-900 mb-2">
+                    {category.name}
+                  </h3>
+                  <ul className="space-y-1">
+                    {category.items && category.items.length > 0 ? (
+                      category.items.map((item, itemIdx) => (
+                        <li key={itemIdx}>
+                          <Link 
+                            to={`/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}/${item.toLowerCase().replace(/\s+/g, '-')}`}
+                            className="block px-4 py-1.5 text-sm text-gray-300 hover:bg-draugr-900 hover:text-white transition-colors rounded"
+                          >
+                            {item}
+                          </Link>
+                        </li>
+                      ))
+                    ) : (
+                      <li>
+                        <Link 
+                          to={`/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}`}
+                          className="block px-4 py-1.5 text-sm text-gray-300 hover:bg-draugr-900 hover:text-white transition-colors rounded"
+                        >
+                          {category.name}
+                        </Link>
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          ) : (
+            // Standard dropdown for other menu items
+            <div className="min-w-[200px]">
+              {navItem.subcategories && navItem.subcategories.map((subItem, idx) => (
+                <Link 
+                  key={idx}
+                  to={`${to}/${typeof subItem === 'string' ? subItem.toLowerCase().replace(/\s+/g, '-') : subItem.name.toLowerCase().replace(/\s+/g, '-')}`}
+                  className="block px-4 py-2 text-sm text-gray-300 hover:bg-draugr-900 hover:text-white transition-colors"
+                >
+                  {typeof subItem === 'string' ? subItem : subItem.name}
+                </Link>
+              ))}
+            </div>
           )}
-        </AnimatePresence>
+        </motion.div>
       )}
-    </motion.div>
+    </div>
   );
 };
 
-// Mobile nav link with animation
-const MobileNavLink = ({ to, label, isCategory = false, categories = [], onClick }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [expandedCategory, setExpandedCategory] = useState(null);
+// Updated MobileNavLink component for mobile navigation
+const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [activeCategory, setActiveCategory] = useState(-1);
   const navigate = useNavigate();
-  
-  const toggleSubcategory = (index) => {
-    if (expandedCategory === index) {
-      setExpandedCategory(null);
-    } else {
-      setExpandedCategory(index);
-    }
+
+  const toggleExpanded = () => {
+    setIsExpanded(!isExpanded);
   };
-  
+
+  const toggleCategory = (index) => {
+    setActiveCategory(activeCategory === index ? -1 : index);
+  };
+
   const handleClick = () => {
-    if (isCategory) {
-      setIsOpen(!isOpen);
-    } else if (to && onClick) {
-      // Ensure menu-open class is removed before navigation
-      document.body.classList.remove('menu-open');
+    if (!isNested) {
       navigate(to);
       if (onClick) onClick();
+    } else {
+      toggleExpanded();
     }
   };
-  
+
   return (
-    <motion.div className="mb-3">
-      <motion.div 
-        className="flex items-center justify-between py-3 cursor-pointer border-b border-draugr-900 hover:border-draugr-700 transition-colors duration-300" 
-        variants={{
-          hidden: { opacity: 0, x: 20 },
-          show: { opacity: 1, x: 0 }
-        }}
+    <div className="border-b border-draugr-800 last:border-b-0">
+      <div 
+        className="flex justify-between items-center py-3 px-2 text-white hover:bg-draugr-900 transition-all duration-200 rounded-sm cursor-pointer"
         onClick={handleClick}
       >
-        <motion.div 
-          className="text-lg font-medium hover:text-draugr-500 transform transition-all duration-300"
-          whileHover={{ x: 5, color: "#ff0000", textShadow: "0 0 8px rgba(255, 0, 0, 0.3)" }}
-        >
-          {label}
-        </motion.div>
-        {isCategory && (
-          <motion.div
-            animate={{ rotate: isOpen ? 180 : 0 }}
+        <span className="font-medium">{label}</span>
+        {isNested && (
+          <motion.svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            className="h-5 w-5" 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke="currentColor"
+            animate={{ rotate: isExpanded ? 180 : 0 }}
             transition={{ duration: 0.3 }}
-            className="bg-draugr-900 rounded-full p-1"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </motion.div>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </motion.svg>
         )}
-      </motion.div>
+      </div>
       
-      {isCategory && (
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="overflow-hidden rounded-md my-1 mr-4 border-r-2 border-draugr-700"
-            >
-              {categories.map((category, index) => (
-                <div key={index} className="border-b border-draugr-900 last:border-0">
-                  <motion.div 
-                    className="flex items-center justify-between py-3 px-4 text-sm text-gray-200 hover:text-draugr-500 cursor-pointer"
-                    variants={{
-                      hidden: { opacity: 0, x: 10 },
-                      visible: { opacity: 1, x: 0 }
+      {isNested && isExpanded && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.3 }}
+          className="bg-draugr-950 pl-4 py-2"
+        >
+          {navItem.name === "فروشگاه" ? (
+            // Special accordion style for Shop in mobile view
+            <div className="space-y-1">
+              {navItem.subcategories.map((category, idx) => (
+                <div key={idx} className="border-b border-draugr-800 last:border-b-0 pb-2">
+                  <div 
+                    className="flex justify-between items-center py-2 px-2 text-white cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleCategory(idx);
                     }}
-                    initial="hidden"
-                    animate="visible"
-                    transition={{ delay: index * 0.05 }}
-                    whileHover={{ x: 5, backgroundColor: "rgba(255, 0, 0, 0.1)" }}
-                    onClick={() => toggleSubcategory(index)}
                   >
-                    <span>{category.name}</span>
-                    {category.subcategories && category.subcategories.length > 0 && (
+                    <span className="text-sm font-medium text-draugr-400">{category.name}</span>
+                    {category.items && category.items.length > 0 && (
                       <motion.svg 
                         xmlns="http://www.w3.org/2000/svg" 
-                        className="h-3 w-3" 
+                        className="h-4 w-4" 
                         fill="none" 
                         viewBox="0 0 24 24" 
                         stroke="currentColor"
-                        animate={{ rotate: expandedCategory === index ? 180 : 0 }}
+                        animate={{ rotate: activeCategory === idx ? 180 : 0 }}
                         transition={{ duration: 0.3 }}
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </motion.svg>
                     )}
-                  </motion.div>
+                  </div>
                   
-                  {/* Mobile subcategories with enhanced styling */}
-                  {category.subcategories && (
-                    <AnimatePresence>
-                      {expandedCategory === index && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.3 }}
-                          className="overflow-hidden bg-black bg-opacity-30 border-r border-draugr-700 mr-2 rounded-b-md"
+                  {category.items && category.items.length > 0 && activeCategory === idx && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="pr-2 pl-4 py-1"
+                    >
+                      {category.items.map((item, itemIdx) => (
+                        <Link 
+                          key={itemIdx}
+                          to={`/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}/${item.toLowerCase().replace(/\s+/g, '-')}`}
+                          className="block py-1.5 text-xs text-gray-400 hover:text-gray-200"
+                          onClick={onClick}
                         >
-                          {category.subcategories.map((subcategory, subIndex) => (
-                            <motion.div
-                              key={subIndex}
-                              className="py-2 px-6 text-sm text-gray-300 hover:text-draugr-500 cursor-pointer hover:bg-draugr-950 border-b border-draugr-900 last:border-0 flex items-center"
-                              variants={{
-                                hidden: { opacity: 0, x: -5 },
-                                visible: { opacity: 1, x: 0 }
-                              }}
-                              initial="hidden"
-                              animate="visible"
-                              transition={{ delay: subIndex * 0.03 }}
-                              whileHover={{ x: 3 }}
-                            >
-                              <motion.span
-                                className="w-1 h-1 rounded-full bg-draugr-700 inline-block mr-2"
-                                variants={{
-                                  hidden: { scale: 0 },
-                                  visible: { scale: 1 }
-                                }}
-                                transition={{ delay: subIndex * 0.03 + 0.2 }}
-                              />
-                              {subcategory}
-                            </motion.div>
-                          ))}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                          {item}
+                        </Link>
+                      ))}
+                    </motion.div>
+                  )}
+                  
+                  {(!category.items || category.items.length === 0) && (
+                    <Link 
+                      to={`/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}`}
+                      className="block py-1.5 px-2 text-xs text-gray-400 hover:text-gray-200"
+                      onClick={onClick}
+                    >
+                      {category.name}
+                    </Link>
                   )}
                 </div>
               ))}
-            </motion.div>
+            </div>
+          ) : (
+            // Standard submenu for other menu items in mobile view
+            <div className="space-y-1">
+              {navItem.subcategories && navItem.subcategories.map((subItem, idx) => (
+                <Link 
+                  key={idx}
+                  to={`${to}/${typeof subItem === 'string' ? subItem.toLowerCase().replace(/\s+/g, '-') : subItem.name.toLowerCase().replace(/\s+/g, '-')}`}
+                  className="block py-2 text-sm text-gray-400 hover:text-gray-200"
+                  onClick={onClick}
+                >
+                  {typeof subItem === 'string' ? subItem : subItem.name}
+                </Link>
+              ))}
+            </div>
           )}
-        </AnimatePresence>
+        </motion.div>
       )}
-    </motion.div>
+    </div>
   );
 };
 
