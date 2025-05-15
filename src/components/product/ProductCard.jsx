@@ -43,17 +43,23 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
       whileHover={isDisabled ? {} : { 
         y: -5,
         scale: 1.02,
-        boxShadow: "0 0 10px 2px rgba(220, 38, 38, 0.5)",
         transition: { 
           type: "spring", 
           stiffness: 200, 
           damping: 25 
         }
       }}
-      className={`bg-gradient-to-b from-black to-black rounded-lg overflow-hidden h-full flex flex-col
-        ${isHighlighted ? 'shadow-xl shadow-red-600/30 border-2 border-red-600' : 'border-2 border-red-800/70'}
+      style={{
+        boxShadow: isHighlighted 
+          ? "0 0 0 1px #dc2626, 0 0 8px 0 rgba(220, 38, 38, 0.5)" 
+          : "0 0 0 1px #991b1b, 0 0 5px 0 rgba(153, 27, 27, 0.3)"
+      }}
+      className={`bg-gradient-to-b from-black to-black rounded-lg overflow-hidden h-full flex flex-col relative
         ${isDisabled ? 'pointer-events-none opacity-80' : 'cursor-pointer'}
-        transform-gpu shadow-md
+        transform-gpu
+        before:absolute before:inset-0 before:rounded-lg before:pointer-events-none
+        hover:before:border before:border-red-600 before:opacity-0 hover:before:opacity-100
+        before:transition-opacity before:duration-300
       `}
     >
       <div 
