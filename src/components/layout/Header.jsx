@@ -51,7 +51,7 @@ const Header = ({ cartItems, onCartClick }) => {
   useEffect(() => {
     return () => {
       document.body.classList.remove('menu-open');
-    };
+  };
   }, []);
 
   // Typing animation effect
@@ -118,7 +118,7 @@ const Header = ({ cartItems, onCartClick }) => {
         {/* Desktop Navigation */}
         <nav className="hidden md:flex space-x-8">
           <NavLink to="/" label="خانه" />
-          <NavLink to="/" label="محصولات" />
+          <NavLink to="/shop" label="فروشگاه" />
           <NavLink isCategory={true} label="دسته‌بندی‌ها" categories={categories} />
           <NavLink to="/" label="درباره ما" />
         </nav>
@@ -263,7 +263,7 @@ const Header = ({ cartItems, onCartClick }) => {
                   animate="show"
                 >
                   <MobileNavLink to="/" label="خانه" onClick={() => setIsMobileMenuOpen(false)} />
-                  <MobileNavLink to="/" label="محصولات" onClick={() => setIsMobileMenuOpen(false)} />
+                  <MobileNavLink to="/shop" label="فروشگاه" onClick={() => setIsMobileMenuOpen(false)} />
                   <MobileNavLink isCategory={true} label="دسته‌بندی‌ها" categories={categories} />
                   <MobileNavLink to="/" label="درباره ما" onClick={() => setIsMobileMenuOpen(false)} />
                   
