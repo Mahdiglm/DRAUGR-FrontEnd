@@ -134,6 +134,26 @@ const HomePage = () => {
   const { addToCart } = useOutletContext();
   const heroRef = useRef(null);
   const [showIntro, setShowIntro] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Handle initial loading
+  useEffect(() => {
+    // Hide loader after everything is loaded
+    const handleLoad = () => {
+      // Short timeout to ensure smoother transition
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 500);
+    };
+
+    // Check if the page is already loaded
+    if (document.readyState === 'complete') {
+      handleLoad();
+    } else {
+      window.addEventListener('load', handleLoad);
+      return () => window.removeEventListener('load', handleLoad);
+    }
+  }, []);
   
   // Handle intro completion
   useEffect(() => {
@@ -155,6 +175,32 @@ const HomePage = () => {
 
   return (
     <>
+      {/* Initial loading overlay */}
+      <AnimatePresence>
+        {isLoading && (
+          <motion.div
+            key="loader"
+            className="fixed inset-0 z-[100] bg-black flex items-center justify-center"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <motion.div
+              animate={{ 
+                opacity: [0.5, 1, 0.5],
+                scale: [0.9, 1.1, 0.9]
+              }}
+              transition={{ 
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut" 
+              }}
+              className="w-12 h-12 rounded-full border-t-2 border-r-2 border-draugr-500"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <AnimatePresence mode="wait">
         {showIntro ? (
           <motion.div
@@ -192,13 +238,14 @@ const HomePage = () => {
               transition={{ duration: 2, repeat: Infinity }}
             />
             
-            {/* Brand name animation */}
+            {/* Brand name animation - Explicitly set LTR direction */}
             <motion.div
               className="relative flex items-center justify-center h-40"
               variants={letterWrapperVariants}
               initial="hidden"
               animate="visible"
               exit="exit"
+              style={{ direction: "ltr" }} /* Explicit LTR direction */
             >
               {"DRAUGR".split('').map((letter, index) => (
                 <div key={index} className="relative mx-1 md:mx-3">
