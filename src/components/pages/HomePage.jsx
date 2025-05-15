@@ -3,6 +3,7 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import { useOutletContext, Link } from 'react-router-dom';
 
 import ProductList from '../product/ProductList';
+import FeaturedProductSlider from '../product/FeaturedProductSlider';
 import { products } from '../../utils/mockData';
 // Try with relative path to asset folder
 import heroBackground from '../../assets/Background-Hero.jpg';
@@ -493,10 +494,9 @@ const HomePage = () => {
               <p className="text-gray-400 max-w-2xl mx-auto">محصولات برتر و منحصر به فرد ما را کشف کنید، هر کدام با ویژگی‌های خاص طراحی شده‌اند.</p>
             </div>
             
-            <ProductList 
+            <FeaturedProductSlider 
               products={products} 
               onAddToCart={addToCart} 
-              title="" 
             />
             
             <div className="text-center mt-12">
