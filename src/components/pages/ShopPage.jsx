@@ -620,50 +620,119 @@ const ShopPage = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.6, duration: 0.5 }}
-                className="flex justify-center mt-10"
+                className="flex justify-center mt-12"
               >
-                <div className="flex space-x-1 rtl">
+                <div className="flex flex-row space-x-3">
+                  {/* Left Arrow */}
                   <motion.button
-                    whileHover={{ scale: 1.1 }}
+                    whileHover={{ 
+                      scale: 1.15, 
+                      boxShadow: "0 0 15px rgba(239,35,60,0.5)"
+                    }}
                     whileTap={{ scale: 0.9 }}
-                    className="w-10 h-10 flex items-center justify-center rounded-md bg-ash text-white"
+                    className="w-10 h-10 flex items-center justify-center rounded-md bg-charcoal text-white border border-draugr-900/30 shadow-md overflow-hidden relative group"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-draugr-900/0 via-draugr-800/10 to-draugr-900/0"
+                      animate={{ 
+                        x: ['-100%', '100%'] 
+                      }}
+                      transition={{ 
+                        repeat: Infinity, 
+                        duration: 2,
+                        ease: "linear"
+                      }}
+                    />
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 z-10" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                     </svg>
                   </motion.button>
                   
+                  {/* Page 1 */}
                   <motion.button
-                    whileHover={{ scale: 1.1 }}
+                    whileHover={{ 
+                      scale: 1.15, 
+                      boxShadow: "0 0 15px rgba(239,35,60,0.5)"
+                    }}
                     whileTap={{ scale: 0.9 }}
-                    className="w-10 h-10 flex items-center justify-center rounded-md bg-draugr-800 text-white"
+                    className="w-10 h-10 flex items-center justify-center rounded-md bg-vampire-primary text-white shadow-md relative overflow-hidden"
                   >
-                    1
+                    <motion.div 
+                      className="absolute inset-0 bg-gradient-to-t from-vampire-dark to-transparent opacity-50"
+                      animate={{ opacity: [0.3, 0.6, 0.3] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    />
+                    <span className="text-white relative z-10 font-bold">1</span>
                   </motion.button>
                   
+                  {/* Page 2 */}
                   <motion.button
-                    whileHover={{ scale: 1.1 }}
+                    whileHover={{ 
+                      scale: 1.15, 
+                      boxShadow: "0 0 15px rgba(239,35,60,0.5)"
+                    }}
                     whileTap={{ scale: 0.9 }}
-                    className="w-10 h-10 flex items-center justify-center rounded-md bg-ash text-white"
+                    className="w-10 h-10 flex items-center justify-center rounded-md bg-charcoal text-white border border-draugr-900/30 shadow-md overflow-hidden relative"
                   >
-                    2
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-draugr-900/0 via-draugr-800/10 to-draugr-900/0"
+                      animate={{ 
+                        x: ['-100%', '100%'] 
+                      }}
+                      transition={{ 
+                        repeat: Infinity, 
+                        duration: 2,
+                        ease: "linear"
+                      }}
+                    />
+                    <span className="relative z-10">2</span>
                   </motion.button>
                   
+                  {/* Page 3 */}
                   <motion.button
-                    whileHover={{ scale: 1.1 }}
+                    whileHover={{ 
+                      scale: 1.15, 
+                      boxShadow: "0 0 15px rgba(239,35,60,0.5)"
+                    }}
                     whileTap={{ scale: 0.9 }}
-                    className="w-10 h-10 flex items-center justify-center rounded-md bg-ash text-white"
+                    className="w-10 h-10 flex items-center justify-center rounded-md bg-charcoal text-white border border-draugr-900/30 shadow-md overflow-hidden relative"
                   >
-                    3
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-draugr-900/0 via-draugr-800/10 to-draugr-900/0"
+                      animate={{ 
+                        x: ['-100%', '100%'] 
+                      }}
+                      transition={{ 
+                        repeat: Infinity, 
+                        duration: 2,
+                        ease: "linear"
+                      }}
+                    />
+                    <span className="relative z-10">3</span>
                   </motion.button>
                   
+                  {/* Right Arrow */}
                   <motion.button
-                    whileHover={{ scale: 1.1 }}
+                    whileHover={{ 
+                      scale: 1.15, 
+                      boxShadow: "0 0 15px rgba(239,35,60,0.5)"
+                    }}
                     whileTap={{ scale: 0.9 }}
-                    className="w-10 h-10 flex items-center justify-center rounded-md bg-ash text-white"
+                    className="w-10 h-10 flex items-center justify-center rounded-md bg-charcoal text-white border border-draugr-900/30 shadow-md overflow-hidden relative group"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-draugr-900/0 via-draugr-800/10 to-draugr-900/0"
+                      animate={{ 
+                        x: ['-100%', '100%'] 
+                      }}
+                      transition={{ 
+                        repeat: Infinity, 
+                        duration: 2,
+                        ease: "linear"
+                      }}
+                    />
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 z-10" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   </motion.button>
                 </div>
