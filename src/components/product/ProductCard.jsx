@@ -49,52 +49,55 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
           damping: 25 
         }
       }}
-      className={`bg-white rounded-lg overflow-hidden shadow-lg h-full flex flex-col
-        ${isHighlighted ? 'shadow-xl shadow-gray-900/20' : ''}
-        ${isDisabled ? 'pointer-events-none' : 'cursor-pointer'}
-        transform-gpu
+      className={`bg-white dark:bg-gray-900 rounded-lg overflow-hidden shadow-lg h-full flex flex-col
+        ${isHighlighted ? 'shadow-2xl shadow-black/30' : 'shadow-lg shadow-black/10'}
+        ${isDisabled ? 'pointer-events-none opacity-80' : 'cursor-pointer'}
+        transform-gpu border border-gray-100 dark:border-gray-800
       `}
     >
       <div 
         className={`h-64 sm:h-72 md:h-80 bg-cover bg-center relative overflow-hidden
-          ${isDisabled ? '' : 'cursor-pointer'}
+          ${isDisabled ? '' : 'cursor-pointer group'}
         `}
         style={{ 
           backgroundImage: imageUrl ? `url(${imageUrl})` : 'none',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          transition: 'transform 0.3s ease'
+          transition: 'all 0.4s ease'
         }}
         onClick={handleViewDetails}
       >
         {/* Image gradient overlay for better visibility */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400"></div>
+        
+        {/* Dark vignette effect */}
+        <div className="absolute inset-0 shadow-[inset_0_0_60px_rgba(0,0,0,0.5)] opacity-40"></div>
         
         {/* Highlight badge */}
         {isHighlighted && (
-          <div className="absolute top-2 right-2 bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-md">
+          <div className="absolute top-3 right-3 bg-black text-white text-xs font-medium px-3 py-1 rounded-sm shadow-md">
             ویژه
           </div>
         )}
       </div>
-      <div className="p-2 flex-grow flex flex-col min-h-0">
+      <div className="p-4 flex-grow flex flex-col min-h-0 dark:bg-gray-900 dark:text-gray-100">
         <h3 
-          className={`font-bold text-lg truncate ${isDisabled ? 'text-gray-800' : 'cursor-pointer text-gray-900 hover:text-gray-600 transition-colors duration-300'}`}
+          className={`font-bold text-lg mb-1 truncate ${isDisabled ? 'text-gray-800 dark:text-gray-300' : 'cursor-pointer text-gray-900 dark:text-gray-100 hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-300'}`}
           onClick={handleViewDetails}
         >
           {name}
         </h3>
-        <p className="text-gray-700 text-sm mb-2 line-clamp-1">{description}</p>
-        <div className="flex justify-between items-center">
+        <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-1">{description}</p>
+        <div className="flex justify-between items-center mt-auto">
           <span className="font-bold text-base">{price.toFixed(2)} تومان</span>
-          <div className="flex gap-1">
+          <div className="flex gap-2">
             {!isDisabled && (
               <>
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={handleAddToCart}
-                  className="bg-black text-white p-1.5 rounded-full w-8 h-8 flex items-center justify-center"
+                  className="bg-black text-white p-1.5 rounded-full w-9 h-9 flex items-center justify-center shadow-md"
                   aria-label={`افزودن ${name} به سبد خرید`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -105,7 +108,7 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={handleViewDetails}
-                  className="bg-gray-800 text-white p-1.5 rounded-full w-8 h-8 flex items-center justify-center"
+                  className="bg-gray-900 text-white p-1.5 rounded-full w-9 h-9 flex items-center justify-center shadow-md"
                   aria-label={`مشاهده جزئیات ${name}`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
