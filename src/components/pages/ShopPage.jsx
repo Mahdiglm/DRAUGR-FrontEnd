@@ -218,11 +218,25 @@ const ShopPage = () => {
   // Function to handle page changes
   const handlePageChange = (page) => {
     setCurrentPage(page);
-    // Scroll to top on page change
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
+    
+    // Enhanced scroll to top on page change with multiple methods for better browser compatibility
+    // First set scroll behavior to auto for immediate response
+    document.documentElement.style.scrollBehavior = 'auto';
+    
+    // Use multiple scroll methods for better browser compatibility
+    window.scrollTo(0, 0);
+    document.body.scrollTop = 0; // For Safari
+    document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+    
+    // Add a small timeout to ensure it works after content changes
+    setTimeout(() => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'auto'
+      });
+      // Reset scroll behavior to smooth after scrolling
+      document.documentElement.style.scrollBehavior = 'smooth';
+    }, 50);
   };
   
   // Render development page content with cool styling
