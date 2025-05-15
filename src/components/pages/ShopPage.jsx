@@ -622,7 +622,7 @@ const ShopPage = () => {
                 transition={{ delay: 0.6, duration: 0.5 }}
                 className="flex justify-center mt-12"
               >
-                <div className="flex flex-row space-x-3">
+                <div className="flex flex-row space-x-3" style={{ direction: 'ltr' }}>
                   {/* Left Arrow */}
                   <motion.button
                     whileHover={{ 
