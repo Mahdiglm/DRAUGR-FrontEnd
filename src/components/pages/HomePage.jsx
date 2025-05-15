@@ -16,16 +16,19 @@ const letterWrapperVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.1,
+      staggerChildren: 0.05, // Faster stagger
+      delayChildren: 0.05, // Less delay
     },
   },
   exit: {
+    x: 100, // Move to right when exiting
     opacity: 0,
     transition: {
-      staggerChildren: 0.05,
-      staggerDirection: -1,
-      duration: 0.2,
+      type: "spring",
+      stiffness: 100,
+      damping: 15,
+      mass: 1,
+      duration: 0.5
     },
   }
 };
@@ -46,16 +49,16 @@ const letterVariants = {
       type: "spring",
       damping: 10,
       stiffness: 100,
-      delay: i * 0.05,
+      delay: i * 0.03, // Even faster per-letter delay
     },
   }),
   exit: (i) => ({
     opacity: 0,
-    y: -15,
+    x: 50 + (i * 20), // Staggered movement to right
     filter: "blur(8px)",
     transition: {
-      duration: 0.2,
-      delay: i * 0.02,
+      duration: 0.4, 
+      delay: i * 0.03, // Staggered exit
     },
   }),
 };
@@ -88,7 +91,7 @@ const Particles = () => {
             opacity: [0.7, 0],
           }}
           transition={{
-            duration: 1 + particle.velocity * 5,
+            duration: 1 + particle.velocity * 5, // Faster animation
             repeat: Infinity,
             delay: Math.random(),
             ease: "linear",
@@ -103,6 +106,7 @@ const HomePage = () => {
   const { addToCart } = useOutletContext();
   const heroRef = useRef(null);
   const [showIntro, setShowIntro] = useState(true);
+  const [isExiting, setIsExiting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   
   // Handle initial loading - immediate load
@@ -121,17 +125,24 @@ const HomePage = () => {
     setIsLoading(false);
   }, []);
   
-  // Handle intro completion - reduced to 2 seconds
+  // Handle intro completion - reduced to 1 second
   useEffect(() => {
     const timer = setTimeout(() => {
-      // Immediately scroll to top before showing main content
-      window.scrollTo(0, 0);
-      document.body.scrollTop = 0;
-      document.documentElement.scrollTop = 0;
+      // Start exit animation
+      setIsExiting(true);
       
-      // Now transition to main content
-      setShowIntro(false);
-    }, 2000); // 2 seconds only
+      // Wait for exit animation to complete before removing intro
+      setTimeout(() => {
+        // Immediately scroll to top before showing main content
+        window.scrollTo(0, 0);
+        document.body.scrollTop = 0;
+        document.documentElement.scrollTop = 0;
+        
+        // Now transition to main content
+        setShowIntro(false);
+      }, 600); // Time for exit animation to complete
+      
+    }, 1000); // Reduced to 1 second
     
     return () => clearTimeout(timer);
   }, []);
@@ -153,6 +164,38 @@ const HomePage = () => {
       img.src = image;
     });
   }, []);
+
+  // Dynamic background variants for the intro
+  const bgVariants = {
+    initial: { 
+      opacity: 0 
+    },
+    visible: { 
+      opacity: 0.4
+    },
+    exit: { 
+      opacity: 0, 
+      scale: 1.2,
+      transition: { 
+        duration: 0.8, 
+        ease: "easeOut" 
+      }
+    }
+  };
+
+  // Vignette variants
+  const vignetteVariants = {
+    initial: { opacity: 0 },
+    visible: { opacity: 1 },
+    exit: { 
+      opacity: 0, 
+      scale: 1.3,
+      transition: { 
+        duration: 0.8, 
+        ease: "easeOut" 
+      }
+    }
+  };
 
   return (
     <>
@@ -183,76 +226,112 @@ const HomePage = () => {
       </AnimatePresence>
 
       {/* Intro Animation */}
-      {showIntro && (
-        <motion.div
-          key="intro"
-          className="fixed inset-0 flex justify-center items-center z-50 bg-midnight"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          {/* Background pulse effect */}
+      <AnimatePresence>
+        {showIntro && (
           <motion.div
-            className="absolute inset-0 bg-gradient-radial from-vampire-dark to-midnight opacity-40"
-            animate={{ 
-              scale: [1, 1.1, 1],
-              opacity: [0.3, 0.4, 0.3]
+            key="intro"
+            className="fixed inset-0 flex justify-center items-center z-50 bg-midnight overflow-hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ 
+              opacity: 0,
+              transition: { 
+                duration: 0.8,
+                when: "afterChildren" 
+              }
             }}
-            transition={{ 
-              duration: 2,
-              repeat: Infinity,
-              repeatType: "reverse",
-              ease: "easeInOut"
-            }}
-          />
-          
-          <Particles />
-          
-          {/* Vignette effect */}
-          <div className="absolute inset-0 bg-radial-vignette pointer-events-none" />
-          
-          {/* Glitch overlay - subtle */}
-          <motion.div 
-            className="absolute inset-0 bg-noise opacity-8 mix-blend-overlay pointer-events-none"
-            animate={{ opacity: [0.05, 0.08, 0.05] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-          />
-          
-          {/* Brand name animation - Explicitly set LTR direction */}
-          <motion.div
-            className="relative flex items-center justify-center h-40"
-            variants={letterWrapperVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            style={{ direction: "ltr" }}
           >
-            {"DRAUGR".split('').map((letter, index) => (
-              <div key={index} className="relative mx-1 md:mx-3">
-                <motion.span
+            {/* Background pulse effect */}
+            <motion.div
+              className="absolute inset-0 bg-gradient-radial from-vampire-dark to-midnight"
+              variants={bgVariants}
+              initial="initial"
+              animate={{
+                scale: [1, 1.1, 1],
+                opacity: [0.3, 0.4, 0.3]
+              }}
+              exit="exit"
+              transition={{ 
+                duration: 2,
+                repeat: Infinity,
+                repeatType: "reverse",
+                ease: "easeInOut"
+              }}
+            />
+            
+            {/* Particles will fade out as part of parent container */}
+            <Particles />
+            
+            {/* Vignette effect */}
+            <motion.div 
+              className="absolute inset-0 bg-radial-vignette pointer-events-none"
+              variants={vignetteVariants}
+              initial="initial"
+              animate="visible"
+              exit="exit"
+            />
+            
+            {/* Glitch overlay - subtle */}
+            <motion.div 
+              className="absolute inset-0 bg-noise opacity-8 mix-blend-overlay pointer-events-none"
+              animate={{ opacity: [0.05, 0.08, 0.05] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              exit={{ 
+                opacity: 0, 
+                transition: { duration: 0.5 } 
+              }}
+            />
+            
+            {/* Brand name animation - Explicitly set LTR direction */}
+            <motion.div
+              className="relative flex items-center justify-center h-40"
+              variants={letterWrapperVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              style={{ direction: "ltr" }}
+            >
+              {"DRAUGR".split('').map((letter, index) => (
+                <motion.div 
+                  key={index} 
+                  className="relative mx-1 md:mx-3"
                   custom={index}
                   variants={letterVariants}
-                  className="inline-block text-6xl md:text-9xl font-bold text-draugr-500 relative"
-                  style={{ 
-                    textShadow: '0 0 20px rgba(239,35,60,0.8), 0 0 30px rgba(239,35,60,0.4)',
-                    transform: 'perspective(500px)'
-                  }}
                 >
-                  {letter}
-                </motion.span>
-              </div>
-            ))}
+                  <span
+                    className="inline-block text-6xl md:text-9xl font-bold text-draugr-500 relative"
+                    style={{ 
+                      textShadow: '0 0 20px rgba(239,35,60,0.8), 0 0 30px rgba(239,35,60,0.4)',
+                      transform: 'perspective(500px)'
+                    }}
+                  >
+                    {letter}
+                  </span>
+                </motion.div>
+              ))}
+            </motion.div>
           </motion.div>
-        </motion.div>
-      )}
+        )}
+      </AnimatePresence>
 
       {/* Main Content - always rendered */}
-      <div style={{ opacity: showIntro ? 0 : 1, transition: 'opacity 0.3s ease-in-out' }}>
+      <motion.div 
+        style={{ 
+          opacity: showIntro ? 0 : 1,
+        }}
+        animate={{ 
+          opacity: showIntro ? 0 : 1,
+          y: showIntro ? 20 : 0,
+          scale: showIntro ? 0.98 : 1,
+        }}
+        transition={{ 
+          duration: 0.6,
+          ease: "easeOut"
+        }}
+      >
         {/* Hero Section with Parallax */}
         <motion.section
           ref={heroRef}
-          initial={{ opacity: 1 }} 
           className="py-12 sm:py-16 md:py-20 w-full relative overflow-hidden"
           style={{ 
             minHeight: '93.4vh', 
@@ -401,7 +480,7 @@ const HomePage = () => {
             </div>
           </div>
         </motion.section>
-      </div>
+      </motion.div>
     </>
   );
 };
