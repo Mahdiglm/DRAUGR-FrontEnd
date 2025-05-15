@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, Link } from 'react-router-dom';
 
 import ProductList from '../product/ProductList';
 import { products } from '../../utils/mockData';
@@ -77,17 +77,19 @@ const HomePage = () => {
               >
                 مجموعه‌ی ما از آثار افسانه‌ای، سلاح‌ها و تجهیزات را کاوش کنید.
               </motion.p>
-              <motion.button
-                whileHover={{ 
-                  scale: 1.05, 
-                  boxShadow: '0 0 20px rgba(255, 0, 0, 0.7)',
-                  textShadow: '0 0 10px rgba(255, 255, 255, 0.9)'
-                }}
-                whileTap={{ scale: 0.95 }}
-                className="bg-gradient-to-r from-draugr-800 to-draugr-600 text-white font-medium text-sm sm:text-base px-6 sm:px-8 py-2 sm:py-3 rounded-md border border-draugr-500"
-              >
-                فروشگاه
-              </motion.button>
+              <Link to="/shop">
+                <motion.button
+                  whileHover={{ 
+                    scale: 1.05, 
+                    boxShadow: '0 0 20px rgba(255, 0, 0, 0.7)',
+                    textShadow: '0 0 10px rgba(255, 255, 255, 0.9)'
+                  }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-gradient-to-r from-draugr-800 to-draugr-600 text-white font-medium text-sm sm:text-base px-6 sm:px-8 py-2 sm:py-3 rounded-md border border-draugr-500"
+                >
+                  فروشگاه
+                </motion.button>
+              </Link>
             </motion.div>
           </div>
         </div>
@@ -174,6 +176,21 @@ const HomePage = () => {
             onAddToCart={addToCart} 
             title="" 
           />
+          
+          <div className="text-center mt-12">
+            <Link to="/shop">
+              <motion.button
+                whileHover={{ 
+                  scale: 1.05, 
+                  boxShadow: '0 0 20px rgba(255, 0, 0, 0.7)',
+                }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-charcoal text-white font-medium px-8 py-3 rounded-md border border-draugr-700 shadow-horror"
+              >
+                مشاهده همه محصولات
+              </motion.button>
+            </Link>
+          </div>
         </div>
       </motion.section>
     </>
