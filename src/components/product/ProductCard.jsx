@@ -42,7 +42,7 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
       transition={{ duration: 0.5 }}
       whileHover={isDisabled ? {} : { y: -10 }}
       className={`bg-white rounded-lg overflow-hidden shadow-lg h-full flex flex-col
-        ${isHighlighted ? 'shadow-xl shadow-draugr-900/20 ring-1 ring-draugr-500' : ''}
+        ${isHighlighted ? 'shadow-xl shadow-gray-900/20' : ''}
         ${isDisabled ? 'pointer-events-none' : 'cursor-pointer'}
       `}
     >
@@ -63,14 +63,14 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
         
         {/* Highlight badge */}
         {isHighlighted && (
-          <div className="absolute top-2 right-2 bg-draugr-500 text-white text-xs px-2 py-1 rounded shadow-md">
+          <div className="absolute top-2 right-2 bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-md">
             ویژه
           </div>
         )}
       </div>
       <div className="p-2 flex-grow flex flex-col min-h-0">
         <h3 
-          className={`font-bold text-lg truncate ${isDisabled ? 'text-gray-800' : 'cursor-pointer text-draugr-900 hover:text-draugr-600 transition-colors duration-300'}`}
+          className={`font-bold text-lg truncate ${isDisabled ? 'text-gray-800' : 'cursor-pointer text-gray-900 hover:text-gray-600 transition-colors duration-300'}`}
           onClick={handleViewDetails}
         >
           {name}
@@ -96,7 +96,7 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={handleViewDetails}
-                  className="bg-draugr-800 text-white p-1.5 rounded-full w-8 h-8 flex items-center justify-center"
+                  className="bg-gray-800 text-white p-1.5 rounded-full w-8 h-8 flex items-center justify-center"
                   aria-label={`مشاهده جزئیات ${name}`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

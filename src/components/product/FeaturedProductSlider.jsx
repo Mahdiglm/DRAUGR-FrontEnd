@@ -209,7 +209,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
               key={`pagination-${groupIndex}`}
               className="w-8 h-2 mx-1 rounded-full bg-gray-300 dark:bg-gray-600 focus:outline-none"
               animate={{
-                backgroundColor: activeGroup === groupIndex ? "#9c1b1b" : "#d1d5db", // Using draugr-500 color
+                backgroundColor: activeGroup === groupIndex ? "#333333" : "#d1d5db",
                 opacity: activeGroup === groupIndex ? 1 : 0.5,
                 scale: activeGroup === groupIndex ? 1.1 : 1
               }}
