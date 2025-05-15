@@ -43,16 +43,17 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
       whileHover={isDisabled ? {} : { 
         y: -5,
         scale: 1.02,
+        boxShadow: "0 0 10px 2px rgba(220, 38, 38, 0.5)",
         transition: { 
           type: "spring", 
           stiffness: 200, 
           damping: 25 
         }
       }}
-      className={`bg-gradient-to-b from-black to-black rounded-lg overflow-hidden shadow-md h-full flex flex-col
-        ${isHighlighted ? 'shadow-xl shadow-red-700/40 border border-red-800/50' : 'border border-red-900/20'}
+      className={`bg-gradient-to-b from-black to-black rounded-lg overflow-hidden h-full flex flex-col
+        ${isHighlighted ? 'shadow-xl shadow-red-600/30 border-2 border-red-600' : 'border-2 border-red-800/70'}
         ${isDisabled ? 'pointer-events-none opacity-80' : 'cursor-pointer'}
-        transform-gpu
+        transform-gpu shadow-md
       `}
     >
       <div 
@@ -85,7 +86,7 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
           {name}
         </h3>
         <p className="text-gray-400 text-sm mb-3 line-clamp-1">{description}</p>
-        <div className="flex justify-between items-center mt-auto pt-2 border-t border-red-950">
+        <div className="flex justify-between items-center mt-auto pt-2 border-t border-red-800">
           <span className="font-bold text-base text-red-500">{price.toFixed(2)} تومان</span>
           <div className="flex gap-2">
             {!isDisabled && (
