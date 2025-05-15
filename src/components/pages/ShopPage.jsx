@@ -141,6 +141,7 @@ const ShopPage = () => {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [sortBy, setSortBy] = useState('newest');
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   
   // Filter products based on criteria
   const filteredProducts = products.filter(product => {
@@ -213,6 +214,108 @@ const ShopPage = () => {
       />
     </motion.div>
   );
+  
+  // Function to handle page changes
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    // Scroll to top on page change
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
+  
+  // Render development page content with cool styling
+  const renderDevelopmentPage = () => {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="py-32 px-4 flex flex-col items-center justify-center bg-ash bg-opacity-30 rounded-lg"
+      >
+        <motion.div
+          className="relative"
+          animate={{ 
+            rotate: [0, 2, 0, -2, 0],
+            scale: [1, 1.02, 1, 0.98, 1]
+          }}
+          transition={{ 
+            duration: 4,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        >
+          <motion.div
+            className="absolute inset-0 bg-draugr-500 blur-xl opacity-20 rounded-full"
+            animate={{ 
+              scale: [1, 1.2, 1],
+            }}
+            transition={{ 
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+          <svg 
+            className="h-32 w-32 text-draugr-500 relative z-10 opacity-70" 
+            xmlns="http://www.w3.org/2000/svg" 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke="currentColor"
+          >
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              strokeWidth={1} 
+              d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" 
+            />
+          </svg>
+        </motion.div>
+        
+        <motion.h2 
+          className="mt-8 text-3xl font-bold text-white text-center"
+          animate={{ 
+            textShadow: ['0 0 8px rgba(239,35,60,0.3)', '0 0 16px rgba(239,35,60,0.7)', '0 0 8px rgba(239,35,60,0.3)']
+          }}
+          transition={{ 
+            duration: 3, 
+            repeat: Infinity,
+          }}
+        >
+          در حال توسعه...
+        </motion.h2>
+        
+        <motion.p 
+          className="mt-4 text-gray-300 text-center max-w-md"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          این صفحه در حال ساخت است و به زودی با محصولات جدید و شگفت‌انگیز تکمیل خواهد شد
+        </motion.p>
+        
+        <motion.div 
+          className="mt-10"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
+        >
+          <motion.button
+            className="bg-vampire-dark text-white py-2 px-6 rounded-md border border-draugr-500 hover:bg-vampire-primary transition-all"
+            whileHover={{ 
+              scale: 1.05,
+              boxShadow: "0 0 15px rgba(239,35,60,0.5)"
+            }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => handlePageChange(1)}
+          >
+            بازگشت به صفحه اصلی
+          </motion.button>
+        </motion.div>
+      </motion.div>
+    );
+  };
   
   return (
     <motion.section
@@ -505,33 +608,37 @@ const ShopPage = () => {
             className="flex-1 md:mr-6 mt-6 md:mt-0"
           >
             {/* Sort and Results Info - Desktop */}
-            <div className="hidden md:flex justify-between items-center mb-6 bg-ash bg-opacity-50 p-3 rounded-md">
-              <div className="text-white">
-                <span>{sortedProducts.length} محصول یافت شد</span>
+            {currentPage === 1 && (
+              <div className="hidden md:flex justify-between items-center mb-6 bg-ash bg-opacity-50 p-3 rounded-md">
+                <div className="text-white">
+                  <span>{sortedProducts.length} محصول یافت شد</span>
+                </div>
+                <div className="flex items-center">
+                  <SortIcon />
+                  <span className="mx-2 text-white">مرتب‌سازی:</span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="bg-vampire-dark text-white py-1 px-3 rounded-md focus:outline-none focus:ring-1 focus:ring-draugr-500"
+                  >
+                    <option value="newest">جدیدترین</option>
+                    <option value="price-low">ارزان‌ترین</option>
+                    <option value="price-high">گران‌ترین</option>
+                    <option value="name">بر اساس نام</option>
+                  </select>
+                </div>
               </div>
-              <div className="flex items-center">
-                <SortIcon />
-                <span className="mx-2 text-white">مرتب‌سازی:</span>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="bg-vampire-dark text-white py-1 px-3 rounded-md focus:outline-none focus:ring-1 focus:ring-draugr-500"
-                >
-                  <option value="newest">جدیدترین</option>
-                  <option value="price-low">ارزان‌ترین</option>
-                  <option value="price-high">گران‌ترین</option>
-                  <option value="name">بر اساس نام</option>
-                </select>
-              </div>
-            </div>
+            )}
             
             {/* Results Info - Mobile */}
-            <div className="md:hidden text-center mb-4 text-white">
-              <span>{sortedProducts.length} محصول یافت شد</span>
-            </div>
+            {currentPage === 1 && (
+              <div className="md:hidden text-center mb-4 text-white">
+                <span>{sortedProducts.length} محصول یافت شد</span>
+              </div>
+            )}
             
             {/* Active Filters Display */}
-            {(selectedCategories.length > 0 || searchTerm) && (
+            {currentPage === 1 && (selectedCategories.length > 0 || searchTerm) && (
               <div className="mb-6 bg-ash bg-opacity-30 p-3 rounded-md">
                 <div className="flex flex-wrap gap-2 rtl">
                   <span className="text-gray-300">فیلترهای فعال:</span>
@@ -581,38 +688,58 @@ const ShopPage = () => {
               </div>
             )}
             
-            {/* Products Display */}
-            {sortedProducts.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center py-20 bg-ash bg-opacity-30 rounded-lg"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <h3 className="text-xl font-bold text-white mb-2">محصولی یافت نشد</h3>
-                <p className="text-gray-400 mb-4">لطفاً معیارهای جستجوی خود را تغییر دهید</p>
-                <motion.button
-                  onClick={resetFilters}
-                  className="bg-draugr-800 text-white py-2 px-6 rounded-md shadow-horror"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+            {/* Products Display or Development Page */}
+            <AnimatePresence mode="wait">
+              {currentPage === 1 ? (
+                <motion.div
+                  key="page-1"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
                 >
-                  پاک کردن فیلترها
-                </motion.button>
-              </motion.div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {sortedProducts.map(product => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    onAddToCart={addToCart}
-                  />
-                ))}
-              </div>
-            )}
+                  {sortedProducts.length === 0 ? (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="text-center py-20 bg-ash bg-opacity-30 rounded-lg"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <h3 className="text-xl font-bold text-white mb-2">محصولی یافت نشد</h3>
+                      <p className="text-gray-400 mb-4">لطفاً معیارهای جستجوی خود را تغییر دهید</p>
+                      <motion.button
+                        onClick={resetFilters}
+                        className="bg-draugr-800 text-white py-2 px-6 rounded-md shadow-horror"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        پاک کردن فیلترها
+                      </motion.button>
+                    </motion.div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {sortedProducts.map(product => (
+                        <ProductCard
+                          key={product.id}
+                          product={product}
+                          onAddToCart={addToCart}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </motion.div>
+              ) : (
+                <motion.div
+                  key={`page-${currentPage}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  {renderDevelopmentPage()}
+                </motion.div>
+              )}
+            </AnimatePresence>
             
             {/* Pagination - Static for demo */}
             {sortedProducts.length > 0 && (
@@ -631,6 +758,8 @@ const ShopPage = () => {
                     }}
                     whileTap={{ scale: 0.9 }}
                     className="w-10 h-10 flex items-center justify-center rounded-md bg-charcoal text-white border border-draugr-900/30 shadow-md overflow-hidden relative group"
+                    onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
                   >
                     <motion.div
                       className="absolute inset-0 bg-gradient-to-r from-draugr-900/0 via-draugr-800/10 to-draugr-900/0"
@@ -643,7 +772,7 @@ const ShopPage = () => {
                         ease: "linear"
                       }}
                     />
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 z-10" viewBox="0 0 20 20" fill="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 z-10 ${currentPage === 1 ? 'opacity-50' : ''}`} viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   </motion.button>
@@ -655,13 +784,20 @@ const ShopPage = () => {
                       boxShadow: "0 0 15px rgba(239,35,60,0.5)"
                     }}
                     whileTap={{ scale: 0.9 }}
-                    className="w-10 h-10 flex items-center justify-center rounded-md bg-vampire-primary text-white shadow-md relative overflow-hidden"
+                    className={`w-10 h-10 flex items-center justify-center rounded-md shadow-md relative overflow-hidden ${
+                      currentPage === 1 
+                        ? 'bg-vampire-primary text-white' 
+                        : 'bg-charcoal text-white border border-draugr-900/30'
+                    }`}
+                    onClick={() => handlePageChange(1)}
                   >
-                    <motion.div 
-                      className="absolute inset-0 bg-gradient-to-t from-vampire-dark to-transparent opacity-50"
-                      animate={{ opacity: [0.3, 0.6, 0.3] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    />
+                    {currentPage === 1 && (
+                      <motion.div 
+                        className="absolute inset-0 bg-gradient-to-t from-vampire-dark to-transparent opacity-50"
+                        animate={{ opacity: [0.3, 0.6, 0.3] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      />
+                    )}
                     <span className="text-white relative z-10 font-bold">1</span>
                   </motion.button>
                   
@@ -672,19 +808,20 @@ const ShopPage = () => {
                       boxShadow: "0 0 15px rgba(239,35,60,0.5)"
                     }}
                     whileTap={{ scale: 0.9 }}
-                    className="w-10 h-10 flex items-center justify-center rounded-md bg-charcoal text-white border border-draugr-900/30 shadow-md overflow-hidden relative"
+                    className={`w-10 h-10 flex items-center justify-center rounded-md shadow-md relative overflow-hidden ${
+                      currentPage === 2 
+                        ? 'bg-vampire-primary text-white' 
+                        : 'bg-charcoal text-white border border-draugr-900/30'
+                    }`}
+                    onClick={() => handlePageChange(2)}
                   >
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-draugr-900/0 via-draugr-800/10 to-draugr-900/0"
-                      animate={{ 
-                        x: ['-100%', '100%'] 
-                      }}
-                      transition={{ 
-                        repeat: Infinity, 
-                        duration: 2,
-                        ease: "linear"
-                      }}
-                    />
+                    {currentPage === 2 && (
+                      <motion.div 
+                        className="absolute inset-0 bg-gradient-to-t from-vampire-dark to-transparent opacity-50"
+                        animate={{ opacity: [0.3, 0.6, 0.3] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      />
+                    )}
                     <span className="relative z-10">2</span>
                   </motion.button>
                   
@@ -695,19 +832,20 @@ const ShopPage = () => {
                       boxShadow: "0 0 15px rgba(239,35,60,0.5)"
                     }}
                     whileTap={{ scale: 0.9 }}
-                    className="w-10 h-10 flex items-center justify-center rounded-md bg-charcoal text-white border border-draugr-900/30 shadow-md overflow-hidden relative"
+                    className={`w-10 h-10 flex items-center justify-center rounded-md shadow-md relative overflow-hidden ${
+                      currentPage === 3
+                        ? 'bg-vampire-primary text-white' 
+                        : 'bg-charcoal text-white border border-draugr-900/30'
+                    }`}
+                    onClick={() => handlePageChange(3)}
                   >
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-draugr-900/0 via-draugr-800/10 to-draugr-900/0"
-                      animate={{ 
-                        x: ['-100%', '100%'] 
-                      }}
-                      transition={{ 
-                        repeat: Infinity, 
-                        duration: 2,
-                        ease: "linear"
-                      }}
-                    />
+                    {currentPage === 3 && (
+                      <motion.div 
+                        className="absolute inset-0 bg-gradient-to-t from-vampire-dark to-transparent opacity-50"
+                        animate={{ opacity: [0.3, 0.6, 0.3] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      />
+                    )}
                     <span className="relative z-10">3</span>
                   </motion.button>
                   
@@ -719,6 +857,8 @@ const ShopPage = () => {
                     }}
                     whileTap={{ scale: 0.9 }}
                     className="w-10 h-10 flex items-center justify-center rounded-md bg-charcoal text-white border border-draugr-900/30 shadow-md overflow-hidden relative group"
+                    onClick={() => currentPage < 3 && handlePageChange(currentPage + 1)}
+                    disabled={currentPage === 3}
                   >
                     <motion.div
                       className="absolute inset-0 bg-gradient-to-r from-draugr-900/0 via-draugr-800/10 to-draugr-900/0"
@@ -731,7 +871,7 @@ const ShopPage = () => {
                         ease: "linear"
                       }}
                     />
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 z-10" viewBox="0 0 20 20" fill="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 z-10 ${currentPage === 3 ? 'opacity-50' : ''}`} viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                     </svg>
                   </motion.button>
