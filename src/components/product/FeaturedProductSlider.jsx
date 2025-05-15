@@ -92,7 +92,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
     // Desktop: position cards on left/right based on their index
     return {
       foreground: {
-        x: position === 'left' ? '-10%' : '10%',
+        x: position === 'left' ? '-5%' : '5%',
         opacity: 1,
         scale: 1,
         filter: "blur(0px)",
@@ -194,7 +194,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
                   return (
                     <motion.div
                       key={`product-${product.id}-${productIndex}`}
-                      className={`absolute md:w-1/3 lg:w-[30%] transform ${position === 'left' ? 'left-[8%] md:left-[15%]' : 'right-[8%] md:right-[15%]'}`}
+                      className={`absolute md:w-1/3 lg:w-[30%] transform ${position === 'left' ? 'left-[10%] md:left-[18%]' : 'right-[10%] md:right-[18%]'}`}
                       variants={getCardPositionVariants(activeGroup === groupIndex, position)}
                       initial="background"
                       animate={activeGroup === groupIndex ? "foreground" : "background"}
