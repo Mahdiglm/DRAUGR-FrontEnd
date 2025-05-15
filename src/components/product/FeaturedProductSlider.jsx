@@ -3,10 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ProductCard from './ProductCard';
 
 const FeaturedProductSlider = ({ products, onAddToCart }) => {
-  const [activePair, setActivePair] = useState(0);
+  const [activeGroup, setActiveGroup] = useState(0);
+  const [isHovering, setIsHovering] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const timerRef = useRef(null);
-  const [isHovering, setIsHovering] = useState(false);
   
   // Check if we're on mobile
   useEffect(() => {
@@ -14,225 +14,286 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
       setIsMobile(window.innerWidth < 768);
     };
     
-    checkMobile(); // Initial check
+    checkMobile();
     window.addEventListener('resize', checkMobile);
     
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Only show 4 products max
-  const displayProducts = products?.length > 4 ? products.slice(0, 4) : products;
+  // Ensure we have exactly 4 products
+  const firstFourProducts = products && products.length ? products.slice(0, 4) : [];
   
-  // Define product pairs (2 products per pair)
-  const pairs = displayProducts && displayProducts.length >= 2 
-    ? [
-        [displayProducts[0], displayProducts[1]],
-        [displayProducts[2] || displayProducts[0], displayProducts[3] || displayProducts[1]]
-      ]
-    : [];
+  // If we have less than 4 products, duplicate them to reach 4
+  const displayProducts = [...firstFourProducts];
+  while (displayProducts.length < 4) {
+    displayProducts.push(displayProducts[displayProducts.length % firstFourProducts.length]);
+  }
 
-  // Auto transition between pairs
+  // Create product groups: [0,1] and [2,3]
+  const productGroups = [
+    [displayProducts[0], displayProducts[1]],
+    [displayProducts[2], displayProducts[3]]
+  ];
+
+  // Auto-rotation logic
   useEffect(() => {
-    if (pairs.length <= 1 || isHovering) return;
+    if (isHovering) return;
     
-    const autoRotate = () => {
-      setActivePair(prev => (prev === 0 ? 1 : 0));
-    };
-    
-    timerRef.current = setInterval(autoRotate, 5000);
+    timerRef.current = setTimeout(() => {
+      setActiveGroup((prev) => (prev === 0 ? 1 : 0));
+    }, 5000);
     
     return () => {
       if (timerRef.current) {
-        clearInterval(timerRef.current);
+        clearTimeout(timerRef.current);
       }
     };
-  }, [pairs.length, isHovering]);
+  }, [activeGroup, isHovering]);
 
-  // Pause auto-scroll on hover
+  // Pause rotation on hover
   const handleMouseEnter = () => setIsHovering(true);
   const handleMouseLeave = () => setIsHovering(false);
-  
-  // Toggle between pairs manually
-  const togglePair = () => {
-    setActivePair(prev => (prev === 0 ? 1 : 0));
-    
-    // Reset timer
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      
-      if (!isHovering) {
-        timerRef.current = setInterval(() => {
-          setActivePair(prev => (prev === 0 ? 1 : 0));
-        }, 5000);
-      }
-    }
-  };
 
-  if (!products || products.length === 0 || pairs.length === 0) {
+  if (!products || products.length === 0) {
     return <div className="text-center py-8">محصولی برای نمایش وجود ندارد</div>;
   }
 
-  // Get the active and inactive pairs
-  const activePairProducts = pairs[activePair];
-  const inactivePairProducts = pairs[activePair === 0 ? 1 : 0];
+  const getCardPositionVariants = (isForeground, position) => {
+    // For mobile view, simplify the animation
+    if (isMobile) {
+      return {
+        foreground: {
+          opacity: 1,
+          scale: 1,
+          filter: "blur(0px)",
+          y: 0,
+          zIndex: 20,
+          transition: {
+            type: "spring",
+            stiffness: 300,
+            damping: 25,
+            mass: 1.2,
+            duration: 0.7
+          }
+        },
+        background: {
+          opacity: 0.3,
+          scale: 0.92,
+          filter: "blur(2px)",
+          y: 30,
+          zIndex: 10,
+          transition: {
+            duration: 0.7
+          }
+        }
+      };
+    }
+
+    // Desktop: position cards on left/right based on their index
+    return {
+      foreground: {
+        x: position === 'left' ? '-10%' : '10%',
+        opacity: 1,
+        scale: 1,
+        filter: "blur(0px)",
+        rotateY: 0,
+        zIndex: 20,
+        transition: {
+          type: "spring",
+          stiffness: 300,
+          damping: 25,
+          mass: 1.2,
+          duration: 0.7
+        }
+      },
+      background: {
+        x: position === 'left' ? '-45%' : '45%', 
+        opacity: 0.3,
+        scale: 0.85,
+        filter: "blur(2px)",
+        rotateY: position === 'left' ? 10 : -10,
+        zIndex: 10,
+        transition: {
+          duration: 0.7
+        }
+      }
+    };
+  };
 
   return (
     <div 
-      className="relative w-full py-8 md:py-16 overflow-hidden"
+      className="relative w-full py-12 md:py-20 overflow-visible"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Section Header */}
-      <div className="relative z-10 mb-8 flex items-center justify-between">
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100 
-                      border-b-2 border-draugr-500 inline-block pb-1">
+      {/* Title with subtle animation */}
+      <motion.div 
+        className="relative mb-12 text-center"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7 }}
+      >
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100 inline-block">
           محصولات ویژه
         </h2>
-        
-        {/* Manual Navigation Control */}
-        <motion.button
-          onClick={togglePair}
-          className="px-4 py-2 text-sm bg-transparent border border-gray-300 dark:border-gray-700 
-                   text-gray-700 dark:text-gray-300 rounded-full hover:border-draugr-500 
-                   hover:text-draugr-500 dark:hover:text-draugr-400 transition-all duration-300"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          مشاهده بیشتر
-        </motion.button>
-      </div>
-
-      {/* Main Slider Container */}
-      <div className="relative min-h-[450px] md:min-h-[500px] w-full">
-        {/* Subtle Background Gradient */}
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-transparent via-gray-50/30 dark:via-gray-900/30 to-transparent rounded-xl"></div>
-        
-        {/* Progress Dots */}
-        <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 z-30 flex space-x-2">
-          <motion.div 
-            className={`w-2 h-2 rounded-full bg-draugr-500 transition-all duration-300`}
-            animate={{ 
-              scale: activePair === 0 ? 1.2 : 0.8,
-              opacity: activePair === 0 ? 1 : 0.5
-            }}
-          />
-          <motion.div 
-            className={`w-2 h-2 rounded-full bg-draugr-500 transition-all duration-300`}
-            animate={{ 
-              scale: activePair === 1 ? 1.2 : 0.8,
-              opacity: activePair === 1 ? 1 : 0.5
-            }}
-          />
-        </div>
-        
-        {/* Inactive (Background) Products - Blurred and Dimmed */}
-        <div className="absolute inset-0 flex justify-center items-center">
-          {inactivePairProducts.map((product, index) => (
-            <motion.div
-              key={`inactive-${product.id}`}
-              className={`absolute ${isMobile ? 'w-3/4' : 'w-1/3'} max-w-sm px-2 z-0
-                        ${index === 0 ? '-translate-x-8 md:-translate-x-12' : 'translate-x-8 md:translate-x-12'}`}
-              initial={false}
-              animate={{
-                filter: 'blur(3px)',
-                opacity: 0.6,
-                scale: 0.85,
-                y: 20,
-                transition: { duration: 0.8, ease: 'easeInOut' }
-              }}
-            >
-              <div className="grayscale-[30%]">
-                <ProductCard product={product} onAddToCart={null} isHighlighted={false} />
-              </div>
-            </motion.div>
-          ))}
-        </div>
-        
-        {/* Active (Foreground) Products - Sharp and Prominent */}
-        <div className="absolute inset-0 flex justify-center items-center">
-          {activePairProducts.map((product, index) => (
-            <motion.div
-              key={`active-${product.id}`}
-              className={`relative ${isMobile ? 'w-4/5' : 'w-2/5'} max-w-sm px-3 z-10
-                        ${index === 0 ? '-translate-x-6 md:-translate-x-8' : 'translate-x-6 md:translate-x-8'}`}
-              initial={{ 
-                opacity: 0, 
-                scale: 0.9, 
-                y: 15 
-              }}
-              animate={{ 
-                opacity: 1, 
-                scale: 1, 
-                y: 0,
-                filter: 'blur(0px)',
-                transition: { 
-                  duration: 0.8, 
-                  ease: 'easeOut',
-                  scale: {
-                    type: 'spring',
-                    stiffness: 300,
-                    damping: 20
-                  }
-                }
-              }}
-            >
-              <div className="transform transition-all duration-500 hover:-translate-y-2">
-                <ProductCard 
-                  product={product} 
-                  onAddToCart={onAddToCart} 
-                  isHighlighted={true} 
-                />
-                
-                {/* Elegant Spotlight Effect */}
-                <motion.div 
-                  className="absolute inset-0 rounded-xl bg-white dark:bg-draugr-900 -z-10"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 0.03 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.8 }}
-                />
-                
-                {/* Subtle Radial Gradient for Depth */}
-                <div className="absolute inset-0 -z-20 bg-radial-gradient rounded-xl opacity-40"></div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-        
-        {/* Mobile Navigation Hint */}
-        {isMobile && (
-          <motion.div 
-            className="absolute bottom-10 left-1/2 transform -translate-x-1/2 text-xs text-gray-500
-                      flex items-center space-x-1"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.7 }}
-            transition={{ delay: 2, duration: 1 }}
-          >
-            <span>برای تغییر ضربه بزنید</span>
-          </motion.div>
-        )}
-      </div>
-      
-      {/* Custom Mobile Touch Area */}
-      {isMobile && (
-        <motion.button 
-          className="absolute inset-0 z-20 w-full h-full cursor-pointer bg-transparent"
-          onClick={togglePair}
-          whileTap={{ scale: 0.98 }}
-        />
-      )}
-      
-      {/* Progress Bar */}
-      <div className="w-full mt-6 h-0.5 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
         <motion.div 
-          className="h-full bg-draugr-500"
+          className="h-0.5 mt-1 bg-draugr-500"
           initial={{ width: 0 }}
-          animate={{
-            width: activePair === 0 ? '50%' : '100%',
-            transition: { duration: 5, ease: "linear" }
-          }}
-          key={activePair} // Reset animation when active pair changes
+          animate={{ width: "100%" }}
+          transition={{ duration: 0.7, delay: 0.3 }}
         />
+      </motion.div>
+
+      {/* Slider container with subtle background */}
+      <div className="relative flex flex-col md:flex-row justify-center items-center min-h-[580px] md:min-h-[520px] w-full overflow-visible">
+        {/* Ambient background and shadows */}
+        <div className="absolute inset-x-0 top-1/2 transform -translate-y-1/2 h-[450px] max-w-5xl mx-auto rounded-3xl opacity-20 bg-gradient-to-br from-gray-50 via-draugr-50 to-gray-100 dark:from-gray-900 dark:via-draugr-900 dark:to-gray-800 -z-10"></div>
+        <div className="absolute inset-0 bg-white dark:bg-gray-900 bg-opacity-30 dark:bg-opacity-30 backdrop-blur-md rounded-xl -z-20"></div>
+        
+        {/* Mobile view is stacked */}
+        {isMobile && (
+          <div className="w-full px-4">
+            {productGroups.map((group, groupIndex) => (
+              <div key={`group-${groupIndex}`} className="flex flex-col gap-6 w-full">
+                {group.map((product, productIndex) => (
+                  <motion.div
+                    key={`product-${product.id}-${productIndex}`}
+                    className="w-full max-w-xs mx-auto"
+                    variants={getCardPositionVariants(true, productIndex === 0 ? 'left' : 'right')}
+                    initial="background"
+                    animate={activeGroup === groupIndex ? "foreground" : "background"}
+                  >
+                    <div className="relative rounded-xl overflow-hidden transition-all">
+                      <ProductCard product={product} onAddToCart={onAddToCart} isHighlighted={activeGroup === groupIndex} />
+                      
+                      {/* Card embellishments */}
+                      <motion.div 
+                        className="absolute inset-0 border-2 border-draugr-500 rounded-xl opacity-0 pointer-events-none"
+                        animate={{ 
+                          opacity: activeGroup === groupIndex ? 0.3 : 0,
+                          scale: activeGroup === groupIndex ? 1 : 1.05 
+                        }}
+                        transition={{ duration: 0.5 }}
+                      />
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Desktop view with foreground/background layout */}
+        {!isMobile && (
+          <div className="w-full max-w-6xl flex justify-center items-center relative mx-auto">
+            {productGroups.map((group, groupIndex) => (
+              <React.Fragment key={`group-${groupIndex}`}>
+                {group.map((product, productIndex) => {
+                  const position = productIndex === 0 ? 'left' : 'right';
+                  
+                  return (
+                    <motion.div
+                      key={`product-${product.id}-${productIndex}`}
+                      className={`absolute md:w-1/3 lg:w-[30%] transform ${position === 'left' ? 'left-[8%] md:left-[15%]' : 'right-[8%] md:right-[15%]'}`}
+                      variants={getCardPositionVariants(activeGroup === groupIndex, position)}
+                      initial="background"
+                      animate={activeGroup === groupIndex ? "foreground" : "background"}
+                    >
+                      <div className="relative rounded-xl overflow-hidden transition-all">
+                        <ProductCard 
+                          product={product} 
+                          onAddToCart={activeGroup === groupIndex ? onAddToCart : null} 
+                          isHighlighted={activeGroup === groupIndex}
+                        />
+                        
+                        {/* Beautiful shadow for foreground cards */}
+                        <motion.div 
+                          className="absolute -inset-1 bg-gradient-to-r from-draugr-500/20 via-draugr-500/10 to-draugr-500/20 rounded-xl -z-10"
+                          animate={{ 
+                            opacity: activeGroup === groupIndex ? 1 : 0,
+                            scale: activeGroup === groupIndex ? 1.03 : 1
+                          }}
+                          transition={{ duration: 0.6 }}
+                        />
+
+                        {/* Highlight accent */}
+                        <motion.div 
+                          className="absolute inset-0 border-2 border-draugr-500 rounded-xl opacity-0 pointer-events-none"
+                          animate={{ 
+                            opacity: activeGroup === groupIndex ? 0.15 : 0,
+                            scale: activeGroup === groupIndex ? 1 : 1.05 
+                          }}
+                          transition={{ duration: 0.5 }}
+                        />
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </React.Fragment>
+            ))}
+          </div>
+        )}
+
+        {/* Elegant pagination indicators */}
+        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-3 z-30">
+          {[0, 1].map((groupIndex) => (
+            <motion.button
+              key={`pagination-${groupIndex}`}
+              className="w-8 h-2 mx-1 rounded-full bg-gray-300 dark:bg-gray-600 focus:outline-none"
+              animate={{
+                backgroundColor: activeGroup === groupIndex ? "#9c1b1b" : "#d1d5db", // Using draugr-500 color
+                opacity: activeGroup === groupIndex ? 1 : 0.5,
+                scale: activeGroup === groupIndex ? 1.1 : 1
+              }}
+              whileHover={{ scale: 1.2 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                if (timerRef.current) {
+                  clearTimeout(timerRef.current);
+                }
+                setActiveGroup(groupIndex);
+              }}
+            />
+          ))}
+        </div>
+        
+        {/* Manual navigation buttons (subtle) */}
+        <motion.button 
+          className="absolute left-2 md:left-6 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-white/70 dark:bg-gray-800/70 flex items-center justify-center 
+                    backdrop-blur-sm z-30 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 shadow-md"
+          whileHover={{ scale: 1.1, backgroundColor: "rgba(255, 255, 255, 0.9)" }}
+          whileTap={{ scale: 0.95 }}
+          initial={{ opacity: 0.7 }}
+          animate={{ opacity: 0.7 }}
+          onClick={() => {
+            if (timerRef.current) {
+              clearTimeout(timerRef.current);
+            }
+            setActiveGroup(activeGroup === 0 ? 1 : 0);
+          }}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
+          </svg>
+        </motion.button>
+        <motion.button 
+          className="absolute right-2 md:right-6 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-white/70 dark:bg-gray-800/70 flex items-center justify-center 
+                    backdrop-blur-sm z-30 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 shadow-md"
+          whileHover={{ scale: 1.1, backgroundColor: "rgba(255, 255, 255, 0.9)" }}
+          whileTap={{ scale: 0.95 }}
+          initial={{ opacity: 0.7 }}
+          animate={{ opacity: 0.7 }}
+          onClick={() => {
+            if (timerRef.current) {
+              clearTimeout(timerRef.current);
+            }
+            setActiveGroup(activeGroup === 0 ? 1 : 0);
+          }}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
+          </svg>
+        </motion.button>
       </div>
     </div>
   );
