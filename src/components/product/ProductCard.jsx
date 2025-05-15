@@ -49,83 +49,68 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
           damping: 25 
         }
       }}
-      className={`bg-midnight rounded-md overflow-hidden shadow-lg h-full flex flex-col border-t border-draugr-500/30
-        ${isHighlighted ? 'shadow-horror' : 'shadow-md shadow-black/50'}
-        ${isDisabled ? 'pointer-events-none opacity-70' : 'cursor-pointer'}
+      className={`bg-gradient-to-b from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-lg overflow-hidden shadow-md h-full flex flex-col
+        ${isHighlighted ? 'shadow-xl shadow-gray-400/30 dark:shadow-black/40 border border-gray-200 dark:border-gray-700' : 'border border-gray-100 dark:border-gray-800'}
+        ${isDisabled ? 'pointer-events-none opacity-80' : 'cursor-pointer'}
         transform-gpu
       `}
     >
       <div 
-        className={`relative overflow-hidden ${isDisabled ? '' : 'cursor-pointer'}`}
+        className={`h-64 sm:h-72 md:h-80 bg-cover bg-center relative overflow-hidden
+          ${isDisabled ? '' : 'cursor-pointer'}
+        `}
+        style={{ 
+          backgroundImage: imageUrl ? `url(${imageUrl})` : 'none',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          transition: 'transform 0.3s ease'
+        }}
         onClick={handleViewDetails}
       >
-        {/* Product image with proper aspect ratio preservation */}
-        <div className="aspect-[4/3] w-full overflow-hidden bg-charcoal">
-          {imageUrl ? (
-            <img 
-              src={imageUrl} 
-              alt={name}
-              className="w-full h-full object-contain transform-gpu transition-transform duration-700 hover:scale-105"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-charcoal text-bone/50">
-              No Image
-            </div>
-          )}
-        </div>
+        {/* Image gradient overlay for better visibility */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
         
-        {/* Image overlay with red gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-midnight via-transparent to-transparent opacity-50 pointer-events-none"></div>
-        
-        {/* Red border accent on top */}
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-draugr-700 via-draugr-500 to-draugr-700"></div>
-        
-        {/* Highlighted badge */}
+        {/* Highlight badge */}
         {isHighlighted && (
-          <div className="absolute top-2 right-2 bg-draugr-700 text-bone text-xs px-2 py-1 rounded-sm shadow-md">
+          <div className="absolute top-2 right-2 bg-gradient-to-r from-gray-800 to-gray-700 text-white text-xs px-2 py-1 rounded-md shadow-lg">
             ویژه
           </div>
         )}
       </div>
-      
-      <div className="p-3 flex-grow flex flex-col min-h-0 bg-charcoal">
+      <div className="p-4 flex-grow flex flex-col min-h-0 bg-white dark:bg-gray-800">
         <h3 
-          className={`font-bold text-lg truncate mb-1
-            ${isDisabled ? 'text-bone/70' : 'cursor-pointer text-bone hover:text-draugr-300 transition-colors duration-300'}`}
+          className={`font-bold text-lg truncate ${isDisabled ? 'text-gray-600 dark:text-gray-400' : 'cursor-pointer text-gray-800 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-300'}`}
           onClick={handleViewDetails}
         >
           {name}
         </h3>
-        
-        <p className="text-bone/60 text-sm mb-3 line-clamp-1">{description}</p>
-        
-        <div className="mt-auto flex justify-between items-center">
-          <span className="font-bold text-base text-draugr-300">{price.toFixed(2)} تومان</span>
-          
+        <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-1">{description}</p>
+        <div className="flex justify-between items-center mt-auto pt-2 border-t border-gray-100 dark:border-gray-700">
+          <span className="font-bold text-base text-gray-800 dark:text-gray-200">{price.toFixed(2)} تومان</span>
           <div className="flex gap-2">
             {!isDisabled && (
               <>
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.1, backgroundColor: "#333333" }}
+                  whileTap={{ scale: 0.9 }}
                   onClick={handleAddToCart}
-                  className="bg-draugr-600 hover:bg-draugr-700 text-bone p-1.5 rounded-full w-8 h-8 flex items-center justify-center transition-colors duration-300"
+                  className="bg-black hover:bg-gray-800 text-white p-1.5 rounded-full w-8 h-8 flex items-center justify-center shadow-md transition-all duration-200"
                   aria-label={`افزودن ${name} به سبد خرید`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
                 </motion.button>
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.1, backgroundColor: "#4b5563" }}
+                  whileTap={{ scale: 0.9 }}
                   onClick={handleViewDetails}
-                  className="bg-ash hover:bg-gray-800 text-bone p-1.5 rounded-full w-8 h-8 flex items-center justify-center transition-colors duration-300"
+                  className="bg-gray-700 hover:bg-gray-600 text-white p-1.5 rounded-full w-8 h-8 flex items-center justify-center shadow-md transition-all duration-200"
                   aria-label={`مشاهده جزئیات ${name}`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                   </svg>
                 </motion.button>
               </>
