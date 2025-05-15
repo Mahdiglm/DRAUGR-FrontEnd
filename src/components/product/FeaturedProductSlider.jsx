@@ -59,7 +59,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
   return (
     <div className="relative w-full overflow-hidden py-12">
       {/* Main Slider */}
-      <div className="relative h-auto md:h-[480px] w-full overflow-hidden z-10">
+      <div className="relative h-auto md:h-[480px] w-full overflow-hidden">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentPage}
@@ -67,16 +67,17 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -100 }}
             transition={{ duration: 0.7, ease: "easeInOut" }}
-            className="w-full h-full flex flex-col md:flex-row gap-8 justify-center items-center"
+            className="w-full h-full flex flex-col md:flex-row gap-6 justify-center items-center"
           >
             {pages[currentPage].map((product) => (
               <motion.div
                 key={product.id}
-                className="w-full md:w-1/2 lg:w-2/5 xl:w-1/3 max-w-sm mx-auto relative z-20"
-                whileHover={{ scale: 1.05, zIndex: 30 }}
-                initial={{ scale: 0.95 }}
+                className="w-full md:w-1/2 lg:w-2/5 xl:w-1/3 max-w-sm"
+                whileHover={{ scale: 1.05, zIndex: 10 }}
+                initial={{ scale: 0.9, filter: 'blur(0px)' }}
                 animate={{ 
-                  scale: 1,
+                  scale: 1, 
+                  filter: 'blur(0px)',
                   transition: { 
                     duration: 1, 
                     ease: "easeOut" 
@@ -91,16 +92,24 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
       </div>
 
       {/* Background Products (Blurred) */}
-      <div className="absolute inset-0 -z-0 flex flex-wrap justify-center items-center opacity-30">
+      <div className="absolute inset-0 -z-10 flex flex-wrap justify-center items-center opacity-30">
         {products.map((product, index) => {
           // Skip products currently in focus
           const currentProducts = pages[currentPage] || [];
           const isActive = currentProducts.some(p => p.id === product.id);
           
-          if (isActive) return null;
+          if (isActive) return null; // Skip displaying currently active products
           
           // Determine if this item should be on the left or right side
           const isRightSide = index % 2 === 0;
+          
+          // Calculate the x-position values for side placement
+          const xPosition = isRightSide ? 150 : -150; // Even more to the sides
+
+          // Determine if this product will be active in the next page
+          const nextPageIndex = (currentPage + 1) % pages.length;
+          const nextPageProducts = pages[nextPageIndex] || [];
+          const willBeActive = nextPageProducts.some(p => p.id === product.id);
           
           return (
             <motion.div
@@ -113,16 +122,23 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
                 x: isRightSide ? 100 : -100,
               }}
               animate={{ 
-                filter: 'blur(3px)', 
-                scale: 0.85, 
-                opacity: 0.7,
-                x: isRightSide ? 120 : -120, // Move items further to the sides
+                filter: willBeActive ? 'blur(2px)' : 'blur(3px)', 
+                scale: willBeActive ? 0.9 : 0.85, 
+                opacity: willBeActive ? 0.8 : 0.7,
+                x: xPosition,
                 y: (Math.floor(index / 2) - 1) * 30,
                 rotate: (isRightSide ? 1 : -1) * (index % 3) * 2,
+                transition: {
+                  duration: willBeActive ? 1.5 : 2,
+                  ease: willBeActive ? "anticipate" : "easeInOut"
+                }
               }}
-              transition={{ duration: 2 }}
+              transition={{ 
+                duration: 2,
+                ease: "easeInOut"
+              }}
             >
-              <div className="opacity-70 grayscale-[70%]">
+              <div className={`opacity-70 ${willBeActive ? 'grayscale-[50%]' : 'grayscale-[70%]'} transition-all duration-1000`}>
                 <ProductCard product={product} onAddToCart={null} isDisabled={true} />
               </div>
             </motion.div>
