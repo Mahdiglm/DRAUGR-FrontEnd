@@ -147,7 +147,24 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
       {/* Slider container with subtle background */}
       <div className="relative flex flex-col md:flex-row justify-center items-center min-h-[580px] md:min-h-[520px] w-full overflow-visible">
         {/* Ambient background and shadows */}
-        <div className="absolute inset-x-0 top-1/2 transform -translate-y-1/2 h-[450px] max-w-5xl mx-auto rounded-3xl opacity-20 bg-gradient-to-br from-gray-50 via-draugr-50 to-gray-100 dark:from-gray-900 dark:via-draugr-900 dark:to-gray-800 -z-10"></div>
+        <div className="absolute inset-0 z-[1] opacity-20">
+          <motion.div 
+            className="absolute inset-0"
+            animate={{ 
+              backgroundPosition: ['0% 0%', '100% 100%']
+            }}
+            transition={{ 
+              duration: 60, 
+              ease: "linear", 
+              repeat: Infinity,
+              repeatType: "reverse" 
+            }}
+            style={{
+              backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 2000 2000\' fill=\'none\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\' opacity=\'0.4\'/%3E%3C/svg%3E")',
+              backgroundSize: '200% 200%'
+            }}
+          />
+        </div>
         <div className="absolute inset-0 bg-white dark:bg-gray-900 bg-opacity-30 dark:bg-opacity-30 backdrop-blur-md rounded-xl -z-20"></div>
         
         {/* Mobile view is stacked */}
