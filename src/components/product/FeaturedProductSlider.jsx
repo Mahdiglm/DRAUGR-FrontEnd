@@ -109,83 +109,191 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
     return <div className="text-center py-8">محصولی برای نمایش وجود ندارد</div>;
   }
 
-  const getCardPositionVariants = (isForeground, position) => {
+  // Function to determine the visual state of each group
+  const getGroupState = (groupIndex) => {
+    // Current active group is in foreground
+    if (activeGroup === groupIndex) return "foreground";
+    
+    // Calculate relative positions for other groups
+    const distance = (groupIndex - activeGroup + totalGroups) % totalGroups;
+    
+    // Next group in sequence
+    if (distance === 1) return "background1";
+    
+    // Group after next
+    if (distance === 2) return "background2";
+    
+    // Furthest group (before returning to active)
+    return "background3";
+  };
+
+  const getCardPositionVariants = (groupState, position) => {
     // For mobile view, simplify the animation
     if (isMobile) {
       return {
         foreground: {
           opacity: 1,
           scale: 1,
-          filter: safeBlur(0), // Using our safe blur helper
+          filter: safeBlur(0),
           y: 0,
-          zIndex: 20,
+          zIndex: 40,
           transition: {
             type: "spring", 
             stiffness: 300,
             damping: 25,
             mass: 1.2,
-            duration: 0.5,  // Faster transition
+            duration: 0.5,
             filter: safeFilterTransition()
           }
         },
-        background: {
-          opacity: 0.4,  // Improved opacity
-          scale: 0.95,   // Less scaling for better visibility
-          filter: safeBlur(1), // Using our safe blur helper
-          y: 20,         // Less vertical offset
+        background1: {
+          opacity: 0.6,
+          scale: 0.95,
+          filter: safeBlur(1),
+          y: 20,
+          zIndex: 30,
+          transition: {
+            duration: 0.5,
+            filter: safeFilterTransition()
+          }
+        },
+        background2: {
+          opacity: 0.4,
+          scale: 0.9,
+          filter: safeBlur(2),
+          y: 40,
+          zIndex: 20,
+          transition: {
+            duration: 0.5,
+            filter: safeFilterTransition()
+          }
+        },
+        background3: {
+          opacity: 0.2,
+          scale: 0.85,
+          filter: safeBlur(3),
+          y: 60,
           zIndex: 10,
           transition: {
-            duration: 0.5,  // Faster transition
+            duration: 0.5,
             filter: safeFilterTransition()
           }
         }
       };
     }
 
-    // Desktop: position cards on left/right based on their index
-    return {
-      foreground: {
-        x: position === 'left' ? '-5%' : '5%',
-        opacity: 1,
-        scale: 1,
-        filter: safeBlur(0), // Using our safe blur helper
-        rotateY: 0,
-        zIndex: 20,
-        transition: {
-          type: "spring",
-          stiffness: 300,
-          damping: 25,
-          mass: 1,      // Lower mass for faster animations
-          duration: 0.5,  // Faster transition
-          filter: safeFilterTransition()
+    // Desktop: position cards in a staggered layout
+    if (position === 'left') {
+      return {
+        foreground: {
+          x: '-5%',
+          opacity: 1,
+          scale: 1,
+          filter: safeBlur(0),
+          rotateY: 0,
+          zIndex: 40,
+          transition: {
+            type: "spring",
+            stiffness: 300,
+            damping: 25,
+            mass: 1,
+            duration: 0.5,
+            filter: safeFilterTransition()
+          }
+        },
+        background1: {
+          x: '-40%',
+          opacity: 0.7,
+          scale: 0.9,
+          filter: safeBlur(1),
+          rotateY: 5,
+          zIndex: 30,
+          transition: {
+            duration: 0.5,
+            filter: safeFilterTransition()
+          }
+        },
+        background2: {
+          x: '-65%',
+          opacity: 0.5,
+          scale: 0.8,
+          filter: safeBlur(2),
+          rotateY: 10,
+          zIndex: 20,
+          transition: {
+            duration: 0.5,
+            filter: safeFilterTransition()
+          }
+        },
+        background3: {
+          x: '-85%',
+          opacity: 0.3,
+          scale: 0.7,
+          filter: safeBlur(3),
+          rotateY: 15,
+          zIndex: 10,
+          transition: {
+            duration: 0.5,
+            filter: safeFilterTransition()
+          }
         }
-      },
-      background: {
-        x: position === 'left' ? '-40%' : '40%',  // Less extreme positions
-        opacity: 0.5,                            // Improved opacity
-        scale: 0.9,                              // Less scaling down
-        filter: safeBlur(1), // Using our safe blur helper
-        rotateY: position === 'left' ? 5 : -5,    // Less rotation
-        zIndex: 10,
-        transition: {
-          duration: 0.5,  // Faster transition
-          filter: safeFilterTransition()
+      };
+    } else {
+      return {
+        foreground: {
+          x: '5%',
+          opacity: 1,
+          scale: 1,
+          filter: safeBlur(0),
+          rotateY: 0,
+          zIndex: 40,
+          transition: {
+            type: "spring",
+            stiffness: 300,
+            damping: 25,
+            mass: 1,
+            duration: 0.5,
+            filter: safeFilterTransition()
+          }
+        },
+        background1: {
+          x: '40%',
+          opacity: 0.7,
+          scale: 0.9,
+          filter: safeBlur(1),
+          rotateY: -5,
+          zIndex: 30,
+          transition: {
+            duration: 0.5,
+            filter: safeFilterTransition()
+          }
+        },
+        background2: {
+          x: '65%',
+          opacity: 0.5,
+          scale: 0.8,
+          filter: safeBlur(2),
+          rotateY: -10,
+          zIndex: 20,
+          transition: {
+            duration: 0.5,
+            filter: safeFilterTransition()
+          }
+        },
+        background3: {
+          x: '85%',
+          opacity: 0.3,
+          scale: 0.7,
+          filter: safeBlur(3),
+          rotateY: -15,
+          zIndex: 10,
+          transition: {
+            duration: 0.5,
+            filter: safeFilterTransition()
+          }
         }
-      }
-    };
-  };
-
-  // Function to determine the visual state of each group
-  const getGroupState = (groupIndex) => {
-    // Current active group is in foreground
-    if (activeGroup === groupIndex) return "foreground";
-    
-    // Next group (or first if we're at the end) is in background
-    const nextGroupIndex = (activeGroup + 1) % totalGroups;
-    if (nextGroupIndex === groupIndex) return "background";
-    
-    // Other groups are hidden
-    return "hidden";
+      };
+    }
   };
 
   return (
@@ -221,65 +329,60 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           <div className="w-full px-4 pt-8 overflow-visible">
             {productGroups.map((group, groupIndex) => (
               <AnimatePresence key={`group-${groupIndex}`}>
-                {getGroupState(groupIndex) !== "hidden" && (
-                  <div className="flex flex-col gap-8 w-full mb-8">
-                    {group.map((product, productIndex) => (
-                      <motion.div
-                        key={`product-${product.id}-${productIndex}`}
-                        className="w-full max-w-xs mx-auto overflow-visible mt-4"
-                        variants={getCardPositionVariants(true, productIndex === 0 ? 'left' : 'right')}
-                        initial="background"
-                        animate={getGroupState(groupIndex) === "foreground" ? "foreground" : "background"}
-                        exit={{ opacity: 0, y: 50, transition: { duration: 0.3 } }}
-                      >
-                        <div className="relative rounded-xl overflow-hidden transition-all">
-                          <ProductCard 
-                            product={product} 
-                            onAddToCart={getGroupState(groupIndex) === "foreground" ? onAddToCart : null} 
-                            isHighlighted={getGroupState(groupIndex) === "foreground"} 
-                          />
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
+                <div className="flex flex-col gap-8 w-full mb-8">
+                  {group.map((product, productIndex) => (
+                    <motion.div
+                      key={`product-${product.id}-${productIndex}`}
+                      className="w-full max-w-xs mx-auto overflow-visible mt-4"
+                      variants={getCardPositionVariants(getGroupState(groupIndex), productIndex === 0 ? 'left' : 'right')}
+                      initial="background3"
+                      animate={getGroupState(groupIndex)}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <div className="relative rounded-xl overflow-hidden transition-all">
+                        <ProductCard 
+                          product={product} 
+                          onAddToCart={getGroupState(groupIndex) === "foreground" ? onAddToCart : null} 
+                          isHighlighted={getGroupState(groupIndex) === "foreground"} 
+                        />
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
               </AnimatePresence>
             ))}
           </div>
         )}
 
-        {/* Desktop view with foreground/background layout */}
+        {/* Desktop view with staggered layout */}
         {!isMobile && (
           <div className="w-full max-w-6xl flex justify-center items-center relative mx-auto overflow-visible">
             {productGroups.map((group, groupIndex) => (
-              <AnimatePresence key={`group-${groupIndex}`}>
-                {getGroupState(groupIndex) !== "hidden" && (
-                  <React.Fragment>
-                    {group.map((product, productIndex) => {
-                      const position = productIndex === 0 ? 'left' : 'right';
-                      
-                      return (
-                        <motion.div
-                          key={`product-${product.id}-${productIndex}`}
-                          className={`absolute md:w-1/3 lg:w-[30%] transform ${position === 'left' ? 'left-[10%] md:left-[18%]' : 'right-[10%] md:right-[18%]'} overflow-visible mt-10`}
-                          variants={getCardPositionVariants(getGroupState(groupIndex) === "foreground", position)}
-                          initial={isVisible ? "background" : false}
-                          animate={getGroupState(groupIndex)}
-                          exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.3 } }}
-                        >
-                          <div className="relative rounded-xl overflow-hidden transition-all">
-                            <ProductCard 
-                              product={product} 
-                              onAddToCart={getGroupState(groupIndex) === "foreground" ? onAddToCart : null} 
-                              isHighlighted={getGroupState(groupIndex) === "foreground"}
-                            />
-                          </div>
-                        </motion.div>
-                      );
-                    })}
-                  </React.Fragment>
-                )}
-              </AnimatePresence>
+              <React.Fragment key={`group-${groupIndex}`}>
+                {group.map((product, productIndex) => {
+                  const position = productIndex === 0 ? 'left' : 'right';
+                  
+                  return (
+                    <motion.div
+                      key={`product-${product.id}-${productIndex}`}
+                      className={`absolute md:w-1/3 lg:w-[30%] transform ${position === 'left' ? 'left-[10%]' : 'right-[10%]'} overflow-visible mt-10`}
+                      variants={getCardPositionVariants(getGroupState(groupIndex), position)}
+                      initial="background3"
+                      animate={getGroupState(groupIndex)}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <div className="relative rounded-xl overflow-hidden transition-all">
+                        <ProductCard 
+                          product={product} 
+                          onAddToCart={getGroupState(groupIndex) === "foreground" ? onAddToCart : null} 
+                          isHighlighted={getGroupState(groupIndex) === "foreground"}
+                          isDisabled={getGroupState(groupIndex) !== "foreground"}
+                        />
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </React.Fragment>
             ))}
           </div>
         )}
