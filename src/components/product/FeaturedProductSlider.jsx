@@ -186,7 +186,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
     if (position === 'left') {
       return {
         foreground: {
-          x: '-5%',
+          x: '-3%',
           opacity: 1,
           scale: 1,
           filter: safeBlur(0),
@@ -202,7 +202,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           }
         },
         background1: {
-          x: '-40%',
+          x: '-25%',
           opacity: 0.7,
           scale: 0.9,
           filter: safeBlur(1),
@@ -214,7 +214,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           }
         },
         background2: {
-          x: '-65%',
+          x: '-42%',
           opacity: 0.5,
           scale: 0.8,
           filter: safeBlur(2),
@@ -226,7 +226,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           }
         },
         background3: {
-          x: '-85%',
+          x: '-55%',
           opacity: 0.3,
           scale: 0.7,
           filter: safeBlur(3),
@@ -241,7 +241,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
     } else {
       return {
         foreground: {
-          x: '5%',
+          x: '3%',
           opacity: 1,
           scale: 1,
           filter: safeBlur(0),
@@ -257,7 +257,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           }
         },
         background1: {
-          x: '40%',
+          x: '25%',
           opacity: 0.7,
           scale: 0.9,
           filter: safeBlur(1),
@@ -269,7 +269,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           }
         },
         background2: {
-          x: '65%',
+          x: '42%',
           opacity: 0.5,
           scale: 0.8,
           filter: safeBlur(2),
@@ -281,7 +281,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           }
         },
         background3: {
-          x: '85%',
+          x: '55%',
           opacity: 0.3,
           scale: 0.7,
           filter: safeBlur(3),
