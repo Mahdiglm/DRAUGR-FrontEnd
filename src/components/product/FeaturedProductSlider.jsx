@@ -10,6 +10,8 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
   const [isVisible, setIsVisible] = useState(true);
   const timerRef = useRef(null);
   const componentMounted = useRef(true);
+  // Total number of groups
+  const totalGroups = 4;
   
   // Check if we're on mobile
   useEffect(() => {
@@ -62,29 +64,32 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
     };
   }, []);
 
-  // Ensure we have exactly 4 products
-  const firstFourProducts = products && products.length ? products.slice(0, 4) : [];
+  // Ensure we have exactly 8 products
+  const firstEightProducts = products && products.length ? products.slice(0, 8) : [];
   
-  // If we have less than 4 products, duplicate them to reach 4
-  const displayProducts = [...firstFourProducts];
-  while (displayProducts.length < 4) {
-    displayProducts.push(displayProducts[displayProducts.length % firstFourProducts.length]);
+  // If we have less than 8 products, duplicate them to reach 8
+  const displayProducts = [...firstEightProducts];
+  while (displayProducts.length < 8) {
+    displayProducts.push(displayProducts[displayProducts.length % firstEightProducts.length]);
   }
 
-  // Create product groups: [0,1] and [2,3]
+  // Create product groups: [0,1], [2,3], [4,5], and [6,7]
   const productGroups = [
     [displayProducts[0], displayProducts[1]],
-    [displayProducts[2], displayProducts[3]]
+    [displayProducts[2], displayProducts[3]],
+    [displayProducts[4], displayProducts[5]],
+    [displayProducts[6], displayProducts[7]]
   ];
 
-  // Auto-rotation logic - improved with visibility check
+  // Auto-rotation logic - continuous cycle through all groups
   useEffect(() => {
     // Only rotate when component is visible and not being hovered
     if (isHovering || !isVisible) return;
     
     timerRef.current = setTimeout(() => {
       if (componentMounted.current) {
-        setActiveGroup((prev) => (prev === 0 ? 1 : 0));
+        // Cycle through all groups (0, 1, 2, 3, 0, 1, ...)
+        setActiveGroup((prev) => (prev + 1) % totalGroups);
       }
     }, 5000);
     
@@ -170,6 +175,19 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
     };
   };
 
+  // Function to determine the visual state of each group
+  const getGroupState = (groupIndex) => {
+    // Current active group is in foreground
+    if (activeGroup === groupIndex) return "foreground";
+    
+    // Next group (or first if we're at the end) is in background
+    const nextGroupIndex = (activeGroup + 1) % totalGroups;
+    if (nextGroupIndex === groupIndex) return "background";
+    
+    // Other groups are hidden
+    return "hidden";
+  };
+
   return (
     <div 
       className="relative w-full py-16 md:py-24 overflow-visible"
@@ -202,21 +220,30 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
         {isMobile && (
           <div className="w-full px-4 pt-8 overflow-visible">
             {productGroups.map((group, groupIndex) => (
-              <div key={`group-${groupIndex}`} className="flex flex-col gap-8 w-full mb-8">
-                {group.map((product, productIndex) => (
-                  <motion.div
-                    key={`product-${product.id}-${productIndex}`}
-                    className="w-full max-w-xs mx-auto overflow-visible mt-4"
-                    variants={getCardPositionVariants(true, productIndex === 0 ? 'left' : 'right')}
-                    initial="background"
-                    animate={activeGroup === groupIndex ? "foreground" : "background"}
-                  >
-                    <div className="relative rounded-xl overflow-hidden transition-all">
-                      <ProductCard product={product} onAddToCart={onAddToCart} isHighlighted={activeGroup === groupIndex} />
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+              <AnimatePresence key={`group-${groupIndex}`}>
+                {getGroupState(groupIndex) !== "hidden" && (
+                  <div className="flex flex-col gap-8 w-full mb-8">
+                    {group.map((product, productIndex) => (
+                      <motion.div
+                        key={`product-${product.id}-${productIndex}`}
+                        className="w-full max-w-xs mx-auto overflow-visible mt-4"
+                        variants={getCardPositionVariants(true, productIndex === 0 ? 'left' : 'right')}
+                        initial="background"
+                        animate={getGroupState(groupIndex) === "foreground" ? "foreground" : "background"}
+                        exit={{ opacity: 0, y: 50, transition: { duration: 0.3 } }}
+                      >
+                        <div className="relative rounded-xl overflow-hidden transition-all">
+                          <ProductCard 
+                            product={product} 
+                            onAddToCart={getGroupState(groupIndex) === "foreground" ? onAddToCart : null} 
+                            isHighlighted={getGroupState(groupIndex) === "foreground"} 
+                          />
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </AnimatePresence>
             ))}
           </div>
         )}
@@ -225,43 +252,49 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
         {!isMobile && (
           <div className="w-full max-w-6xl flex justify-center items-center relative mx-auto overflow-visible">
             {productGroups.map((group, groupIndex) => (
-              <React.Fragment key={`group-${groupIndex}`}>
-                {group.map((product, productIndex) => {
-                  const position = productIndex === 0 ? 'left' : 'right';
-                  
-                  return (
-                    <motion.div
-                      key={`product-${product.id}-${productIndex}`}
-                      className={`absolute md:w-1/3 lg:w-[30%] transform ${position === 'left' ? 'left-[10%] md:left-[18%]' : 'right-[10%] md:right-[18%]'} overflow-visible mt-10`}
-                      variants={getCardPositionVariants(activeGroup === groupIndex, position)}
-                      initial={isVisible ? "background" : false}
-                      animate={activeGroup === groupIndex ? "foreground" : "background"}
-                    >
-                      <div className="relative rounded-xl overflow-hidden transition-all">
-                        <ProductCard 
-                          product={product} 
-                          onAddToCart={activeGroup === groupIndex ? onAddToCart : null} 
-                          isHighlighted={activeGroup === groupIndex}
-                        />
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </React.Fragment>
+              <AnimatePresence key={`group-${groupIndex}`}>
+                {getGroupState(groupIndex) !== "hidden" && (
+                  <React.Fragment>
+                    {group.map((product, productIndex) => {
+                      const position = productIndex === 0 ? 'left' : 'right';
+                      
+                      return (
+                        <motion.div
+                          key={`product-${product.id}-${productIndex}`}
+                          className={`absolute md:w-1/3 lg:w-[30%] transform ${position === 'left' ? 'left-[10%] md:left-[18%]' : 'right-[10%] md:right-[18%]'} overflow-visible mt-10`}
+                          variants={getCardPositionVariants(getGroupState(groupIndex) === "foreground", position)}
+                          initial={isVisible ? "background" : false}
+                          animate={getGroupState(groupIndex)}
+                          exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.3 } }}
+                        >
+                          <div className="relative rounded-xl overflow-hidden transition-all">
+                            <ProductCard 
+                              product={product} 
+                              onAddToCart={getGroupState(groupIndex) === "foreground" ? onAddToCart : null} 
+                              isHighlighted={getGroupState(groupIndex) === "foreground"}
+                            />
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </React.Fragment>
+                )}
+              </AnimatePresence>
             ))}
           </div>
         )}
 
-        {/* Elegant pagination indicators */}
-        <div className="absolute bottom-[-24px] left-0 right-0 mx-auto w-fit flex justify-center items-center space-x-4 z-30">
-          {[0, 1].map((groupIndex) => (
+        {/* Elegant pagination indicators - updated for 4 groups */}
+        <div className="absolute bottom-[-24px] left-0 right-0 mx-auto w-fit flex justify-center items-center space-x-3 z-30">
+          {Array.from({ length: totalGroups }).map((_, groupIndex) => (
             <motion.button
               key={`pagination-${groupIndex}`}
-              className="w-8 h-2 mx-1 rounded-full bg-gray-300 dark:bg-gray-600 focus:outline-none"
+              className="w-6 h-2 mx-1 rounded-full bg-gray-300 dark:bg-gray-600 focus:outline-none"
               animate={{
-                backgroundColor: activeGroup === groupIndex ? "#333333" : "#d1d5db",
+                backgroundColor: activeGroup === groupIndex ? "#ff0000" : "#333333",
                 opacity: activeGroup === groupIndex ? 1 : 0.5,
-                scale: activeGroup === groupIndex ? 1.1 : 1
+                scale: activeGroup === groupIndex ? 1.1 : 1,
+                width: activeGroup === groupIndex ? 24 : 16
               }}
               whileHover={{ scale: 1.2 }}
               whileTap={{ scale: 0.95 }}
@@ -275,11 +308,11 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           ))}
         </div>
         
-        {/* Manual navigation buttons (subtle) */}
+        {/* Manual navigation buttons */}
         <motion.button 
-          className="absolute left-2 md:left-6 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-white/70 dark:bg-gray-800/70 flex items-center justify-center 
-                    backdrop-blur-sm z-30 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 shadow-md"
-          whileHover={{ scale: 1.1, backgroundColor: "rgba(255, 255, 255, 0.9)" }}
+          className="absolute left-2 md:left-6 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-charcoal/70 flex items-center justify-center 
+                    backdrop-blur-sm z-30 text-gray-300 border border-gray-700 shadow-md"
+          whileHover={{ scale: 1.1, backgroundColor: "rgba(31, 31, 31, 0.9)" }}
           whileTap={{ scale: 0.95 }}
           initial={{ opacity: 0.7 }}
           animate={{ opacity: 0.7 }}
@@ -287,7 +320,8 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
             if (timerRef.current) {
               clearTimeout(timerRef.current);
             }
-            setActiveGroup(activeGroup === 0 ? 1 : 0);
+            // Go to previous group (or last if at first)
+            setActiveGroup((prev) => (prev - 1 + totalGroups) % totalGroups);
           }}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -295,9 +329,9 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           </svg>
         </motion.button>
         <motion.button 
-          className="absolute right-2 md:right-6 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-white/70 dark:bg-gray-800/70 flex items-center justify-center 
-                    backdrop-blur-sm z-30 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 shadow-md"
-          whileHover={{ scale: 1.1, backgroundColor: "rgba(255, 255, 255, 0.9)" }}
+          className="absolute right-2 md:right-6 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-charcoal/70 flex items-center justify-center 
+                    backdrop-blur-sm z-30 text-gray-300 border border-gray-700 shadow-md"
+          whileHover={{ scale: 1.1, backgroundColor: "rgba(31, 31, 31, 0.9)" }}
           whileTap={{ scale: 0.95 }}
           initial={{ opacity: 0.7 }}
           animate={{ opacity: 0.7 }}
@@ -305,7 +339,8 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
             if (timerRef.current) {
               clearTimeout(timerRef.current);
             }
-            setActiveGroup(activeGroup === 0 ? 1 : 0);
+            // Go to next group
+            setActiveGroup((prev) => (prev + 1) % totalGroups);
           }}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
