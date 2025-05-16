@@ -4,9 +4,9 @@ import { useOutletContext, Link } from 'react-router-dom';
 
 import ProductList from '../product/ProductList';
 import FeaturedProductSlider from '../product/FeaturedProductSlider';
-import HeroSection from '../layout/HeroSection';
 import { products } from '../../utils/mockData';
 import { safeBlur, safeFilterTransition } from '../../utils/animationHelpers';
+import RitualSymbol from '../shared/RitualSymbol';
 // Try with relative path to asset folder
 // import heroBackground from '../../assets/Background-Hero.jpg';
 import mainBackground from '../../assets/BackGround-Main.jpg';
@@ -109,10 +109,11 @@ const Particles = () => {
 
 const HomePage = () => {
   const { addToCart } = useOutletContext();
-  // const heroRef = useRef(null);
+  const heroRef = useRef(null);
   const [showIntro, setShowIntro] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isButtonHovered, setIsButtonHovered] = useState(false);
   
   // For testing - reset intro animation
   const resetIntroAnimation = () => {
@@ -120,53 +121,73 @@ const HomePage = () => {
     window.location.reload();
   };
   
+  // Check if user has already seen the intro
   useEffect(() => {
     const hasSeenIntro = localStorage.getItem('hasSeenDraugrIntro');
+    
     if (hasSeenIntro) {
+      // Skip intro if user has already seen it
       setShowIntro(false);
       setIsLoading(false);
     } else {
+      // Show intro for first-time visitors
       setShowIntro(true);
     }
   }, []);
   
+  // Handle initial loading - immediate load
   useEffect(() => {
+    // Ensure we start at the top of the page immediately
     window.scrollTo(0, 0);
     document.body.scrollTop = 0;
     document.documentElement.scrollTop = 0;
+    
+    // Set scroll restoration to manual 
     if ('scrollRestoration' in history) {
       history.scrollRestoration = 'manual';
     }
+    
+    // Hide loader immediately
     setIsLoading(false);
   }, []);
   
+  // Handle intro completion - reduced to 1 second
   useEffect(() => {
-    if (!showIntro) return;
+    if (!showIntro) return; // Skip if intro not shown
+    
     const timer = setTimeout(() => {
+      // Start exit animation
       setIsExiting(true);
+      
+      // Wait for exit animation to complete before removing intro
       setTimeout(() => {
+        // Immediately scroll to top before showing main content
         window.scrollTo(0, 0);
         document.body.scrollTop = 0;
         document.documentElement.scrollTop = 0;
+        
+        // Now transition to main content
         setShowIntro(false);
+        
+        // Set flag in localStorage that user has seen the intro
         localStorage.setItem('hasSeenDraugrIntro', 'true');
-      }, 600);
-    }, 1000);
+      }, 600); // Time for exit animation to complete
+      
+    }, 1000); // Reduced to 1 second
+    
     return () => clearTimeout(timer);
   }, [showIntro]);
   
-  // Parallax effect - remove if not used elsewhere
-  // const { scrollY } = useScroll();
-  // const backgroundY = useTransform(scrollY, [0, 500], [0, 100]);
-  // const textY = useTransform(scrollY, [0, 500], [0, -50]);
-  // const opacityHero = useTransform(scrollY, [0, 300], [1, 0.3]);
+  // Parallax effect
+  const { scrollY } = useScroll();
+  const textY = useTransform(scrollY, [0, 500], [0, -50]);
+  const opacityHero = useTransform(scrollY, [0, 300], [1, 0.3]);
 
-  // Default background in case the import fails - remove if not used
-  // const fallbackBg = "https://images.unsplash.com/photo-1508614589041-895b88991e3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80";
+  // Default background in case the import fails
+  const fallbackBg = "https://images.unsplash.com/photo-1508614589041-895b88991e3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80";
 
   // Preload all images immediately
   useEffect(() => {
-    // const preloadImages = [heroBackground, mainBackground];
     const preloadImages = [mainBackground];
     preloadImages.forEach((image) => {
       const img = new Image();
@@ -205,6 +226,8 @@ const HomePage = () => {
       }
     }
   };
+
+  const numberOfSymbols = 15; // Number of ritual symbols in the background
 
   return (
     <>
@@ -325,9 +348,18 @@ const HomePage = () => {
 
       {/* Main Content - always rendered */}
       <motion.div 
-        style={{ opacity: showIntro ? 0 : 1 }}
-        animate={{ opacity: showIntro ? 0 : 1, y: showIntro ? 20 : 0, scale: showIntro ? 0.98 : 1 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
+        style={{ 
+          opacity: showIntro ? 0 : 1,
+        }}
+        animate={{ 
+          opacity: showIntro ? 0 : 1,
+          y: showIntro ? 20 : 0,
+          scale: showIntro ? 0.98 : 1,
+        }}
+        transition={{ 
+          duration: 0.6,
+          ease: "easeOut"
+        }}
       >
         {/* FOR TESTING ONLY - Remove in production */}
         <div className="fixed bottom-4 right-4 z-50">
@@ -339,8 +371,128 @@ const HomePage = () => {
           </button>
         </div>
         
-        {/* New Hero Section */}
-        <HeroSection />
+        {/* Hero Section Redesign */}
+        <motion.section
+          ref={heroRef}
+          className="py-12 sm:py-16 md:py-20 w-full relative overflow-hidden bg-deepBlack"
+          style={{ 
+            minHeight: '93.4vh', 
+            display: 'flex', 
+            alignItems: 'center',
+          }}
+        >
+          {/* Swirling Mist/Smoke Effect (Conceptual - using gradient and animation) */}
+          <motion.div
+            className="absolute inset-0 z-0"
+            animate={{
+              backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"],
+              opacity: [0.3, 0.5, 0.3],
+            }}
+            transition={{
+              duration: 40,
+              repeat: Infinity,
+              ease: "linear",
+            }}
+            style={{
+              backgroundImage: `radial-gradient(ellipse at center, rgba(179,0,0,0.2) 0%, rgba(10,10,10,0.8) 70%),
+                                linear-gradient(to bottom right, rgba(179,0,0,0.1), rgba(10,10,10,0.5)),
+                                url("data:image/svg+xml,%3Csvg viewBox='0 0 800 800' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E")`,
+              backgroundBlendMode: 'overlay',
+              backgroundSize: '200% 200%, cover, 150px 150px',
+            }}
+          />
+
+          {/* Ritual Symbols Background */}
+          <div className="absolute inset-0 z-1">
+            {Array.from({ length: numberOfSymbols }).map((_, i) => (
+              <RitualSymbol key={i} index={i} totalSymbols={numberOfSymbols} />
+            ))}
+          </div>
+
+          {/* Dark overlay for better text readability if needed - keep low opacity or remove based on symbol density */}
+          {/* <div className="absolute inset-0 bg-deepBlack opacity-30 z-2"></div> */}
+
+          {/* Bottom gradient overlay for smooth transition */}
+          <div 
+            className="absolute bottom-0 left-0 right-0 h-40 z-10" 
+            style={{
+              background: 'linear-gradient(to bottom, transparent, #0a0a0a)', // deepBlack
+              pointerEvents: 'none'
+            }}
+          ></div>
+
+          <div className="w-full flex justify-center items-center">
+            <div className="max-w-7xl mx-auto px-4 relative z-20 text-center">
+                {/* Optional: Glassmorphism container for text */}
+                {/* <div className="bg-black/30 backdrop-blur-md p-8 rounded-lg border border-bloodRed/30 shadow-xl shadow-bloodRed/20"> */}
+                <motion.div
+                    className="max-w-3xl mx-auto"
+                    style={{ y: textY, opacity: opacityHero }} // Re-use existing parallax if desired
+                >
+                    <motion.h1 
+                    className="text-5xl sm:text-6xl md:text-7xl font-cinzel font-bold mb-6 text-gray-200"
+                    style={{ textShadow: '0 0 10px #b30000, 0 0 20px #b30000' }} // bloodRed glow
+                    >
+                    Swear the Blood Oath.
+                    </motion.h1>
+                    <motion.p
+                    className="text-xl sm:text-2xl md:text-3xl mb-10 text-gray-400 font-cinzel"
+                    style={{ textShadow: '0 1px 3px rgba(0,0,0,0.7)' }}
+                    >
+                    Enter the realm of the forgotten.
+                    </motion.p>
+                    <Link to="/shop"> {/* Update link if necessary */}
+                    <motion.button
+                        onHoverStart={() => setIsButtonHovered(true)}
+                        onHoverEnd={() => setIsButtonHovered(false)}
+                        whileHover={{ 
+                        scale: 1.05,
+                        boxShadow: '0 0 25px #b30000, 0 0 10px #b30000 inset', // bloodRed glow
+                        // Add ripple or blood drip here later if desired
+                        }}
+                        whileTap={{ scale: 0.95 }}
+                        className="font-cinzel bg-bloodRed text-gray-200 font-bold text-lg sm:text-xl px-10 py-4 rounded-md border-2 border-transparent hover:border-red-400 transition-all duration-300 relative overflow-hidden"
+                        style={{ letterSpacing: '1px' }}
+                    >
+                        Begin the Ritual
+                        {/* Blood Drip Effect on Hover */}
+                        <AnimatePresence>
+                        {isButtonHovered && (
+                            <motion.div
+                            className="absolute bottom-0 left-1/2 transform -translate-x-1/2"
+                            initial={{ height: 0, opacity: 0.7 }}
+                            animate={{ height: [0, 15, 5, 12, 0], opacity: [0.7, 1, 0.8, 1, 0] }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.7, times: [0, 0.2, 0.4, 0.6, 1] }}
+                            style={{
+                                width: '3px',
+                                background: '#b30000', // bloodRed
+                                borderRadius: '0 0 2px 2px',
+                            }}
+                            />
+                        )}
+                        </AnimatePresence>
+                        {/* Symbol Flash on Hover (subtle) */}
+                        <AnimatePresence>
+                        {isButtonHovered && (
+                            <motion.span 
+                            className="absolute inset-0 flex items-center justify-center text-bloodRed pointer-events-none"
+                            initial={{ opacity: 0, scale: 0.5 }}
+                            animate={{ opacity: [0, 0.3, 0], scale: [0.5, 1.2, 0.5]}}
+                            transition={{ duration: 0.4, ease: "easeInOut"}} 
+                            style={{ fontSize: '3rem'}} // Adjust size as needed
+                            >
+                            ✧
+                            </motion.span>
+                        )}
+                        </AnimatePresence>
+                    </motion.button>
+                    </Link>
+                </motion.div>
+                {/* </div> End of optional glassmorphism container */}
+            </div>
+          </div>
+        </motion.section>
 
         {/* Featured Products */}
         <motion.section 
