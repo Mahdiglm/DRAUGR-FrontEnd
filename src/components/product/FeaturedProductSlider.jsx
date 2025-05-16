@@ -147,7 +147,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           }
         },
         background1: {
-          opacity: 0.95,
+          opacity: 1,
           scale: 0.95,
           filter: safeBlur(1),
           y: 20,
@@ -158,7 +158,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           }
         },
         background2: {
-          opacity: 0.9,
+          opacity: 1,
           scale: 0.9,
           filter: safeBlur(2),
           y: 40,
@@ -169,7 +169,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           }
         },
         background3: {
-          opacity: 0.85,
+          opacity: 1,
           scale: 0.85,
           filter: safeBlur(3),
           y: 60,
@@ -203,7 +203,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
         },
         background1: {
           x: '-20%', // PERFECTLY BALANCED - DO NOT CHANGE HORIZONTAL POSITION
-          opacity: 0.95,
+          opacity: 1,
           scale: 0.9,
           filter: safeBlur(1),
           rotateY: 5,
@@ -215,7 +215,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
         },
         background2: {
           x: '-55%', // PERFECTLY BALANCED - DO NOT CHANGE HORIZONTAL POSITION
-          opacity: 0.9,
+          opacity: 1,
           scale: 0.8,
           filter: safeBlur(2),
           rotateY: 10,
@@ -227,7 +227,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
         },
         background3: {
           x: '-80%', // PERFECTLY BALANCED - DO NOT CHANGE HORIZONTAL POSITION
-          opacity: 0.85,
+          opacity: 1,
           scale: 0.7,
           filter: safeBlur(3),
           rotateY: 15,
@@ -258,7 +258,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
         },
         background1: {
           x: '20%', // PERFECTLY BALANCED - DO NOT CHANGE HORIZONTAL POSITION
-          opacity: 0.95,
+          opacity: 1,
           scale: 0.9,
           filter: safeBlur(1),
           rotateY: -5,
@@ -270,7 +270,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
         },
         background2: {
           x: '55%', // PERFECTLY BALANCED - DO NOT CHANGE HORIZONTAL POSITION
-          opacity: 0.9,
+          opacity: 1,
           scale: 0.8,
           filter: safeBlur(2),
           rotateY: -10,
@@ -282,7 +282,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
         },
         background3: {
           x: '80%', // PERFECTLY BALANCED - DO NOT CHANGE HORIZONTAL POSITION
-          opacity: 0.85,
+          opacity: 1,
           scale: 0.7,
           filter: safeBlur(3),
           rotateY: -15,
