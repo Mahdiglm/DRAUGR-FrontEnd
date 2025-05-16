@@ -186,7 +186,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
     if (position === 'left') {
       return {
         foreground: {
-          x: '-3%',
+          x: '20%', // PERFECTLY BALANCED - DO NOT CHANGE HORIZONTAL POSITION
           opacity: 1,
           scale: 1,
           filter: safeBlur(0),
@@ -202,7 +202,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           }
         },
         background1: {
-          x: '-25%',
+          x: '-20%', // PERFECTLY BALANCED - DO NOT CHANGE HORIZONTAL POSITION
           opacity: 0.7,
           scale: 0.9,
           filter: safeBlur(1),
@@ -214,7 +214,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           }
         },
         background2: {
-          x: '-42%',
+          x: '-55%', // PERFECTLY BALANCED - DO NOT CHANGE HORIZONTAL POSITION
           opacity: 0.5,
           scale: 0.8,
           filter: safeBlur(2),
@@ -226,7 +226,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           }
         },
         background3: {
-          x: '-55%',
+          x: '-80%', // PERFECTLY BALANCED - DO NOT CHANGE HORIZONTAL POSITION
           opacity: 0.3,
           scale: 0.7,
           filter: safeBlur(3),
@@ -241,7 +241,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
     } else {
       return {
         foreground: {
-          x: '3%',
+          x: '-20%', // PERFECTLY BALANCED - DO NOT CHANGE HORIZONTAL POSITION
           opacity: 1,
           scale: 1,
           filter: safeBlur(0),
@@ -257,7 +257,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           }
         },
         background1: {
-          x: '25%',
+          x: '20%', // PERFECTLY BALANCED - DO NOT CHANGE HORIZONTAL POSITION
           opacity: 0.7,
           scale: 0.9,
           filter: safeBlur(1),
@@ -269,7 +269,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           }
         },
         background2: {
-          x: '42%',
+          x: '55%', // PERFECTLY BALANCED - DO NOT CHANGE HORIZONTAL POSITION
           opacity: 0.5,
           scale: 0.8,
           filter: safeBlur(2),
@@ -281,7 +281,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           }
         },
         background3: {
-          x: '55%',
+          x: '80%', // PERFECTLY BALANCED - DO NOT CHANGE HORIZONTAL POSITION
           opacity: 0.3,
           scale: 0.7,
           filter: safeBlur(3),
@@ -303,7 +303,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
       onMouseLeave={handleMouseLeave}
     >
       {/* Slider container with subtle background */}
-      <div className="relative flex flex-col md:flex-row justify-center items-center min-h-[600px] md:min-h-[550px] w-full overflow-visible pt-16">
+      <div className="relative flex flex-col md:flex-row justify-center items-center min-h-[600px] md:min-h-[550px] w-full overflow-visible pt-8">
         {/* Ambient background and shadows */}
         <div className="absolute inset-0 z-[1] opacity-20">
           <motion.div 
@@ -365,7 +365,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
                   return (
                     <motion.div
                       key={`product-${product.id}-${productIndex}`}
-                      className={`absolute md:w-1/3 lg:w-[30%] transform ${position === 'left' ? 'left-[10%]' : 'right-[10%]'} overflow-visible mt-10`}
+                      className={`absolute md:w-1/3 lg:w-[30%] transform ${position === 'left' ? 'left-[10%]' : 'right-[10%]'} overflow-visible -mt-6`}
                       variants={getCardPositionVariants(getGroupState(groupIndex), position)}
                       initial="background3"
                       animate={getGroupState(groupIndex)}
