@@ -4,10 +4,11 @@ import { useOutletContext, Link } from 'react-router-dom';
 
 import ProductList from '../product/ProductList';
 import FeaturedProductSlider from '../product/FeaturedProductSlider';
+import HeroSection from '../layout/HeroSection';
 import { products } from '../../utils/mockData';
 import { safeBlur, safeFilterTransition } from '../../utils/animationHelpers';
 // Try with relative path to asset folder
-import heroBackground from '../../assets/Background-Hero.jpg';
+// import heroBackground from '../../assets/Background-Hero.jpg';
 import mainBackground from '../../assets/BackGround-Main.jpg';
 
 // Letter animation styles and setup
@@ -108,7 +109,7 @@ const Particles = () => {
 
 const HomePage = () => {
   const { addToCart } = useOutletContext();
-  const heroRef = useRef(null);
+  // const heroRef = useRef(null);
   const [showIntro, setShowIntro] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -119,75 +120,54 @@ const HomePage = () => {
     window.location.reload();
   };
   
-  // Check if user has already seen the intro
   useEffect(() => {
     const hasSeenIntro = localStorage.getItem('hasSeenDraugrIntro');
-    
     if (hasSeenIntro) {
-      // Skip intro if user has already seen it
       setShowIntro(false);
       setIsLoading(false);
     } else {
-      // Show intro for first-time visitors
       setShowIntro(true);
     }
   }, []);
   
-  // Handle initial loading - immediate load
   useEffect(() => {
-    // Ensure we start at the top of the page immediately
     window.scrollTo(0, 0);
     document.body.scrollTop = 0;
     document.documentElement.scrollTop = 0;
-    
-    // Set scroll restoration to manual 
     if ('scrollRestoration' in history) {
       history.scrollRestoration = 'manual';
     }
-    
-    // Hide loader immediately
     setIsLoading(false);
   }, []);
   
-  // Handle intro completion - reduced to 1 second
   useEffect(() => {
-    if (!showIntro) return; // Skip if intro not shown
-    
+    if (!showIntro) return;
     const timer = setTimeout(() => {
-      // Start exit animation
       setIsExiting(true);
-      
-      // Wait for exit animation to complete before removing intro
       setTimeout(() => {
-        // Immediately scroll to top before showing main content
         window.scrollTo(0, 0);
         document.body.scrollTop = 0;
         document.documentElement.scrollTop = 0;
-        
-        // Now transition to main content
         setShowIntro(false);
-        
-        // Set flag in localStorage that user has seen the intro
         localStorage.setItem('hasSeenDraugrIntro', 'true');
-      }, 600); // Time for exit animation to complete
-      
-    }, 1000); // Reduced to 1 second
-    
+      }, 600);
+    }, 1000);
     return () => clearTimeout(timer);
   }, [showIntro]);
   
-  // Parallax effect
-  const { scrollY } = useScroll();
-  const backgroundY = useTransform(scrollY, [0, 500], [0, 100]);
-  const textY = useTransform(scrollY, [0, 500], [0, -50]);
-  const opacityHero = useTransform(scrollY, [0, 300], [1, 0.3]);
+  // Parallax effect - remove if not used elsewhere
+  // const { scrollY } = useScroll();
+  // const backgroundY = useTransform(scrollY, [0, 500], [0, 100]);
+  // const textY = useTransform(scrollY, [0, 500], [0, -50]);
+  // const opacityHero = useTransform(scrollY, [0, 300], [1, 0.3]);
 
-  // Default background in case the import fails
-  const fallbackBg = "https://images.unsplash.com/photo-1508614589041-895b88991e3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80";
+  // Default background in case the import fails - remove if not used
+  // const fallbackBg = "https://images.unsplash.com/photo-1508614589041-895b88991e3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80";
 
   // Preload all images immediately
   useEffect(() => {
-    const preloadImages = [heroBackground, mainBackground];
+    // const preloadImages = [heroBackground, mainBackground];
+    const preloadImages = [mainBackground];
     preloadImages.forEach((image) => {
       const img = new Image();
       img.src = image;
@@ -345,18 +325,9 @@ const HomePage = () => {
 
       {/* Main Content - always rendered */}
       <motion.div 
-        style={{ 
-          opacity: showIntro ? 0 : 1,
-        }}
-        animate={{ 
-          opacity: showIntro ? 0 : 1,
-          y: showIntro ? 20 : 0,
-          scale: showIntro ? 0.98 : 1,
-        }}
-        transition={{ 
-          duration: 0.6,
-          ease: "easeOut"
-        }}
+        style={{ opacity: showIntro ? 0 : 1 }}
+        animate={{ opacity: showIntro ? 0 : 1, y: showIntro ? 20 : 0, scale: showIntro ? 0.98 : 1 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
       >
         {/* FOR TESTING ONLY - Remove in production */}
         <div className="fixed bottom-4 right-4 z-50">
@@ -368,68 +339,8 @@ const HomePage = () => {
           </button>
         </div>
         
-        {/* Hero Section with Parallax */}
-        <motion.section
-          ref={heroRef}
-          className="py-12 sm:py-16 md:py-20 w-full relative overflow-hidden"
-          style={{ 
-            minHeight: '93.4vh', 
-            display: 'flex', 
-            alignItems: 'center',
-            backgroundImage: `url(${heroBackground || fallbackBg})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat'
-          }}
-        >
-          {/* Dark overlay for better text readability */}
-          <div className="absolute inset-0 bg-black opacity-50"></div>
-
-          {/* Bottom gradient overlay for smooth transition */}
-          <div 
-            className="absolute bottom-0 left-0 right-0 h-32 z-10" 
-            style={{
-              background: 'linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.95))',
-              pointerEvents: 'none'
-            }}
-          ></div>
-
-          <div className="w-full flex justify-center items-center">
-            <div className="max-w-7xl mx-auto px-4 relative z-10 text-center">
-              <motion.div
-                className="max-w-3xl mx-auto"
-                style={{ y: textY, opacity: opacityHero }}
-              >
-                <motion.h1 
-                  className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 text-shadow-horror"
-                >
-                  <span className="text-draugr-500 font-bold text-shadow-horror">
-                    اقلام خارق‌العاده را
-                  </span> برای ماجراجویی خود کشف کنید
-                </motion.h1>
-                <motion.p
-                  className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 text-gray-200 font-medium"
-                  style={{ textShadow: '0 1px 2px rgba(0, 0, 0, 0.8)' }}
-                >
-                  مجموعه‌ی ما از آثار افسانه‌ای، سلاح‌ها و تجهیزات را کاوش کنید.
-                </motion.p>
-                <Link to="/shop">
-                  <motion.button
-                    whileHover={{ 
-                      scale: 1.05, 
-                      boxShadow: '0 0 20px rgba(255, 0, 0, 0.7)',
-                      textShadow: '0 0 10px rgba(255, 255, 255, 0.9)'
-                    }}
-                    whileTap={{ scale: 0.95 }}
-                    className="bg-gradient-to-r from-draugr-800 to-draugr-600 text-white font-medium text-sm sm:text-base px-6 sm:px-8 py-2 sm:py-3 rounded-md border border-draugr-500"
-                  >
-                    فروشگاه
-                  </motion.button>
-                </Link>
-              </motion.div>
-            </div>
-          </div>
-        </motion.section>
+        {/* New Hero Section */}
+        <HeroSection />
 
         {/* Featured Products */}
         <motion.section 
