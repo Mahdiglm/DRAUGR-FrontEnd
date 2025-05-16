@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { safeBlur, safeFilterTransition } from '../../utils/animationHelpers';
 
 const Cart = ({ items, removeItem, isOpen, onClose, addToCartPlus }) => {
   // Calculate total price considering quantities - fixed calculation
@@ -21,10 +22,13 @@ const Cart = ({ items, removeItem, isOpen, onClose, addToCartPlus }) => {
         <>
           {/* Overlay with blur effect */}
           <motion.div
-            initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-            animate={{ opacity: 1, backdropFilter: 'blur(5px)' }}
-            exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-            transition={{ duration: 0.3 }}
+            initial={{ opacity: 0, backdropFilter: safeBlur(0) }}
+            animate={{ opacity: 1, backdropFilter: safeBlur(5) }}
+            exit={{ opacity: 0, backdropFilter: safeBlur(0) }}
+            transition={{ 
+              duration: 0.3,
+              backdropFilter: safeFilterTransition() // Use our helper for safe transitions
+            }}
             className="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm"
             onClick={onClose}
           />

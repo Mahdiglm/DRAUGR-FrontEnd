@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProductCard from './ProductCard';
+import { safeBlur, safeFilterTransition } from '../../utils/animationHelpers';
 
 const FeaturedProductSlider = ({ products, onAddToCart }) => {
   const [activeGroup, setActiveGroup] = useState(0);
@@ -110,7 +111,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
         foreground: {
           opacity: 1,
           scale: 1,
-          filter: "blur(0px)",
+          filter: safeBlur(0), // Using our safe blur helper
           y: 0,
           zIndex: 20,
           transition: {
@@ -118,17 +119,19 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
             stiffness: 300,
             damping: 25,
             mass: 1.2,
-            duration: 0.5  // Faster transition
+            duration: 0.5,  // Faster transition
+            filter: safeFilterTransition()
           }
         },
         background: {
           opacity: 0.4,  // Improved opacity
           scale: 0.95,   // Less scaling for better visibility
-          filter: "blur(1px)", // Reduced blur 
+          filter: safeBlur(1), // Using our safe blur helper
           y: 20,         // Less vertical offset
           zIndex: 10,
           transition: {
-            duration: 0.5  // Faster transition
+            duration: 0.5,  // Faster transition
+            filter: safeFilterTransition()
           }
         }
       };
@@ -140,7 +143,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
         x: position === 'left' ? '-5%' : '5%',
         opacity: 1,
         scale: 1,
-        filter: "blur(0px)",
+        filter: safeBlur(0), // Using our safe blur helper
         rotateY: 0,
         zIndex: 20,
         transition: {
@@ -148,18 +151,20 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           stiffness: 300,
           damping: 25,
           mass: 1,      // Lower mass for faster animations
-          duration: 0.5  // Faster transition
+          duration: 0.5,  // Faster transition
+          filter: safeFilterTransition()
         }
       },
       background: {
         x: position === 'left' ? '-40%' : '40%',  // Less extreme positions
         opacity: 0.5,                            // Improved opacity
         scale: 0.9,                              // Less scaling down
-        filter: "blur(1px)",                      // Reduced blur
+        filter: safeBlur(1), // Using our safe blur helper
         rotateY: position === 'left' ? 5 : -5,    // Less rotation
         zIndex: 10,
         transition: {
-          duration: 0.5                           // Faster transition
+          duration: 0.5,  // Faster transition
+          filter: safeFilterTransition()
         }
       }
     };

@@ -5,6 +5,7 @@ import { useOutletContext, Link } from 'react-router-dom';
 import ProductList from '../product/ProductList';
 import FeaturedProductSlider from '../product/FeaturedProductSlider';
 import { products } from '../../utils/mockData';
+import { safeBlur, safeFilterTransition } from '../../utils/animationHelpers';
 // Try with relative path to asset folder
 import heroBackground from '../../assets/Background-Hero.jpg';
 import mainBackground from '../../assets/BackGround-Main.jpg';
@@ -39,27 +40,29 @@ const letterVariants = {
     opacity: 0,
     y: 30,
     rotateX: 70,
-    filter: "blur(8px)",
+    filter: safeBlur(8), // Using our safe blur helper
   },
   visible: (i) => ({
     opacity: 1,
     y: 0,
     rotateX: 0,
-    filter: "blur(0px)",
+    filter: safeBlur(0), // Using our safe blur helper
     transition: {
       type: "spring",
       damping: 10,
       stiffness: 100,
       delay: i * 0.03, // Even faster per-letter delay
+      filter: safeFilterTransition({ duration: 0.3 }) // Use safe filter transition
     },
   }),
   exit: (i) => ({
     opacity: 0,
     x: 50 + (i * 20), // Staggered movement to right
-    filter: "blur(8px)",
+    filter: safeBlur(8), // Using our safe blur helper
     transition: {
       duration: 0.4, 
       delay: i * 0.03, // Staggered exit
+      filter: safeFilterTransition() // Use safe filter transition
     },
   }),
 };
