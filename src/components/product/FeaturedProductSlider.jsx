@@ -9,12 +9,11 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
   const [isHovering, setIsHovering] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
-  const [userInteracted, setUserInteracted] = useState(false);
+  const [autoRotationPaused, setAutoRotationPaused] = useState(false);
   
-  const timerRef = useRef(null);
-  const userInteractionTimerRef = useRef(null);
+  const autoRotationIntervalRef = useRef(null);
+  const pauseTimerRef = useRef(null);
   const componentMounted = useRef(true);
-  const autoRotateEnabled = useRef(true); // New ref to track if auto rotation is enabled
   
   // Total number of groups for desktop
   const totalGroups = 4;
@@ -33,47 +32,105 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Function to advance the slider
+  const advanceSlider = () => {
+    if (isMobile) {
+      setActiveIndex(prev => (prev + 1) % totalItemsMobile);
+    } else {
+      setActiveGroup(prev => (prev + 1) % totalGroups);
+    }
+  };
+
+  // Start auto-rotation
+  const startAutoRotation = () => {
+    // Clear any existing interval first
+    stopAutoRotation();
+    
+    // Set up new interval for auto-rotation (every 3 seconds)
+    autoRotationIntervalRef.current = setInterval(() => {
+      if (componentMounted.current && !autoRotationPaused && isVisible) {
+        advanceSlider();
+      }
+    }, 3000);
+  };
+
+  // Stop auto-rotation
+  const stopAutoRotation = () => {
+    if (autoRotationIntervalRef.current) {
+      clearInterval(autoRotationIntervalRef.current);
+      autoRotationIntervalRef.current = null;
+    }
+  };
+
+  // Pause auto-rotation temporarily
+  const pauseAutoRotation = () => {
+    setAutoRotationPaused(true);
+    
+    // Clear any existing pause timer
+    if (pauseTimerRef.current) {
+      clearTimeout(pauseTimerRef.current);
+    }
+    
+    // Set timer to resume after 3 seconds
+    pauseTimerRef.current = setTimeout(() => {
+      if (componentMounted.current) {
+        setAutoRotationPaused(false);
+      }
+    }, 3000);
+  };
+
   // Setup visibility detection to handle tab switching
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.hidden) {
-        setIsVisible(false);
-        if (timerRef.current) {
-          clearTimeout(timerRef.current);
-          timerRef.current = null;
-        }
-      } else {
-        setIsVisible(true);
-        // Reset to first group when becoming visible again
-        setActiveGroup(0);
-      }
+      setIsVisible(!document.hidden);
     };
 
-    // Handle visibility changes (tab switching)
+    // Handle visibility changes
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    // Handle focus/blur events for more reliability
-    window.addEventListener('blur', () => setIsVisible(false));
-    window.addEventListener('focus', () => {
-      setIsVisible(true);
-      setActiveGroup(0);
-    });
     
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('blur', () => setIsVisible(false));
-      window.removeEventListener('focus', () => setIsVisible(true));
-      
-      // Clean up timers when component unmounts
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-      if (userInteractionTimerRef.current) {
-        clearTimeout(userInteractionTimerRef.current);
+    };
+  }, []);
+  
+  // Handle auto-rotation based on visibility and pause state
+  useEffect(() => {
+    if (isVisible && !autoRotationPaused && !isHovering) {
+      startAutoRotation();
+    } else {
+      stopAutoRotation();
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      stopAutoRotation();
+      if (pauseTimerRef.current) {
+        clearTimeout(pauseTimerRef.current);
       }
       componentMounted.current = false;
     };
+  }, [isVisible, autoRotationPaused, isHovering, isMobile]);
+  
+  // Force initial start of auto-rotation after mounting
+  useEffect(() => {
+    // Small delay to ensure everything is ready
+    const initialTimer = setTimeout(() => {
+      if (componentMounted.current) {
+        startAutoRotation();
+      }
+    }, 500);
+    
+    return () => clearTimeout(initialTimer);
   }, []);
+
+  // Handle user interaction with the slider
+  const handleUserInteraction = (action) => {
+    // Execute the requested action
+    action();
+    
+    // Pause auto-rotation temporarily
+    pauseAutoRotation();
+  };
 
   // Ensure we have exactly 8 products
   const firstEightProducts = products && products.length ? products.slice(0, 8) : [];
@@ -91,96 +148,14 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
     [displayProducts[6], displayProducts[7]]
   ];
 
-  // Start auto-rotation timer
-  const startAutoRotateTimer = () => {
-    // Clear any existing timer first
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
-    
-    // Start new timer to rotate slides
-    if (autoRotateEnabled.current && componentMounted.current) {
-      timerRef.current = setTimeout(() => {
-        if (componentMounted.current) {
-          if (isMobile) {
-            setActiveIndex((prev) => (prev + 1) % totalItemsMobile);
-          } else {
-            setActiveGroup((prev) => (prev + 1) % totalGroups);
-          }
-          
-          // Immediately restart timer for next rotation
-          startAutoRotateTimer();
-        }
-      }, 3000);
-    }
-  };
-  
-  // Reset user interaction state after delay
-  const resetUserInteractionAfterDelay = () => {
-    // Clear any existing timer
-    if (userInteractionTimerRef.current) {
-      clearTimeout(userInteractionTimerRef.current);
-    }
-    
-    // Temporarily disable auto-rotation
-    autoRotateEnabled.current = false;
-    
-    // Set a new timer to reset user interaction flag after 3 seconds
-    userInteractionTimerRef.current = setTimeout(() => {
-      if (componentMounted.current) {
-        setUserInteracted(false);
-        autoRotateEnabled.current = true; // Re-enable auto-rotation
-        startAutoRotateTimer(); // Start timer again
-      }
-    }, 3000);
-  };
-
-  // Handle user interaction with slider controls
-  const handleUserInteraction = (action) => {
-    // Mark that user has interacted
-    setUserInteracted(true);
-    
-    // Clear any existing auto-rotation timer
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-    
-    // Perform the requested action
-    action();
-    
-    // Set timer to resume auto-rotation after delay
-    resetUserInteractionAfterDelay();
-  };
-
-  // Auto-rotation effect - only responsible for starting the initial timer
-  useEffect(() => {
-    // Start auto-rotation if conditions are right
-    if (!isHovering && isVisible && !userInteracted && autoRotateEnabled.current) {
-      startAutoRotateTimer();
-    }
-    
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-    };
-  }, [isHovering, isVisible, userInteracted, isMobile, activeGroup, activeIndex]);
-
   // Pause rotation on hover and mark as user interaction
   const handleMouseEnter = () => {
     setIsHovering(true);
-    // Clear any existing auto-rotation timer
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-    setUserInteracted(true);
+    pauseAutoRotation();
   };
   
   const handleMouseLeave = () => {
     setIsHovering(false);
-    resetUserInteractionAfterDelay();
   };
 
   if (!products || products.length === 0) {
@@ -352,18 +327,6 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
       };
     }
   };
-
-  // Force start auto-rotation on initial render  
-  useEffect(() => {
-    // Start auto-rotation immediately after component mounts
-    startAutoRotateTimer();
-    
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-    };
-  }, []);
 
   return (
     <div 
