@@ -367,7 +367,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
         )}
 
         {/* Pagination indicators */}
-        <div className="absolute bottom-[-16px] md:bottom-[-24px] left-0 right-0 mx-auto w-fit flex justify-center items-center space-x-1.5 md:space-x-2 z-30">
+        <div className="absolute bottom-[-16px] md:bottom-[-24px] left-0 right-0 mx-auto w-fit flex justify-center items-center space-x-2 md:space-x-2 z-30">
           {isMobile ? (
             Array.from({ length: totalItemsMobile }).map((_, itemIndex) => (
               <motion.button
