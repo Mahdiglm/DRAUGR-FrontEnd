@@ -379,11 +379,6 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           </div>
         )}
 
-        {/* Debug info - this will show in your browser */}
-        <div className="absolute top-0 left-0 z-50 bg-black/50 text-white text-xs p-1" style={{fontFamily: 'monospace'}}>
-          Auto-rotation: {isPaused ? "Paused" : "Active"} | Resume in: {isPaused ? "3s" : "-"}
-        </div>
-
         {/* Pagination indicators */}
         <div className="absolute bottom-[-24px] md:bottom-[-28px] left-0 right-0 mx-auto z-30">
           {isMobile ? (
