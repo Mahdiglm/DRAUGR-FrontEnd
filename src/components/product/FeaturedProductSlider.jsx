@@ -14,6 +14,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
   const timerRef = useRef(null);
   const userInteractionTimerRef = useRef(null);
   const componentMounted = useRef(true);
+  const autoRotateEnabled = useRef(true); // New ref to track if auto rotation is enabled
   
   // Total number of groups for desktop
   const totalGroups = 4;
@@ -90,6 +91,30 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
     [displayProducts[6], displayProducts[7]]
   ];
 
+  // Start auto-rotation timer
+  const startAutoRotateTimer = () => {
+    // Clear any existing timer first
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    
+    // Start new timer to rotate slides
+    if (autoRotateEnabled.current && componentMounted.current) {
+      timerRef.current = setTimeout(() => {
+        if (componentMounted.current) {
+          if (isMobile) {
+            setActiveIndex((prev) => (prev + 1) % totalItemsMobile);
+          } else {
+            setActiveGroup((prev) => (prev + 1) % totalGroups);
+          }
+          
+          // Immediately restart timer for next rotation
+          startAutoRotateTimer();
+        }
+      }, 3000);
+    }
+  };
+  
   // Reset user interaction state after delay
   const resetUserInteractionAfterDelay = () => {
     // Clear any existing timer
@@ -97,10 +122,15 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
       clearTimeout(userInteractionTimerRef.current);
     }
     
+    // Temporarily disable auto-rotation
+    autoRotateEnabled.current = false;
+    
     // Set a new timer to reset user interaction flag after 3 seconds
     userInteractionTimerRef.current = setTimeout(() => {
       if (componentMounted.current) {
         setUserInteracted(false);
+        autoRotateEnabled.current = true; // Re-enable auto-rotation
+        startAutoRotateTimer(); // Start timer again
       }
     }, 3000);
   };
@@ -113,6 +143,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
     // Clear any existing auto-rotation timer
     if (timerRef.current) {
       clearTimeout(timerRef.current);
+      timerRef.current = null;
     }
     
     // Perform the requested action
@@ -122,37 +153,34 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
     resetUserInteractionAfterDelay();
   };
 
-  // Auto-rotation logic
+  // Auto-rotation effect - only responsible for starting the initial timer
   useEffect(() => {
-    // Don't auto-rotate if user is hovering, page is not visible, or user recently interacted
-    if (isHovering || !isVisible || userInteracted) return;
-    
-    timerRef.current = setTimeout(() => {
-      if (componentMounted.current) {
-        if (isMobile) {
-          setActiveIndex((prev) => (prev + 1) % totalItemsMobile);
-        } else {
-          setActiveGroup((prev) => (prev + 1) % totalGroups);
-        }
-      }
-    }, 3000); // Changed from 5000 to 3000 ms
+    // Start auto-rotation if conditions are right
+    if (!isHovering && isVisible && !userInteracted && autoRotateEnabled.current) {
+      startAutoRotateTimer();
+    }
     
     return () => {
       if (timerRef.current) {
         clearTimeout(timerRef.current);
       }
     };
-  }, [isMobile, activeGroup, activeIndex, isHovering, isVisible, userInteracted]);
+  }, [isHovering, isVisible, userInteracted, isMobile, activeGroup, activeIndex]);
 
   // Pause rotation on hover and mark as user interaction
   const handleMouseEnter = () => {
     setIsHovering(true);
+    // Clear any existing auto-rotation timer
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
     setUserInteracted(true);
-    resetUserInteractionAfterDelay();
   };
   
   const handleMouseLeave = () => {
     setIsHovering(false);
+    resetUserInteractionAfterDelay();
   };
 
   if (!products || products.length === 0) {
@@ -324,6 +352,18 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
       };
     }
   };
+
+  // Force start auto-rotation on initial render  
+  useEffect(() => {
+    // Start auto-rotation immediately after component mounts
+    startAutoRotateTimer();
+    
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div 
