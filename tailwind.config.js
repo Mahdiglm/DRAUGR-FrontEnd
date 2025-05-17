@@ -17,7 +17,6 @@ module.exports = {
         },
         fontFamily: {
           vazirmatn: ['Vazirmatn', 'sans-serif'],
-          cinzel: ['Cinzel', 'serif'],
         },
         textDirection: {
           rtl: 'rtl',
@@ -42,10 +41,6 @@ module.exports = {
           'ash': '#262626', // Slightly lighter dark grey
           'bone': '#e0e0e0', // Off-white
           'fog': 'rgba(255, 255, 255, 0.05)', // Very subtle white
-          
-          // New specific colors for Hero Redesign
-          'bloodRed': '#b30000',
-          'deepBlack': '#0a0a0a',
           
           // New color themes
           'vampire': {
