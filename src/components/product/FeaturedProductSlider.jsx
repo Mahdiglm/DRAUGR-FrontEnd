@@ -6,7 +6,6 @@ import { safeBlur, safeFilterTransition } from '../../utils/animationHelpers';
 const FeaturedProductSlider = ({ products, onAddToCart }) => {
   const [activeGroup, setActiveGroup] = useState(0);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isHovering, setIsHovering] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   
@@ -43,8 +42,8 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
 
   // Auto-rotation
   useEffect(() => {
-    // Don't start interval if paused or hovering
-    if (isHovering || isPaused) {
+    // Don't start interval if paused
+    if (isPaused) {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
@@ -64,7 +63,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
         intervalRef.current = null;
       }
     };
-  }, [isHovering, isPaused, isMobile]);
+  }, [isPaused, isMobile]);
 
   // Ensure auto-rotation starts on initial render
   useEffect(() => {
@@ -125,15 +124,6 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
     [displayProducts[4], displayProducts[5]],
     [displayProducts[6], displayProducts[7]]
   ];
-
-  // Hover handlers
-  const handleMouseEnter = () => {
-    setIsHovering(true);
-  };
-  
-  const handleMouseLeave = () => {
-    setIsHovering(false);
-  };
 
   if (!products || products.length === 0) {
     return <div className="text-center py-8">محصولی برای نمایش وجود ندارد</div>;
@@ -306,11 +296,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
   };
 
   return (
-    <div 
-      className="relative w-full py-12 md:py-16 overflow-hidden"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
+    <div className="relative w-full py-12 md:py-16 overflow-hidden">
       {/* Slider container with subtle background */}
       <div className="relative flex flex-col md:flex-row justify-center items-center min-h-[600px] md:min-h-[550px] w-full overflow-visible pt-8">
         {/* Ambient background and shadows */}
@@ -395,7 +381,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
 
         {/* Debug info - this will show in your browser */}
         <div className="absolute top-0 left-0 z-50 bg-black/50 text-white text-xs p-1" style={{fontFamily: 'monospace'}}>
-          Auto-rotation: {isPaused ? "Paused" : "Active"} | Hovering: {isHovering ? "Yes" : "No"} | Resume in: {isPaused ? "3s" : "-"}
+          Auto-rotation: {isPaused ? "Paused" : "Active"} | Resume in: {isPaused ? "3s" : "-"}
         </div>
 
         {/* Pagination indicators */}
