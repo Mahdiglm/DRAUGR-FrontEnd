@@ -397,8 +397,6 @@ const ShopPage = () => {
           </motion.p>
         </motion.div>
         
-        {/* New Mobile Filter Trigger will go here or elsewhere as per design */}
-        
         <div className="flex flex-col md:flex-row">
           
           {/* Filters Sidebar - Desktop */}
@@ -544,9 +542,18 @@ const ShopPage = () => {
               </motion.div>
             )}
             
+            {/* Results Info - Mobile & New Filter Trigger */}
             {currentPage === 1 && (
-              <div className="md:hidden text-center mb-4 text-white">
+              <div className="md:hidden flex justify-between items-center text-center mb-4 text-white">
                 <span>{sortedProducts.length} محصول یافت شد</span>
+                <motion.button
+                  onClick={() => setIsFilterMenuOpen(true)} // Open the new modal
+                  className="p-2 rounded-md bg-draugr-700/50 hover:bg-draugr-600/80 transition-colors shadow-md"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <FilterIcon />
+                </motion.button>
               </div>
             )}
             
@@ -823,6 +830,141 @@ const ShopPage = () => {
           </motion.div>
         </div>
       </div>
+
+      {/* New Full-Screen Mobile Filter Modal */}
+      <AnimatePresence>
+        {isFilterMenuOpen && (
+          <motion.div
+            key="mobile-filter-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 bg-draugr-900/80 backdrop-blur-sm z-[70] md:hidden flex items-center justify-center p-4"
+            onClick={() => setIsFilterMenuOpen(false)} // Close on overlay click
+          >
+            <motion.div
+              key="mobile-filter-panel"
+              initial={{ y: "100vh", opacity: 0.8 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: "100vh", opacity: 0.8 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30, duration: 0.4 }}
+              className="bg-draugr-deepcharcoal w-full max-w-md max-h-[90vh] rounded-xl shadow-2xl overflow-hidden flex flex-col relative border border-draugr-700/70"
+              onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside panel
+            >
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-5 border-b border-draugr-700">
+                <h3 className="text-xl font-bold text-white filter-title tracking-wider">فیلتر و مرتب‌سازی</h3>
+                <motion.button
+                  onClick={() => setIsFilterMenuOpen(false)}
+                  className="text-gray-400 hover:text-draugr-300 p-1.5 rounded-full transition-colors"
+                  whileHover={{ scale: 1.2, rotate: 90, color: '#ef4444' }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </motion.button>
+              </div>
+
+              {/* Modal Content (Scrollable) */}
+              <div className="p-5 space-y-6 overflow-y-auto scrollbar-thin scrollbar-thumb-draugr-600 scrollbar-track-draugr-800/50 flex-grow">
+                {/* Search */}
+                <div>
+                  <h4 className="text-lg font-semibold text-draugr-200 mb-2.5">جستجو در میان گنجینه‌ها</h4>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="نام محصول یا کلمه کلیدی..."
+                      className="w-full bg-draugr-800/70 text-white placeholder-gray-500 py-3 px-4 pr-10 rounded-lg border border-draugr-700 focus:outline-none focus:ring-2 focus:ring-draugr-500 focus:border-draugr-500 focus:shadow-[0_0_15px_rgba(239,35,60,0.3)] transition-all duration-150"
+                    />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                      <SearchIcon />
+                    </span>
+                  </div>
+                </div>
+
+                {/* Categories */}
+                <div>
+                  <h4 className="text-lg font-semibold text-draugr-200 mb-2.5">دسته‌بندی‌های مرموز</h4>
+                  <div className="space-y-2.5 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-draugr-600 scrollbar-track-draugr-800/50 pr-1.5">
+                    {expandedCategories.map(category => (
+                      <motion.label
+                        key={category.id}
+                        htmlFor={`modal-category-${category.slug}`}
+                        className={`flex items-center justify-between w-full p-3.5 rounded-lg cursor-pointer transition-all duration-200 ease-in-out border ${
+                          selectedCategories.includes(category.slug)
+                            ? 'bg-draugr-600/80 text-white border-draugr-500 shadow-[0_0_10px_rgba(239,35,60,0.3)]'
+                            : 'bg-draugr-800/60 text-gray-300 border-draugr-700/80 hover:bg-draugr-700/70 hover:border-draugr-600'
+                        }`}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <span className="font-medium">{category.name}</span>
+                        <input
+                          type="checkbox"
+                          id={`modal-category-${category.slug}`}
+                          checked={selectedCategories.includes(category.slug)}
+                          onChange={() => toggleCategory(category.slug)}
+                          className="hidden"
+                        />
+                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
+                          selectedCategories.includes(category.slug) 
+                          ? 'bg-draugr-500 border-draugr-400' 
+                          : 'border-gray-500 group-hover:border-draugr-500'
+                        }`}>
+                          {selectedCategories.includes(category.slug) && (
+                            <motion.svg initial={{scale:0}} animate={{scale:1}} transition={{duration:0.15}} className="w-3 h-3 text-white" fill="none" viewBox="0 0 12 12">
+                              <path d="M1 6.5L4.5 10L11 1.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </motion.svg>
+                          )}
+                        </div>
+                      </motion.label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Sort By */}
+                <div>
+                  <h4 className="text-lg font-semibold text-draugr-200 mb-2.5">مرتب‌سازی بر اساس</h4>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="w-full bg-draugr-800/70 text-white py-3 px-4 rounded-lg border border-draugr-700 focus:outline-none focus:ring-2 focus:ring-draugr-500 focus:border-draugr-500 focus:shadow-[0_0_15px_rgba(239,35,60,0.3)] transition-all duration-150 appearance-none bg-no-repeat bg-right-3"
+                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`, backgroundPosition: 'right 0.75rem center', backgroundSize: '1.5em 1.5em'}}
+                  >
+                    <option value="newest" className="bg-draugr-800 text-white">جدیدترین</option>
+                    <option value="price-low" className="bg-draugr-800 text-white">ارزان‌ترین</option>
+                    <option value="price-high" className="bg-draugr-800 text-white">گران‌ترین</option>
+                    <option value="name" className="bg-draugr-800 text-white">بر اساس نام</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Modal Footer Actions */}
+              <div className="p-4 border-t border-draugr-700 flex items-center space-x-3 space-x-reverse bg-draugr-deepcharcoal/80">
+                <motion.button
+                  onClick={resetFilters}
+                  className="flex-1 bg-draugr-700/80 hover:bg-draugr-600/90 text-draugr-200 hover:text-white font-medium py-3 px-4 rounded-lg border border-draugr-600/70 transition-all duration-150 shadow-sm"
+                  whileHover={{ scale: 1.02, borderColor: 'rgba(239,35,60,0.4)' }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  پاک کردن همه
+                </motion.button>
+                <motion.button
+                  onClick={() => setIsFilterMenuOpen(false)}
+                  className="flex-1 bg-draugr-500 hover:bg-draugr-400 text-white font-semibold py-3 px-4 rounded-lg border border-draugr-400/80 transition-all duration-150 shadow-md hover:shadow-lg_draugr"
+                  whileHover={{ scale: 1.02, boxShadow: "0 0 15px rgba(239,35,60,0.5)" }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  نمایش نتایج
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.section>
   );
 };
