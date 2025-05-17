@@ -367,17 +367,18 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
         )}
 
         {/* Pagination indicators */}
-        <div className="absolute bottom-[-16px] md:bottom-[-24px] left-0 right-0 mx-auto w-fit flex justify-center items-center space-x-2 md:space-x-2 z-30">
+        <div className="absolute bottom-[-16px] md:bottom-[-20px] left-0 right-0 mx-auto w-fit flex justify-center items-center space-x-1 md:space-x-2 z-30">
+          {/* Mobile: space-x-1 (4px). Desktop: md:space-x-2 (8px) */}
           {isMobile ? (
             Array.from({ length: totalItemsMobile }).map((_, itemIndex) => (
               <motion.button
                 key={`mobile-pagination-${itemIndex}`}
-                className="w-2 h-2 mx-0.5 rounded-full focus:outline-none"
+                className="w-1.5 h-1.5 rounded-full focus:outline-none" // Tiny dots for mobile, no individual margin
                 animate={{
-                  backgroundColor: activeIndex === itemIndex ? "#ff0000" : "#6b7280", // Draugr red and gray
-                  scale: activeIndex === itemIndex ? 1.2 : 1,
+                  backgroundColor: activeIndex === itemIndex ? "#ff0000" : "#4b5563", // Draugr red and darker gray for better contrast
+                  scale: activeIndex === itemIndex ? 1.5 : 1, // Active dot is larger
                 }}
-                whileHover={{ scale: 1.4 }}
+                whileHover={{ scale: activeIndex === itemIndex ? 1.7 : 1.5 }} // Slightly larger hover for all
                 whileTap={{ scale: 0.9 }}
                 onClick={() => {
                   if (timerRef.current) clearTimeout(timerRef.current);
@@ -389,14 +390,16 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
             Array.from({ length: totalGroups }).map((_, groupIndex) => (
               <motion.button
                 key={`desktop-pagination-${groupIndex}`}
-                className="w-5 h-1.5 mx-1 rounded-full bg-gray-300 dark:bg-gray-600 focus:outline-none"
+                className="h-1.5 rounded-full bg-gray-300 dark:bg-gray-600 focus:outline-none" // No individual mx, base width set by animation
                 animate={{
                   backgroundColor: activeGroup === groupIndex ? "#ff0000" : "#333333",
                   opacity: activeGroup === groupIndex ? 1 : 0.5,
-                  scale: activeGroup === groupIndex ? 1.1 : 1,
-                  width: activeGroup === groupIndex ? 20 : 12
+                  width: activeGroup === groupIndex ? '1.25rem' : '0.75rem' // 20px (w-5) active, 12px (w-3) inactive
                 }}
-                whileHover={{ scale: 1.2 }}
+                whileHover={{ 
+                  width: activeGroup === groupIndex ? '1.375rem' : '0.875rem', // Slightly wider on hover
+                  opacity: 1 
+                }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => {
                   if (timerRef.current) clearTimeout(timerRef.current);
