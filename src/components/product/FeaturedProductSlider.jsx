@@ -9,8 +9,12 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
   const [isHovering, setIsHovering] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
+  const [userInteracted, setUserInteracted] = useState(false);
+  
   const timerRef = useRef(null);
+  const userInteractionTimerRef = useRef(null);
   const componentMounted = useRef(true);
+  
   // Total number of groups for desktop
   const totalGroups = 4;
   // Total number of items for mobile
@@ -59,9 +63,12 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
       window.removeEventListener('blur', () => setIsVisible(false));
       window.removeEventListener('focus', () => setIsVisible(true));
       
-      // Clean up the timer when component unmounts
+      // Clean up timers when component unmounts
       if (timerRef.current) {
         clearTimeout(timerRef.current);
+      }
+      if (userInteractionTimerRef.current) {
+        clearTimeout(userInteractionTimerRef.current);
       }
       componentMounted.current = false;
     };
@@ -83,9 +90,42 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
     [displayProducts[6], displayProducts[7]]
   ];
 
+  // Reset user interaction state after delay
+  const resetUserInteractionAfterDelay = () => {
+    // Clear any existing timer
+    if (userInteractionTimerRef.current) {
+      clearTimeout(userInteractionTimerRef.current);
+    }
+    
+    // Set a new timer to reset user interaction flag after 3 seconds
+    userInteractionTimerRef.current = setTimeout(() => {
+      if (componentMounted.current) {
+        setUserInteracted(false);
+      }
+    }, 3000);
+  };
+
+  // Handle user interaction with slider controls
+  const handleUserInteraction = (action) => {
+    // Mark that user has interacted
+    setUserInteracted(true);
+    
+    // Clear any existing auto-rotation timer
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    
+    // Perform the requested action
+    action();
+    
+    // Set timer to resume auto-rotation after delay
+    resetUserInteractionAfterDelay();
+  };
+
   // Auto-rotation logic
   useEffect(() => {
-    if (isHovering || !isVisible) return;
+    // Don't auto-rotate if user is hovering, page is not visible, or user recently interacted
+    if (isHovering || !isVisible || userInteracted) return;
     
     timerRef.current = setTimeout(() => {
       if (componentMounted.current) {
@@ -95,18 +135,25 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           setActiveGroup((prev) => (prev + 1) % totalGroups);
         }
       }
-    }, 5000);
+    }, 3000); // Changed from 5000 to 3000 ms
     
     return () => {
       if (timerRef.current) {
         clearTimeout(timerRef.current);
       }
     };
-  }, [isMobile, activeGroup, activeIndex, isHovering, isVisible]);
+  }, [isMobile, activeGroup, activeIndex, isHovering, isVisible, userInteracted]);
 
-  // Pause rotation on hover
-  const handleMouseEnter = () => setIsHovering(true);
-  const handleMouseLeave = () => setIsHovering(false);
+  // Pause rotation on hover and mark as user interaction
+  const handleMouseEnter = () => {
+    setIsHovering(true);
+    setUserInteracted(true);
+    resetUserInteractionAfterDelay();
+  };
+  
+  const handleMouseLeave = () => {
+    setIsHovering(false);
+  };
 
   if (!products || products.length === 0) {
     return <div className="text-center py-8">محصولی برای نمایش وجود ندارد</div>;
@@ -386,10 +433,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
                   }}
                   whileHover={{ scale: 1.2 }}
                   whileTap={{ scale: 0.9 }}
-                  onClick={() => {
-                    if (timerRef.current) clearTimeout(timerRef.current);
-                    setActiveIndex(itemIndex);
-                  }}
+                  onClick={() => handleUserInteraction(() => setActiveIndex(itemIndex))}
                 >
                   <motion.div
                     className="rounded-full"
@@ -423,10 +467,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
                   className="mx-2 focus:outline-none"
                   whileHover={{ scale: 1.15 }}
                   whileTap={{ scale: 0.9 }}
-                  onClick={() => {
-                    if (timerRef.current) clearTimeout(timerRef.current);
-                    setActiveGroup(groupIndex);
-                  }}
+                  onClick={() => handleUserInteraction(() => setActiveGroup(groupIndex))}
                 >
                   <motion.div
                     className="rounded-full"
@@ -468,14 +509,13 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
             scale: 0.95,
             transition: { type: "spring", stiffness: 400, damping: 17 }
           }}
-          onClick={() => {
-            if (timerRef.current) clearTimeout(timerRef.current);
+          onClick={() => handleUserInteraction(() => {
             if (isMobile) {
               setActiveIndex((prev) => (prev - 1 + totalItemsMobile) % totalItemsMobile);
             } else {
               setActiveGroup((prev) => (prev - 1 + totalGroups) % totalGroups);
             }
-          }}
+          })}
         >
           <motion.div className="relative w-full h-full flex items-center justify-center">
             <motion.span 
@@ -506,14 +546,13 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
             scale: 0.95,
             transition: { type: "spring", stiffness: 400, damping: 17 }
           }}
-          onClick={() => {
-            if (timerRef.current) clearTimeout(timerRef.current);
+          onClick={() => handleUserInteraction(() => {
             if (isMobile) {
               setActiveIndex((prev) => (prev + 1) % totalItemsMobile);
             } else {
               setActiveGroup((prev) => (prev + 1) % totalGroups);
             }
-          }}
+          })}
         >
           <motion.div className="relative w-full h-full flex items-center justify-center">
             <motion.span 
