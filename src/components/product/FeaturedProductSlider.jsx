@@ -367,47 +367,86 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
         )}
 
         {/* Pagination indicators */}
-        <div className="absolute bottom-[-16px] md:bottom-[-20px] left-0 right-0 mx-auto w-fit flex justify-center items-center space-x-2 z-30">
+        <div className="absolute bottom-[-24px] md:bottom-[-28px] left-0 right-0 mx-auto z-30">
           {isMobile ? (
-            // Minimalist mobile pagination - moderately sized dots in a compact row
-            <div className="flex items-center justify-center h-6 bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm">
+            // Mobile pagination with improved styling
+            <motion.div 
+              className="inline-flex items-center justify-center h-7 bg-black/50 px-4 py-1.5 rounded-full backdrop-blur-md border border-gray-800/30 shadow-lg"
+              initial={{ y: 10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
               {Array.from({ length: totalItemsMobile }).map((_, itemIndex) => (
                 <motion.div
                   key={`mobile-pagination-${itemIndex}`}
-                  className={`w-2.5 h-2.5 rounded-full ${activeIndex === itemIndex ? 'bg-draugr-500' : 'bg-gray-400'}`}
+                  className="mx-1.5 cursor-pointer"
                   initial={{ scale: 1 }}
                   animate={{ 
-                    scale: activeIndex === itemIndex ? 1.4 : 1,
-                    opacity: activeIndex === itemIndex ? 1 : 0.6
+                    scale: activeIndex === itemIndex ? 1 : 1,
                   }}
+                  whileHover={{ scale: 1.2 }}
+                  whileTap={{ scale: 0.9 }}
                   onClick={() => {
                     if (timerRef.current) clearTimeout(timerRef.current);
                     setActiveIndex(itemIndex);
                   }}
-                  style={{ margin: '0 3px', cursor: 'pointer' }}
-                />
+                >
+                  <motion.div
+                    className="rounded-full"
+                    animate={{ 
+                      width: activeIndex === itemIndex ? '14px' : '6px',
+                      height: activeIndex === itemIndex ? '6px' : '6px',
+                      backgroundColor: activeIndex === itemIndex ? "#ff3c3c" : "#9a9a9a",
+                      boxShadow: activeIndex === itemIndex ? "0 0 8px rgba(255, 60, 60, 0.6)" : "none"
+                    }}
+                    transition={{ 
+                      duration: 0.3, 
+                      ease: "easeInOut",
+                      layout: true
+                    }}
+                    layoutId={`mobile-indicator-${itemIndex}`}
+                  />
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           ) : (
-            // Desktop pagination - wider indicators
-            Array.from({ length: totalGroups }).map((_, groupIndex) => (
-              <motion.button
-                key={`desktop-pagination-${groupIndex}`}
-                className="w-5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600 focus:outline-none" // Removed mx-1
-                animate={{
-                  backgroundColor: activeGroup === groupIndex ? "#ff0000" : "#333333",
-                  opacity: activeGroup === groupIndex ? 1 : 0.5,
-                  scale: activeGroup === groupIndex ? 1.1 : 1,
-                  width: activeGroup === groupIndex ? 20 : 12
-                }}
-                whileHover={{ scale: 1.2 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                  if (timerRef.current) clearTimeout(timerRef.current);
-                  setActiveGroup(groupIndex);
-                }}
-              />
-            ))
+            // Desktop pagination with container and improved styling
+            <motion.div 
+              className="inline-flex items-center justify-center h-7 bg-black/40 px-5 py-1.5 rounded-full backdrop-blur-md border border-gray-800/20 shadow-lg"
+              initial={{ y: 10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              {Array.from({ length: totalGroups }).map((_, groupIndex) => (
+                <motion.button
+                  key={`desktop-pagination-${groupIndex}`}
+                  className="mx-2 focus:outline-none"
+                  whileHover={{ scale: 1.15 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => {
+                    if (timerRef.current) clearTimeout(timerRef.current);
+                    setActiveGroup(groupIndex);
+                  }}
+                >
+                  <motion.div
+                    className="rounded-full"
+                    animate={{
+                      width: activeGroup === groupIndex ? '24px' : '10px',
+                      height: activeGroup === groupIndex ? '6px' : '6px',
+                      backgroundColor: activeGroup === groupIndex ? "#ff3c3c" : "#6a6a6a",
+                      opacity: activeGroup === groupIndex ? 1 : 0.6,
+                      boxShadow: activeGroup === groupIndex ? "0 0 10px rgba(255, 60, 60, 0.5)" : "none"
+                    }}
+                    transition={{ 
+                      duration: 0.4, 
+                      ease: [0.25, 0.1, 0.25, 1.0],
+                      layout: true 
+                    }}
+                    layoutId={`desktop-indicator-${groupIndex}`}
+                  />
+                </motion.button>
+              ))}
+            </motion.div>
           )}
         </div>
         
