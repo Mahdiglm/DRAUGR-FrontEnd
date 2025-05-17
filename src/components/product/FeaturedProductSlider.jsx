@@ -12,6 +12,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
   
   // References
   const intervalRef = useRef(null);
+  const resumeTimerRef = useRef(null);
   const componentMounted = useRef(true);
   
   // Total number of groups for desktop
@@ -78,17 +79,32 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
     return () => {
       clearTimeout(initialTimer);
       componentMounted.current = false;
+      
+      // Clear resume timer if it exists
+      if (resumeTimerRef.current) {
+        clearTimeout(resumeTimerRef.current);
+      }
     };
   }, []);
 
   // Handle user interaction
   const handleUserInteraction = (action) => {
+    // Clear any existing resume timer
+    if (resumeTimerRef.current) {
+      clearTimeout(resumeTimerRef.current);
+      resumeTimerRef.current = null;
+    }
+    
+    // Pause rotation
     setIsPaused(true);
+    
+    // Execute the requested action
     action();
     
-    // Resume auto-rotation after delay
-    setTimeout(() => {
+    // Set timer to resume auto-rotation after delay
+    resumeTimerRef.current = setTimeout(() => {
       if (componentMounted.current) {
+        console.log("Resuming auto-rotation");
         setIsPaused(false);
       }
     }, 3000);
@@ -379,7 +395,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
 
         {/* Debug info - this will show in your browser */}
         <div className="absolute top-0 left-0 z-50 bg-black/50 text-white text-xs p-1" style={{fontFamily: 'monospace'}}>
-          Auto-rotation: {isPaused ? "Paused" : "Active"} | Hovering: {isHovering ? "Yes" : "No"}
+          Auto-rotation: {isPaused ? "Paused" : "Active"} | Hovering: {isHovering ? "Yes" : "No"} | Resume in: {isPaused ? "3s" : "-"}
         </div>
 
         {/* Pagination indicators */}
