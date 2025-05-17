@@ -367,24 +367,24 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
         )}
 
         {/* Pagination indicators */}
-        <div className="absolute bottom-[-12px] md:bottom-[-24px] left-0 right-0 mx-auto w-fit flex justify-center items-center space-x-1 md:space-x-2 z-30">
+        <div className="absolute bottom-[-16px] md:bottom-[-20px] left-0 right-0 mx-auto w-fit flex justify-center items-center space-x-2 z-30">
           {isMobile ? (
-            // Minimalist mobile pagination - tiny dots in a compact row
-            <div className="flex items-center justify-center h-4 bg-black/30 px-2 py-0.5 rounded-full backdrop-blur-sm">
+            // Minimalist mobile pagination - moderately sized dots in a compact row
+            <div className="flex items-center justify-center h-6 bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm">
               {Array.from({ length: totalItemsMobile }).map((_, itemIndex) => (
                 <motion.div
                   key={`mobile-pagination-${itemIndex}`}
-                  className={`w-1 h-1 rounded-full ${activeIndex === itemIndex ? 'bg-draugr-500' : 'bg-gray-400'}`}
+                  className={`w-2.5 h-2.5 rounded-full ${activeIndex === itemIndex ? 'bg-draugr-500' : 'bg-gray-400'}`}
                   initial={{ scale: 1 }}
                   animate={{ 
-                    scale: activeIndex === itemIndex ? 1.3 : 1,
-                    opacity: activeIndex === itemIndex ? 1 : 0.5
+                    scale: activeIndex === itemIndex ? 1.4 : 1,
+                    opacity: activeIndex === itemIndex ? 1 : 0.6
                   }}
                   onClick={() => {
                     if (timerRef.current) clearTimeout(timerRef.current);
                     setActiveIndex(itemIndex);
                   }}
-                  style={{ margin: '0 2px', cursor: 'pointer' }}
+                  style={{ margin: '0 3px', cursor: 'pointer' }}
                 />
               ))}
             </div>
