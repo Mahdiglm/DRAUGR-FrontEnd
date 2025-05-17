@@ -15,8 +15,9 @@ const enhancedStyles = `
     box-shadow: 
       0 10px 30px -10px rgba(0, 0, 0, 0.9),
       0 0 10px 2px rgba(154, 36, 50, 0.3),
-      inset 0 0 15px rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(154, 36, 50, 0.3);
+      inset 0 0 15px rgba(0, 0, 0, 0.5),
+      inset 0 0 10px rgba(239, 35, 60, 0.2); /* Added inner red glow */
+    border: 1px solid rgba(154, 36, 50, 0.4); /* Darker border */
     position: relative;
     overflow: hidden;
   }
@@ -436,16 +437,16 @@ const ShopPage = () => {
                     
                     <div className="space-y-6">
                       <div>
-                        <h4 className="text-lg font-medium text-white mb-2 filter-title">جستجو</h4>
+                        <h4 className="text-lg font-medium text-white mb-3 filter-title">جستجو</h4>
                         <div className="relative">
                           <input
                             type="text"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             placeholder="جستجوی محصولات..."
-                            className="w-full bg-ash bg-opacity-70 text-white py-2 px-3 pr-10 rounded-md focus:outline-none focus:ring-1 focus:ring-draugr-500"
+                            className="w-full bg-draugr-900/80 text-white placeholder-gray-500 py-2.5 px-4 pr-10 rounded-md focus:outline-none focus:ring-2 focus:ring-draugr-500 focus:border-draugr-500 focus:shadow-[0_0_15px_rgba(239,35,60,0.4)] transition-all"
                           />
-                          <span className="absolute left-3 top-2.5 text-gray-400">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                             <SearchIcon />
                           </span>
                         </div>
@@ -454,8 +455,8 @@ const ShopPage = () => {
                       <div className="horror-divider"></div>
                       
                       <div>
-                        <h4 className="text-lg font-medium text-white mb-2 filter-title">دسته‌بندی‌ها</h4>
-                        <div className="space-y-1 max-h-48 overflow-y-auto scrollbar-hide">
+                        <h4 className="text-lg font-medium text-white mb-3 filter-title">دسته‌بندی‌ها</h4>
+                        <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-hide pr-1">
                           {expandedCategories.map(category => (
                             <div key={category.id} className="flex items-center">
                               <input
@@ -465,16 +466,18 @@ const ShopPage = () => {
                                 onChange={() => toggleCategory(category.slug)}
                                 className="hidden"
                               />
-                              <label
+                              <motion.label
                                 htmlFor={`mobile-category-${category.slug}`}
-                                className={`block w-full px-3 py-2 rounded-md cursor-pointer transition-all ${
+                                className={`block w-full px-3.5 py-2.5 rounded-md cursor-pointer transition-all duration-200 ease-in-out ${
                                   selectedCategories.includes(category.slug)
-                                    ? 'bg-draugr-800 text-white shadow-[0_0_10px_rgba(239,35,60,0.2)]'
-                                    : 'text-gray-300 hover:bg-ash hover:bg-opacity-50'
+                                    ? 'bg-draugr-600 text-white shadow-[inset_0_1px_3px_rgba(0,0,0,0.5),_0_0_8px_rgba(239,35,60,0.4)] border-l-2 border-draugr-400'
+                                    : 'text-gray-300 hover:bg-draugr-800/70 hover:text-gray-100'
                                 }`}
+                                whileHover={{ x: selectedCategories.includes(category.slug) ? 0 : 3 }}
+                                whileTap={{ scale: 0.97 }}
                               >
                                 {category.name}
-                              </label>
+                              </motion.label>
                             </div>
                           ))}
                         </div>
@@ -483,11 +486,11 @@ const ShopPage = () => {
                       <div className="horror-divider"></div>
                       
                       <div>
-                        <h4 className="text-lg font-medium text-white mb-2 filter-title">مرتب‌سازی</h4>
+                        <h4 className="text-lg font-medium text-white mb-3 filter-title">مرتب‌سازی</h4>
                         <select
                           value={sortBy}
                           onChange={(e) => setSortBy(e.target.value)}
-                          className="w-full bg-ash bg-opacity-70 text-white py-2 px-3 rounded-md focus:outline-none focus:ring-1 focus:ring-draugr-500"
+                          className="w-full bg-draugr-900/80 text-white py-2.5 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-draugr-500 focus:border-draugr-500 focus:shadow-[0_0_15px_rgba(239,35,60,0.4)] transition-all"
                         >
                           <option value="newest">جدیدترین</option>
                           <option value="price-low">ارزان‌ترین</option>
@@ -498,12 +501,12 @@ const ShopPage = () => {
                       
                       <div className="horror-divider"></div>
                       
-                      <div className="pt-2">
+                      <div className="pt-3">
                         <motion.button
                           onClick={resetFilters}
-                          className="w-full bg-vampire-dark text-white py-2 px-4 rounded-md border border-draugr-700 hover:bg-vampire-primary transition-all hover:shadow-[0_0_15px_rgba(239,35,60,0.4)]"
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
+                          className="w-full bg-draugr-600 hover:bg-draugr-500 text-white font-semibold py-2.5 px-4 rounded-lg border border-draugr-500 shadow-lg transition-all duration-200 ease-in-out"
+                          whileHover={{ scale: 1.03, boxShadow: "0 0 20px rgba(239,35,60,0.6)" }}
+                          whileTap={{ scale: 0.97 }}
                         >
                           پاک کردن فیلترها
                         </motion.button>
