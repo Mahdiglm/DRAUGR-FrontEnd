@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
 
-import ProductList from '../product/ProductList';
 import ProductCard from '../product/ProductCard';
 import { products, categories } from '../../utils/mockData';
 
@@ -133,6 +132,31 @@ const expandedCategories = [
   { id: 8, name: "گیاهان", slug: "herbs" }
 ];
 
+// Animation variants for product grid
+const productContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.07,
+      delayChildren: 0.1,
+    }
+  }
+};
+
+const productItemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      type: 'spring',
+      stiffness: 120,
+      damping: 14
+    }
+  }
+};
+
 const ShopPage = () => {
   const { addToCart } = useOutletContext();
   
@@ -177,6 +201,7 @@ const ShopPage = () => {
     setSearchTerm('');
     setSelectedCategories([]);
     setSortBy('newest');
+    setCurrentPage(1); // Reset to first page
   };
   
   // Toggle category selection
@@ -186,6 +211,7 @@ const ShopPage = () => {
     } else {
       setSelectedCategories([...selectedCategories, categorySlug]);
     }
+    setCurrentPage(1); // Reset to first page when filters change
   };
   
   // Generate mist animation in the background
@@ -219,27 +245,19 @@ const ShopPage = () => {
   const handlePageChange = (page) => {
     setCurrentPage(page);
     
-    // Enhanced scroll to top on page change with multiple methods for better browser compatibility
-    // First set scroll behavior to auto for immediate response
+    // Enhanced scroll to top on page change
     document.documentElement.style.scrollBehavior = 'auto';
-    
-    // Use multiple scroll methods for better browser compatibility
     window.scrollTo(0, 0);
-    document.body.scrollTop = 0; // For Safari
-    document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+    document.body.scrollTop = 0; 
+    document.documentElement.scrollTop = 0; 
     
-    // Add a small timeout to ensure it works after content changes
     setTimeout(() => {
-      window.scrollTo({
-        top: 0,
-        behavior: 'auto'
-      });
-      // Reset scroll behavior to smooth after scrolling
+      window.scrollTo({ top: 0, behavior: 'auto' });
       document.documentElement.style.scrollBehavior = 'smooth';
     }, 50);
   };
   
-  // Render development page content with cool styling
+  // Render development page content
   const renderDevelopmentPage = () => {
     return (
       <motion.div
@@ -345,17 +363,12 @@ const ShopPage = () => {
         backgroundAttachment: 'fixed'
       }}
     >
-      {/* Custom styles */}
       <style dangerouslySetInnerHTML={{ __html: enhancedStyles }} />
       
-      {/* Dark overlay for better readability */}
       <div className="absolute inset-0 bg-black bg-opacity-80 z-0"></div>
-      
-      {/* Mist Animation */}
       <MistAnimation />
       
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
-        {/* Page Title */}
         <motion.div
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -373,15 +386,21 @@ const ShopPage = () => {
               ></motion.span>
             </span>
           </h1>
-          <p className="text-gray-300 max-w-2xl mx-auto text-base sm:text-lg">اقلام شگفت‌انگیز ما را کشف کنید، برای ماجراجویی‌های حماسی شما طراحی شده‌اند</p>
+          <motion.p 
+            className="text-gray-300 max-w-2xl mx-auto text-base sm:text-lg"
+            initial={{ opacity:0, y:10}}
+            animate={{opacity:1, y:0}}
+            transition={{delay:0.3, duration:0.6}}
+          >
+            اقلام شگفت‌انگیز ما را کشف کنید، برای ماجراجویی‌های حماسی شما طراحی شده‌اند
+          </motion.p>
         </motion.div>
         
-        {/* Mobile Filter Toggle */}
         <div className="md:hidden flex justify-center mb-6">
           <motion.button
             onClick={() => setIsFilterMenuOpen(!isFilterMenuOpen)}
             className="flex items-center bg-draugr-800 text-white py-2 px-4 rounded-md shadow-horror"
-            whileHover={{ scale: 1.05 }}
+            whileHover={{ scale: 1.05, backgroundColor: 'rgba(239, 35, 60, 0.8)' }}
             whileTap={{ scale: 0.95 }}
           >
             <FilterIcon />
@@ -389,9 +408,7 @@ const ShopPage = () => {
           </motion.button>
         </div>
         
-        {/* Main Content Grid */}
         <div className="flex flex-col md:flex-row">
-          {/* Filters Sidebar - Mobile */}
           <AnimatePresence>
             {isFilterMenuOpen && (
               <motion.div
@@ -415,9 +432,7 @@ const ShopPage = () => {
                       </button>
                     </div>
                     
-                    {/* Mobile Filter Content - Same as desktop */}
                     <div className="space-y-6">
-                      {/* Search */}
                       <div>
                         <h4 className="text-lg font-medium text-white mb-2 filter-title">جستجو</h4>
                         <div className="relative">
@@ -436,7 +451,6 @@ const ShopPage = () => {
                       
                       <div className="horror-divider"></div>
                       
-                      {/* Categories */}
                       <div>
                         <h4 className="text-lg font-medium text-white mb-2 filter-title">دسته‌بندی‌ها</h4>
                         <div className="space-y-1 max-h-48 overflow-y-auto scrollbar-hide">
@@ -466,7 +480,6 @@ const ShopPage = () => {
                       
                       <div className="horror-divider"></div>
                       
-                      {/* Sort By */}
                       <div>
                         <h4 className="text-lg font-medium text-white mb-2 filter-title">مرتب‌سازی</h4>
                         <select
@@ -483,7 +496,6 @@ const ShopPage = () => {
                       
                       <div className="horror-divider"></div>
                       
-                      {/* Reset Filters */}
                       <div className="pt-2">
                         <motion.button
                           onClick={resetFilters}
@@ -502,7 +514,6 @@ const ShopPage = () => {
             )}
           </AnimatePresence>
           
-          {/* Filters Sidebar - Desktop */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -521,7 +532,6 @@ const ShopPage = () => {
                 </motion.h3>
                 
                 <div className="space-y-6">
-                  {/* Search */}
                   <div>
                     <h4 className="text-lg font-medium text-white mb-2 filter-title">جستجو</h4>
                     <div className="relative">
@@ -540,7 +550,6 @@ const ShopPage = () => {
                   
                   <div className="horror-divider"></div>
                   
-                  {/* Categories */}
                   <div>
                     <h4 className="text-lg font-medium text-white mb-2 filter-title">دسته‌بندی‌ها</h4>
                     <motion.div 
@@ -559,12 +568,14 @@ const ShopPage = () => {
                             htmlFor={`category-${category.slug}`}
                             className={`block w-full px-3 py-2 rounded-md cursor-pointer transition-all ${
                               selectedCategories.includes(category.slug)
-                                ? 'bg-draugr-800 text-white shadow-[0_0_10px_rgba(239,35,60,0.2)]'
-                                : 'text-gray-300 hover:bg-ash hover:bg-opacity-50'
+                                ? 'bg-draugr-800 text-white shadow-[0_0_10px_rgba(239,35,60,0.3)] border-l-2 border-draugr-500'
+                                : 'text-gray-300 hover:bg-ash hover:bg-opacity-60 hover:border-l-2 hover:border-draugr-600'
                             }`}
                             whileHover={{ 
-                              x: 3,
-                              transition: { type: "spring", stiffness: 400 }
+                              x: selectedCategories.includes(category.slug) ? 0 : 4,
+                              backgroundColor: selectedCategories.includes(category.slug) ? 'rgba(239, 35, 60, 0.9)' : 'rgba(239, 35, 60, 0.15)',
+                              boxShadow: selectedCategories.includes(category.slug) ? "0 0 12px rgba(239,35,60,0.5)" : "0 0 8px rgba(239,35,60,0.3)",
+                              transition: { duration: 0.15 }
                             }}
                             whileTap={{ scale: 0.98 }}
                           >
@@ -577,7 +588,6 @@ const ShopPage = () => {
                   
                   <div className="horror-divider"></div>
                   
-                  {/* Sort By */}
                   <div>
                     <h4 className="text-lg font-medium text-white mb-2 filter-title">مرتب‌سازی</h4>
                     <select
@@ -594,7 +604,6 @@ const ShopPage = () => {
                   
                   <div className="horror-divider"></div>
                   
-                  {/* Reset Filters */}
                   <div className="pt-2">
                     <motion.button
                       onClick={resetFilters}
@@ -614,16 +623,19 @@ const ShopPage = () => {
             </div>
           </motion.div>
           
-          {/* Products Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
             className="flex-1 md:mr-6 mt-6 md:mt-0"
           >
-            {/* Sort and Results Info - Desktop */}
             {currentPage === 1 && (
-              <div className="hidden md:flex justify-between items-center mb-6 bg-ash bg-opacity-50 p-3 rounded-md">
+              <motion.div 
+                className="hidden md:flex justify-between items-center mb-6 bg-ash bg-opacity-50 p-3 rounded-md shadow-lg border border-draugr-700/30"
+                initial={{opacity:0, y: -10}}
+                animate={{opacity:1, y:0}}
+                transition={{delay:0.5, duration:0.4}}
+              >
                 <div className="text-white">
                   <span>{sortedProducts.length} محصول یافت شد</span>
                 </div>
@@ -641,74 +653,94 @@ const ShopPage = () => {
                     <option value="name">بر اساس نام</option>
                   </select>
                 </div>
-              </div>
+              </motion.div>
             )}
             
-            {/* Results Info - Mobile */}
             {currentPage === 1 && (
               <div className="md:hidden text-center mb-4 text-white">
                 <span>{sortedProducts.length} محصول یافت شد</span>
               </div>
             )}
             
-            {/* Active Filters Display */}
             {currentPage === 1 && (selectedCategories.length > 0 || searchTerm) && (
-              <div className="mb-6 bg-ash bg-opacity-30 p-3 rounded-md">
-                <div className="flex flex-wrap gap-2 rtl">
+              <motion.div 
+                className="mb-6 bg-ash bg-opacity-30 p-3 rounded-md"
+                initial={{opacity:0}}
+                animate={{opacity:1}}
+                transition={{duration:0.3}}
+              >
+                <div className="flex flex-wrap gap-2 rtl items-center">
                   <span className="text-gray-300">فیلترهای فعال:</span>
                   
-                  {selectedCategories.map(categorySlug => {
-                    const categoryName = expandedCategories.find(c => c.slug === categorySlug)?.name;
-                    return (
+                  <AnimatePresence>
+                    {selectedCategories.map(categorySlug => {
+                      const categoryName = expandedCategories.find(c => c.slug === categorySlug)?.name;
+                      return (
+                        <motion.span 
+                          key={categorySlug}
+                          layout
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                          className="inline-flex items-center bg-vampire-primary text-white px-2.5 py-1 rounded-md text-sm shadow-md"
+                          whileHover={{ backgroundColor: "rgba(239, 35, 60, 1)" }}
+                        >
+                          {categoryName}
+                          <motion.button 
+                            onClick={() => toggleCategory(categorySlug)}
+                            className="mr-1.5 text-white hover:text-gray-200"
+                            whileHover={{scale:1.2}}
+                            whileTap={{scale:0.9}}
+                          >
+                            ×
+                          </motion.button>
+                        </motion.span>
+                      );
+                    })}
+                  
+                    {searchTerm && (
                       <motion.span 
-                        key={categorySlug}
-                        className="inline-flex items-center bg-vampire-primary text-white px-2 py-1 rounded-md text-sm"
-                        whileHover={{ scale: 1.05 }}
+                        layout
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        className="inline-flex items-center bg-vampire-primary text-white px-2.5 py-1 rounded-md text-sm shadow-md"
+                        whileHover={{ backgroundColor: "rgba(239, 35, 60, 1)" }}
                       >
-                        {categoryName}
-                        <button 
-                          onClick={() => toggleCategory(categorySlug)}
-                          className="mr-1 text-white"
+                        جستجو: "{searchTerm}"
+                        <motion.button 
+                          onClick={() => setSearchTerm('')}
+                          className="mr-1.5 text-white hover:text-gray-200"
+                          whileHover={{scale:1.2}}
+                          whileTap={{scale:0.9}}
                         >
                           ×
-                        </button>
+                        </motion.button>
                       </motion.span>
-                    );
-                  })}
+                    )}
+                  </AnimatePresence>
                   
-                  {searchTerm && (
-                    <motion.span 
-                      className="inline-flex items-center bg-vampire-primary text-white px-2 py-1 rounded-md text-sm"
-                      whileHover={{ scale: 1.05 }}
+                  {(selectedCategories.length > 0 || searchTerm) && (
+                    <motion.button
+                      onClick={resetFilters}
+                      className="text-gray-400 text-sm hover:text-draugr-300 transition-colors ml-auto px-2 py-1 rounded hover:bg-draugr-700/50"
+                      whileHover={{ scale: 1.05, color: '#ef233c' }}
+                      layout
                     >
-                      جستجو: {searchTerm}
-                      <button 
-                        onClick={() => setSearchTerm('')}
-                        className="mr-1 text-white"
-                      >
-                        ×
-                      </button>
-                    </motion.span>
+                      پاک کردن همه
+                    </motion.button>
                   )}
-                  
-                  <motion.button
-                    onClick={resetFilters}
-                    className="text-gray-300 text-sm hover:text-white"
-                    whileHover={{ scale: 1.05 }}
-                  >
-                    پاک کردن همه
-                  </motion.button>
                 </div>
-              </div>
+              </motion.div>
             )}
             
-            {/* Products Display or Development Page */}
             <AnimatePresence mode="wait">
               {currentPage === 1 ? (
                 <motion.div
-                  key="page-1"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+                  key="page-1-products"
+                  variants={productContainerVariants}
+                  initial="hidden"
+                  animate="visible"
                   exit={{ opacity: 0 }}
                 >
                   {sortedProducts.length === 0 ? (
@@ -717,28 +749,42 @@ const ShopPage = () => {
                       animate={{ opacity: 1 }}
                       className="text-center py-20 bg-ash bg-opacity-30 rounded-lg"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+                      <motion.svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        className="h-20 w-20 mx-auto text-draugr-600 mb-4" 
+                        fill="none" 
+                        viewBox="0 0 24 24" 
+                        stroke="currentColor"
+                        initial={{ scale: 0.5, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ delay: 0.1, type: 'spring', stiffness: 150 }}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9 14h6" />
+                      </motion.svg>
                       <h3 className="text-xl font-bold text-white mb-2">محصولی یافت نشد</h3>
-                      <p className="text-gray-400 mb-4">لطفاً معیارهای جستجوی خود را تغییر دهید</p>
+                      <p className="text-gray-400 mb-4">در دخمه‌های ما چیزی با این مشخصات پیدا نشد!</p>
                       <motion.button
                         onClick={resetFilters}
                         className="bg-draugr-800 text-white py-2 px-6 rounded-md shadow-horror"
-                        whileHover={{ scale: 1.05 }}
+                        whileHover={{ scale: 1.05, backgroundColor: 'rgba(239, 35, 60, 0.8)' }}
                         whileTap={{ scale: 0.95 }}
                       >
                         پاک کردن فیلترها
                       </motion.button>
                     </motion.div>
                   ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-5">
                       {sortedProducts.map(product => (
-                        <ProductCard
-                          key={product.id}
-                          product={product}
-                          onAddToCart={addToCart}
-                        />
+                        <motion.div 
+                          key={product.id} 
+                          variants={productItemVariants}
+                          className="h-full" 
+                        >
+                          <ProductCard
+                            product={product}
+                            onAddToCart={addToCart}
+                          />
+                        </motion.div>
                       ))}
                     </div>
                   )}
@@ -755,7 +801,6 @@ const ShopPage = () => {
               )}
             </AnimatePresence>
             
-            {/* Pagination - Static for demo */}
             {sortedProducts.length > 0 && (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -764,7 +809,6 @@ const ShopPage = () => {
                 className="flex justify-center mt-12"
               >
                 <div className="flex flex-row space-x-3" style={{ direction: 'ltr' }}>
-                  {/* Left Arrow */}
                   <motion.button
                     whileHover={{ 
                       scale: 1.15, 
@@ -791,7 +835,6 @@ const ShopPage = () => {
                     </svg>
                   </motion.button>
                   
-                  {/* Page 1 */}
                   <motion.button
                     whileHover={{ 
                       scale: 1.15, 
@@ -815,7 +858,6 @@ const ShopPage = () => {
                     <span className="text-white relative z-10 font-bold">1</span>
                   </motion.button>
                   
-                  {/* Page 2 */}
                   <motion.button
                     whileHover={{ 
                       scale: 1.15, 
@@ -839,7 +881,6 @@ const ShopPage = () => {
                     <span className="relative z-10">2</span>
                   </motion.button>
                   
-                  {/* Page 3 */}
                   <motion.button
                     whileHover={{ 
                       scale: 1.15, 
@@ -863,7 +904,6 @@ const ShopPage = () => {
                     <span className="relative z-10">3</span>
                   </motion.button>
                   
-                  {/* Right Arrow */}
                   <motion.button
                     whileHover={{ 
                       scale: 1.15, 
