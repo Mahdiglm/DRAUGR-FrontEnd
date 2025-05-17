@@ -452,7 +452,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
         
         {/* Manual navigation buttons */}
         <motion.button 
-          className="absolute left-1 md:left-6 top-1/2 transform -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-full 
+          className="absolute left-3 md:left-10 lg:left-16 top-1/2 transform -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-full 
                     bg-gradient-to-br from-gray-900/90 to-black/80 flex items-center justify-center
                     backdrop-blur-md z-30 text-gray-200 border border-gray-700/50 shadow-[0_0_15px_rgba(0,0,0,0.4)]
                     hover:border-draugr-500/40 group"
@@ -490,7 +490,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           </motion.div>
         </motion.button>
         <motion.button 
-          className="absolute right-1 md:right-6 top-1/2 transform -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-full 
+          className="absolute right-3 md:right-10 lg:right-16 top-1/2 transform -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-full 
                     bg-gradient-to-br from-gray-900/90 to-black/80 flex items-center justify-center
                     backdrop-blur-md z-30 text-gray-200 border border-gray-700/50 shadow-[0_0_15px_rgba(0,0,0,0.4)]
                     hover:border-draugr-500/40 group"
