@@ -414,17 +414,48 @@ const HomePage = () => {
                   مجموعه‌ی ما از آثار افسانه‌ای، سلاح‌ها و تجهیزات را کاوش کنید.
                 </motion.p>
                 <Link to="/shop">
-                  <motion.button
-                    whileHover={{ 
-                      scale: 1.05, 
-                      boxShadow: '0 0 20px rgba(255, 0, 0, 0.7)',
-                      textShadow: '0 0 10px rgba(255, 255, 255, 0.9)'
-                    }}
-                    whileTap={{ scale: 0.95 }}
-                    className="bg-gradient-to-r from-draugr-800 to-draugr-600 text-white font-medium text-sm sm:text-base px-6 sm:px-8 py-2 sm:py-3 rounded-md border border-draugr-500"
-                  >
-                    فروشگاه
-                  </motion.button>
+                  <motion.div className="inline-block relative">
+                    <motion.button
+                      whileHover={{ 
+                        scale: 1.03,
+                      }}
+                      whileTap={{ scale: 0.97 }}
+                      className="group relative overflow-hidden bg-gradient-to-br from-draugr-900 to-draugr-800 
+                                text-red-50 font-medium text-sm sm:text-base 
+                                px-5 sm:px-6 py-2 sm:py-2.5 rounded-md 
+                                border border-red-900/70 shadow-md"
+                    >
+                      {/* Flare effect */}
+                      <motion.span 
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/10 to-transparent"
+                        initial={{ x: '-100%', opacity: 0 }}
+                        whileHover={{ 
+                          x: '100%', 
+                          opacity: 0.5,
+                          transition: { 
+                            duration: 1.2, 
+                            ease: "easeInOut" 
+                          }
+                        }}
+                      />
+                      
+                      {/* Runic accent line */}
+                      <span className="absolute -bottom-0.5 left-0 w-full h-0.5 bg-gradient-to-r from-red-900/70 via-red-600 to-red-900/70 transform origin-left group-hover:scale-x-100 scale-x-0 transition-transform duration-300"></span>
+                      
+                      {/* Button text with subtle glow */}
+                      <span className="relative z-10 inline-flex items-center group-hover:text-white transition-colors duration-300">
+                        فروشگاه
+                      </span>
+                      
+                      {/* Extra glow effect on hover */}
+                      <motion.div 
+                        className="absolute inset-0 pointer-events-none"
+                        whileHover={{
+                          boxShadow: "inset 0 0 8px rgba(239, 68, 68, 0.4)",
+                        }}
+                      />
+                    </motion.button>
+                  </motion.div>
                 </Link>
               </motion.div>
             </div>
