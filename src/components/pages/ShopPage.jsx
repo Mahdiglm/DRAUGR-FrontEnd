@@ -416,7 +416,7 @@ const ShopPage = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -100 }}
                 transition={{ duration: 0.3 }}
-                className="fixed inset-0 bg-black bg-opacity-80 z-50 md:hidden overflow-auto"
+                className="fixed inset-0 bg-black bg-opacity-80 z-50 md:hidden"
               >
                 <div className="sidebar-horror h-full w-4/5 max-w-sm overflow-auto p-5 border-r border-draugr-800">
                   <div className="filter-content">
