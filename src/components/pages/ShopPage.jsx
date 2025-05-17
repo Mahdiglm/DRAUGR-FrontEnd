@@ -416,20 +416,22 @@ const ShopPage = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -100 }}
                 transition={{ duration: 0.3 }}
-                className="fixed inset-0 bg-black bg-opacity-80 z-50 md:hidden"
+                className="fixed inset-0 bg-black bg-opacity-80 z-[60] md:hidden"
               >
                 <div className="sidebar-horror h-full w-4/5 max-w-sm overflow-auto p-5 border-r border-draugr-800">
                   <div className="filter-content">
-                    <div className="flex justify-between items-center mb-4">
+                    <div className="flex justify-between items-center mb-6 pb-2 border-b border-draugr-700/50">
                       <h3 className="text-xl font-bold text-white filter-title">فیلترها</h3>
-                      <button 
+                      <motion.button 
                         onClick={() => setIsFilterMenuOpen(false)}
-                        className="text-white p-1 rounded-full hover:bg-draugr-900"
+                        className="text-white p-2 rounded-full hover:bg-draugr-700/60 transition-colors"
+                        whileHover={{ scale: 1.1, rotate: 90 }}
+                        whileTap={{ scale: 0.9 }}
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
-                      </button>
+                      </motion.button>
                     </div>
                     
                     <div className="space-y-6">
