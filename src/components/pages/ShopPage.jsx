@@ -840,8 +840,8 @@ const ShopPage = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 bg-draugr-900/80 backdrop-blur-sm z-[70] md:hidden flex items-center justify-center p-4"
-            onClick={() => setIsFilterMenuOpen(false)} // Close on overlay click
+            className="fixed inset-0 bg-black/80 backdrop-blur-md z-[70] md:hidden flex items-center justify-center p-4"
+            onClick={() => setIsFilterMenuOpen(false)}
           >
             <motion.div
               key="mobile-filter-panel"
@@ -849,16 +849,16 @@ const ShopPage = () => {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: "100vh", opacity: 0.8 }}
               transition={{ type: "spring", stiffness: 300, damping: 30, duration: 0.4 }}
-              className="bg-draugr-deepcharcoal w-full max-w-md max-h-[90vh] rounded-xl shadow-2xl overflow-hidden flex flex-col relative border border-draugr-700/70"
-              onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside panel
+              className="bg-slate-900 w-full max-w-md max-h-[90vh] rounded-xl shadow-2xl overflow-hidden flex flex-col relative border border-slate-700"
+              onClick={(e) => e.stopPropagation()}
             >
               {/* Modal Header */}
-              <div className="flex items-center justify-between p-5 border-b border-draugr-700">
-                <h3 className="text-xl font-bold text-white filter-title tracking-wider">فیلتر و مرتب‌سازی</h3>
+              <div className="flex items-center justify-between p-5 border-b border-slate-700">
+                <h3 className="text-xl font-bold text-slate-100 filter-title tracking-wider">فیلتر و مرتب‌سازی</h3>
                 <motion.button
                   onClick={() => setIsFilterMenuOpen(false)}
-                  className="text-gray-400 hover:text-draugr-300 p-1.5 rounded-full transition-colors"
-                  whileHover={{ scale: 1.2, rotate: 90, color: '#ef4444' }}
+                  className="text-slate-400 hover:text-slate-200 p-1.5 rounded-full transition-colors"
+                  whileHover={{ scale: 1.2, rotate: 90, color: '#818cf8' }}
                   whileTap={{ scale: 0.9 }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -868,19 +868,19 @@ const ShopPage = () => {
               </div>
 
               {/* Modal Content (Scrollable) */}
-              <div className="p-5 space-y-6 overflow-y-auto scrollbar-thin scrollbar-thumb-draugr-600 scrollbar-track-draugr-800/50 flex-grow">
+              <div className="p-5 space-y-7 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-800/50 flex-grow">
                 {/* Search */}
                 <div>
-                  <h4 className="text-lg font-semibold text-draugr-200 mb-2.5">جستجو در میان گنجینه‌ها</h4>
+                  <h4 className="text-lg font-semibold text-indigo-300 mb-2.5">جستجو در میان گنجینه‌ها</h4>
                   <div className="relative">
                     <input
                       type="text"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       placeholder="نام محصول یا کلمه کلیدی..."
-                      className="w-full bg-draugr-800/70 text-white placeholder-gray-500 py-3 px-4 pr-10 rounded-lg border border-draugr-700 focus:outline-none focus:ring-2 focus:ring-draugr-500 focus:border-draugr-500 focus:shadow-[0_0_15px_rgba(239,35,60,0.3)] transition-all duration-150"
+                      className="w-full bg-slate-800 text-white placeholder-slate-500 py-3 px-4 pr-10 rounded-lg border border-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:shadow-[0_0_15px_rgba(99,102,241,0.3)] transition-all duration-150"
                     />
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
                       <SearchIcon />
                     </span>
                   </div>
@@ -888,20 +888,21 @@ const ShopPage = () => {
 
                 {/* Categories */}
                 <div>
-                  <h4 className="text-lg font-semibold text-draugr-200 mb-2.5">دسته‌بندی‌های مرموز</h4>
-                  <div className="space-y-2.5 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-draugr-600 scrollbar-track-draugr-800/50 pr-1.5">
+                  <h4 className="text-lg font-semibold text-indigo-300 mb-2.5">دسته‌بندی‌های مرموز</h4>
+                  <div className="space-y-3 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-800/50 pr-1.5">
                     {expandedCategories.map(category => (
                       <motion.label
                         key={category.id}
                         htmlFor={`modal-category-${category.slug}`}
-                        className={`flex items-center justify-between w-full p-3.5 rounded-lg cursor-pointer transition-all duration-200 ease-in-out border ${
+                        className={`group flex items-center justify-between w-full p-3.5 rounded-lg cursor-pointer transition-all duration-200 ease-in-out border ${
                           selectedCategories.includes(category.slug)
-                            ? 'bg-draugr-600/80 text-white border-draugr-500 shadow-[0_0_10px_rgba(239,35,60,0.3)]'
-                            : 'bg-draugr-800/60 text-gray-300 border-draugr-700/80 hover:bg-draugr-700/70 hover:border-draugr-600'
+                            ? 'bg-indigo-700/50 text-indigo-100 border-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.3)]'
+                            : 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700/70 hover:border-slate-500'
                         }`}
                         whileTap={{ scale: 0.98 }}
+                        whileHover={{ scale: 1.01}}
                       >
-                        <span className="font-medium">{category.name}</span>
+                        <span className="font-medium text-sm">{category.name}</span>
                         <input
                           type="checkbox"
                           id={`modal-category-${category.slug}`}
@@ -909,14 +910,14 @@ const ShopPage = () => {
                           onChange={() => toggleCategory(category.slug)}
                           className="hidden"
                         />
-                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
+                        <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-200 ${
                           selectedCategories.includes(category.slug) 
-                          ? 'bg-draugr-500 border-draugr-400' 
-                          : 'border-gray-500 group-hover:border-draugr-500'
+                          ? 'bg-indigo-500 border-indigo-400' 
+                          : 'border-slate-500 group-hover:border-indigo-500'
                         }`}>
                           {selectedCategories.includes(category.slug) && (
                             <motion.svg initial={{scale:0}} animate={{scale:1}} transition={{duration:0.15}} className="w-3 h-3 text-white" fill="none" viewBox="0 0 12 12">
-                              <path d="M1 6.5L4.5 10L11 1.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M1 6.5L4.5 10L11 1.5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                             </motion.svg>
                           )}
                         </div>
@@ -927,35 +928,35 @@ const ShopPage = () => {
 
                 {/* Sort By */}
                 <div>
-                  <h4 className="text-lg font-semibold text-draugr-200 mb-2.5">مرتب‌سازی بر اساس</h4>
+                  <h4 className="text-lg font-semibold text-indigo-300 mb-2.5">مرتب‌سازی بر اساس</h4>
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="w-full bg-draugr-800/70 text-white py-3 px-4 rounded-lg border border-draugr-700 focus:outline-none focus:ring-2 focus:ring-draugr-500 focus:border-draugr-500 focus:shadow-[0_0_15px_rgba(239,35,60,0.3)] transition-all duration-150 appearance-none bg-no-repeat bg-right-3"
-                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`, backgroundPosition: 'right 0.75rem center', backgroundSize: '1.5em 1.5em'}}
+                    className="w-full bg-slate-800 text-white py-3 px-4 rounded-lg border border-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:shadow-[0_0_15px_rgba(99,102,241,0.3)] transition-all duration-150 appearance-none bg-no-repeat"
+                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23a3a3a3' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`, backgroundPosition: 'right 0.75rem center', backgroundSize: '1.5em 1.5em'}}
                   >
-                    <option value="newest" className="bg-draugr-800 text-white">جدیدترین</option>
-                    <option value="price-low" className="bg-draugr-800 text-white">ارزان‌ترین</option>
-                    <option value="price-high" className="bg-draugr-800 text-white">گران‌ترین</option>
-                    <option value="name" className="bg-draugr-800 text-white">بر اساس نام</option>
+                    <option value="newest" className="bg-slate-800 text-white">جدیدترین</option>
+                    <option value="price-low" className="bg-slate-800 text-white">ارزان‌ترین</option>
+                    <option value="price-high" className="bg-slate-800 text-white">گران‌ترین</option>
+                    <option value="name" className="bg-slate-800 text-white">بر اساس نام</option>
                   </select>
                 </div>
               </div>
 
               {/* Modal Footer Actions */}
-              <div className="p-4 border-t border-draugr-700 flex items-center space-x-3 space-x-reverse bg-draugr-deepcharcoal/80">
+              <div className="p-4 border-t border-slate-700 flex items-center space-x-3 space-x-reverse bg-slate-900/90">
                 <motion.button
                   onClick={resetFilters}
-                  className="flex-1 bg-draugr-700/80 hover:bg-draugr-600/90 text-draugr-200 hover:text-white font-medium py-3 px-4 rounded-lg border border-draugr-600/70 transition-all duration-150 shadow-sm"
-                  whileHover={{ scale: 1.02, borderColor: 'rgba(239,35,60,0.4)' }}
+                  className="flex-1 bg-slate-700 hover:bg-slate-600/90 text-slate-300 hover:text-white font-medium py-3 px-4 rounded-lg border border-slate-600 transition-all duration-150 shadow-sm"
+                  whileHover={{ scale: 1.02, borderColor: 'rgba(99,102,241,0.4)' }}
                   whileTap={{ scale: 0.98 }}
                 >
                   پاک کردن همه
                 </motion.button>
                 <motion.button
                   onClick={() => setIsFilterMenuOpen(false)}
-                  className="flex-1 bg-draugr-500 hover:bg-draugr-400 text-white font-semibold py-3 px-4 rounded-lg border border-draugr-400/80 transition-all duration-150 shadow-md hover:shadow-lg_draugr"
-                  whileHover={{ scale: 1.02, boxShadow: "0 0 15px rgba(239,35,60,0.5)" }}
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 px-4 rounded-lg border border-indigo-500/80 transition-all duration-150 shadow-md hover:shadow-lg hover:shadow-indigo-500/30"
+                  whileHover={{ scale: 1.02, boxShadow: "0 0 15px rgba(99,102,241,0.4)" }}
                   whileTap={{ scale: 0.98 }}
                 >
                   نمایش نتایج
