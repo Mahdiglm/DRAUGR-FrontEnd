@@ -5,13 +5,16 @@ import { safeBlur, safeFilterTransition } from '../../utils/animationHelpers';
 
 const FeaturedProductSlider = ({ products, onAddToCart }) => {
   const [activeGroup, setActiveGroup] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const timerRef = useRef(null);
   const componentMounted = useRef(true);
-  // Total number of groups
+  // Total number of groups for desktop
   const totalGroups = 4;
+  // Total number of items for mobile
+  const totalItemsMobile = 8;
   
   // Check if we're on mobile
   useEffect(() => {
@@ -67,39 +70,39 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
   // Ensure we have exactly 8 products
   const firstEightProducts = products && products.length ? products.slice(0, 8) : [];
   
-  // If we have less than 8 products, duplicate them to reach 8
   const displayProducts = [...firstEightProducts];
   while (displayProducts.length < 8) {
     displayProducts.push(displayProducts[displayProducts.length % firstEightProducts.length]);
   }
 
-  // Create product groups: [0,1], [2,3], [4,5], and [6,7]
-  const productGroups = [
+  // Create product groups for desktop: [0,1], [2,3], [4,5], and [6,7]
+  const productGroupsDesktop = [
     [displayProducts[0], displayProducts[1]],
     [displayProducts[2], displayProducts[3]],
     [displayProducts[4], displayProducts[5]],
     [displayProducts[6], displayProducts[7]]
   ];
 
-  // Auto-rotation logic - continuous cycle through all groups
+  // Auto-rotation logic
   useEffect(() => {
-    // Only rotate when component is visible and not being hovered
     if (isHovering || !isVisible) return;
     
     timerRef.current = setTimeout(() => {
       if (componentMounted.current) {
-        // Cycle through all groups (0, 1, 2, 3, 0, 1, ...)
-        setActiveGroup((prev) => (prev + 1) % totalGroups);
+        if (isMobile) {
+          setActiveIndex((prev) => (prev + 1) % totalItemsMobile);
+        } else {
+          setActiveGroup((prev) => (prev + 1) % totalGroups);
+        }
       }
     }, 5000);
     
     return () => {
       if (timerRef.current) {
         clearTimeout(timerRef.current);
-        timerRef.current = null;
       }
     };
-  }, [activeGroup, isHovering, isVisible]);
+  }, [isMobile, activeGroup, activeIndex, isHovering, isVisible]);
 
   // Pause rotation on hover
   const handleMouseEnter = () => setIsHovering(true);
@@ -109,8 +112,8 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
     return <div className="text-center py-8">محصولی برای نمایش وجود ندارد</div>;
   }
 
-  // Function to determine the visual state of each group
-  const getGroupState = (groupIndex) => {
+  // Function to determine the visual state of each group for desktop
+  const getGroupStateDesktop = (groupIndex) => {
     // Current active group is in foreground
     if (activeGroup === groupIndex) return "foreground";
     
@@ -127,62 +130,41 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
     return "background3";
   };
 
-  const getCardPositionVariants = (groupState, position) => {
-    // For mobile view, simplify the animation
-    if (isMobile) {
+  const getCardPositionVariants = (groupStateOrActive, positionOrIsMobile) => {
+    // For mobile view, show one item at a time
+    if (positionOrIsMobile === true && isMobile) { // Ensuring this is the mobile specific call
       return {
-        foreground: {
+        center: {
           opacity: 1,
-          scale: 1,
-          filter: safeBlur(0),
+          scale: 0.85, // Smaller scale for mobile items
           y: 0,
-          zIndex: 40,
-          transition: {
-            type: "spring", 
-            stiffness: 300,
-            damping: 25,
-            mass: 1.2,
-            duration: 0.5,
-            filter: safeFilterTransition()
-          }
-        },
-        background1: {
-          opacity: 1,
-          scale: 0.95,
-          filter: safeBlur(1),
-          y: 20,
-          zIndex: 30,
-          transition: {
-            duration: 0.5,
-            filter: safeFilterTransition()
-          }
-        },
-        background2: {
-          opacity: 1,
-          scale: 0.9,
-          filter: safeBlur(2),
-          y: 40,
+          x: '0%',
           zIndex: 20,
           transition: {
-            duration: 0.5,
+            type: "spring", 
+            stiffness: 250,
+            damping: 30,
+            duration: 0.4,
             filter: safeFilterTransition()
           }
         },
-        background3: {
-          opacity: 1,
-          scale: 0.85,
-          filter: safeBlur(3),
-          y: 60,
-          zIndex: 10,
+        exit: {
+          opacity: 0,
+          scale: 0.7,
+          x: activeIndex % 2 === 0 ? '-100%' : '100%', // Exit to left or right
           transition: {
-            duration: 0.5,
+            duration: 0.3,
             filter: safeFilterTransition()
           }
         }
       };
     }
 
-    // Desktop: position cards in a staggered layout
+    // Desktop: position cards in a staggered layout (existing logic)
+    // Ensure groupStateOrActive is the groupState for desktop
+    const groupState = groupStateOrActive;
+    const position = positionOrIsMobile;
+
     if (position === 'left') {
       return {
         foreground: {
@@ -298,7 +280,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
 
   return (
     <div 
-      className="relative w-full py-16 md:py-24 overflow-visible"
+      className="relative w-full py-12 md:py-16 overflow-hidden"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
@@ -324,59 +306,56 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           />
         </div>
         
-        {/* Mobile view is stacked */}
+        {/* Mobile view: Single item slider */}
         {isMobile && (
-          <div className="w-full px-4 pt-8 overflow-visible">
-            {productGroups.map((group, groupIndex) => (
-              <AnimatePresence key={`group-${groupIndex}`}>
-                <div className="flex flex-col gap-8 w-full mb-8">
-                  {group.map((product, productIndex) => (
-                    <motion.div
-                      key={`product-${product.id}-${productIndex}`}
-                      className="w-full max-w-xs mx-auto overflow-visible mt-4"
-                      variants={getCardPositionVariants(getGroupState(groupIndex), productIndex === 0 ? 'left' : 'right')}
-                      initial="background3"
-                      animate={getGroupState(groupIndex)}
-                      transition={{ duration: 0.5 }}
-                    >
-                      <div className="relative rounded-xl overflow-hidden transition-all">
-                        <ProductCard 
-                          product={product} 
-                          onAddToCart={getGroupState(groupIndex) === "foreground" ? onAddToCart : null} 
-                          isHighlighted={getGroupState(groupIndex) === "foreground"} 
-                        />
-                      </div>
-                    </motion.div>
-                  ))}
+          <div className="w-full px-2 pt-4 overflow-hidden relative min-h-[450px]">
+            <AnimatePresence initial={false} custom={activeIndex}>
+              <motion.div
+                key={activeIndex}
+                custom={activeIndex}
+                variants={getCardPositionVariants(null, true)} // Pass true for isMobile
+                initial="exit"
+                animate="center"
+                exit="exit"
+                className="absolute w-full h-full flex justify-center items-center"
+                style={{ width: 'calc(100% - 16px)', left: '8px' }} // Centering with padding
+              >
+                <div className="w-full max-w-[280px]"> {/* Max width for mobile card */}
+                  <ProductCard 
+                    product={displayProducts[activeIndex]} 
+                    onAddToCart={onAddToCart} 
+                    isHighlighted={true} 
+                  />
                 </div>
-              </AnimatePresence>
-            ))}
+              </motion.div>
+            </AnimatePresence>
           </div>
         )}
 
         {/* Desktop view with staggered layout */}
         {!isMobile && (
           <div className="w-full max-w-6xl flex justify-center items-center relative mx-auto overflow-visible">
-            {productGroups.map((group, groupIndex) => (
-              <React.Fragment key={`group-${groupIndex}`}>
+            {productGroupsDesktop.map((group, groupIndex) => (
+              <React.Fragment key={`desktop-group-${groupIndex}`}>
                 {group.map((product, productIndex) => {
                   const position = productIndex === 0 ? 'left' : 'right';
+                  const groupState = getGroupStateDesktop(groupIndex);
                   
                   return (
                     <motion.div
-                      key={`product-${product.id}-${productIndex}`}
+                      key={`desktop-product-${product.id}-${groupIndex}-${productIndex}`}
                       className={`absolute md:w-1/3 lg:w-[30%] transform ${position === 'left' ? 'left-[10%]' : 'right-[10%]'} overflow-visible -mt-6`}
-                      variants={getCardPositionVariants(getGroupState(groupIndex), position)}
+                      variants={getCardPositionVariants(groupState, position)}
                       initial="background3"
-                      animate={getGroupState(groupIndex)}
+                      animate={groupState}
                       transition={{ duration: 0.5 }}
                     >
                       <div className="relative rounded-xl overflow-hidden transition-all">
                         <ProductCard 
                           product={product} 
-                          onAddToCart={getGroupState(groupIndex) === "foreground" ? onAddToCart : null} 
-                          isHighlighted={getGroupState(groupIndex) === "foreground"}
-                          isDisabled={getGroupState(groupIndex) !== "foreground"}
+                          onAddToCart={groupState === "foreground" ? onAddToCart : null} 
+                          isHighlighted={groupState === "foreground"}
+                          isDisabled={groupState !== "foreground"}
                         />
                       </div>
                     </motion.div>
@@ -387,44 +366,62 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           </div>
         )}
 
-        {/* Elegant pagination indicators - updated for 4 groups */}
-        <div className="absolute bottom-[-24px] left-0 right-0 mx-auto w-fit flex justify-center items-center space-x-3 z-30">
-          {Array.from({ length: totalGroups }).map((_, groupIndex) => (
-            <motion.button
-              key={`pagination-${groupIndex}`}
-              className="w-6 h-2 mx-1 rounded-full bg-gray-300 dark:bg-gray-600 focus:outline-none"
-              animate={{
-                backgroundColor: activeGroup === groupIndex ? "#ff0000" : "#333333",
-                opacity: activeGroup === groupIndex ? 1 : 0.5,
-                scale: activeGroup === groupIndex ? 1.1 : 1,
-                width: activeGroup === groupIndex ? 24 : 16
-              }}
-              whileHover={{ scale: 1.2 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                if (timerRef.current) {
-                  clearTimeout(timerRef.current);
-                }
-                setActiveGroup(groupIndex);
-              }}
-            />
-          ))}
+        {/* Pagination indicators */}
+        <div className="absolute bottom-[-20px] left-0 right-0 mx-auto w-fit flex justify-center items-center space-x-2 z-30">
+          {isMobile ? (
+            Array.from({ length: totalItemsMobile }).map((_, itemIndex) => (
+              <motion.button
+                key={`mobile-pagination-${itemIndex}`}
+                className="w-2.5 h-2.5 mx-1 rounded-full focus:outline-none"
+                animate={{
+                  backgroundColor: activeIndex === itemIndex ? "#ff0000" : "#6b7280", // Draugr red and gray
+                  scale: activeIndex === itemIndex ? 1.2 : 1,
+                }}
+                whileHover={{ scale: 1.4 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => {
+                  if (timerRef.current) clearTimeout(timerRef.current);
+                  setActiveIndex(itemIndex);
+                }}
+              />
+            ))
+          ) : (
+            Array.from({ length: totalGroups }).map((_, groupIndex) => (
+              <motion.button
+                key={`desktop-pagination-${groupIndex}`}
+                className="w-6 h-2 mx-1 rounded-full bg-gray-300 dark:bg-gray-600 focus:outline-none"
+                animate={{
+                  backgroundColor: activeGroup === groupIndex ? "#ff0000" : "#333333",
+                  opacity: activeGroup === groupIndex ? 1 : 0.5,
+                  scale: activeGroup === groupIndex ? 1.1 : 1,
+                  width: activeGroup === groupIndex ? 24 : 16
+                }}
+                whileHover={{ scale: 1.2 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  if (timerRef.current) clearTimeout(timerRef.current);
+                  setActiveGroup(groupIndex);
+                }}
+              />
+            ))
+          )}
         </div>
         
         {/* Manual navigation buttons */}
         <motion.button 
-          className="absolute left-2 md:left-6 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-charcoal/70 flex items-center justify-center 
+          className="absolute left-1 md:left-6 top-1/2 transform -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 rounded-full bg-charcoal/70 flex items-center justify-center 
                     backdrop-blur-sm z-30 text-gray-300 border border-gray-700 shadow-md"
           whileHover={{ scale: 1.1, backgroundColor: "rgba(31, 31, 31, 0.9)" }}
           whileTap={{ scale: 0.95 }}
           initial={{ opacity: 0.7 }}
           animate={{ opacity: 0.7 }}
           onClick={() => {
-            if (timerRef.current) {
-              clearTimeout(timerRef.current);
+            if (timerRef.current) clearTimeout(timerRef.current);
+            if (isMobile) {
+              setActiveIndex((prev) => (prev - 1 + totalItemsMobile) % totalItemsMobile);
+            } else {
+              setActiveGroup((prev) => (prev - 1 + totalGroups) % totalGroups);
             }
-            // Go to previous group (or last if at first)
-            setActiveGroup((prev) => (prev - 1 + totalGroups) % totalGroups);
           }}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -432,18 +429,19 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           </svg>
         </motion.button>
         <motion.button 
-          className="absolute right-2 md:right-6 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-charcoal/70 flex items-center justify-center 
+          className="absolute right-1 md:right-6 top-1/2 transform -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 rounded-full bg-charcoal/70 flex items-center justify-center 
                     backdrop-blur-sm z-30 text-gray-300 border border-gray-700 shadow-md"
           whileHover={{ scale: 1.1, backgroundColor: "rgba(31, 31, 31, 0.9)" }}
           whileTap={{ scale: 0.95 }}
           initial={{ opacity: 0.7 }}
           animate={{ opacity: 0.7 }}
           onClick={() => {
-            if (timerRef.current) {
-              clearTimeout(timerRef.current);
+            if (timerRef.current) clearTimeout(timerRef.current);
+            if (isMobile) {
+              setActiveIndex((prev) => (prev + 1) % totalItemsMobile);
+            } else {
+              setActiveGroup((prev) => (prev + 1) % totalGroups);
             }
-            // Go to next group
-            setActiveGroup((prev) => (prev + 1) % totalGroups);
           }}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
