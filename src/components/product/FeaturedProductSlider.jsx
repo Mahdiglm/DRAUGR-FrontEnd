@@ -367,12 +367,12 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
         )}
 
         {/* Pagination indicators */}
-        <div className="absolute bottom-[-20px] left-0 right-0 mx-auto w-fit flex justify-center items-center space-x-2 z-30">
+        <div className="absolute bottom-[-16px] md:bottom-[-24px] left-0 right-0 mx-auto w-fit flex justify-center items-center space-x-1.5 md:space-x-2 z-30">
           {isMobile ? (
             Array.from({ length: totalItemsMobile }).map((_, itemIndex) => (
               <motion.button
                 key={`mobile-pagination-${itemIndex}`}
-                className="w-2.5 h-2.5 mx-1 rounded-full focus:outline-none"
+                className="w-2 h-2 mx-0.5 rounded-full focus:outline-none"
                 animate={{
                   backgroundColor: activeIndex === itemIndex ? "#ff0000" : "#6b7280", // Draugr red and gray
                   scale: activeIndex === itemIndex ? 1.2 : 1,
@@ -389,12 +389,12 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
             Array.from({ length: totalGroups }).map((_, groupIndex) => (
               <motion.button
                 key={`desktop-pagination-${groupIndex}`}
-                className="w-6 h-2 mx-1 rounded-full bg-gray-300 dark:bg-gray-600 focus:outline-none"
+                className="w-5 h-1.5 mx-1 rounded-full bg-gray-300 dark:bg-gray-600 focus:outline-none"
                 animate={{
                   backgroundColor: activeGroup === groupIndex ? "#ff0000" : "#333333",
                   opacity: activeGroup === groupIndex ? 1 : 0.5,
                   scale: activeGroup === groupIndex ? 1.1 : 1,
-                  width: activeGroup === groupIndex ? 24 : 16
+                  width: activeGroup === groupIndex ? 20 : 12
                 }}
                 whileHover={{ scale: 1.2 }}
                 whileTap={{ scale: 0.95 }}
