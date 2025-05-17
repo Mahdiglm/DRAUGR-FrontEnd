@@ -452,12 +452,22 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
         
         {/* Manual navigation buttons */}
         <motion.button 
-          className="absolute left-1 md:left-6 top-1/2 transform -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 rounded-full bg-charcoal/70 flex items-center justify-center 
-                    backdrop-blur-sm z-30 text-gray-300 border border-gray-700 shadow-md"
-          whileHover={{ scale: 1.1, backgroundColor: "rgba(31, 31, 31, 0.9)" }}
-          whileTap={{ scale: 0.95 }}
-          initial={{ opacity: 0.7 }}
-          animate={{ opacity: 0.7 }}
+          className="absolute left-1 md:left-6 top-1/2 transform -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-full 
+                    bg-gradient-to-br from-gray-900/90 to-black/80 flex items-center justify-center
+                    backdrop-blur-md z-30 text-gray-200 border border-gray-700/50 shadow-[0_0_15px_rgba(0,0,0,0.4)]
+                    hover:border-draugr-500/40 group"
+          initial={{ opacity: 0.7, scale: 0.95 }}
+          animate={{ opacity: 0.85, scale: 1 }}
+          whileHover={{ 
+            opacity: 1,
+            scale: 1.05,
+            boxShadow: "0 0 18px rgba(0,0,0,0.5)",
+            transition: { duration: 0.2, ease: "easeOut" }
+          }}
+          whileTap={{ 
+            scale: 0.95,
+            transition: { type: "spring", stiffness: 400, damping: 17 }
+          }}
           onClick={() => {
             if (timerRef.current) clearTimeout(timerRef.current);
             if (isMobile) {
@@ -467,17 +477,35 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
             }
           }}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
-          </svg>
+          <motion.div className="relative w-full h-full flex items-center justify-center">
+            <motion.span 
+              className="absolute inset-0 rounded-full bg-draugr-500/0 group-hover:bg-draugr-500/10"
+              initial={{ opacity: 0 }}
+              whileHover={{ opacity: 1 }}
+              transition={{ duration: 0.2 }}
+            />
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6 relative z-10 group-hover:text-draugr-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
+            </svg>
+          </motion.div>
         </motion.button>
         <motion.button 
-          className="absolute right-1 md:right-6 top-1/2 transform -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 rounded-full bg-charcoal/70 flex items-center justify-center 
-                    backdrop-blur-sm z-30 text-gray-300 border border-gray-700 shadow-md"
-          whileHover={{ scale: 1.1, backgroundColor: "rgba(31, 31, 31, 0.9)" }}
-          whileTap={{ scale: 0.95 }}
-          initial={{ opacity: 0.7 }}
-          animate={{ opacity: 0.7 }}
+          className="absolute right-1 md:right-6 top-1/2 transform -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-full 
+                    bg-gradient-to-br from-gray-900/90 to-black/80 flex items-center justify-center
+                    backdrop-blur-md z-30 text-gray-200 border border-gray-700/50 shadow-[0_0_15px_rgba(0,0,0,0.4)]
+                    hover:border-draugr-500/40 group"
+          initial={{ opacity: 0.7, scale: 0.95 }}
+          animate={{ opacity: 0.85, scale: 1 }}
+          whileHover={{ 
+            opacity: 1,
+            scale: 1.05,
+            boxShadow: "0 0 18px rgba(0,0,0,0.5)",
+            transition: { duration: 0.2, ease: "easeOut" }
+          }}
+          whileTap={{ 
+            scale: 0.95,
+            transition: { type: "spring", stiffness: 400, damping: 17 }
+          }}
           onClick={() => {
             if (timerRef.current) clearTimeout(timerRef.current);
             if (isMobile) {
@@ -487,9 +515,17 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
             }
           }}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
-          </svg>
+          <motion.div className="relative w-full h-full flex items-center justify-center">
+            <motion.span 
+              className="absolute inset-0 rounded-full bg-draugr-500/0 group-hover:bg-draugr-500/10"
+              initial={{ opacity: 0 }}
+              whileHover={{ opacity: 1 }}
+              transition={{ duration: 0.2 }}
+            />
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6 relative z-10 group-hover:text-draugr-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
+            </svg>
+          </motion.div>
         </motion.button>
       </div>
     </div>
