@@ -504,16 +504,99 @@ const HomePage = () => {
             
             <div className="text-center mt-12">
               <Link to="/shop">
-                <motion.button
-                  whileHover={{ 
-                    scale: 1.05, 
-                    boxShadow: '0 0 20px rgba(255, 0, 0, 0.7)',
-                  }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-charcoal text-white font-medium px-8 py-3 rounded-md border border-draugr-700 shadow-horror"
+                <motion.div 
+                  className="inline-block relative"
+                  whileHover="hover"
+                  initial="rest"
+                  animate="rest"
                 >
-                  مشاهده همه محصولات
-                </motion.button>
+                  {/* Main button */}
+                  <motion.button
+                    className="bg-black text-red-100 font-bold py-3 px-10 relative z-10
+                              border border-red-900/50 rounded
+                              flex items-center justify-center gap-3"
+                    variants={{
+                      rest: { scale: 1 },
+                      hover: { scale: 1.03 }
+                    }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {/* Left chevron */}
+                    <motion.svg 
+                      width="16" 
+                      height="16" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      xmlns="http://www.w3.org/2000/svg"
+                      variants={{
+                        rest: { x: 0, opacity: 0.7 },
+                        hover: { x: -5, opacity: 1 }
+                      }}
+                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                      className="text-red-500"
+                    >
+                      <path d="M15 6L9 12L15 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </motion.svg>
+
+                    <span>مشاهده همه محصولات</span>
+
+                    {/* Right chevron */}
+                    <motion.svg 
+                      width="16" 
+                      height="16" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      xmlns="http://www.w3.org/2000/svg"
+                      variants={{
+                        rest: { x: 0, opacity: 0.7 },
+                        hover: { x: 5, opacity: 1 }
+                      }}
+                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                      className="text-red-500"
+                    >
+                      <path d="M9 6L15 12L9 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </motion.svg>
+                  </motion.button>
+
+                  {/* Background animated glow/frame effect */}
+                  <motion.div 
+                    className="absolute inset-0 -z-10 bg-gradient-to-r from-red-900/0 via-red-700/50 to-red-900/0 rounded-lg blur-md"
+                    variants={{
+                      rest: { opacity: 0, scale: 0.95 },
+                      hover: { opacity: 1, scale: 1.05 }
+                    }}
+                  ></motion.div>
+
+                  {/* Corner accents (Norse-inspired) */}
+                  <motion.div 
+                    className="absolute -top-1 -left-1 w-3 h-3 border-t-2 border-l-2 border-red-600"
+                    variants={{
+                      rest: { opacity: 0.4 },
+                      hover: { opacity: 1 }
+                    }}
+                  ></motion.div>
+                  <motion.div 
+                    className="absolute -top-1 -right-1 w-3 h-3 border-t-2 border-r-2 border-red-600"
+                    variants={{
+                      rest: { opacity: 0.4 },
+                      hover: { opacity: 1 }
+                    }}
+                  ></motion.div>
+                  <motion.div 
+                    className="absolute -bottom-1 -left-1 w-3 h-3 border-b-2 border-l-2 border-red-600"
+                    variants={{
+                      rest: { opacity: 0.4 },
+                      hover: { opacity: 1 }
+                    }}
+                  ></motion.div>
+                  <motion.div 
+                    className="absolute -bottom-1 -right-1 w-3 h-3 border-b-2 border-r-2 border-red-600"
+                    variants={{
+                      rest: { opacity: 0.4 },
+                      hover: { opacity: 1 }
+                    }}
+                  ></motion.div>
+                </motion.div>
               </Link>
             </div>
           </div>
