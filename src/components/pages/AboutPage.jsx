@@ -1,12 +1,111 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Sphere, OrbitControls, useGLTF, PerspectiveCamera, MeshDistortMaterial, Float } from '@react-three/drei';
+import { 
+  Sphere, 
+  OrbitControls, 
+  useGLTF, 
+  PerspectiveCamera, 
+  MeshDistortMaterial, 
+  Float, 
+  Text,
+  Html,
+  Environment,
+  useTexture,
+  Box,
+  RoundedBox
+} from '@react-three/drei';
 import * as THREE from 'three';
+import { EffectComposer, Bloom, ChromaticAberration } from '@react-three/postprocessing';
+import { BlendFunction } from 'postprocessing';
 
-// Skull model component - will follow cursor
+// Create a skull-like geometry using Three.js primitives
+const SkullModel = ({ color = "#ff0000" }) => {
+  // Main skull references
+  const skullRef = useRef();
+  const jawRef = useRef();
+  const leftEyeRef = useRef();
+  const rightEyeRef = useRef();
+  
+  // Animation
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    // Subtle jaw movement
+    if (jawRef.current) {
+      jawRef.current.rotation.x = Math.sin(t * 0.5) * 0.05;
+    }
+    // Eye glow pulse
+    if (leftEyeRef.current && rightEyeRef.current) {
+      const intensity = 1.5 + Math.sin(t * 2) * 0.5;
+      leftEyeRef.current.material.emissiveIntensity = intensity;
+      rightEyeRef.current.material.emissiveIntensity = intensity;
+    }
+  });
+  
+  return (
+    <group ref={skullRef}>
+      {/* Skull cranium */}
+      <mesh castShadow>
+        <sphereGeometry args={[0.5, 32, 32, 0, Math.PI * 2, 0, Math.PI * 0.6]} />
+        <meshStandardMaterial 
+          color={color} 
+          roughness={0.3} 
+          metalness={0.7}
+          emissive={color}
+          emissiveIntensity={0.2}
+        />
+      </mesh>
+      
+      {/* Jaw */}
+      <mesh ref={jawRef} position={[0, -0.2, 0]} castShadow>
+        <cylinderGeometry args={[0.4, 0.2, 0.3, 32, 1, true, Math.PI * 0.25, Math.PI * 1.5]} />
+        <meshStandardMaterial 
+          color={color} 
+          roughness={0.4} 
+          metalness={0.6}
+          emissive={color}
+          emissiveIntensity={0.2}
+        />
+      </mesh>
+      
+      {/* Eye sockets */}
+      <group position={[0, 0.05, 0.32]}>
+        {/* Left eye */}
+        <mesh position={[-0.15, 0, 0]} ref={leftEyeRef}>
+          <sphereGeometry args={[0.12, 16, 16]} />
+          <meshStandardMaterial 
+            color={color} 
+            emissive={color}
+            emissiveIntensity={1.5}
+            roughness={0}
+            metalness={1}
+          />
+        </mesh>
+        
+        {/* Right eye */}
+        <mesh position={[0.15, 0, 0]} ref={rightEyeRef}>
+          <sphereGeometry args={[0.12, 16, 16]} />
+          <meshStandardMaterial 
+            color={color} 
+            emissive={color}
+            emissiveIntensity={1.5}
+            roughness={0}
+            metalness={1}
+          />
+        </mesh>
+      </group>
+      
+      {/* Nose hole */}
+      <mesh position={[0, -0.05, 0.3]} rotation={[Math.PI * 0.1, 0, 0]}>
+        <coneGeometry args={[0.1, 0.2, 16]} />
+        <meshStandardMaterial color="black" roughness={1} metalness={0} />
+      </mesh>
+    </group>
+  );
+};
+
+// Enhanced skull component that follows cursor
 const Skull = ({ position, cursorPoint, index, count }) => {
-  const mesh = useRef();
   const groupRef = useRef();
   
   // Define the base position for this skull
@@ -22,47 +121,41 @@ const Skull = ({ position, cursorPoint, index, count }) => {
     const time = clock.getElapsedTime();
     
     // Get cursor position (normalized from -1 to 1)
-    const targetX = baseX + (cursorPoint.x * 0.3);
-    const targetY = baseY + (cursorPoint.y * 0.3);
+    const targetX = baseX + (cursorPoint.x * 0.6);
+    const targetY = baseY + (cursorPoint.y * 0.6);
     
     // Add subtle floating animation
-    const floatX = baseX + Math.sin(time * 0.5 + index) * 0.3;
-    const floatY = baseY + Math.cos(time * 0.5 + index) * 0.2;
+    const floatX = baseX + Math.sin(time * 0.5 + index * 1.5) * 0.3;
+    const floatY = baseY + Math.cos(time * 0.5 + index * 1.5) * 0.2;
     
     // Combine cursor following with floating animation
-    mesh.current.position.x = THREE.MathUtils.lerp(mesh.current.position.x, targetX + floatX - baseX, speed);
-    mesh.current.position.y = THREE.MathUtils.lerp(mesh.current.position.y, targetY + floatY - baseY, speed);
+    groupRef.current.position.x = THREE.MathUtils.lerp(groupRef.current.position.x, targetX + floatX - baseX, speed);
+    groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, targetY + floatY - baseY, speed);
     
-    // Subtle size pulsing
-    const scale = 0.8 + Math.sin(time + index * 1.5) * 0.05;
-    mesh.current.scale.set(scale, scale, scale);
+    // Rotation effect - skull always faces the camera but with some playful movement
+    groupRef.current.rotation.y = Math.sin(time * 0.2 + index) * 0.5;
+    groupRef.current.rotation.x = Math.cos(time * 0.3 + index) * 0.2;
     
-    // Rotation effect
-    groupRef.current.rotation.y = Math.sin(time * 0.2 + index) * 0.2;
+    // Scale pulse
+    const scaleFactor = 0.8 + Math.sin(time * 0.7 + index * 0.5) * 0.1;
+    groupRef.current.scale.set(scaleFactor, scaleFactor, scaleFactor);
   });
   
   // Generate a unique hue for each skull's glow
   const hue = (index / count) * 30;
   
   return (
-    <group ref={groupRef} position={[baseX, baseY, baseZ]}>
-      <mesh ref={mesh} castShadow>
-        <sphereGeometry args={[0.4, 16, 16]} />
-        <meshStandardMaterial 
-          color="#ff0000" 
-          emissive="#ff0000"
-          emissiveIntensity={2}
-          roughness={0.2} 
-          metalness={0.8}
-        />
-      </mesh>
-      {/* Inner glow effect */}
-      <mesh scale={[1.1, 1.1, 1.1]}>
-        <sphereGeometry args={[0.45, 16, 16]} />
+    <group ref={groupRef} position={[baseX, baseY, baseZ]} scale={[0.8, 0.8, 0.8]}>
+      {/* Skull model */}
+      <SkullModel color={`hsl(0, 100%, ${45 + index * 5}%)`} />
+      
+      {/* Outer glow effect */}
+      <mesh>
+        <sphereGeometry args={[0.7, 32, 32]} />
         <meshBasicMaterial 
-          color={`hsl(${hue}, 100%, 50%)`} 
-          transparent
-          opacity={0.4}
+          color={`hsl(0, 100%, 50%)`} 
+          transparent={true}
+          opacity={0.15}
           blending={THREE.AdditiveBlending}
         />
       </mesh>
@@ -70,15 +163,21 @@ const Skull = ({ position, cursorPoint, index, count }) => {
   );
 };
 
-// Neon line component
+// Enhanced neon line component
 const NeonLine = ({ start, end, thickness = 0.05, color = "#ff0000" }) => {
   const ref = useRef();
+  const glowRef = useRef();
   
   useFrame(({ clock }) => {
     if (ref.current) {
       const time = clock.getElapsedTime();
       // Pulse effect
       ref.current.material.emissiveIntensity = 1.5 + Math.sin(time * 2) * 0.5;
+      
+      // Glow pulse
+      if (glowRef.current) {
+        glowRef.current.material.opacity = 0.4 + Math.sin(time * 1.5) * 0.2;
+      }
     }
   });
   
@@ -113,36 +212,47 @@ const NeonLine = ({ start, end, thickness = 0.05, color = "#ff0000" }) => {
   euler.setFromQuaternion(quaternion);
   
   return (
-    <mesh 
-      ref={ref}
-      position={[midX, midY, midZ]} 
-      rotation={[euler.x, euler.y, euler.z]}
-    >
-      <cylinderGeometry args={[thickness, thickness, length, 16]} />
-      <meshStandardMaterial 
-        color={color} 
-        emissive={color}
-        emissiveIntensity={1.5}
-        roughness={0.2}
-        metalness={0.8}
-      />
-      {/* Glow effect */}
-      <mesh scale={[1.1, 1, 1.1]}>
-        <cylinderGeometry args={[thickness * 1.2, thickness * 1.2, length, 16]} />
-        <meshBasicMaterial 
+    <group position={[midX, midY, midZ]} rotation={[euler.x, euler.y, euler.z]}>
+      {/* Main neon line */}
+      <mesh ref={ref}>
+        <cylinderGeometry args={[thickness, thickness, length, 16]} />
+        <meshStandardMaterial 
           color={color} 
-          transparent
-          opacity={0.6}
+          emissive={color}
+          emissiveIntensity={1.5}
+          roughness={0.2}
+          metalness={0.8}
+        />
+      </mesh>
+      
+      {/* Brighter core */}
+      <mesh scale={[0.5, 1, 0.5]}>
+        <cylinderGeometry args={[thickness, thickness, length, 8]} />
+        <meshBasicMaterial 
+          color="#ffffff" 
+          transparent={true}
+          opacity={0.8}
           blending={THREE.AdditiveBlending}
         />
       </mesh>
-    </mesh>
+      
+      {/* Glow effect */}
+      <mesh ref={glowRef} scale={[2, 1.01, 2]}>
+        <cylinderGeometry args={[thickness, thickness, length, 16]} />
+        <meshBasicMaterial 
+          color={color} 
+          transparent={true}
+          opacity={0.4}
+          blending={THREE.AdditiveBlending}
+        />
+      </mesh>
+    </group>
   );
 };
 
 // The main scene with all 3D elements
 const AboutScene = () => {
-  const { mouse } = useThree();
+  const { mouse, size, camera } = useThree();
   const cursorPoint = useRef({ x: 0, y: 0 });
   
   // Update cursor position
@@ -154,7 +264,7 @@ const AboutScene = () => {
   const skullCount = 8;
   const skulls = Array.from({ length: skullCount }).map((_, i) => {
     const angle = (i / skullCount) * Math.PI * 2;
-    const radius = 2.5 + Math.random() * 1;
+    const radius = 3 + Math.random() * 1.5;
     const x = Math.cos(angle) * radius;
     const y = Math.sin(angle) * radius;
     const z = -2 - Math.random() * 3;
@@ -162,23 +272,33 @@ const AboutScene = () => {
   });
   
   // Define start and end points for the neon line
-  const lineStart = [-4, -2, -5];
-  const lineEnd = [4, 2, -5];
+  const lineStart = [-5, -3, -5];
+  const lineEnd = [5, 3, -5];
+  
+  // Additional glowing lines for more cyberpunk feel
+  const additionalLines = [
+    { start: [-4, 2, -6], end: [4, -2, -4], thickness: 0.03, color: "#ff3333" },
+    { start: [-3, -2, -4], end: [3, 1, -6], thickness: 0.02, color: "#ff5555" },
+  ];
   
   return (
     <>
       {/* Red ambient light */}
       <ambientLight intensity={0.2} />
       
-      {/* Spotlight to create dramatic lighting */}
+      {/* Key spotlight for dramatic lighting */}
       <spotLight 
-        position={[0, 5, 5]} 
+        position={[0, 5, 10]} 
         angle={0.3} 
         penumbra={0.6} 
-        intensity={1.5} 
+        intensity={2} 
         color="#ff3333" 
         castShadow 
       />
+      
+      {/* Fill light for better visibility */}
+      <pointLight position={[-5, 0, 5]} intensity={0.5} color="#ff8080" />
+      <pointLight position={[5, 0, 5]} intensity={0.5} color="#ff8080" />
       
       {/* Skulls that follow cursor */}
       {skulls.map((skull, i) => (
@@ -191,8 +311,32 @@ const AboutScene = () => {
         />
       ))}
       
-      {/* Neon line from start to end */}
+      {/* Main neon line from start to end */}
       <NeonLine start={lineStart} end={lineEnd} thickness={0.04} />
+      
+      {/* Additional cyberpunk lines */}
+      {additionalLines.map((line, i) => (
+        <NeonLine 
+          key={i}
+          start={line.start} 
+          end={line.end} 
+          thickness={line.thickness}
+          color={line.color}
+        />
+      ))}
+      
+      {/* Post-processing effects for glow */}
+      <EffectComposer>
+        <Bloom 
+          intensity={1.5} 
+          luminanceThreshold={0.2} 
+          luminanceSmoothing={0.9} 
+        />
+        <ChromaticAberration 
+          offset={[0.003, 0.003]} 
+          blendFunction={BlendFunction.NORMAL}
+        />
+      </EffectComposer>
       
       {/* Optional camera controls */}
       <OrbitControls 
@@ -271,17 +415,26 @@ const AboutPage = () => {
         <Canvas
           ref={canvasRef}
           shadows
-          dpr={[1, 2]} // Optimize for performance
-          camera={{ position: [0, 0, 5], fov: 75 }}
-          gl={{ antialias: true }}
+          dpr={[1, 1.5]} // Adjust for performance
+          camera={{ position: [0, 0, 10], fov: 60 }}
+          gl={{ 
+            antialias: true,
+            powerPreference: "high-performance",
+            alpha: false,
+            depth: true,
+            stencil: false
+          }}
+          style={{ background: 'black' }}
         >
-          <AboutScene />
+          <Suspense fallback={null}>
+            <AboutScene />
+          </Suspense>
         </Canvas>
       </div>
       
       {/* Cursor glow effect */}
       <motion.div 
-        className="fixed w-20 h-20 rounded-full pointer-events-none z-50 mix-blend-screen"
+        className="fixed w-28 h-28 rounded-full pointer-events-none z-50 mix-blend-screen"
         style={{
           background: 'radial-gradient(circle, rgba(255,0,0,0.8) 0%, rgba(255,0,0,0) 70%)',
           x: smoothMouseX,
@@ -294,7 +447,7 @@ const AboutPage = () => {
       {/* Vignette effect */}
       <div className="fixed inset-0 pointer-events-none" 
         style={{
-          background: 'radial-gradient(circle at center, transparent 30%, #000 100%)',
+          background: 'radial-gradient(circle at center, transparent 20%, #000 100%)',
           zIndex: 0
         }} 
       />
