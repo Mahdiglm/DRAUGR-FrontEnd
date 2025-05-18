@@ -1,546 +1,460 @@
-// AboutPage.jsx - Enhanced with CSS animations for skulls and neon lines
-import React, { useRef, useState, useEffect } from 'react';
-import { motion, useInView, useScroll, useTransform } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Sphere, OrbitControls, useGLTF, PerspectiveCamera, MeshDistortMaterial, Float } from '@react-three/drei';
+import * as THREE from 'three';
 
-// Import team member images
-import teamMember1 from '../../assets/Team-Member-1.jpg';
-import teamMember2 from '../../assets/Team-Member-2.jpg';
-
-// Fallback images
-const fallbackTeam = "https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60";
-// Local SVG data URL for third team member
-const fallbackTeam3 = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23333'/%3E%3Ccircle cx='50' cy='40' r='20' fill='%23666'/%3E%3Ccircle cx='50' cy='90' r='30' fill='%23666'/%3E%3C/svg%3E";
-
-// CSS-only background with skulls and neon lines
-const CSSBackground = () => {
+// Skull model component - will follow cursor
+const Skull = ({ position, cursorPoint, index, count }) => {
+  const mesh = useRef();
+  const groupRef = useRef();
+  
+  // Define the base position for this skull
+  const baseX = position[0];
+  const baseY = position[1];
+  const baseZ = position[2];
+  
+  // Set different speeds for different skulls
+  const speed = 0.05 - (index * 0.005);
+  
+  // Use frame to animate the skull
+  useFrame(({ clock }) => {
+    const time = clock.getElapsedTime();
+    
+    // Get cursor position (normalized from -1 to 1)
+    const targetX = baseX + (cursorPoint.x * 0.3);
+    const targetY = baseY + (cursorPoint.y * 0.3);
+    
+    // Add subtle floating animation
+    const floatX = baseX + Math.sin(time * 0.5 + index) * 0.3;
+    const floatY = baseY + Math.cos(time * 0.5 + index) * 0.2;
+    
+    // Combine cursor following with floating animation
+    mesh.current.position.x = THREE.MathUtils.lerp(mesh.current.position.x, targetX + floatX - baseX, speed);
+    mesh.current.position.y = THREE.MathUtils.lerp(mesh.current.position.y, targetY + floatY - baseY, speed);
+    
+    // Subtle size pulsing
+    const scale = 0.8 + Math.sin(time + index * 1.5) * 0.05;
+    mesh.current.scale.set(scale, scale, scale);
+    
+    // Rotation effect
+    groupRef.current.rotation.y = Math.sin(time * 0.2 + index) * 0.2;
+  });
+  
+  // Generate a unique hue for each skull's glow
+  const hue = (index / count) * 30;
+  
   return (
-    <div className="fixed inset-0 z-[-1] overflow-hidden bg-black">
-      {/* Red glow in the background */}
-      <div className="absolute inset-0 bg-gradient-radial from-red-900/20 via-black to-black"></div>
+    <group ref={groupRef} position={[baseX, baseY, baseZ]}>
+      <mesh ref={mesh} castShadow>
+        <sphereGeometry args={[0.4, 16, 16]} />
+        <meshStandardMaterial 
+          color="#ff0000" 
+          emissive="#ff0000"
+          emissiveIntensity={2}
+          roughness={0.2} 
+          metalness={0.8}
+        />
+      </mesh>
+      {/* Inner glow effect */}
+      <mesh scale={[1.1, 1.1, 1.1]}>
+        <sphereGeometry args={[0.45, 16, 16]} />
+        <meshBasicMaterial 
+          color={`hsl(${hue}, 100%, 50%)`} 
+          transparent
+          opacity={0.4}
+          blending={THREE.AdditiveBlending}
+        />
+      </mesh>
+    </group>
+  );
+};
+
+// Neon line component
+const NeonLine = ({ start, end, thickness = 0.05, color = "#ff0000" }) => {
+  const ref = useRef();
+  
+  useFrame(({ clock }) => {
+    if (ref.current) {
+      const time = clock.getElapsedTime();
+      // Pulse effect
+      ref.current.material.emissiveIntensity = 1.5 + Math.sin(time * 2) * 0.5;
+    }
+  });
+  
+  // Calculate the midpoint and length
+  const midX = (start[0] + end[0]) / 2;
+  const midY = (start[1] + end[1]) / 2;
+  const midZ = (start[2] + end[2]) / 2;
+  
+  // Calculate the length using distance formula
+  const length = Math.sqrt(
+    Math.pow(end[0] - start[0], 2) +
+    Math.pow(end[1] - start[1], 2) +
+    Math.pow(end[2] - start[2], 2)
+  );
+  
+  // Calculate rotation to point from start to end
+  const direction = new THREE.Vector3(
+    end[0] - start[0],
+    end[1] - start[1],
+    end[2] - start[2]
+  ).normalize();
+  
+  // Create a quaternion for rotation
+  const quaternion = new THREE.Quaternion();
+  quaternion.setFromUnitVectors(
+    new THREE.Vector3(0, 0, 1), // Default cylinder orientation
+    direction
+  );
+  
+  // Convert quaternion to Euler angles
+  const euler = new THREE.Euler();
+  euler.setFromQuaternion(quaternion);
+  
+  return (
+    <mesh 
+      ref={ref}
+      position={[midX, midY, midZ]} 
+      rotation={[euler.x, euler.y, euler.z]}
+    >
+      <cylinderGeometry args={[thickness, thickness, length, 16]} />
+      <meshStandardMaterial 
+        color={color} 
+        emissive={color}
+        emissiveIntensity={1.5}
+        roughness={0.2}
+        metalness={0.8}
+      />
+      {/* Glow effect */}
+      <mesh scale={[1.1, 1, 1.1]}>
+        <cylinderGeometry args={[thickness * 1.2, thickness * 1.2, length, 16]} />
+        <meshBasicMaterial 
+          color={color} 
+          transparent
+          opacity={0.6}
+          blending={THREE.AdditiveBlending}
+        />
+      </mesh>
+    </mesh>
+  );
+};
+
+// The main scene with all 3D elements
+const AboutScene = () => {
+  const { mouse } = useThree();
+  const cursorPoint = useRef({ x: 0, y: 0 });
+  
+  // Update cursor position
+  useFrame(() => {
+    cursorPoint.current = { x: mouse.x, y: mouse.y };
+  });
+  
+  // Create multiple skulls in a scattered pattern
+  const skullCount = 8;
+  const skulls = Array.from({ length: skullCount }).map((_, i) => {
+    const angle = (i / skullCount) * Math.PI * 2;
+    const radius = 2.5 + Math.random() * 1;
+    const x = Math.cos(angle) * radius;
+    const y = Math.sin(angle) * radius;
+    const z = -2 - Math.random() * 3;
+    return { position: [x, y, z], index: i };
+  });
+  
+  // Define start and end points for the neon line
+  const lineStart = [-4, -2, -5];
+  const lineEnd = [4, 2, -5];
+  
+  return (
+    <>
+      {/* Red ambient light */}
+      <ambientLight intensity={0.2} />
       
-      {/* Animated red skulls */}
-      {[...Array(5)].map((_, i) => (
-        <div 
-          key={`skull-${i}`}
-          className="absolute w-20 h-24 animate-float"
-          style={{
-            left: `${10 + i * 20}%`,
-            top: `${20 + (i % 3) * 20}%`,
-            animation: `float ${3 + i}s ease-in-out infinite alternate, 
-                        spin ${10 + i * 2}s linear infinite`,
-            animationDelay: `${i * 0.5}s`
-          }}
-        >
-          {/* Simple CSS skull */}
-          <div className="relative w-full h-full">
-            {/* Skull base */}
-            <div className="absolute inset-0 rounded-t-full bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.8)]"></div>
-            
-            {/* Eyes */}
-            <div className="absolute w-3 h-4 bg-black rounded-full left-3 top-10"></div>
-            <div className="absolute w-3 h-4 bg-black rounded-full right-3 top-10"></div>
-            
-            {/* Nose */}
-            <div className="absolute w-2 h-2 bg-black rounded-full left-1/2 top-14 transform -translate-x-1/2"></div>
-            
-            {/* Mouth */}
-            <div className="absolute w-8 h-2 bg-black rounded-full left-1/2 bottom-4 transform -translate-x-1/2"></div>
-          </div>
+      {/* Spotlight to create dramatic lighting */}
+      <spotLight 
+        position={[0, 5, 5]} 
+        angle={0.3} 
+        penumbra={0.6} 
+        intensity={1.5} 
+        color="#ff3333" 
+        castShadow 
+      />
+      
+      {/* Skulls that follow cursor */}
+      {skulls.map((skull, i) => (
+        <Skull 
+          key={i} 
+          position={skull.position} 
+          cursorPoint={cursorPoint.current} 
+          index={skull.index}
+          count={skullCount}
+        />
+      ))}
+      
+      {/* Neon line from start to end */}
+      <NeonLine start={lineStart} end={lineEnd} thickness={0.04} />
+      
+      {/* Optional camera controls */}
+      <OrbitControls 
+        enableZoom={false} 
+        enablePan={false} 
+        enableRotate={false} 
+      />
+    </>
+  );
+};
+
+// Interactive bio component
+const BioPanelSection = ({ icon, title, content, delay = 0 }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ 
+        duration: 0.5,
+        delay: delay,
+        ease: [0, 0.71, 0.2, 1.01]
+      }}
+      className="flex flex-col bg-gradient-to-br from-black to-draugr-900/40 rounded-lg p-5 backdrop-blur-sm 
+                 border border-draugr-800/50 shadow-horror transition-all hover:shadow-[0_0_15px_rgba(255,0,0,0.5)]"
+    >
+      <div className="flex items-center mb-3">
+        <div className="w-8 h-8 rounded-full bg-draugr-900 flex items-center justify-center mr-3 text-draugr-500">
+          {icon}
         </div>
-      ))}
+        <h3 className="text-xl font-semibold text-draugr-500">{title}</h3>
+      </div>
+      <div className="text-gray-300 text-sm">{content}</div>
+    </motion.div>
+  );
+};
+
+// Main About Page component
+const AboutPage = () => {
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const canvasRef = useRef(null);
+  
+  // Track mouse movement for additional effects
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      setMousePosition({
+        x: e.clientX,
+        y: e.clientY
+      });
+    };
+    
+    window.addEventListener('mousemove', handleMouseMove);
+    
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
+  
+  // Convert mousePosition to a form usable by Framer Motion
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  
+  // Smoothing the motion values
+  const smoothMouseX = useSpring(mouseX, { damping: 50, stiffness: 400 });
+  const smoothMouseY = useSpring(mouseY, { damping: 50, stiffness: 400 });
+  
+  // Update motion values when mouse position changes
+  useEffect(() => {
+    mouseX.set(mousePosition.x);
+    mouseY.set(mousePosition.y);
+  }, [mousePosition, mouseX, mouseY]);
+
+  return (
+    <div className="relative min-h-screen w-full overflow-hidden bg-black">
+      {/* Background 3D scene */}
+      <div className="fixed inset-0 w-full h-full -z-10">
+        <Canvas
+          ref={canvasRef}
+          shadows
+          dpr={[1, 2]} // Optimize for performance
+          camera={{ position: [0, 0, 5], fov: 75 }}
+          gl={{ antialias: true }}
+        >
+          <AboutScene />
+        </Canvas>
+      </div>
       
-      {/* Vertical neon lines */}
-      {[...Array(10)].map((_, i) => (
-        <div 
-          key={`line-${i}`}
-          className="absolute w-1 animate-pulse"
-          style={{
-            left: `${5 + i * 10}%`,
-            top: '0',
-            height: '100%',
-            background: `linear-gradient(to bottom, 
-                         rgba(255,0,0,0) 0%, 
-                         rgba(255,0,0,0.8) 50%, 
-                         rgba(255,0,0,0) 100%)`,
-            boxShadow: '0 0 15px rgba(255,0,0,0.5)',
-            animation: `pulse ${3 + i % 3}s ease-in-out infinite alternate`,
-            animationDelay: `${i * 0.3}s`
-          }}
-        ></div>
-      ))}
+      {/* Cursor glow effect */}
+      <motion.div 
+        className="fixed w-20 h-20 rounded-full pointer-events-none z-50 mix-blend-screen"
+        style={{
+          background: 'radial-gradient(circle, rgba(255,0,0,0.8) 0%, rgba(255,0,0,0) 70%)',
+          x: smoothMouseX,
+          y: smoothMouseY,
+          translateX: '-50%',
+          translateY: '-50%'
+        }}
+      />
       
-      {/* Add animated noise overlay for texture */}
-      <div className="absolute inset-0 bg-noise opacity-10 mix-blend-overlay"></div>
+      {/* Vignette effect */}
+      <div className="fixed inset-0 pointer-events-none" 
+        style={{
+          background: 'radial-gradient(circle at center, transparent 30%, #000 100%)',
+          zIndex: 0
+        }} 
+      />
+      
+      {/* Content container */}
+      <div className="container mx-auto px-4 py-16 relative z-10">
+        <div className="max-w-4xl mx-auto">
+          {/* Main heading with neon glow */}
+          <motion.h1 
+            className="text-4xl md:text-6xl font-bold mb-8 text-draugr-500 text-shadow-horror text-center"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            درباره فروشگاه دراوگر
+          </motion.h1>
+          
+          {/* Introduction text */}
+          <motion.div 
+            className="mb-12 text-center text-gray-300"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <p className="text-xl mb-4">دنیای وحشت و تاریکی در انتظار شماست</p>
+            <p className="mb-8">فروشگاه دراوگر جایی برای کسانی است که از تاریکی نمی‌ترسند، بلکه آن را در آغوش می‌کشند. ما مجموعه‌ای از محصولات منحصر به فرد با الهام از افسانه‌های ترسناک اسکاندیناوی را ارائه می‌دهیم.</p>
+          </motion.div>
+          
+          {/* Bio panels */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+            <BioPanelSection 
+              icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clipRule="evenodd" />
+              </svg>}
+              title="تاریخچه ما"
+              content="فروشگاه دراوگر در سال ۱۴۰۲ با هدف ارائه محصولاتی آغاز به کار کرد که از افسانه‌های نورس و موجودات ترسناک اسکاندیناوی الهام گرفته شده‌اند. دراوگر، موجودات مردگان زنده‌ای هستند که در افسانه‌های نورس، به عنوان نگهبانان گنج‌های خود، حتی پس از مرگ، به زندگی ادامه می‌دهند."
+              delay={0.3}
+            />
+            
+            <BioPanelSection 
+              icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zm7-10a1 1 0 01.707.293l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 8l-3.293-3.293A1 1 0 0112 4z" clipRule="evenodd" />
+              </svg>}
+              title="محصولات منحصر به فرد"
+              content="ما محصولاتی را طراحی می‌کنیم که روح و جوهره افسانه‌های وحشتناک را به زندگی روزمره شما می‌آورند. از لباس‌های دست‌ساز گرفته تا لوازم تزئینی خانه، هر محصول با دقت و احترام به سنت‌های باستانی طراحی شده است."
+              delay={0.4}
+            />
+            
+            <BioPanelSection 
+              icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+              </svg>}
+              title="تیم ما"
+              content="تیم دراوگر متشکل از طراحان، صنعتگران و فناورانی است که عشق به فرهنگ‌های باستانی و دنیای وحشت آنها را گرد هم آورده است. ما با بهره‌گیری از فناوری‌های نوین، محصولاتی خلق می‌کنیم که پل‌ارتباطی بین گذشته و آینده هستند."
+              delay={0.5}
+            />
+            
+            <BioPanelSection 
+              icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>}
+              title="تعهد ما"
+              content="ما متعهد هستیم که محصولاتی با کیفیت و اصیل را با الهام از افسانه‌های نورس به مشتریان خود ارائه دهیم. تمام محصولات ما با موادی با کیفیت و با دقت فراوان ساخته می‌شوند تا تجربه‌ای بی‌نظیر را برای شما فراهم کنند."
+              delay={0.6}
+            />
+          </div>
+          
+          {/* Interactive element - FAQ accordions */}
+          <motion.div 
+            className="bg-gradient-to-br from-black to-draugr-900/40 rounded-lg p-6 backdrop-blur-sm border border-draugr-800/50 mb-12"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.7 }}
+          >
+            <h2 className="text-2xl font-bold mb-6 text-draugr-500">سوالات متداول</h2>
+            <FAQ />
+          </motion.div>
+          
+          {/* Call to action */}
+          <motion.div 
+            className="text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.9 }}
+          >
+            <p className="text-lg mb-4 text-gray-300">آیا آماده‌اید تا به دنیای وحشت و افسانه‌های نورس وارد شوید؟</p>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-gradient-to-r from-draugr-900 to-draugr-700 text-white py-3 px-8 rounded-lg shadow-horror hover:shadow-[0_0_15px_rgba(255,0,0,0.7)] transition-all duration-300"
+            >
+              فروشگاه را ببینید
+            </motion.button>
+          </motion.div>
+        </div>
+      </div>
     </div>
   );
 };
 
-const AboutPage = () => {
-  const [scrollY, setScrollY] = useState(0);
-  const aboutRef = useRef(null);
-  const missionRef = useRef(null);
-  const valuesRef = useRef(null);
-  const teamRef = useRef(null);
-  const { scrollYProgress } = useScroll();
+// Expandable FAQ component
+const FAQ = () => {
+  const [activeIndex, setActiveIndex] = useState(null);
   
-  const missionInView = useInView(missionRef, { once: false, amount: 0.3 });
-  const valuesInView = useInView(valuesRef, { once: false, amount: 0.3 });
-  const teamInView = useInView(teamRef, { once: false, amount: 0.3 });
-  
-  // Parallax effect
-  const y = useTransform(scrollYProgress, [0, 1], [0, 300]);
-  const opacity = useTransform(scrollYProgress, [0, 0.3], [1, 0.3]);
-  
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrollY(window.scrollY);
-    };
-    
-    window.addEventListener("scroll", handleScroll);
-    
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
-
-  // Interactive timeline data
-  const historyMilestones = [
+  const faqs = [
     {
-      year: "2013",
-      title: "آغاز سفر",
-      description: "فروشگاه دراگر با یک فروشگاه کوچک و عرضه محصولات دست‌ساز کار خود را آغاز کرد."
+      question: "دراوگر چیست؟",
+      answer: "دراوگر (Draugr) موجودی افسانه‌ای در اساطیر اسکاندیناوی است که به عنوان مردگان زنده‌ای توصیف می‌شود که پس از مرگ، به منظور محافظت از گنج‌های خود یا انتقام از دشمنانشان، به زندگی ادامه می‌دهند."
     },
     {
-      year: "2015",
-      title: "گسترش محصولات",
-      description: "با توسعه کاتالوگ محصولات، فروشگاه دراگر محصولات منحصر به فرد و کمیاب را به مجموعه خود اضافه کرد."
+      question: "آیا محصولات شما دست‌ساز هستند؟",
+      answer: "بله، بسیاری از محصولات ما توسط صنعتگران ماهر به صورت دست‌ساز تولید می‌شوند. ما به کیفیت و اصالت محصولات خود افتخار می‌کنیم و تلاش می‌کنیم تا روح واقعی افسانه‌های اسکاندیناوی را در آنها منعکس کنیم."
     },
     {
-      year: "2018",
-      title: "تأسیس فروشگاه آنلاین",
-      description: "با راه‌اندازی وب‌سایت، محصولات منحصر به فرد ما در دسترس مشتریان سراسر کشور قرار گرفت."
+      question: "آیا به خارج از ایران هم ارسال دارید؟",
+      answer: "بله، ما به بسیاری از کشورها ارسال داریم. هزینه و زمان ارسال بسته به مقصد متفاوت است. برای اطلاعات بیشتر می‌توانید با پشتیبانی ما تماس بگیرید."
     },
     {
-      year: "2021",
-      title: "برند جهانی",
-      description: "دراگر به یک برند شناخته شده در عرصه محصولات خاص و منحصر به فرد تبدیل شد."
-    },
-    {
-      year: "2023",
-      title: "امروز",
-      description: "ما به ارائه محصولات با کیفیت و خدمات برتر به مشتریان خود افتخار می‌کنیم."
+      question: "محصولات شما برای چه رده سنی مناسب است؟",
+      answer: "محصولات ما عمدتاً برای بزرگسالان و نوجوانان علاقه‌مند به فرهنگ‌های باستانی، اساطیر نورس و ژانر وحشت طراحی شده‌اند. برخی از محصولات ما ممکن است برای کودکان مناسب نباشند."
     }
   ];
-
-  // Interactive value cards
-  const valueCards = [
-    {
-      icon: "🔥",
-      title: "کیفیت برتر",
-      description: "ما فقط محصولات با کیفیت بالا و منحصر به فرد را ارائه می‌دهیم."
-    },
-    {
-      icon: "🛡️",
-      title: "اصالت",
-      description: "تمام محصولات ما اصیل و منحصر به فرد هستند."
-    },
-    {
-      icon: "🌙",
-      title: "نوآوری",
-      description: "ما همیشه به دنبال راه‌های جدید برای بهبود محصولات و خدمات خود هستیم."
-    },
-    {
-      icon: "⚔️",
-      title: "تعهد",
-      description: "ما متعهد به ارائه بهترین خدمات به مشتریان خود هستیم."
-    }
-  ];
-
-  // Team members data
-  const teamMembers = [
-    {
-      image: teamMember1 || fallbackTeam,
-      name: "علی رضایی",
-      role: "بنیانگذار و مدیرعامل",
-      bio: "علی بیش از ۱۰ سال تجربه در صنعت محصولات فرهنگی را دارد و با چشم‌انداز خاص خود دراگر را تأسیس کرد."
-    },
-    {
-      image: teamMember2 || fallbackTeam,
-      name: "سارا محمدی",
-      role: "مدیر محصول",
-      bio: "سارا مسئول انتخاب و تهیه محصولات منحصر به فرد برای مجموعه دراگر است."
-    },
-    {
-      image: fallbackTeam3, // Use the local fallback image
-      name: "مهدی احمدی",
-      role: "مدیر خلاقیت",
-      bio: "مهدی با تخصص در طراحی، مسئول خلق تجربه‌های بصری منحصر به فرد برای برند دراگر است."
-    }
-  ];
-
-  const [activeMilestone, setActiveMilestone] = useState(0);
-  const [activeTeamMember, setActiveTeamMember] = useState(null);
-
+  
   return (
-    <div className="bg-transparent text-white min-h-screen relative" ref={aboutRef}>
-      {/* CSS-only animated background */}
-      <CSSBackground />
-      
-      {/* Custom CSS animations */}
-      <style>{`
-        @keyframes float {
-          0% { transform: translateY(0px); }
-          100% { transform: translateY(20px); }
-        }
-        
-        @keyframes spin {
-          0% { transform: rotateY(0deg); }
-          100% { transform: rotateY(360deg); }
-        }
-        
-        @keyframes pulse {
-          0% { opacity: 0.4; }
-          100% { opacity: 1; }
-        }
-        
-        .bg-noise {
-          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
-          background-repeat: repeat;
-        }
-        
-        .text-shadow-horror {
-          text-shadow: 0 0 10px rgba(239, 35, 60, 0.7), 0 0 20px rgba(239, 35, 60, 0.4);
-        }
-        
-        .shadow-horror {
-          box-shadow: 0 0 20px rgba(239, 35, 60, 0.7);
-        }
-        
-        .bg-gradient-radial {
-          background: radial-gradient(circle at center, var(--tw-gradient-from), var(--tw-gradient-via), var(--tw-gradient-to));
-        }
-        
-        /* 3D card effect styles */
-        .perspective {
-          perspective: 1000px;
-        }
-        
-        .preserve-3d {
-          transform-style: preserve-3d;
-        }
-        
-        .backface-hidden {
-          backface-visibility: hidden;
-        }
-        
-        .rotate-y-180 {
-          transform: rotateY(180deg);
-        }
-      `}</style>
-      
-      {/* Hero Section */}
-      <motion.section 
-        className="relative h-[70vh] md:h-[80vh] flex items-center justify-center overflow-hidden"
-      >
-        <div className="container mx-auto px-4 z-10 relative">
-          <motion.div 
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-center"
+    <div className="space-y-4">
+      {faqs.map((faq, index) => (
+        <div key={index} className="border-b border-draugr-900 pb-4">
+          <button
+            onClick={() => setActiveIndex(activeIndex === index ? null : index)}
+            className="flex justify-between items-center w-full text-right"
           >
-            <h1 className="text-4xl md:text-6xl font-bold mb-4 text-draugr-500 text-shadow-horror">درباره دراگر</h1>
-            <p className="text-xl md:text-2xl max-w-3xl mx-auto text-white">داستان ما، افراد ما، و چیزهایی که برای ما مهم است.</p>
-            
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 1 }}
-              className="mt-8"
+            <span className="text-white font-semibold">{faq.question}</span>
+            <svg
+              className={`w-5 h-5 text-draugr-500 transform transition-transform duration-300 ${activeIndex === index ? 'rotate-180' : ''}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
             >
-              <button 
-                onClick={() => {
-                  window.scrollTo({
-                    top: missionRef.current.offsetTop - 100,
-                    behavior: 'smooth'
-                  });
-                }}
-                className="bg-draugr-800 text-white px-8 py-3 rounded-md hover:bg-draugr-700 transition duration-300 font-medium"
-              >
-                داستان ما را بخوانید
-              </button>
-            </motion.div>
-          </motion.div>
-        </div>
-        
-        {/* Animated scroll indicator */}
-        <motion.div 
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-          animate={{ 
-            y: [0, 10, 0],
-            opacity: [0.4, 1, 0.4]
-          }}
-          transition={{ 
-            repeat: Infinity, 
-            duration: 2
-          }}
-        >
-          <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-          </svg>
-        </motion.div>
-      </motion.section>
-      
-      {/* Mission Section */}
-      <section 
-        ref={missionRef} 
-        className="py-16 md:py-24 relative"
-      >
-        <div className="container mx-auto px-4">
-          <motion.div 
-            initial={{ opacity: 0, y: 50 }}
-            animate={missionInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8 }}
-            className="max-w-4xl mx-auto text-center"
-          >
-            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-draugr-400">مأموریت ما</h2>
-            <p className="text-xl leading-relaxed mb-8 text-gray-300">
-              در دراگر، هدف ما ارائه محصولات منحصر به فرد و با کیفیت به مشتریانی است که به دنبال چیزی متفاوت هستند. ما باور داریم که هر فرد باید به اشیاء خاصی دسترسی داشته باشد که روح و شخصیت او را منعکس می‌کند.
-            </p>
-            <p className="text-xl leading-relaxed text-gray-300">
-              محصولات ما با دقت انتخاب شده‌اند تا نیازهای خاص مشتریان‌مان را برآورده کنند. ما به پایداری، اصالت و کیفیت متعهد هستیم و همیشه به دنبال بهبود تجربه خرید مشتریان‌مان هستیم.
-            </p>
-          </motion.div>
-        </div>
-        
-        {/* Interactive Timeline */}
-        <div className="mt-20 md:mt-32 max-w-5xl mx-auto px-4">
-          <motion.h3 
-            initial={{ opacity: 0 }}
-            animate={missionInView ? { opacity: 1 } : {}}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-2xl md:text-3xl font-bold mb-12 text-center text-draugr-400"
-          >
-            داستان ما
-          </motion.h3>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
           
-          <div className="relative">
-            {/* Timeline line */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-gradient-to-b from-draugr-900 to-draugr-600"></div>
-            
-            {historyMilestones.map((milestone, index) => (
-              <motion.div 
-                key={index}
-                initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
-                animate={missionInView ? { opacity: 1, x: 0 } : {}}
-                transition={{ duration: 0.6, delay: 0.2 + index * 0.2 }}
-                className={`relative flex items-center mb-16 ${index % 2 === 0 ? 'flex-row' : 'flex-row-reverse'}`}
-                onMouseEnter={() => setActiveMilestone(index)}
-              >
-                <div className={`w-1/2 ${index % 2 === 0 ? 'pr-8 text-right' : 'pl-8 text-left'}`}>
-                  <h4 className="text-xl md:text-2xl font-bold text-draugr-500 mb-2">{milestone.title}</h4>
-                  <p className="text-gray-300">{milestone.description}</p>
-                </div>
-                
-                <div className="absolute left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
-                  <motion.div 
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${activeMilestone === index ? 'bg-draugr-500' : 'bg-gray-700'}`}
-                    animate={{ 
-                      scale: activeMilestone === index ? [1, 1.2, 1] : 1,
-                      boxShadow: activeMilestone === index ? "0 0 15px rgba(220, 38, 38, 0.7)" : "none"
-                    }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    {milestone.year}
-                  </motion.div>
-                </div>
-                
-                <div className="w-1/2"></div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-      
-      {/* Values Section */}
-      <section 
-        ref={valuesRef}
-        className="py-16 md:py-24 bg-gradient-to-b from-vampire-dark to-black relative"
-      >
-        <div className="container mx-auto px-4">
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            animate={valuesInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-16"
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{
+              height: activeIndex === index ? 'auto' : 0,
+              opacity: activeIndex === index ? 1 : 0
+            }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden"
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-draugr-400">ارزش‌های ما</h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              آنچه به ما انگیزه می‌دهد و ما را هدایت می‌کند
-            </p>
-          </motion.div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {valueCards.map((card, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                animate={valuesInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.5, delay: 0.1 + index * 0.1 }}
-                whileHover={{ 
-                  y: -10, 
-                  boxShadow: "0 10px 25px rgba(0, 0, 0, 0.3), 0 0 10px rgba(220, 38, 38, 0.3)" 
-                }}
-                className="bg-gradient-to-b from-gray-900 to-black p-8 rounded-lg border border-draugr-900/20 shadow-lg hover:border-draugr-700/50 transition-all duration-300"
-              >
-                <div className="text-4xl mb-4">{card.icon}</div>
-                <h3 className="text-xl font-bold mb-3 text-draugr-400">{card.title}</h3>
-                <p className="text-gray-400">{card.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-      
-      {/* Team Section */}
-      <section 
-        ref={teamRef}
-        className="py-16 md:py-24 bg-gradient-to-b from-black to-midnight relative"
-      >
-        <div className="container mx-auto px-4">
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            animate={teamInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-draugr-400">تیم ما</h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              با افرادی آشنا شوید که دراگر را ممکن می‌سازند
-            </p>
-          </motion.div>
-          
-          <div className="flex flex-wrap justify-center gap-8">
-            {teamMembers.map((member, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={teamInView ? { opacity: 1, scale: 1 } : {}}
-                transition={{ duration: 0.5, delay: 0.2 + index * 0.2 }}
-                whileHover={{ y: -10 }}
-                className="w-full md:w-[300px] group perspective"
-                onMouseEnter={() => setActiveTeamMember(index)}
-                onMouseLeave={() => setActiveTeamMember(null)}
-              >
-                <motion.div 
-                  className="relative preserve-3d transition-all duration-500 h-[400px]"
-                  animate={{ 
-                    rotateY: activeTeamMember === index ? 180 : 0
-                  }}
-                  transition={{ duration: 0.7 }}
-                >
-                  {/* Front Face */}
-                  <div className="absolute inset-0 backface-hidden rounded-lg overflow-hidden">
-                    <div className="h-full bg-gradient-to-b from-gray-900 to-black rounded-lg border border-draugr-900/20 overflow-hidden">
-                      <div 
-                        className="h-[250px] bg-cover bg-center"
-                        style={{ backgroundImage: `url(${member.image})` }}
-                      ></div>
-                      <div className="p-5 text-center">
-                        <h3 className="text-xl font-bold mb-1 text-draugr-400">{member.name}</h3>
-                        <p className="text-gray-300 mb-3">{member.role}</p>
-                        <button 
-                          className="text-sm text-draugr-500 flex items-center mx-auto"
-                          onClick={() => setActiveTeamMember(index)}
-                        >
-                          <span>بیشتر بدانید</span>
-                          <svg className="w-4 h-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Back Face */}
-                  <div className="absolute inset-0 backface-hidden rounded-lg overflow-hidden rotate-y-180">
-                    <div className="h-full bg-gradient-to-b from-draugr-900/30 to-black rounded-lg border border-draugr-900/40 p-6 flex flex-col justify-center">
-                      <h3 className="text-xl font-bold mb-2 text-draugr-400">{member.name}</h3>
-                      <p className="text-gray-300 mb-4">{member.role}</p>
-                      <p className="text-gray-400 mb-6">{member.bio}</p>
-                      <div className="flex justify-center space-x-3 rtl:space-x-reverse">
-                        <a href="#" className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-draugr-400 hover:bg-draugr-900 transition-colors">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z" />
-                          </svg>
-                        </a>
-                        <a href="#" className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-draugr-400 hover:bg-draugr-900 transition-colors">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-                          </svg>
-                        </a>
-                        <a href="#" className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-draugr-400 hover:bg-draugr-900 transition-colors">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" />
-                          </svg>
-                        </a>
-                      </div>
-                      <button 
-                        className="mt-6 text-sm text-draugr-500 flex items-center mx-auto"
-                        onClick={() => setActiveTeamMember(null)}
-                      >
-                        <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                        <span>برگشت</span>
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-      
-      {/* Contact CTA Section */}
-      <section className="py-16 md:py-24 bg-gradient-to-b from-midnight to-black relative">
-        <div className="container mx-auto px-4 text-center">
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="max-w-3xl mx-auto"
-          >
-            <h2 className="text-3xl md:text-4xl font-bold mb-6 text-draugr-400">با ما در ارتباط باشید</h2>
-            <p className="text-xl text-gray-300 mb-10">
-              ما مشتاق شنیدن نظرات شما هستیم. اگر سؤالی دارید یا به دنبال همکاری هستید، با ما تماس بگیرید.
-            </p>
-            <motion.div 
-              className="flex flex-wrap justify-center gap-4"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              viewport={{ once: true }}
-            >
-              <Link 
-                to="/contact" 
-                className="bg-draugr-800 hover:bg-draugr-700 text-white px-8 py-3 rounded-md transition duration-300 font-medium"
-              >
-                تماس با ما
-              </Link>
-              <Link 
-                to="/shop" 
-                className="bg-gray-800 hover:bg-gray-700 text-white px-8 py-3 rounded-md transition duration-300 font-medium"
-              >
-                مشاهده محصولات
-              </Link>
-            </motion.div>
+            <p className="pt-4 text-gray-400 text-sm">{faq.answer}</p>
           </motion.div>
         </div>
-      </section>
+      ))}
     </div>
   );
 };
