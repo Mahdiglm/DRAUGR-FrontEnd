@@ -1,12 +1,7 @@
-// AboutPage.jsx - Enhanced with 3D skulls and cyberpunk effects
-import React, { useRef, useState, useEffect, Suspense } from 'react';
+// AboutPage.jsx - Enhanced with CSS animations for skulls and neon lines
+import React, { useRef, useState, useEffect } from 'react';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, useGLTF, Environment, Float } from '@react-three/drei';
-import { EffectComposer, Bloom, Noise, Glitch } from '@react-three/postprocessing';
-import { GlitchMode } from 'postprocessing';
-import * as THREE from 'three';
 
 // Import team member images
 import teamMember1 from '../../assets/Team-Member-1.jpg';
@@ -14,70 +9,69 @@ import teamMember2 from '../../assets/Team-Member-2.jpg';
 
 // Fallback images
 const fallbackTeam = "https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60";
-// Replace problematic Unsplash URL with a reliable local avatar placeholder
+// Local SVG data URL for third team member
 const fallbackTeam3 = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23333'/%3E%3Ccircle cx='50' cy='40' r='20' fill='%23666'/%3E%3Ccircle cx='50' cy='90' r='30' fill='%23666'/%3E%3C/svg%3E";
 
-// Preload 3D model - commented out since we're using custom geometry
-// useGLTF.preload('/models/gltf/Skull.glb');
-
-// Simpler Skull component that's guaranteed to be visible
-const Skull = ({ position, rotation, scale }) => (
-  <mesh position={position} rotation={rotation} scale={scale}>
-    <boxGeometry args={[1, 1.2, 1]} />
-    <meshStandardMaterial
-      color="red"
-      emissive="red"
-      emissiveIntensity={2}
-    />
-  </mesh>
-);
-
-// Simpler neon line that's guaranteed to be visible
-const NeonLine = ({ startPosition, endPosition, color }) => (
-  <mesh>
-    <boxGeometry args={[0.2, 10, 0.2]} />
-    <meshStandardMaterial
-      color={color}
-      emissive={color}
-      emissiveIntensity={2}
-    />
-  </mesh>
-);
-
-// Simplified scene with guaranteed visible elements
-const BackgroundScene = () => {
+// CSS-only background with skulls and neon lines
+const CSSBackground = () => {
   return (
-    <>
-      <ambientLight intensity={1} />
-      <directionalLight position={[5, 5, 5]} intensity={2} />
+    <div className="fixed inset-0 z-[-1] overflow-hidden bg-black">
+      {/* Red glow in the background */}
+      <div className="absolute inset-0 bg-gradient-radial from-red-900/20 via-black to-black"></div>
       
-      {/* Massive center skull that's impossible to miss */}
-      <Skull 
-        position={[0, 0, -3]} 
-        rotation={[0, 0, 0]} 
-        scale={[2, 2, 2]} 
-      />
+      {/* Animated red skulls */}
+      {[...Array(5)].map((_, i) => (
+        <div 
+          key={`skull-${i}`}
+          className="absolute w-20 h-24 animate-float"
+          style={{
+            left: `${10 + i * 20}%`,
+            top: `${20 + (i % 3) * 20}%`,
+            animation: `float ${3 + i}s ease-in-out infinite alternate, 
+                        spin ${10 + i * 2}s linear infinite`,
+            animationDelay: `${i * 0.5}s`
+          }}
+        >
+          {/* Simple CSS skull */}
+          <div className="relative w-full h-full">
+            {/* Skull base */}
+            <div className="absolute inset-0 rounded-t-full bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.8)]"></div>
+            
+            {/* Eyes */}
+            <div className="absolute w-3 h-4 bg-black rounded-full left-3 top-10"></div>
+            <div className="absolute w-3 h-4 bg-black rounded-full right-3 top-10"></div>
+            
+            {/* Nose */}
+            <div className="absolute w-2 h-2 bg-black rounded-full left-1/2 top-14 transform -translate-x-1/2"></div>
+            
+            {/* Mouth */}
+            <div className="absolute w-8 h-2 bg-black rounded-full left-1/2 bottom-4 transform -translate-x-1/2"></div>
+          </div>
+        </div>
+      ))}
       
-      {/* Impossible-to-miss bright red line */}
-      <NeonLine 
-        startPosition={[0, 5, -4]} 
-        endPosition={[0, -5, -4]} 
-        color="red" 
-      />
-    </>
-  );
-};
-
-// Drastically simplified wrapper
-const BackgroundSceneWrapper = () => {
-  return (
-    <div className="fixed inset-0" style={{ zIndex: -1 }}>
-      <Canvas style={{ background: '#111' }}>
-        <BackgroundScene />
-        <EffectComposer>
-          <Bloom intensity={2} luminanceThreshold={0.1} />
-        </EffectComposer>
-      </Canvas>
+      {/* Vertical neon lines */}
+      {[...Array(10)].map((_, i) => (
+        <div 
+          key={`line-${i}`}
+          className="absolute w-1 animate-pulse"
+          style={{
+            left: `${5 + i * 10}%`,
+            top: '0',
+            height: '100%',
+            background: `linear-gradient(to bottom, 
+                         rgba(255,0,0,0) 0%, 
+                         rgba(255,0,0,0.8) 50%, 
+                         rgba(255,0,0,0) 100%)`,
+            boxShadow: '0 0 15px rgba(255,0,0,0.5)',
+            animation: `pulse ${3 + i % 3}s ease-in-out infinite alternate`,
+            animationDelay: `${i * 0.3}s`
+          }}
+        ></div>
+      ))}
+      
+      {/* Add animated noise overlay for texture */}
+      <div className="absolute inset-0 bg-noise opacity-10 mix-blend-overlay"></div>
     </div>
   );
 };
@@ -178,7 +172,7 @@ const AboutPage = () => {
       bio: "سارا مسئول انتخاب و تهیه محصولات منحصر به فرد برای مجموعه دراگر است."
     },
     {
-      image: fallbackTeam3, // Use the fallback image directly
+      image: fallbackTeam3, // Use the local fallback image
       name: "مهدی احمدی",
       role: "مدیر خلاقیت",
       bio: "مهدی با تخصص در طراحی، مسئول خلق تجربه‌های بصری منحصر به فرد برای برند دراگر است."
@@ -190,19 +184,58 @@ const AboutPage = () => {
 
   return (
     <div className="bg-transparent text-white min-h-screen relative" ref={aboutRef}>
-      {/* 3D Background with skulls and neon lines */}
-      <BackgroundSceneWrapper />
+      {/* CSS-only animated background */}
+      <CSSBackground />
       
-      {/* Custom CSS for making sure 3D elements display properly */}
+      {/* Custom CSS animations */}
       <style>{`
-        canvas {
-          width: 100vw !important;
-          height: 100vh !important;
-          display: block !important;
-          position: fixed !important;
-          top: 0 !important;
-          left: 0 !important;
-          z-index: -1 !important;
+        @keyframes float {
+          0% { transform: translateY(0px); }
+          100% { transform: translateY(20px); }
+        }
+        
+        @keyframes spin {
+          0% { transform: rotateY(0deg); }
+          100% { transform: rotateY(360deg); }
+        }
+        
+        @keyframes pulse {
+          0% { opacity: 0.4; }
+          100% { opacity: 1; }
+        }
+        
+        .bg-noise {
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+          background-repeat: repeat;
+        }
+        
+        .text-shadow-horror {
+          text-shadow: 0 0 10px rgba(239, 35, 60, 0.7), 0 0 20px rgba(239, 35, 60, 0.4);
+        }
+        
+        .shadow-horror {
+          box-shadow: 0 0 20px rgba(239, 35, 60, 0.7);
+        }
+        
+        .bg-gradient-radial {
+          background: radial-gradient(circle at center, var(--tw-gradient-from), var(--tw-gradient-via), var(--tw-gradient-to));
+        }
+        
+        /* 3D card effect styles */
+        .perspective {
+          perspective: 1000px;
+        }
+        
+        .preserve-3d {
+          transform-style: preserve-3d;
+        }
+        
+        .backface-hidden {
+          backface-visibility: hidden;
+        }
+        
+        .rotate-y-180 {
+          transform: rotateY(180deg);
         }
       `}</style>
       
@@ -508,29 +541,6 @@ const AboutPage = () => {
           </motion.div>
         </div>
       </section>
-      
-      {/* CSS for 3D card effect */}
-      <style jsx>{`
-        .perspective {
-          perspective: 1000px;
-        }
-        
-        .preserve-3d {
-          transform-style: preserve-3d;
-        }
-        
-        .backface-hidden {
-          backface-visibility: hidden;
-        }
-        
-        .rotate-y-180 {
-          transform: rotateY(180deg);
-        }
-        
-        .text-shadow-horror {
-          text-shadow: 0 0 10px rgba(239, 35, 60, 0.7), 0 0 20px rgba(239, 35, 60, 0.4);
-        }
-      `}</style>
     </div>
   );
 };
