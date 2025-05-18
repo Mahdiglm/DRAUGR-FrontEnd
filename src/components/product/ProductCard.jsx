@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
-const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled = false }) => {
+const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled = false, inSlider = false }) => {
   const { id, name, description, price, imageUrl } = product;
   const navigate = useNavigate();
 
@@ -35,6 +35,20 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
     }
   };
 
+  // Special styling for slider cards
+  const sliderStyles = inSlider ? {
+    boxShadow: isHighlighted 
+      ? "0 10px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(220, 38, 38, 0.5)" 
+      : "0 5px 15px rgba(0, 0, 0, 0.3)",
+    border: "none",
+    borderRadius: "1rem",
+    overflow: "hidden",
+  } : {
+    boxShadow: isHighlighted 
+      ? "0 0 0 1px #dc2626, 0 0 8px 0 rgba(220, 38, 38, 0.5)" 
+      : "0 0 0 1px #991b1b, 0 0 5px 0 rgba(153, 27, 27, 0.3)"
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -49,21 +63,15 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
           damping: 25 
         }
       }}
-      style={{
-        boxShadow: isHighlighted 
-          ? "0 0 0 1px #dc2626, 0 0 8px 0 rgba(220, 38, 38, 0.5)" 
-          : "0 0 0 1px #991b1b, 0 0 5px 0 rgba(153, 27, 27, 0.3)"
-      }}
-      className={`bg-gradient-to-b from-black to-black rounded-lg overflow-hidden h-full flex flex-col relative
+      style={sliderStyles}
+      className={`bg-gradient-to-b ${inSlider ? 'from-gray-900 to-black' : 'from-black to-black'} rounded-lg overflow-hidden h-full flex flex-col relative
         ${isDisabled ? 'pointer-events-none opacity-80' : 'cursor-pointer'}
         transform-gpu
-        before:absolute before:inset-0 before:rounded-lg before:pointer-events-none
-        hover:before:border before:border-red-600 before:opacity-0 hover:before:opacity-100
-        before:transition-opacity before:duration-300
+        ${inSlider ? '' : 'before:absolute before:inset-0 before:rounded-lg before:pointer-events-none hover:before:border before:border-red-600 before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300'}
       `}
     >
       <div 
-        className={`h-64 sm:h-72 md:h-80 bg-cover bg-center relative overflow-hidden
+        className={`${inSlider ? 'h-48 sm:h-56 md:h-64' : 'h-64 sm:h-72 md:h-80'} bg-cover bg-center relative overflow-hidden
           ${isDisabled ? '' : 'cursor-pointer'}
         `}
         style={{ 
@@ -75,33 +83,33 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
         onClick={handleViewDetails}
       >
         {/* Image gradient overlay for better visibility */}
-        <div className="absolute inset-0 bg-gradient-to-t from-red-950/70 via-black/40 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+        <div className={`absolute inset-0 ${inSlider ? 'bg-gradient-to-t from-gray-900/80 via-black/40 to-transparent' : 'bg-gradient-to-t from-red-950/70 via-black/40 to-transparent opacity-0 hover:opacity-100'} transition-opacity duration-300`}></div>
         
         {/* Highlight badge */}
         {isHighlighted && (
-          <div className="absolute top-2 right-2 bg-gradient-to-r from-red-700 to-red-900 text-white text-xs px-2 py-1 rounded-md shadow-lg shadow-red-800/50">
+          <div className={`absolute top-2 right-2 ${inSlider ? 'bg-gradient-to-r from-draugr-700 to-draugr-900 text-white' : 'bg-gradient-to-r from-red-700 to-red-900 text-white'} text-xs px-2 py-1 rounded-md shadow-lg shadow-red-800/50`}>
             ویژه
           </div>
         )}
       </div>
-      <div className="p-4 flex-grow flex flex-col min-h-0 bg-black">
+      <div className={`p-4 flex-grow flex flex-col min-h-0 ${inSlider ? 'bg-gradient-to-b from-gray-900 to-black' : 'bg-black'}`}>
         <h3 
-          className={`font-bold text-lg truncate ${isDisabled ? 'text-gray-400' : 'cursor-pointer text-red-50 hover:text-red-400 transition-colors duration-300'}`}
+          className={`font-bold text-lg truncate ${isDisabled ? 'text-gray-400' : `cursor-pointer ${inSlider ? 'text-draugr-200 hover:text-draugr-400' : 'text-red-50 hover:text-red-400'} transition-colors duration-300`}`}
           onClick={handleViewDetails}
         >
           {name}
         </h3>
         <p className="text-gray-400 text-sm mb-3 line-clamp-1">{description}</p>
-        <div className="flex justify-between items-center mt-auto pt-2 border-t border-red-800">
-          <span className="font-bold text-base text-red-500">{price.toFixed(2)} تومان</span>
+        <div className={`flex justify-between items-center mt-auto pt-2 ${inSlider ? 'border-t border-gray-800' : 'border-t border-red-800'}`}>
+          <span className={`font-bold text-base ${inSlider ? 'text-draugr-500' : 'text-red-500'}`}>{price.toFixed(2)} تومان</span>
           <div className="flex gap-2">
             {!isDisabled && (
               <>
                 <motion.button
-                  whileHover={{ scale: 1.1, backgroundColor: "#dc2626" }}
+                  whileHover={{ scale: 1.1, backgroundColor: inSlider ? "#ef233c" : "#dc2626" }}
                   whileTap={{ scale: 0.9 }}
                   onClick={handleAddToCart}
-                  className="bg-red-700 hover:bg-red-600 text-white p-1.5 rounded-full w-8 h-8 flex items-center justify-center shadow-md shadow-red-900/40 transition-all duration-200"
+                  className={`${inSlider ? 'bg-draugr-700 hover:bg-draugr-600' : 'bg-red-700 hover:bg-red-600'} text-white p-1.5 rounded-full w-8 h-8 flex items-center justify-center shadow-md shadow-red-900/40 transition-all duration-200`}
                   aria-label={`افزودن ${name} به سبد خرید`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -109,10 +117,10 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
                   </svg>
                 </motion.button>
                 <motion.button
-                  whileHover={{ scale: 1.1, backgroundColor: "#7f1d1d" }}
+                  whileHover={{ scale: 1.1, backgroundColor: inSlider ? "#990b22" : "#7f1d1d" }}
                   whileTap={{ scale: 0.9 }}
                   onClick={handleViewDetails}
-                  className="bg-red-900 hover:bg-red-800 text-white p-1.5 rounded-full w-8 h-8 flex items-center justify-center shadow-md shadow-red-900/40 transition-all duration-200"
+                  className={`${inSlider ? 'bg-draugr-900 hover:bg-draugr-800' : 'bg-red-900 hover:bg-red-800'} text-white p-1.5 rounded-full w-8 h-8 flex items-center justify-center shadow-md shadow-red-900/40 transition-all duration-200`}
                   aria-label={`مشاهده جزئیات ${name}`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -351,6 +351,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
                     product={displayProducts[activeIndex]} 
                     onAddToCart={onAddToCart} 
                     isHighlighted={true} 
+                    inSlider={true}
                   />
                 </div>
               </motion.div>
@@ -382,6 +383,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
                           onAddToCart={groupState === "foreground" ? onAddToCart : null} 
                           isHighlighted={groupState === "foreground"}
                           isDisabled={groupState !== "foreground"}
+                          inSlider={true}
                         />
                       </div>
                     </motion.div>
