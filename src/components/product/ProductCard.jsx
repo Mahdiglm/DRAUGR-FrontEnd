@@ -64,7 +64,7 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
         }
       }}
       style={sliderStyles}
-      className={`bg-gradient-to-b ${inSlider ? 'from-gray-900 to-black' : 'from-black to-black'} rounded-lg overflow-hidden h-full flex flex-col relative
+      className={`bg-gradient-to-b ${inSlider ? 'from-draugr-950 to-black' : 'from-black to-black'} rounded-lg overflow-hidden h-full flex flex-col relative
         ${isDisabled ? 'pointer-events-none opacity-80' : 'cursor-pointer'}
         transform-gpu
         ${inSlider ? '' : 'before:absolute before:inset-0 before:rounded-lg before:pointer-events-none hover:before:border before:border-red-600 before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300'}
@@ -83,7 +83,7 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
         onClick={handleViewDetails}
       >
         {/* Image gradient overlay for better visibility */}
-        <div className={`absolute inset-0 ${inSlider ? 'bg-gradient-to-t from-gray-900/80 via-black/40 to-transparent' : 'bg-gradient-to-t from-red-950/70 via-black/40 to-transparent opacity-0 hover:opacity-100'} transition-opacity duration-300`}></div>
+        <div className={`absolute inset-0 ${inSlider ? 'bg-gradient-to-t from-draugr-950/80 via-black/40 to-transparent' : 'bg-gradient-to-t from-red-950/70 via-black/40 to-transparent opacity-0 hover:opacity-100'} transition-opacity duration-300`}></div>
         
         {/* Highlight badge */}
         {isHighlighted && (
@@ -92,7 +92,7 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
           </div>
         )}
       </div>
-      <div className={`p-4 flex-grow flex flex-col min-h-0 ${inSlider ? 'bg-gradient-to-b from-gray-900 to-black' : 'bg-black'}`}>
+      <div className={`p-4 flex-grow flex flex-col min-h-0 ${inSlider ? 'bg-gradient-to-b from-draugr-950/60 to-black' : 'bg-black'}`}>
         <h3 
           className={`font-bold text-lg truncate ${isDisabled ? 'text-gray-400' : `cursor-pointer ${inSlider ? 'text-draugr-200 hover:text-draugr-400' : 'text-red-50 hover:text-red-400'} transition-colors duration-300`}`}
           onClick={handleViewDetails}
@@ -100,7 +100,7 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
           {name}
         </h3>
         <p className="text-gray-400 text-sm mb-3 line-clamp-1">{description}</p>
-        <div className={`flex justify-between items-center mt-auto pt-2 ${inSlider ? 'border-t border-gray-800' : 'border-t border-red-800'}`}>
+        <div className={`flex justify-between items-center mt-auto pt-2 ${inSlider ? 'border-t border-draugr-900/40' : 'border-t border-red-800'}`}>
           <span className={`font-bold text-base ${inSlider ? 'text-draugr-500' : 'text-red-500'}`}>{price.toFixed(2)} تومان</span>
           <div className="flex gap-2">
             {!isDisabled && (
