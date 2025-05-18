@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { safeBlur, safeFilterTransition } from '../../utils/animationHelpers';
 
 const Cart = ({ items, removeItem, isOpen, onClose, addToCartPlus }) => {
@@ -199,57 +200,43 @@ const Cart = ({ items, removeItem, isOpen, onClose, addToCartPlus }) => {
                 </div>
               )}
             </div>
-
-            {/* Footer with checkout button and total - improved layout */}
+            
+            {/* Footer with cart total and checkout button */}
             {items.length > 0 && (
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="p-4 sm:p-5 border-t border-gray-200 bg-white shadow-[0_-5px_15px_rgba(0,0,0,0.05)]"
-              >
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  {/* Improved item count display */}
-                  <div className="bg-gray-50 p-3 rounded-xl text-center shadow-sm">
-                    <p className="text-xs text-gray-500 mb-1">تعداد اقلام</p>
-                    <p className="text-lg font-bold text-gray-800">{totalQuantity}</p>
-                  </div>
-                  {/* Improved price display */}
-                  <div className="bg-draugr-50 p-3 rounded-xl text-center shadow-sm">
-                    <p className="text-xs text-gray-500 mb-1">مجموع قیمت</p>
-                    <p className="text-lg font-bold text-draugr-900">{totalPrice.toLocaleString('fa-IR')} <span className="text-xs">تومان</span></p>
-                  </div>
+              <div className="border-t border-gray-200 p-4 bg-white">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="font-bold text-gray-800">مجموع:</span>
+                  <span className="text-lg font-bold text-draugr-800">{totalPrice.toLocaleString('fa-IR')} تومان</span>
                 </div>
                 
-                <div className="space-y-2.5">
+                <div className="grid grid-cols-2 gap-3">
                   <motion.button
-                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full bg-gradient-to-r from-draugr-800 to-draugr-600 text-white py-3 px-4 rounded-xl font-medium text-sm sm:text-base shadow-md hover:shadow-lg transition-all duration-300"
-                  >
-                    تکمیل خرید
-                  </motion.button>
-                  
-                  <motion.button
-                    whileHover={{ backgroundColor: "#f8f8f8" }}
                     onClick={onClose}
-                    className="w-full py-2.5 px-4 border border-gray-200 rounded-xl text-sm sm:text-base text-gray-700 hover:bg-gray-50 transition-colors duration-300"
+                    className="py-2.5 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
                   >
                     ادامه خرید
                   </motion.button>
+                  
+                  <Link 
+                    to="/checkout"
+                    onClick={onClose}
+                    className="block"
+                  >
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="w-full py-2.5 px-4 bg-gradient-to-r from-draugr-800 to-draugr-600 text-white rounded-md text-sm font-medium flex items-center justify-center"
+                    >
+                      <span className="ml-1.5">تکمیل خرید</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      </svg>
+                    </motion.div>
+                  </Link>
                 </div>
-                
-                <div className="mt-3 pt-2.5 border-t border-gray-100">
-                  <div className="flex justify-between text-xs text-gray-500">
-                    <span>حمل و نقل:</span>
-                    <span className="font-medium">متغیر</span>
-                  </div>
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>مالیات:</span>
-                    <span className="font-medium">در فاکتور نهایی</span>
-                  </div>
-                </div>
-              </motion.div>
+              </div>
             )}
           </motion.div>
         </>
