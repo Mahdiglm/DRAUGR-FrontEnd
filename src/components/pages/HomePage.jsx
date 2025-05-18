@@ -493,8 +493,8 @@ const HomePage = () => {
             }}
           ></div>
           
-          {/* Subtle fog animations in background */}
-          <div className="absolute inset-0 z-[1] opacity-20">
+          {/* Subtle fog animations in background - Using will-change for performance */}
+          <div className="absolute inset-0 z-[1] opacity-20" style={{ willChange: 'transform' }}>
             <motion.div 
               className="absolute inset-0"
               animate={{ 
@@ -508,7 +508,8 @@ const HomePage = () => {
               }}
               style={{
                 backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 2000 2000\' fill=\'none\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\' opacity=\'0.4\'/%3E%3C/svg%3E")',
-                backgroundSize: '200% 200%'
+                backgroundSize: '200% 200%',
+                willChange: 'background-position'
               }}
             />
           </div>
@@ -528,10 +529,15 @@ const HomePage = () => {
               <p className="text-gray-400 max-w-2xl mx-auto">محصولات برتر و منحصر به فرد ما را کشف کنید، هر کدام با ویژگی‌های خاص طراحی شده‌اند.</p>
             </div>
             
-            <FeaturedProductSlider 
-              products={products} 
-              onAddToCart={addToCart} 
-            />
+            {/* Ensure products are available before rendering slider 
+                Apply key for proper remounting when props change */}
+            {products && products.length > 0 && (
+              <FeaturedProductSlider 
+                key="featured-product-slider"
+                products={products} 
+                onAddToCart={addToCart} 
+              />
+            )}
             
             <div className="text-center mt-12">
               <Link to="/shop">

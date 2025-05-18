@@ -28,11 +28,15 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
     checkMobile();
     window.addEventListener('resize', checkMobile);
     
-    return () => window.removeEventListener('resize', checkMobile);
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
   }, []);
 
   // Function to advance the slider
   const nextSlide = () => {
+    if (!componentMounted.current) return;
+    
     if (isMobile) {
       setActiveIndex(prev => (prev + 1) % totalItemsMobile);
     } else {
@@ -40,16 +44,29 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
     }
   };
 
+  // Clear all timers to prevent memory leaks
+  const clearAllTimers = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    
+    if (resumeTimerRef.current) {
+      clearTimeout(resumeTimerRef.current);
+      resumeTimerRef.current = null;
+    }
+  };
+
   // Auto-rotation
   useEffect(() => {
     // Don't start interval if paused
-    if (isPaused) {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
+    if (isPaused || !componentMounted.current) {
+      clearAllTimers();
       return;
     }
+    
+    // Clear any existing interval before setting a new one
+    clearAllTimers();
     
     // Start interval
     intervalRef.current = setInterval(() => {
@@ -58,36 +75,33 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
     
     // Cleanup function
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
+      clearAllTimers();
     };
-  }, [isPaused, isMobile]);
+  }, [isPaused, isMobile, componentMounted.current]);
 
-  // Ensure auto-rotation starts on initial render
+  // Ensure auto-rotation starts on initial render and cleanup properly on unmount
   useEffect(() => {
-    console.log("Starting auto rotation");
+    componentMounted.current = true;
     
     // Force initial start with a small delay
     const initialTimer = setTimeout(() => {
-      nextSlide();
+      if (componentMounted.current) {
+        nextSlide();
+      }
     }, 1000);
     
     // Force cleanup on unmount
     return () => {
-      clearTimeout(initialTimer);
       componentMounted.current = false;
-      
-      // Clear resume timer if it exists
-      if (resumeTimerRef.current) {
-        clearTimeout(resumeTimerRef.current);
-      }
+      clearTimeout(initialTimer);
+      clearAllTimers();
     };
   }, []);
 
   // Handle user interaction
   const handleUserInteraction = (action) => {
+    if (!componentMounted.current) return;
+    
     // Clear any existing resume timer
     if (resumeTimerRef.current) {
       clearTimeout(resumeTimerRef.current);
@@ -103,7 +117,6 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
     // Set timer to resume auto-rotation after delay
     resumeTimerRef.current = setTimeout(() => {
       if (componentMounted.current) {
-        console.log("Resuming auto-rotation");
         setIsPaused(false);
       }
     }, 3000);
@@ -322,9 +335,9 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
         {/* Mobile view: Single item slider */}
         {isMobile && (
           <div className="w-full px-2 pt-4 overflow-hidden relative min-h-[450px]">
-            <AnimatePresence initial={false} custom={activeIndex}>
+            <AnimatePresence mode="wait" initial={false}>
               <motion.div
-                key={activeIndex}
+                key={`mobile-slide-${activeIndex}`}
                 custom={activeIndex}
                 variants={getCardPositionVariants(null, true)} // Pass true for isMobile
                 initial="exit"
