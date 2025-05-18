@@ -14,12 +14,13 @@ import teamMember2 from '../../assets/Team-Member-2.jpg';
 
 // Fallback images
 const fallbackTeam = "https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60";
-const fallbackTeam3 = "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60";
+// Replace problematic Unsplash URL with a reliable local avatar placeholder
+const fallbackTeam3 = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23333'/%3E%3Ccircle cx='50' cy='40' r='20' fill='%23666'/%3E%3Ccircle cx='50' cy='90' r='30' fill='%23666'/%3E%3C/svg%3E";
 
-// Preload 3D model
-useGLTF.preload('/models/gltf/Skull.glb');
+// Preload 3D model - commented out since we're using custom geometry
+// useGLTF.preload('/models/gltf/Skull.glb');
 
-// Simple 3D Skull component using a box with glow effect
+// Detailed 3D Skull component using THREE.js primitives
 const Skull = ({ position, rotation, scale, mousePosition }) => {
   const skullRef = useRef();
   
@@ -41,7 +42,7 @@ const Skull = ({ position, rotation, scale, mousePosition }) => {
   
   return (
     <group ref={skullRef} position={position} rotation={rotation} scale={scale}>
-      {/* Main skull shape */}
+      {/* Main skull (cranium) */}
       <mesh>
         <boxGeometry args={[1, 1.2, 1]} />
         <meshStandardMaterial 
@@ -53,20 +54,48 @@ const Skull = ({ position, rotation, scale, mousePosition }) => {
         />
       </mesh>
       
-      {/* Eyes */}
-      <mesh position={[0.2, 0.1, -0.501]}>
-        <sphereGeometry args={[0.1, 16, 16]} />
-        <meshStandardMaterial color="#000000" emissive="#ffffff" emissiveIntensity={0.5} />
+      {/* Jaw - adds more skull-like appearance */}
+      <mesh position={[0, -0.7, 0]}>
+        <boxGeometry args={[0.8, 0.4, 0.8]} />
+        <meshStandardMaterial 
+          color="#ff0000" 
+          emissive="#ff0000" 
+          emissiveIntensity={1.2}
+          metalness={0.9} 
+          roughness={0.1} 
+        />
       </mesh>
-      <mesh position={[-0.2, 0.1, -0.501]}>
-        <sphereGeometry args={[0.1, 16, 16]} />
-        <meshStandardMaterial color="#000000" emissive="#ffffff" emissiveIntensity={0.5} />
+      
+      {/* Eyes - deep sockets */}
+      <mesh position={[0.25, 0.1, -0.501]}>
+        <sphereGeometry args={[0.15, 16, 16]} />
+        <meshStandardMaterial color="#000000" emissive="#550000" emissiveIntensity={1.0} />
+      </mesh>
+      <mesh position={[-0.25, 0.1, -0.501]}>
+        <sphereGeometry args={[0.15, 16, 16]} />
+        <meshStandardMaterial color="#000000" emissive="#550000" emissiveIntensity={1.0} />
+      </mesh>
+      
+      {/* Nose cavity */}
+      <mesh position={[0, -0.2, -0.501]}>
+        <boxGeometry args={[0.2, 0.2, 0.1]} />
+        <meshStandardMaterial color="#000000" emissive="#550000" emissiveIntensity={1.0} />
       </mesh>
       
       {/* Teeth */}
-      <mesh position={[0, -0.3, -0.501]}>
+      <mesh position={[0, -0.5, -0.501]}>
         <boxGeometry args={[0.5, 0.1, 0.1]} />
-        <meshStandardMaterial color="#ffffff" />
+        <meshStandardMaterial color="#ffffff" emissive="#ffcccc" emissiveIntensity={0.2} />
+      </mesh>
+      
+      {/* Cheekbone highlights */}
+      <mesh position={[0.4, -0.1, -0.2]}>
+        <boxGeometry args={[0.1, 0.3, 0.6]} />
+        <meshStandardMaterial color="#ff3333" emissive="#ff0000" emissiveIntensity={1.8} />
+      </mesh>
+      <mesh position={[-0.4, -0.1, -0.2]}>
+        <boxGeometry args={[0.1, 0.3, 0.6]} />
+        <meshStandardMaterial color="#ff3333" emissive="#ff0000" emissiveIntensity={1.8} />
       </mesh>
     </group>
   );
@@ -172,19 +201,25 @@ const BackgroundScene = () => {
     };
   }, []);
   
-  // Generate skulls - positioned more visibly in the foreground
+  // Generate skulls - larger and positioned prominently in foreground
   const skulls = [];
-  for (let i = 0; i < 7; i++) {
-    // More centrally positioned skulls
-    const x = (Math.random() - 0.5) * 10;
+  for (let i = 0; i < 5; i++) {
+    // Position skulls more visibly
+    const x = (Math.random() - 0.5) * 8;
     const y = (Math.random() - 0.5) * 6;
-    const z = Math.random() * -5 - 2; // Closer to camera
-    const scale = Math.random() * 0.4 + 0.3; // Larger skulls
+    const z = i === 0 ? -2 : Math.random() * -4; // Place first skull closer to camera
+    const scale = i === 0 ? 0.7 : Math.random() * 0.4 + 0.3; // First skull is larger
     
     skulls.push(
-      <Float key={`skull-${i}`} speed={1.5} rotationIntensity={0.8} floatIntensity={0.5}>
+      <Float 
+        key={`skull-${i}`} 
+        speed={1.2} 
+        rotationIntensity={0.8} 
+        floatIntensity={0.5}
+        position={[x, y, z]}
+      >
         <Skull
-          position={[x, y, z]}
+          position={[0, 0, 0]}
           rotation={[0, Math.random() * Math.PI, 0]}
           scale={scale}
           mousePosition={mousePosition}
@@ -192,6 +227,24 @@ const BackgroundScene = () => {
       </Float>
     );
   }
+  
+  // Add one prominently featured skull in the center
+  skulls.push(
+    <Float 
+      key="main-skull" 
+      speed={0.8} 
+      rotationIntensity={0.5} 
+      floatIntensity={0.3}
+      position={[0, 0, -3]}
+    >
+      <Skull
+        position={[0, 0, 0]}
+        rotation={[0, 0, 0]}
+        scale={1.0}
+        mousePosition={mousePosition}
+      />
+    </Float>
+  );
   
   // Generate neon lines - more visible and with brighter colors
   const lines = [];
@@ -223,10 +276,10 @@ const BackgroundScene = () => {
   
   return (
     <>
-      <ambientLight intensity={0.3} />
-      <pointLight position={[5, 5, 5]} intensity={1.2} color="#ff0000" />
-      <pointLight position={[-5, -5, 5]} intensity={0.8} color="#0000ff" />
-      <pointLight position={[0, 3, 3]} intensity={0.5} color="#ff00ff" />
+      <ambientLight intensity={0.4} />
+      <pointLight position={[5, 5, 5]} intensity={1.5} color="#ff0000" />
+      <pointLight position={[-5, -5, 5]} intensity={1.0} color="#0000ff" />
+      <pointLight position={[0, 3, 3]} intensity={0.7} color="#ff00ff" />
       {skulls}
       {lines}
       <fog attach="fog" args={['#000', 8, 25]} />
@@ -238,8 +291,17 @@ const BackgroundSceneWrapper = () => {
   return (
     <div className="fixed inset-0 z-[-1] w-full h-full">
       <Canvas 
-        camera={{ position: [0, 0, 6], fov: 60 }}
-        style={{ width: '100%', height: '100%', position: 'absolute' }}
+        camera={{ position: [0, 0, 5], fov: 70 }}
+        style={{ 
+          width: '100vw', 
+          height: '100vh', 
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          background: 'radial-gradient(circle at center, #180000, #000000)'
+        }}
+        dpr={[1, 2]} // Performance optimization
+        legacy={false} // Use modern features
       >
         <Suspense fallback={null}>
           <BackgroundScene />
@@ -251,7 +313,7 @@ const BackgroundSceneWrapper = () => {
             <Bloom 
               luminanceThreshold={0.1} 
               luminanceSmoothing={0.9} 
-              intensity={2} 
+              intensity={2.5} 
             />
             {/* Subtle noise for a digital/cyberpunk feel */}
             <Noise opacity={0.05} />
@@ -265,7 +327,7 @@ const BackgroundSceneWrapper = () => {
           </EffectComposer>
         </Suspense>
       </Canvas>
-      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-black/70" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-black/50" />
     </div>
   );
 };
