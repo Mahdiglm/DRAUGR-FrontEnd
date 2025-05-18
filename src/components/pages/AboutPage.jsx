@@ -19,10 +19,9 @@ const fallbackTeam3 = "https://images.unsplash.com/photo-1506794778202-cad84cf45
 // Preload 3D model
 useGLTF.preload('/models/gltf/Skull.glb');
 
-// Skull model component
+// Simple 3D Skull component using a box with glow effect
 const Skull = ({ position, rotation, scale, mousePosition }) => {
   const skullRef = useRef();
-  const { nodes, materials } = useGLTF('/models/gltf/Skull.glb');
   
   // Follow mouse with slight delay
   useFrame(() => {
@@ -41,87 +40,99 @@ const Skull = ({ position, rotation, scale, mousePosition }) => {
   });
   
   return (
-    <mesh
-      ref={skullRef}
-      position={position}
-      rotation={rotation}
-      scale={scale}
-      geometry={nodes.Skull.geometry}
-    >
-      <meshPhysicalMaterial 
-        color="#8a0303"
-        metalness={0.7}
-        roughness={0.2}
-        emissive="#ff0000"
-        emissiveIntensity={0.2}
-        envMapIntensity={1.5}
-      />
-    </mesh>
+    <group ref={skullRef} position={position} rotation={rotation} scale={scale}>
+      {/* Main skull shape */}
+      <mesh>
+        <boxGeometry args={[1, 1.2, 1]} />
+        <meshStandardMaterial 
+          color="#ff0000" 
+          emissive="#ff0000" 
+          emissiveIntensity={1.5} 
+          metalness={0.9} 
+          roughness={0.1} 
+        />
+      </mesh>
+      
+      {/* Eyes */}
+      <mesh position={[0.2, 0.1, -0.501]}>
+        <sphereGeometry args={[0.1, 16, 16]} />
+        <meshStandardMaterial color="#000000" emissive="#ffffff" emissiveIntensity={0.5} />
+      </mesh>
+      <mesh position={[-0.2, 0.1, -0.501]}>
+        <sphereGeometry args={[0.1, 16, 16]} />
+        <meshStandardMaterial color="#000000" emissive="#ffffff" emissiveIntensity={0.5} />
+      </mesh>
+      
+      {/* Teeth */}
+      <mesh position={[0, -0.3, -0.501]}>
+        <boxGeometry args={[0.5, 0.1, 0.1]} />
+        <meshStandardMaterial color="#ffffff" />
+      </mesh>
+    </group>
   );
 };
 
 // Enhanced Neon Line component
-const NeonLine = ({ startPosition, endPosition, color, thickness = 1, pulsateSpeed = 2 }) => {
+const NeonLine = ({ startPosition, endPosition, color, thickness = 2, pulsateSpeed = 2 }) => {
   const lineRef = useRef();
+  const [linePositions] = useState(() => {
+    // Create line vertices with additional segments for a more cyberpunk look
+    const points = [];
+    const segments = 4; // More segments for zigzag effect
+    
+    // Create points array for the line
+    for (let i = 0; i <= segments; i++) {
+      const t = i / segments;
+      const x = THREE.MathUtils.lerp(startPosition[0], endPosition[0], t);
+      const y = THREE.MathUtils.lerp(startPosition[1], endPosition[1], t);
+      const z = THREE.MathUtils.lerp(startPosition[2], endPosition[2], t);
+      
+      // Add jitter except for start and end points
+      const jitter = (i > 0 && i < segments) ? (Math.random() - 0.5) * 2 : 0;
+      points.push(x + jitter, y, z);
+    }
+    
+    return new Float32Array(points);
+  });
   
   useFrame(({ clock }) => {
     if (lineRef.current) {
       const time = clock.getElapsedTime();
-      // Create pulsating effect
-      lineRef.current.material.opacity = THREE.MathUtils.lerp(
-        lineRef.current.material.opacity,
-        Math.sin(time * pulsateSpeed) * 0.3 + 0.7,
-        0.1
-      );
-      lineRef.current.material.emissiveIntensity = THREE.MathUtils.lerp(
-        lineRef.current.material.emissiveIntensity,
-        Math.sin(time * pulsateSpeed) * 0.7 + 1.8,
-        0.1
-      );
+      lineRef.current.material.opacity = Math.sin(time * pulsateSpeed) * 0.3 + 0.7;
+      lineRef.current.material.color.setStyle(color);
     }
   });
   
-  // Create line vertices with additional segments for a more cyberpunk look
-  const points = [];
-  const segments = 2; // Add randomness to line path
-  
-  // Start point
-  points.push(...startPosition);
-  
-  // Add midpoints for zigzag effect
-  for (let i = 1; i < segments; i++) {
-    const t = i / segments;
-    const midX = THREE.MathUtils.lerp(startPosition[0], endPosition[0], t);
-    const midY = THREE.MathUtils.lerp(startPosition[1], endPosition[1], t);
-    const midZ = THREE.MathUtils.lerp(startPosition[2], endPosition[2], t);
-    
-    // Add some randomness to make it look more electric/cyberpunk
-    const jitter = (Math.random() - 0.5) * 2;
-    points.push(midX + jitter, midY, midZ);
-  }
-  
-  // End point
-  points.push(...endPosition);
-  
   return (
-    <mesh ref={lineRef}>
-      <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          array={new Float32Array(points)}
-          count={points.length / 3}
-          itemSize={3}
+    <group>
+      <mesh>
+        <tubeGeometry 
+          args={[
+            new THREE.CatmullRomCurve3(
+              Array.from({ length: linePositions.length / 3 }, (_, i) => 
+                new THREE.Vector3(
+                  linePositions[i * 3], 
+                  linePositions[i * 3 + 1], 
+                  linePositions[i * 3 + 2]
+                )
+              )
+            ),
+            20, // tubular segments
+            0.03 * thickness, // radius
+            8, // radial segments
+            false // closed
+          ]}
         />
-      </bufferGeometry>
-      <lineBasicMaterial 
-        color={color} 
-        linewidth={thickness} 
-        opacity={0.8} 
-        transparent={true} 
-        emissive={color} 
-        emissiveIntensity={1.8} 
-      />
-    </mesh>
+        <meshStandardMaterial
+          ref={lineRef}
+          color={color}
+          emissive={color}
+          emissiveIntensity={1.5}
+          opacity={0.9}
+          transparent={true}
+        />
+      </mesh>
+    </group>
   );
 };
 
@@ -146,13 +157,14 @@ const BackgroundScene = () => {
     };
   }, []);
   
-  // Generate skulls
+  // Generate skulls - positioned more visibly in the foreground
   const skulls = [];
   for (let i = 0; i < 7; i++) {
+    // More centrally positioned skulls
     const x = (Math.random() - 0.5) * 10;
-    const y = (Math.random() - 0.5) * 5;
-    const z = Math.random() * -10 - 5;
-    const scale = Math.random() * 0.3 + 0.2; // Smaller skulls
+    const y = (Math.random() - 0.5) * 6;
+    const z = Math.random() * -5 - 2; // Closer to camera
+    const scale = Math.random() * 0.4 + 0.3; // Larger skulls
     
     skulls.push(
       <Float key={`skull-${i}`} speed={1.5} rotationIntensity={0.8} floatIntensity={0.5}>
@@ -166,20 +178,20 @@ const BackgroundScene = () => {
     );
   }
   
-  // Generate neon lines
+  // Generate neon lines - more visible and with brighter colors
   const lines = [];
   const neonColors = [
     '#ff2a6d', '#05d9e8', '#d1f7ff', '#ff0055', 
     '#39ff14', '#00ffff', '#ff00ff', '#ff3131'
   ];
   
-  for (let i = 0; i < 25; i++) {
-    const x = (Math.random() - 0.5) * 20;
-    const startY = 10;
-    const endY = -10;
-    const z = Math.random() * -15 - 5;
+  for (let i = 0; i < 20; i++) {
+    const x = (Math.random() - 0.5) * 16;
+    const startY = 6;
+    const endY = -6;
+    const z = Math.random() * -8; // Closer to camera
     const color = neonColors[Math.floor(Math.random() * neonColors.length)];
-    const thickness = Math.random() * 2 + 1;
+    const thickness = Math.random() * 3 + 2; // Thicker lines
     const pulsateSpeed = Math.random() * 2 + 1;
     
     lines.push(
@@ -196,21 +208,24 @@ const BackgroundScene = () => {
   
   return (
     <>
-      <ambientLight intensity={0.2} />
-      <pointLight position={[5, 5, 5]} intensity={0.8} color="#ff0000" />
-      <pointLight position={[-5, -5, 5]} intensity={0.5} color="#0000ff" />
-      <pointLight position={[0, 3, 3]} intensity={0.3} color="#ff00ff" />
+      <ambientLight intensity={0.3} />
+      <pointLight position={[5, 5, 5]} intensity={1.2} color="#ff0000" />
+      <pointLight position={[-5, -5, 5]} intensity={0.8} color="#0000ff" />
+      <pointLight position={[0, 3, 3]} intensity={0.5} color="#ff00ff" />
       {skulls}
       {lines}
-      <fog attach="fog" args={['#000', 5, 30]} />
+      <fog attach="fog" args={['#000', 8, 25]} />
     </>
   );
 };
 
 const BackgroundSceneWrapper = () => {
   return (
-    <div className="fixed inset-0 -z-10">
-      <Canvas camera={{ position: [0, 0, 10], fov: 50 }}>
+    <div className="fixed inset-0 z-[-1] w-full h-full">
+      <Canvas 
+        camera={{ position: [0, 0, 6], fov: 60 }}
+        style={{ width: '100%', height: '100%', position: 'absolute' }}
+      >
         <Suspense fallback={null}>
           <BackgroundScene />
           <Environment preset="night" />
@@ -219,9 +234,9 @@ const BackgroundSceneWrapper = () => {
           <EffectComposer>
             {/* Bloom effect for glowing neon */}
             <Bloom 
-              luminanceThreshold={0.2} 
+              luminanceThreshold={0.1} 
               luminanceSmoothing={0.9} 
-              intensity={1.5} 
+              intensity={2} 
             />
             {/* Subtle noise for a digital/cyberpunk feel */}
             <Noise opacity={0.05} />
@@ -235,7 +250,7 @@ const BackgroundSceneWrapper = () => {
           </EffectComposer>
         </Suspense>
       </Canvas>
-      <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black/90 z-10" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-black/70" />
     </div>
   );
 };
@@ -347,9 +362,18 @@ const AboutPage = () => {
   const [activeTeamMember, setActiveTeamMember] = useState(null);
 
   return (
-    <div className="bg-midnight text-white min-h-screen" ref={aboutRef}>
+    <div className="bg-transparent text-white min-h-screen relative" ref={aboutRef}>
       {/* 3D Background with skulls and neon lines */}
       <BackgroundSceneWrapper />
+      
+      {/* Custom CSS for making sure 3D elements display properly */}
+      <style jsx="true">{`
+        canvas {
+          width: 100vw !important;
+          height: 100vh !important;
+          display: block !important;
+        }
+      `}</style>
       
       {/* Hero Section */}
       <motion.section 
