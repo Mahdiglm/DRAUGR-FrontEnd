@@ -20,314 +20,64 @@ const fallbackTeam3 = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
 // Preload 3D model - commented out since we're using custom geometry
 // useGLTF.preload('/models/gltf/Skull.glb');
 
-// Detailed 3D Skull component using THREE.js primitives
-const Skull = ({ position, rotation, scale, mousePosition }) => {
-  const skullRef = useRef();
-  
-  // Follow mouse with slight delay
-  useFrame(() => {
-    if (skullRef.current && mousePosition.current) {
-      skullRef.current.rotation.y = THREE.MathUtils.lerp(
-        skullRef.current.rotation.y,
-        (mousePosition.current.x * Math.PI) / 5,
-        0.05
-      );
-      skullRef.current.rotation.x = THREE.MathUtils.lerp(
-        skullRef.current.rotation.x,
-        (mousePosition.current.y * Math.PI) / 10,
-        0.05
-      );
-    }
-  });
-  
-  return (
-    <group ref={skullRef} position={position} rotation={rotation} scale={scale}>
-      {/* Main skull (cranium) */}
-      <mesh>
-        <boxGeometry args={[1, 1.2, 1]} />
-        <meshStandardMaterial 
-          color="#ff0000" 
-          emissive="#ff0000" 
-          emissiveIntensity={1.5} 
-          metalness={0.9} 
-          roughness={0.1} 
-        />
-      </mesh>
-      
-      {/* Jaw - adds more skull-like appearance */}
-      <mesh position={[0, -0.7, 0]}>
-        <boxGeometry args={[0.8, 0.4, 0.8]} />
-        <meshStandardMaterial 
-          color="#ff0000" 
-          emissive="#ff0000" 
-          emissiveIntensity={1.2}
-          metalness={0.9} 
-          roughness={0.1} 
-        />
-      </mesh>
-      
-      {/* Eyes - deep sockets */}
-      <mesh position={[0.25, 0.1, -0.501]}>
-        <sphereGeometry args={[0.15, 16, 16]} />
-        <meshStandardMaterial color="#000000" emissive="#550000" emissiveIntensity={1.0} />
-      </mesh>
-      <mesh position={[-0.25, 0.1, -0.501]}>
-        <sphereGeometry args={[0.15, 16, 16]} />
-        <meshStandardMaterial color="#000000" emissive="#550000" emissiveIntensity={1.0} />
-      </mesh>
-      
-      {/* Nose cavity */}
-      <mesh position={[0, -0.2, -0.501]}>
-        <boxGeometry args={[0.2, 0.2, 0.1]} />
-        <meshStandardMaterial color="#000000" emissive="#550000" emissiveIntensity={1.0} />
-      </mesh>
-      
-      {/* Teeth */}
-      <mesh position={[0, -0.5, -0.501]}>
-        <boxGeometry args={[0.5, 0.1, 0.1]} />
-        <meshStandardMaterial color="#ffffff" emissive="#ffcccc" emissiveIntensity={0.2} />
-      </mesh>
-      
-      {/* Cheekbone highlights */}
-      <mesh position={[0.4, -0.1, -0.2]}>
-        <boxGeometry args={[0.1, 0.3, 0.6]} />
-        <meshStandardMaterial color="#ff3333" emissive="#ff0000" emissiveIntensity={1.8} />
-      </mesh>
-      <mesh position={[-0.4, -0.1, -0.2]}>
-        <boxGeometry args={[0.1, 0.3, 0.6]} />
-        <meshStandardMaterial color="#ff3333" emissive="#ff0000" emissiveIntensity={1.8} />
-      </mesh>
-    </group>
-  );
-};
+// Simpler Skull component that's guaranteed to be visible
+const Skull = ({ position, rotation, scale }) => (
+  <mesh position={position} rotation={rotation} scale={scale}>
+    <boxGeometry args={[1, 1.2, 1]} />
+    <meshStandardMaterial
+      color="red"
+      emissive="red"
+      emissiveIntensity={2}
+    />
+  </mesh>
+);
 
-// Custom hook for animating neon line material
-const useNeonMaterial = (color, pulsateSpeed) => {
-  const materialRef = useRef();
-  
-  useFrame(({ clock }) => {
-    if (materialRef.current) {
-      try {
-        const time = clock.getElapsedTime();
-        materialRef.current.opacity = Math.sin(time * pulsateSpeed) * 0.3 + 0.7;
-        
-        // Use THREE.Color directly instead of string-based color
-        const baseColor = new THREE.Color(color);
-        materialRef.current.color = baseColor;
-        materialRef.current.emissive = baseColor;
-      } catch (error) {
-        console.error("Error updating neon material:", error);
-      }
-    }
-  });
-  
-  return materialRef;
-};
+// Simpler neon line that's guaranteed to be visible
+const NeonLine = ({ startPosition, endPosition, color }) => (
+  <mesh>
+    <boxGeometry args={[0.2, 10, 0.2]} />
+    <meshStandardMaterial
+      color={color}
+      emissive={color}
+      emissiveIntensity={2}
+    />
+  </mesh>
+);
 
-// Enhanced Neon Line component
-const NeonLine = ({ startPosition, endPosition, color, thickness = 2, pulsateSpeed = 2 }) => {
-  const materialRef = useNeonMaterial(color, pulsateSpeed);
-  const [linePositions] = useState(() => {
-    // Create line vertices with additional segments for a more cyberpunk look
-    const points = [];
-    const segments = 4; // More segments for zigzag effect
-    
-    // Create points array for the line
-    for (let i = 0; i <= segments; i++) {
-      const t = i / segments;
-      const x = THREE.MathUtils.lerp(startPosition[0], endPosition[0], t);
-      const y = THREE.MathUtils.lerp(startPosition[1], endPosition[1], t);
-      const z = THREE.MathUtils.lerp(startPosition[2], endPosition[2], t);
-      
-      // Add jitter except for start and end points
-      const jitter = (i > 0 && i < segments) ? (Math.random() - 0.5) * 2 : 0;
-      points.push(x + jitter, y, z);
-    }
-    
-    return new Float32Array(points);
-  });
-  
-  return (
-    <group>
-      <mesh>
-        <tubeGeometry 
-          args={[
-            new THREE.CatmullRomCurve3(
-              Array.from({ length: linePositions.length / 3 }, (_, i) => 
-                new THREE.Vector3(
-                  linePositions[i * 3], 
-                  linePositions[i * 3 + 1], 
-                  linePositions[i * 3 + 2]
-                )
-              )
-            ),
-            20, // tubular segments
-            0.03 * thickness, // radius
-            8, // radial segments
-            false // closed
-          ]}
-        />
-        <meshStandardMaterial
-          ref={materialRef}
-          color={color}
-          emissive={color}
-          emissiveIntensity={1.5}
-          opacity={0.9}
-          transparent={true}
-        />
-      </mesh>
-    </group>
-  );
-};
-
-// Background scene component
+// Simplified scene with guaranteed visible elements
 const BackgroundScene = () => {
-  const mousePosition = useRef({ x: 0, y: 0 });
-  const { viewport } = useThree();
-  
-  useEffect(() => {
-    const updateMousePosition = (e) => {
-      // Normalize mouse position between -1 and 1
-      mousePosition.current = {
-        x: (e.clientX / window.innerWidth) * 2 - 1,
-        y: -(e.clientY / window.innerHeight) * 2 + 1,
-      };
-    };
-    
-    window.addEventListener('mousemove', updateMousePosition);
-    
-    return () => {
-      window.removeEventListener('mousemove', updateMousePosition);
-    };
-  }, []);
-  
-  // Generate skulls - larger and positioned prominently in foreground
-  const skulls = [];
-  for (let i = 0; i < 5; i++) {
-    // Position skulls more visibly
-    const x = (Math.random() - 0.5) * 8;
-    const y = (Math.random() - 0.5) * 6;
-    const z = i === 0 ? -2 : Math.random() * -4; // Place first skull closer to camera
-    const scale = i === 0 ? 0.7 : Math.random() * 0.4 + 0.3; // First skull is larger
-    
-    skulls.push(
-      <Float 
-        key={`skull-${i}`} 
-        speed={1.2} 
-        rotationIntensity={0.8} 
-        floatIntensity={0.5}
-        position={[x, y, z]}
-      >
-        <Skull
-          position={[0, 0, 0]}
-          rotation={[0, Math.random() * Math.PI, 0]}
-          scale={scale}
-          mousePosition={mousePosition}
-        />
-      </Float>
-    );
-  }
-  
-  // Add one prominently featured skull in the center
-  skulls.push(
-    <Float 
-      key="main-skull" 
-      speed={0.8} 
-      rotationIntensity={0.5} 
-      floatIntensity={0.3}
-      position={[0, 0, -3]}
-    >
-      <Skull
-        position={[0, 0, 0]}
-        rotation={[0, 0, 0]}
-        scale={1.0}
-        mousePosition={mousePosition}
-      />
-    </Float>
-  );
-  
-  // Generate neon lines - more visible and with brighter colors
-  const lines = [];
-  const neonColors = [
-    '#ff2a6d', '#05d9e8', '#d1f7ff', '#ff0055', 
-    '#39ff14', '#00ffff', '#ff00ff', '#ff3131'
-  ];
-  
-  for (let i = 0; i < 20; i++) {
-    const x = (Math.random() - 0.5) * 16;
-    const startY = 6;
-    const endY = -6;
-    const z = Math.random() * -8; // Closer to camera
-    const color = neonColors[Math.floor(Math.random() * neonColors.length)];
-    const thickness = Math.random() * 3 + 2; // Thicker lines
-    const pulsateSpeed = Math.random() * 2 + 1;
-    
-    lines.push(
-      <NeonLine
-        key={`line-${i}`}
-        startPosition={[x, startY, z]}
-        endPosition={[x, endY, z]}
-        color={color}
-        thickness={thickness}
-        pulsateSpeed={pulsateSpeed}
-      />
-    );
-  }
-  
   return (
     <>
-      <ambientLight intensity={0.4} />
-      <pointLight position={[5, 5, 5]} intensity={1.5} color="#ff0000" />
-      <pointLight position={[-5, -5, 5]} intensity={1.0} color="#0000ff" />
-      <pointLight position={[0, 3, 3]} intensity={0.7} color="#ff00ff" />
-      {skulls}
-      {lines}
-      <fog attach="fog" args={['#000', 8, 25]} />
+      <ambientLight intensity={1} />
+      <directionalLight position={[5, 5, 5]} intensity={2} />
+      
+      {/* Massive center skull that's impossible to miss */}
+      <Skull 
+        position={[0, 0, -3]} 
+        rotation={[0, 0, 0]} 
+        scale={[2, 2, 2]} 
+      />
+      
+      {/* Impossible-to-miss bright red line */}
+      <NeonLine 
+        startPosition={[0, 5, -4]} 
+        endPosition={[0, -5, -4]} 
+        color="red" 
+      />
     </>
   );
 };
 
+// Drastically simplified wrapper
 const BackgroundSceneWrapper = () => {
   return (
-    <div className="fixed inset-0 z-[-1] w-full h-full">
-      <Canvas 
-        camera={{ position: [0, 0, 5], fov: 70 }}
-        style={{ 
-          width: '100vw', 
-          height: '100vh', 
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          background: 'radial-gradient(circle at center, #180000, #000000)'
-        }}
-        dpr={[1, 2]} // Performance optimization
-        legacy={false} // Use modern features
-      >
-        <Suspense fallback={null}>
-          <BackgroundScene />
-          <Environment preset="night" />
-          
-          {/* Post-processing effects */}
-          <EffectComposer>
-            {/* Bloom effect for glowing neon */}
-            <Bloom 
-              luminanceThreshold={0.1} 
-              luminanceSmoothing={0.9} 
-              intensity={2.5} 
-            />
-            {/* Subtle noise for a digital/cyberpunk feel */}
-            <Noise opacity={0.05} />
-            {/* Occasional glitch effect */}
-            <Glitch 
-              delay={[5, 10]} // Random delay between glitches
-              duration={[0.1, 0.3]} // Random duration
-              strength={0.03} // Subtle glitch effect
-              mode={GlitchMode.CONSTANT_MILD}
-            />
-          </EffectComposer>
-        </Suspense>
+    <div className="fixed inset-0" style={{ zIndex: -1 }}>
+      <Canvas style={{ background: '#111' }}>
+        <BackgroundScene />
+        <EffectComposer>
+          <Bloom intensity={2} luminanceThreshold={0.1} />
+        </EffectComposer>
       </Canvas>
-      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-black/50" />
     </div>
   );
 };
@@ -444,11 +194,15 @@ const AboutPage = () => {
       <BackgroundSceneWrapper />
       
       {/* Custom CSS for making sure 3D elements display properly */}
-      <style jsx="true">{`
+      <style>{`
         canvas {
           width: 100vw !important;
           height: 100vh !important;
           display: block !important;
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          z-index: -1 !important;
         }
       `}</style>
       
