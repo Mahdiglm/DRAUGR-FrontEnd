@@ -3,7 +3,9 @@ import React, { useRef, useState, useEffect, Suspense } from 'react';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, useGLTF, Environment, Float, EffectComposer, Bloom, Noise, GlitchEffect } from '@react-three/drei';
+import { OrbitControls, useGLTF, Environment, Float } from '@react-three/drei';
+import { EffectComposer, Bloom, Noise, Glitch } from '@react-three/postprocessing';
+import { GlitchMode } from 'postprocessing';
 import * as THREE from 'three';
 
 // Import team member images
@@ -224,10 +226,11 @@ const BackgroundSceneWrapper = () => {
             {/* Subtle noise for a digital/cyberpunk feel */}
             <Noise opacity={0.05} />
             {/* Occasional glitch effect */}
-            <GlitchEffect 
+            <Glitch 
               delay={[5, 10]} // Random delay between glitches
               duration={[0.1, 0.3]} // Random duration
-              strength={[0.01, 0.05]} // Subtle glitch effect
+              strength={0.03} // Subtle glitch effect
+              mode={GlitchMode.CONSTANT_MILD}
             />
           </EffectComposer>
         </Suspense>
