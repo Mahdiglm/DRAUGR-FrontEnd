@@ -72,9 +72,32 @@ const Skull = ({ position, rotation, scale, mousePosition }) => {
   );
 };
 
+// Custom hook for animating neon line material
+const useNeonMaterial = (color, pulsateSpeed) => {
+  const materialRef = useRef();
+  
+  useFrame(({ clock }) => {
+    if (materialRef.current) {
+      try {
+        const time = clock.getElapsedTime();
+        materialRef.current.opacity = Math.sin(time * pulsateSpeed) * 0.3 + 0.7;
+        
+        // Use THREE.Color directly instead of string-based color
+        const baseColor = new THREE.Color(color);
+        materialRef.current.color = baseColor;
+        materialRef.current.emissive = baseColor;
+      } catch (error) {
+        console.error("Error updating neon material:", error);
+      }
+    }
+  });
+  
+  return materialRef;
+};
+
 // Enhanced Neon Line component
 const NeonLine = ({ startPosition, endPosition, color, thickness = 2, pulsateSpeed = 2 }) => {
-  const lineRef = useRef();
+  const materialRef = useNeonMaterial(color, pulsateSpeed);
   const [linePositions] = useState(() => {
     // Create line vertices with additional segments for a more cyberpunk look
     const points = [];
@@ -93,14 +116,6 @@ const NeonLine = ({ startPosition, endPosition, color, thickness = 2, pulsateSpe
     }
     
     return new Float32Array(points);
-  });
-  
-  useFrame(({ clock }) => {
-    if (lineRef.current) {
-      const time = clock.getElapsedTime();
-      lineRef.current.material.opacity = Math.sin(time * pulsateSpeed) * 0.3 + 0.7;
-      lineRef.current.material.color.setStyle(color);
-    }
   });
   
   return (
@@ -124,7 +139,7 @@ const NeonLine = ({ startPosition, endPosition, color, thickness = 2, pulsateSpe
           ]}
         />
         <meshStandardMaterial
-          ref={lineRef}
+          ref={materialRef}
           color={color}
           emissive={color}
           emissiveIntensity={1.5}
