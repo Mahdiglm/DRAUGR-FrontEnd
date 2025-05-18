@@ -1,10 +1,16 @@
 import React, { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
+import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 
-// Simple 3D skull component
-const Skull = ({ position, index }) => {
+// Load the skull 3D model
+const SkullModel = ({ position, index }) => {
   const skullRef = useRef();
+  // Load the GLB model
+  const { scene } = useGLTF('/src/assets/skull.glb');
+  
+  // Clone the scene for reuse
+  const skullScene = scene.clone();
   
   // Animation
   useFrame(({ clock, mouse }) => {
@@ -16,38 +22,34 @@ const Skull = ({ position, index }) => {
       skullRef.current.position.y = position[1] + mouse.y * 2;
       
       // Rotation animation
-      skullRef.current.rotation.y = Math.sin(time * 0.5 + index) * 0.5;
+      skullRef.current.rotation.y = Math.sin(time * 0.5 + index) * 0.5 + time * 0.1;
       
       // Pulse size
-      const scale = 1 + Math.sin(time + index) * 0.1;
+      const scale = 0.5 + Math.sin(time + index) * 0.05;
       skullRef.current.scale.set(scale, scale, scale);
+    }
+  });
+
+  // Apply red emissive material to the skull
+  skullScene.traverse((obj) => {
+    if (obj.isMesh) {
+      obj.material = new THREE.MeshStandardMaterial({
+        color: "#ffffff",
+        emissive: "#ff0000",
+        emissiveIntensity: 1.5,
+        roughness: 0.3,
+        metalness: 0.7
+      });
     }
   });
   
   return (
-    <mesh ref={skullRef} position={position}>
-      {/* Skull body */}
-      <boxGeometry args={[1, 1.2, 1]} />
-      <meshStandardMaterial 
-        color="#ff0000" 
-        emissive="#ff0000"
-        emissiveIntensity={2}
-        roughness={0.3} 
-        metalness={0.7}
-      />
-      
-      {/* Eyes */}
-      <group position={[0, 0.2, 0.51]}>
-        <mesh position={[0.25, 0, 0]}>
-          <boxGeometry args={[0.2, 0.2, 0.1]} />
-          <meshBasicMaterial color="black" />
-        </mesh>
-        <mesh position={[-0.25, 0, 0]}>
-          <boxGeometry args={[0.2, 0.2, 0.1]} />
-          <meshBasicMaterial color="black" />
-        </mesh>
-      </group>
-    </mesh>
+    <primitive 
+      ref={skullRef} 
+      object={skullScene} 
+      position={position}
+      scale={[0.5, 0.5, 0.5]}
+    />
   );
 };
 
@@ -76,7 +78,7 @@ const NeonLine = () => {
 
 // Main component
 const AboutPage = () => {
-  // Create 3 skull positions
+  // Create skull positions
   const skullPositions = [
     [-2, 0, 0],
     [0, 2, -1],
@@ -86,13 +88,14 @@ const AboutPage = () => {
   return (
     <div style={{ width: '100%', height: '100vh', background: 'black' }}>
       <Canvas camera={{ position: [0, 0, 5], fov: 60 }}>
-        {/* Simple lighting */}
+        {/* Lighting */}
         <ambientLight intensity={0.5} />
-        <pointLight position={[10, 10, 10]} intensity={1} />
+        <pointLight position={[10, 10, 10]} intensity={2} />
+        <pointLight position={[-10, -10, 5]} intensity={1} color="#ff3333" />
         
         {/* Skulls */}
         {skullPositions.map((position, index) => (
-          <Skull key={index} position={position} index={index} />
+          <SkullModel key={index} position={position} index={index} />
         ))}
         
         {/* Neon line */}
@@ -101,5 +104,8 @@ const AboutPage = () => {
     </div>
   );
 };
+
+// Preload the skull model
+useGLTF.preload('/src/assets/skull.glb');
 
 export default AboutPage; 
