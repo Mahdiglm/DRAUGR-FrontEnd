@@ -1,17 +1,240 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, Suspense } from 'react';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { OrbitControls, useGLTF, Environment, Float, EffectComposer, Bloom, Noise, GlitchEffect } from '@react-three/drei';
+import * as THREE from 'three';
 
-// Import any background or asset images here
-import aboutHeroImage from '../../assets/Background-About.jpg';
+// Import team member images
 import teamMember1 from '../../assets/Team-Member-1.jpg';
 import teamMember2 from '../../assets/Team-Member-2.jpg';
-// Team member 3 image is missing, so we'll only use fallback
 
-// Fallback images in case the imports don't work
-const fallbackHero = "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1950&q=80";
+// Fallback images
 const fallbackTeam = "https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60";
 const fallbackTeam3 = "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60";
+
+// Preload 3D model
+useGLTF.preload('/models/gltf/Skull.glb');
+
+// Skull model component
+const Skull = ({ position, rotation, scale, mousePosition }) => {
+  const skullRef = useRef();
+  const { nodes, materials } = useGLTF('/models/gltf/Skull.glb');
+  
+  // Follow mouse with slight delay
+  useFrame(() => {
+    if (skullRef.current && mousePosition.current) {
+      skullRef.current.rotation.y = THREE.MathUtils.lerp(
+        skullRef.current.rotation.y,
+        (mousePosition.current.x * Math.PI) / 5,
+        0.05
+      );
+      skullRef.current.rotation.x = THREE.MathUtils.lerp(
+        skullRef.current.rotation.x,
+        (mousePosition.current.y * Math.PI) / 10,
+        0.05
+      );
+    }
+  });
+  
+  return (
+    <mesh
+      ref={skullRef}
+      position={position}
+      rotation={rotation}
+      scale={scale}
+      geometry={nodes.Skull.geometry}
+    >
+      <meshPhysicalMaterial 
+        color="#8a0303"
+        metalness={0.7}
+        roughness={0.2}
+        emissive="#ff0000"
+        emissiveIntensity={0.2}
+        envMapIntensity={1.5}
+      />
+    </mesh>
+  );
+};
+
+// Enhanced Neon Line component
+const NeonLine = ({ startPosition, endPosition, color, thickness = 1, pulsateSpeed = 2 }) => {
+  const lineRef = useRef();
+  
+  useFrame(({ clock }) => {
+    if (lineRef.current) {
+      const time = clock.getElapsedTime();
+      // Create pulsating effect
+      lineRef.current.material.opacity = THREE.MathUtils.lerp(
+        lineRef.current.material.opacity,
+        Math.sin(time * pulsateSpeed) * 0.3 + 0.7,
+        0.1
+      );
+      lineRef.current.material.emissiveIntensity = THREE.MathUtils.lerp(
+        lineRef.current.material.emissiveIntensity,
+        Math.sin(time * pulsateSpeed) * 0.7 + 1.8,
+        0.1
+      );
+    }
+  });
+  
+  // Create line vertices with additional segments for a more cyberpunk look
+  const points = [];
+  const segments = 2; // Add randomness to line path
+  
+  // Start point
+  points.push(...startPosition);
+  
+  // Add midpoints for zigzag effect
+  for (let i = 1; i < segments; i++) {
+    const t = i / segments;
+    const midX = THREE.MathUtils.lerp(startPosition[0], endPosition[0], t);
+    const midY = THREE.MathUtils.lerp(startPosition[1], endPosition[1], t);
+    const midZ = THREE.MathUtils.lerp(startPosition[2], endPosition[2], t);
+    
+    // Add some randomness to make it look more electric/cyberpunk
+    const jitter = (Math.random() - 0.5) * 2;
+    points.push(midX + jitter, midY, midZ);
+  }
+  
+  // End point
+  points.push(...endPosition);
+  
+  return (
+    <mesh ref={lineRef}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          array={new Float32Array(points)}
+          count={points.length / 3}
+          itemSize={3}
+        />
+      </bufferGeometry>
+      <lineBasicMaterial 
+        color={color} 
+        linewidth={thickness} 
+        opacity={0.8} 
+        transparent={true} 
+        emissive={color} 
+        emissiveIntensity={1.8} 
+      />
+    </mesh>
+  );
+};
+
+// Background scene component
+const BackgroundScene = () => {
+  const mousePosition = useRef({ x: 0, y: 0 });
+  const { viewport } = useThree();
+  
+  useEffect(() => {
+    const updateMousePosition = (e) => {
+      // Normalize mouse position between -1 and 1
+      mousePosition.current = {
+        x: (e.clientX / window.innerWidth) * 2 - 1,
+        y: -(e.clientY / window.innerHeight) * 2 + 1,
+      };
+    };
+    
+    window.addEventListener('mousemove', updateMousePosition);
+    
+    return () => {
+      window.removeEventListener('mousemove', updateMousePosition);
+    };
+  }, []);
+  
+  // Generate skulls
+  const skulls = [];
+  for (let i = 0; i < 7; i++) {
+    const x = (Math.random() - 0.5) * 10;
+    const y = (Math.random() - 0.5) * 5;
+    const z = Math.random() * -10 - 5;
+    const scale = Math.random() * 0.3 + 0.2; // Smaller skulls
+    
+    skulls.push(
+      <Float key={`skull-${i}`} speed={1.5} rotationIntensity={0.8} floatIntensity={0.5}>
+        <Skull
+          position={[x, y, z]}
+          rotation={[0, Math.random() * Math.PI, 0]}
+          scale={scale}
+          mousePosition={mousePosition}
+        />
+      </Float>
+    );
+  }
+  
+  // Generate neon lines
+  const lines = [];
+  const neonColors = [
+    '#ff2a6d', '#05d9e8', '#d1f7ff', '#ff0055', 
+    '#39ff14', '#00ffff', '#ff00ff', '#ff3131'
+  ];
+  
+  for (let i = 0; i < 25; i++) {
+    const x = (Math.random() - 0.5) * 20;
+    const startY = 10;
+    const endY = -10;
+    const z = Math.random() * -15 - 5;
+    const color = neonColors[Math.floor(Math.random() * neonColors.length)];
+    const thickness = Math.random() * 2 + 1;
+    const pulsateSpeed = Math.random() * 2 + 1;
+    
+    lines.push(
+      <NeonLine
+        key={`line-${i}`}
+        startPosition={[x, startY, z]}
+        endPosition={[x, endY, z]}
+        color={color}
+        thickness={thickness}
+        pulsateSpeed={pulsateSpeed}
+      />
+    );
+  }
+  
+  return (
+    <>
+      <ambientLight intensity={0.2} />
+      <pointLight position={[5, 5, 5]} intensity={0.8} color="#ff0000" />
+      <pointLight position={[-5, -5, 5]} intensity={0.5} color="#0000ff" />
+      <pointLight position={[0, 3, 3]} intensity={0.3} color="#ff00ff" />
+      {skulls}
+      {lines}
+      <fog attach="fog" args={['#000', 5, 30]} />
+    </>
+  );
+};
+
+const BackgroundSceneWrapper = () => {
+  return (
+    <div className="fixed inset-0 -z-10">
+      <Canvas camera={{ position: [0, 0, 10], fov: 50 }}>
+        <Suspense fallback={null}>
+          <BackgroundScene />
+          <Environment preset="night" />
+          
+          {/* Post-processing effects */}
+          <EffectComposer>
+            {/* Bloom effect for glowing neon */}
+            <Bloom 
+              luminanceThreshold={0.2} 
+              luminanceSmoothing={0.9} 
+              intensity={1.5} 
+            />
+            {/* Subtle noise for a digital/cyberpunk feel */}
+            <Noise opacity={0.05} />
+            {/* Occasional glitch effect */}
+            <GlitchEffect 
+              delay={[5, 10]} // Random delay between glitches
+              duration={[0.1, 0.3]} // Random duration
+              strength={[0.01, 0.05]} // Subtle glitch effect
+            />
+          </EffectComposer>
+        </Suspense>
+      </Canvas>
+      <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black/90 z-10" />
+    </div>
+  );
+};
 
 const AboutPage = () => {
   const [scrollY, setScrollY] = useState(0);
@@ -25,7 +248,7 @@ const AboutPage = () => {
   const valuesInView = useInView(valuesRef, { once: false, amount: 0.3 });
   const teamInView = useInView(teamRef, { once: false, amount: 0.3 });
   
-  // Parallax effect for hero section
+  // Parallax effect
   const y = useTransform(scrollYProgress, [0, 1], [0, 300]);
   const opacity = useTransform(scrollYProgress, [0, 0.3], [1, 0.3]);
   
@@ -121,22 +344,13 @@ const AboutPage = () => {
 
   return (
     <div className="bg-midnight text-white min-h-screen" ref={aboutRef}>
-      {/* Hero Section with Parallax */}
+      {/* 3D Background with skulls and neon lines */}
+      <BackgroundSceneWrapper />
+      
+      {/* Hero Section */}
       <motion.section 
         className="relative h-[70vh] md:h-[80vh] flex items-center justify-center overflow-hidden"
-        style={{
-          backgroundImage: `url(${aboutHeroImage || fallbackHero})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }}
       >
-        <motion.div 
-          className="absolute inset-0 bg-black opacity-60"
-          style={{ y, opacity }}
-        />
-        
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black"></div>
-        
         <div className="container mx-auto px-4 z-10 relative">
           <motion.div 
             initial={{ opacity: 0, y: 50 }}
@@ -189,7 +403,7 @@ const AboutPage = () => {
       {/* Mission Section */}
       <section 
         ref={missionRef} 
-        className="py-16 md:py-24 bg-gradient-to-b from-midnight to-vampire-dark relative"
+        className="py-16 md:py-24 relative"
       >
         <div className="container mx-auto px-4">
           <motion.div 
