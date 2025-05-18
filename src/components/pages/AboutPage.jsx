@@ -6,11 +6,12 @@ import { Link } from 'react-router-dom';
 import aboutHeroImage from '../../assets/Background-About.jpg';
 import teamMember1 from '../../assets/Team-Member-1.jpg';
 import teamMember2 from '../../assets/Team-Member-2.jpg';
-import teamMember3 from '../../assets/Team-Member-3.jpg';
+// Team member 3 image is missing, so we'll only use fallback
 
 // Fallback images in case the imports don't work
 const fallbackHero = "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1950&q=80";
 const fallbackTeam = "https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60";
+const fallbackTeam3 = "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60";
 
 const AboutPage = () => {
   const [scrollY, setScrollY] = useState(0);
@@ -108,7 +109,7 @@ const AboutPage = () => {
       bio: "سارا مسئول انتخاب و تهیه محصولات منحصر به فرد برای مجموعه دراگر است."
     },
     {
-      image: teamMember3 || fallbackTeam,
+      image: fallbackTeam3, // Use the fallback image directly
       name: "مهدی احمدی",
       role: "مدیر خلاقیت",
       bio: "مهدی با تخصص در طراحی، مسئول خلق تجربه‌های بصری منحصر به فرد برای برند دراگر است."
