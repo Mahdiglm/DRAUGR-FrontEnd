@@ -1,3 +1,4 @@
+// AboutPage.jsx - Enhanced with 3D skulls and cyberpunk effects
 import React, { useRef, useState, useEffect, Suspense } from 'react';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
