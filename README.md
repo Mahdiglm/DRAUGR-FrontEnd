@@ -65,11 +65,11 @@
    پروژه در آدرس `http://localhost:5173` قابل مشاهده خواهد بود.
 
 4. **ساخت نسخه تولید:**
-   ```bash
-   npm run build
-   # یا
-   yarn build
-   ```
+```bash
+npm run build
+# یا
+yarn build
+```
 
 ## ساختار پروژه
 
