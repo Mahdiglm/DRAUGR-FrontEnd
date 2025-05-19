@@ -35,4 +35,34 @@ export const safeFilterTransition = (options = {}) => {
  */
 export const safeBlurAnimation = (blurValues) => {
   return blurValues.map(val => safeBlur(val));
+};
+
+/**
+ * Detects if the current device is likely a mobile or low-performance device
+ * @returns {boolean} True if the device is mobile or likely low-performance
+ */
+export const isLowPerformanceDevice = () => {
+  // Check if touch device (mobile/tablet)
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  
+  // Check screen size (mobile is typically under 768px width)
+  const isSmallScreen = window.innerWidth <= 768;
+  
+  // Check for hardware concurrency (CPU cores) - low-end devices have fewer cores
+  const hasLowCPU = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4;
+  
+  // Check for Android device which might have performance issues
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  
+  return (isTouchDevice && isSmallScreen) || hasLowCPU || isAndroid;
+};
+
+/**
+ * Provides optimized animation settings based on device capability
+ * @param {Object} defaultSettings - The default animation settings
+ * @param {Object} optimizedSettings - The optimized settings for low-performance devices
+ * @returns {Object} The appropriate settings for the current device
+ */
+export const getOptimizedAnimationSettings = (defaultSettings, optimizedSettings) => {
+  return isLowPerformanceDevice() ? optimizedSettings : defaultSettings;
 }; 

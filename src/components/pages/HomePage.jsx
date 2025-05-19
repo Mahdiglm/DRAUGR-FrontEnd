@@ -5,12 +5,12 @@ import { useOutletContext, Link } from 'react-router-dom';
 import ProductList from '../product/ProductList';
 import FeaturedProductSlider from '../product/FeaturedProductSlider';
 import { products } from '../../utils/mockData';
-import { safeBlur, safeFilterTransition } from '../../utils/animationHelpers';
+import { safeBlur, safeFilterTransition, isLowPerformanceDevice, getOptimizedAnimationSettings } from '../../utils/animationHelpers';
 // Try with relative path to asset folder
 import heroBackground from '../../assets/Background-Hero.jpg';
 import mainBackground from '../../assets/BackGround-Main.jpg';
 
-// Letter animation styles and setup
+// Letter animation styles and setup - Simplified for better performance
 const letterWrapperVariants = {
   hidden: {
     opacity: 0,
@@ -23,14 +23,9 @@ const letterWrapperVariants = {
     },
   },
   exit: {
-    x: 100, // Move to right when exiting
     opacity: 0,
     transition: {
-      type: "spring",
-      stiffness: 100,
-      damping: 15,
-      mass: 1,
-      duration: 0.5
+      duration: 0.3
     },
   }
 };
@@ -38,44 +33,43 @@ const letterWrapperVariants = {
 const letterVariants = {
   hidden: {
     opacity: 0,
-    y: 30,
-    rotateX: 70,
-    filter: safeBlur(8), // Using our safe blur helper
+    y: 20,
   },
   visible: (i) => ({
     opacity: 1,
     y: 0,
-    rotateX: 0,
-    filter: safeBlur(0), // Using our safe blur helper
     transition: {
-      type: "spring",
-      damping: 10,
-      stiffness: 100,
+      type: "tween", // Using tween instead of spring for better performance
+      duration: 0.4,
       delay: i * 0.03, // Even faster per-letter delay
-      filter: safeFilterTransition({ duration: 0.3 }) // Use safe filter transition
     },
   }),
-  exit: (i) => ({
+  exit: {
     opacity: 0,
-    x: 50 + (i * 20), // Staggered movement to right
-    filter: safeBlur(8), // Using our safe blur helper
     transition: {
-      duration: 0.4, 
-      delay: i * 0.03, // Staggered exit
-      filter: safeFilterTransition() // Use safe filter transition
+      duration: 0.3
     },
-  }),
+  },
 };
 
-// Particles system for the intro
+// Particles system for the intro - Optimized for mobile
 const Particles = () => {
+  const [particleCount, setParticleCount] = useState(50);
+  
+  // Dynamically adjust particle count based on device
+  useEffect(() => {
+    // Use the helper function to detect low-performance devices
+    const lowPerformance = isLowPerformanceDevice();
+    setParticleCount(lowPerformance ? 10 : 50);
+  }, []);
+  
   // Generate fewer particles for performance
-  const particles = Array.from({ length: 50 }).map((_, i) => ({
+  const particles = Array.from({ length: particleCount }).map((_, i) => ({
     id: i,
     x: Math.random() * 100,
     y: Math.random() * 100,
-    size: Math.random() * 2 + 1,
-    velocity: Math.random() * 0.2 + 0.1,
+    size: Math.random() * 1.5 + 0.5, // Slightly smaller particles
+    velocity: Math.random() * 0.15 + 0.05, // Slightly slower for better performance
   }));
 
   return (
@@ -83,19 +77,25 @@ const Particles = () => {
       {particles.map((particle) => (
         <motion.div
           key={particle.id}
-          className="absolute w-1 h-1 bg-draugr-500 rounded-full opacity-70"
+          className="absolute rounded-full opacity-70"
           style={{
             left: `${particle.x}%`,
             top: `${particle.y}%`,
             width: `${particle.size}px`,
             height: `${particle.size}px`,
+            background: '#ff0000',
+            willChange: 'transform, opacity',
+            transform: 'translateZ(0)'
           }}
           animate={{
             y: [0, window.innerHeight * particle.velocity],
             opacity: [0.7, 0],
           }}
           transition={{
-            duration: 1 + particle.velocity * 5, // Faster animation
+            duration: getOptimizedAnimationSettings(
+              1 + particle.velocity * 3, // Default duration
+              0.8 + particle.velocity * 2 // Optimized duration
+            ),
             repeat: Infinity,
             delay: Math.random(),
             ease: "linear",
@@ -112,6 +112,12 @@ const HomePage = () => {
   const [showIntro, setShowIntro] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLowPerformance, setIsLowPerformance] = useState(false);
+  
+  // Check device performance on mount
+  useEffect(() => {
+    setIsLowPerformance(isLowPerformanceDevice());
+  }, []);
   
   // For testing - reset intro animation
   const resetIntroAnimation = () => {
@@ -169,12 +175,12 @@ const HomePage = () => {
         
         // Set flag in localStorage that user has seen the intro
         localStorage.setItem('hasSeenDraugrIntro', 'true');
-      }, 600); // Time for exit animation to complete
+      }, isLowPerformance ? 300 : 400); // Even faster on low-end devices
       
-    }, 1000); // Reduced to 1 second
+    }, isLowPerformance ? 600 : 800); // Even shorter on low-end devices
     
     return () => clearTimeout(timer);
-  }, [showIntro]);
+  }, [showIntro, isLowPerformance]);
   
   // Parallax effect
   const { scrollY } = useScroll();
@@ -238,23 +244,28 @@ const HomePage = () => {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.1 }}
           >
-            <motion.div
-              animate={{ 
-                opacity: [0.5, 1, 0.5],
-                scale: [0.9, 1.1, 0.9]
-              }}
-              transition={{ 
-                duration: 1, 
-                repeat: Infinity,
-                ease: "easeInOut" 
-              }}
-              className="w-12 h-12 rounded-full border-t-2 border-r-2 border-draugr-500"
-            />
+            {isLowPerformance ? (
+              // Simplified loader for low-performance devices
+              <div className="w-10 h-10 border-t-2 border-r-2 border-draugr-500 rounded-full"></div>
+            ) : (
+              <motion.div
+                animate={{ 
+                  opacity: [0.5, 1, 0.5],
+                  scale: [0.9, 1.1, 0.9]
+                }}
+                transition={{ 
+                  duration: 1, 
+                  repeat: Infinity,
+                  ease: "easeInOut" 
+                }}
+                className="w-12 h-12 rounded-full border-t-2 border-r-2 border-draugr-500"
+              />
+            )}
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Intro Animation */}
+      {/* Intro Animation - conditionally simplified for low-performance devices */}
       <AnimatePresence>
         {showIntro && (
           <motion.div
@@ -265,60 +276,64 @@ const HomePage = () => {
             exit={{ 
               opacity: 0,
               transition: { 
-                duration: 0.8,
+                duration: isLowPerformance ? 0.3 : 0.4,
                 when: "afterChildren" 
               }
             }}
+            style={{
+              willChange: 'opacity',
+              transform: 'translateZ(0)'
+            }}
           >
-            {/* Background pulse effect */}
-            <motion.div
-              className="absolute inset-0 bg-gradient-radial from-vampire-dark to-midnight"
-              variants={bgVariants}
-              initial="initial"
-              animate={{
-                scale: [1, 1.1, 1],
-                opacity: [0.3, 0.4, 0.3]
-              }}
-              exit="exit"
-              transition={{ 
-                duration: 2,
-                repeat: Infinity,
-                repeatType: "reverse",
-                ease: "easeInOut"
-              }}
-            />
+            {/* Background pulse effect - Simplified or removed for low-performance */}
+            {!isLowPerformance && (
+              <motion.div
+                className="absolute inset-0 bg-gradient-radial from-vampire-dark to-midnight"
+                variants={bgVariants}
+                initial="initial"
+                animate={{ opacity: 0.4 }}
+                exit="exit"
+                style={{
+                  willChange: 'opacity',
+                  transform: 'translateZ(0)'
+                }}
+              />
+            )}
             
-            {/* Particles will fade out as part of parent container */}
-            <Particles />
+            {/* Simplified background for low-performance devices */}
+            {isLowPerformance && (
+              <div 
+                className="absolute inset-0 bg-midnight"
+                style={{ opacity: 0.9 }}
+              />
+            )}
             
-            {/* Vignette effect */}
-            <motion.div 
-              className="absolute inset-0 bg-radial-vignette pointer-events-none"
-              variants={vignetteVariants}
-              initial="initial"
-              animate="visible"
-              exit="exit"
-            />
+            {/* Particles shown conditionally based on device performance */}
+            {!isLowPerformance && <Particles />}
             
-            {/* Glitch overlay - subtle */}
-            <motion.div 
-              className="absolute inset-0 bg-noise opacity-8 mix-blend-overlay pointer-events-none"
-              animate={{ opacity: [0.05, 0.08, 0.05] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              exit={{ 
-                opacity: 0, 
-                transition: { duration: 0.5 } 
-              }}
-            />
+            {/* Vignette effect - conditionally shown */}
+            {!isLowPerformance && (
+              <motion.div 
+                className="absolute inset-0 bg-radial-vignette pointer-events-none"
+                variants={vignetteVariants}
+                initial="initial"
+                animate="visible"
+                exit="exit"
+                style={{
+                  willChange: 'opacity',
+                  transform: 'translateZ(0)'
+                }}
+              />
+            )}
             
-            {/* Brand name animation - Explicitly set LTR direction */}
+            {/* Brand name animation - Simplified for performance */}
             <motion.div
               className="relative flex items-center justify-center h-40"
               variants={letterWrapperVariants}
               initial="hidden"
               animate="visible"
               exit="exit"
-              style={{ direction: "ltr" }}
+              style={{ direction: "ltr", willChange: 'opacity' }}
             >
               {"DRAUGR".split('').map((letter, index) => (
                 <motion.div 
@@ -326,12 +341,17 @@ const HomePage = () => {
                   className="relative mx-1 md:mx-3"
                   custom={index}
                   variants={letterVariants}
+                  style={{
+                    willChange: 'transform, opacity',
+                    transform: 'translateZ(0)'
+                  }}
                 >
                   <span
                     className="inline-block text-6xl md:text-9xl font-bold text-draugr-500 relative"
                     style={{ 
-                      textShadow: '0 0 20px rgba(239,35,60,0.8), 0 0 30px rgba(239,35,60,0.4)',
-                      transform: 'perspective(500px)'
+                      textShadow: isLowPerformance 
+                        ? '0 0 5px rgba(239,35,60,0.5)' 
+                        : '0 0 15px rgba(239,35,60,0.6)'
                     }}
                   >
                     {letter}
