@@ -166,7 +166,7 @@ const Header = ({ cartItems, onCartClick }) => {
               textShadow: '0 0 8px rgba(255, 255, 255, 0.8)'
             }}
             whileTap={{ scale: 0.95 }}
-            className="bg-gradient-to-r from-draugr-900 to-draugr-700 text-white px-2 sm:px-3 py-1.5 rounded-md font-medium border border-draugr-600 hover:border-draugr-500 text-xs sm:text-sm transition-all duration-300"
+            className="bg-gradient-to-r from-draugr-900 to-draugr-700 text-white px-2 sm:px-3 py-1.5 rounded-md font-medium border border-draugr-600 hover:border-draugr-500 text-xs sm:text-sm transition-all duration-300 mr-6 sm:mr-8 md:mr-10"
             onClick={() => navigate('/login')}
           >
             ورود
