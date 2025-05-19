@@ -157,7 +157,7 @@ const Header = ({ cartItems, onCartClick }) => {
           ))}
         </nav>
         
-        <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4">
+        <div className="flex items-center space-x-3 sm:space-x-4 md:space-x-5">
           {/* Login button - Visible on all screen sizes, next to cart */}
           <motion.button 
             whileHover={{ 
