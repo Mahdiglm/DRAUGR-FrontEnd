@@ -1,5 +1,10 @@
-import React, { useEffect, useRef } from 'react';
-import { motion, useScroll, useTransform, useInView } from 'framer-motion';
+import React, { useEffect, useRef, useState } from 'react';
+import { motion, useScroll, useTransform, useInView, useSpring, useMotionValue } from 'framer-motion';
+
+// Custom hook for parallax effect
+const useParallax = (value, distance) => {
+  return useTransform(value, [0, 1], [-distance, distance]);
+};
 
 const AboutPage = () => {
   const containerRef = useRef(null);
@@ -10,14 +15,43 @@ const AboutPage = () => {
   const isMissionInView = useInView(missionRef, { once: false, margin: "-100px 0px" });
   const isTeamInView = useInView(teamRef, { once: false, margin: "-100px 0px" });
   
+  // For main scroll progress
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start end", "end start"]
   });
   
-  const leftLineProgress = useTransform(scrollYProgress, [0, 1], [0, 100]);
-  const rightLineProgress = useTransform(scrollYProgress, [0, 1], [0, 100]);
+  // Apply spring physics to smoothen the scrollYProgress
+  const smoothScrollProgress = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
   
+  // For parallax effects
+  const backgroundY = useParallax(smoothScrollProgress, 100);
+  const noiseOpacity = useTransform(smoothScrollProgress, [0, 0.5, 1], [0.05, 0.15, 0.05]);
+  
+  // For neon lines
+  const leftLineProgress = useTransform(smoothScrollProgress, [0, 1], [0, 100]);
+  const rightLineProgress = useTransform(smoothScrollProgress, [0, 1], [0, 100]);
+  
+  // Different speeds for different elements - more cinematic
+  const titleY = useTransform(smoothScrollProgress, [0, 0.1, 0.3], [0, -30, -60]);
+  const missionY = useTransform(smoothScrollProgress, [0.2, 0.4], [50, 0]);
+  const teamY = useTransform(smoothScrollProgress, [0.5, 0.7], [50, 0]);
+  
+  // Subtle rotation for 3D effect
+  const pageRotate = useTransform(smoothScrollProgress, [0, 0.5, 1], [-2, 0, 2]);
+  
+  // For animated text
+  const [letters, setLetters] = useState([]);
+  useEffect(() => {
+    const text = "دراگر";
+    setLetters(text.split(''));
+  }, []);
+  
+  // Team members data
   const teamMembers = [
     {
       id: 1,
@@ -43,13 +77,17 @@ const AboutPage = () => {
   ];
 
   return (
-    <div 
+    <motion.div 
       ref={containerRef}
+      style={{ rotateX: pageRotate, perspective: 1000 }}
       className="min-h-screen bg-gradient-to-b from-midnight to-vampire-dark text-white py-20 relative overflow-hidden"
     >
-      {/* Animated neon lines */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        {/* Left neon line - zigzag pattern */}
+      {/* Animated background elements with parallax */}
+      <motion.div 
+        className="absolute inset-0 z-0 overflow-hidden pointer-events-none"
+        style={{ y: backgroundY }}
+      >
+        {/* Left neon line - zigzag pattern - enhanced with glow pulse */}
         <svg className="absolute h-full w-full" preserveAspectRatio="none">
           <motion.path
             d="M-10,0 Q30,150 5,300 Q-20,450 30,600 Q60,750 5,900 Q-20,1050 30,1200 Q60,1350 5,1500"
@@ -64,16 +102,26 @@ const AboutPage = () => {
               strokeDasharray: "5 5"
             }}
           />
-          <defs>
+          <motion.defs
+            animate={{
+              filter: ["drop-shadow(0 0 10px #ef233c)", "drop-shadow(0 0 20px #ef233c)", "drop-shadow(0 0 10px #ef233c)"]
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              repeatType: "mirror",
+              ease: "easeInOut"
+            }}
+          >
             <linearGradient id="leftLineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="#ef233c" stopOpacity="0.2" />
               <stop offset="50%" stopColor="#ef233c" stopOpacity="1" />
               <stop offset="100%" stopColor="#ef233c" stopOpacity="0.2" />
             </linearGradient>
-          </defs>
+          </motion.defs>
         </svg>
         
-        {/* Right neon line - curved pattern */}
+        {/* Right neon line - curved pattern - enhanced with glow pulse */}
         <svg className="absolute h-full w-full" preserveAspectRatio="none">
           <motion.path
             d="M110,0 C120,300 90,450 110,600 C130,750 80,900 110,1200 C120,1350 110,1500 120,1800"
@@ -88,59 +136,198 @@ const AboutPage = () => {
               strokeDasharray: "10 5"
             }}
           />
-          <defs>
+          <motion.defs
+            animate={{
+              filter: ["drop-shadow(0 0 10px #ef233c)", "drop-shadow(0 0 15px #ef233c)", "drop-shadow(0 0 10px #ef233c)"]
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              repeatType: "mirror",
+              ease: "easeInOut",
+              delay: 1.5
+            }}
+          >
             <linearGradient id="rightLineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="#ef233c" stopOpacity="0.2" />
               <stop offset="50%" stopColor="#ef233c" stopOpacity="1" />
               <stop offset="100%" stopColor="#ef233c" stopOpacity="0.2" />
             </linearGradient>
-          </defs>
+          </motion.defs>
         </svg>
         
-        {/* Background noise texture */}
-        <div 
-          className="absolute inset-0 bg-center bg-cover opacity-10"
+        {/* Background noise texture - now with dynamic opacity */}
+        <motion.div 
+          className="absolute inset-0 bg-center bg-cover"
           style={{ 
             backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2000 2000' fill='none'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.4'/%3E%3C/svg%3E")`,
             backgroundSize: '200px 200px',
+            opacity: noiseOpacity
           }}
-        ></div>
-      </div>
+        />
+        
+        {/* Floating particles effect */}
+        {[...Array(15)].map((_, index) => (
+          <motion.div 
+            key={`particle-${index}`}
+            className="absolute rounded-full bg-draugr-500"
+            style={{ 
+              width: Math.random() * 3 + 1,
+              height: Math.random() * 3 + 1,
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              opacity: Math.random() * 0.3 + 0.1,
+              filter: "blur(1px)"
+            }}
+            animate={{
+              y: [0, Math.random() * 100 + 50],
+              opacity: [0.3, 0],
+              scale: [1, Math.random() * 0.5 + 0.5]
+            }}
+            transition={{
+              duration: Math.random() * 10 + 10,
+              repeat: Infinity,
+              ease: "linear",
+              delay: Math.random() * 5
+            }}
+          />
+        ))}
+      </motion.div>
 
+      {/* Main content container */}
       <div className="container mx-auto px-6 relative z-10">
-        {/* Hero Section */}
-        <section ref={headingRef} className="mb-20 text-center">
+        {/* Hero Section - with enhanced animations */}
+        <motion.section 
+          ref={headingRef} 
+          className="mb-20 text-center"
+          style={{ y: titleY }}
+        >
           <motion.div 
             initial={{ opacity: 0, y: 30 }}
             animate={isHeadingInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.8, ease: [0.6, 0.05, 0.01, 0.9] }}
             className="relative inline-block"
           >
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
               <span className="text-white">درباره</span>
-              <span className="text-draugr-500 mx-3">دراگر</span>
+              <span className="relative mx-3">
+                {letters.map((letter, index) => (
+                  <motion.span
+                    key={index}
+                    className="inline-block text-draugr-500"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={isHeadingInView ? { 
+                      opacity: 1, 
+                      y: 0,
+                      textShadow: [
+                        "0 0 5px rgba(239, 35, 60, 0.5), 0 0 10px rgba(239, 35, 60, 0.2)",
+                        "0 0 10px rgba(239, 35, 60, 0.8), 0 0 20px rgba(239, 35, 60, 0.4)",
+                        "0 0 5px rgba(239, 35, 60, 0.5), 0 0 10px rgba(239, 35, 60, 0.2)"
+                      ]
+                    } : { opacity: 0, y: 20 }}
+                    transition={{ 
+                      duration: 0.8, 
+                      delay: 0.2 + index * 0.1,
+                      textShadow: {
+                        repeat: Infinity,
+                        duration: 2,
+                        repeatType: "mirror"
+                      }
+                    }}
+                  >
+                    {letter}
+                  </motion.span>
+                ))}
+              </span>
             </h1>
-            <div className="absolute -bottom-2 left-0 right-0 h-0.5 bg-gradient-to-r from-draugr-900/0 via-draugr-500 to-draugr-900/0"></div>
+            <motion.div 
+              className="absolute -bottom-2 left-0 right-0 h-0.5 bg-gradient-to-r from-draugr-900/0 via-draugr-500 to-draugr-900/0"
+              animate={{ 
+                boxShadow: [
+                  "0 0 5px 0px rgba(239, 35, 60, 0.3)",
+                  "0 0 10px 2px rgba(239, 35, 60, 0.6)",
+                  "0 0 5px 0px rgba(239, 35, 60, 0.3)"
+                ]
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                repeatType: "mirror",
+                ease: "easeInOut"
+              }}
+            />
           </motion.div>
           
           <motion.p 
             initial={{ opacity: 0 }}
             animate={isHeadingInView ? { opacity: 1 } : { opacity: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{ duration: 0.8, delay: 0.6, ease: [0.6, 0.05, 0.01, 0.9] }}
             className="text-xl text-gray-300 max-w-3xl mx-auto mt-8"
           >
             ما در دراگر با الهام از افسانه‌های اسکاندیناوی، محصولاتی منحصر به فرد و با کیفیت برای علاقه‌مندان به دنیای تاریک و اسرارآمیز ارائه می‌دهیم.
           </motion.p>
-        </section>
+          
+          {/* Cinematic fade-in effect for the separator line */}
+          <motion.div 
+            className="w-24 h-0.5 bg-gradient-to-r from-draugr-900/0 via-draugr-500/80 to-draugr-900/0 mx-auto mt-12"
+            initial={{ width: 0, opacity: 0 }}
+            animate={isHeadingInView ? { width: 96, opacity: 1 } : { width: 0, opacity: 0 }}
+            transition={{ duration: 1, delay: 0.8 }}
+          />
+        </motion.section>
 
-        {/* Mission & Vision Section */}
-        <section ref={missionRef} className="mb-20">
+        {/* Mission & Vision Section - with enhanced animations */}
+        <motion.section 
+          ref={missionRef} 
+          className="mb-20"
+          style={{ y: missionY }}
+        >
+          {/* Section title with reveal animation */}
+          <motion.h2 
+            className="text-3xl font-bold mb-10 text-center hidden md:block"
+            initial={{ opacity: 0, clipPath: "inset(0 100% 0 0)" }}
+            animate={isMissionInView ? { 
+              opacity: 1, 
+              clipPath: "inset(0 0% 0 0)"
+            } : { 
+              opacity: 0, 
+              clipPath: "inset(0 100% 0 0)" 
+            }}
+            transition={{ duration: 1.2, ease: [0.25, 1, 0.5, 1], delay: 0.2 }}
+          >
+            <span className="relative">
+              افسانه ما
+              <motion.span 
+                className="absolute -bottom-2 left-0 right-0 h-0.5 bg-gradient-to-r from-draugr-900/0 via-draugr-500 to-draugr-900/0"
+                initial={{ scaleX: 0 }}
+                animate={isMissionInView ? { scaleX: 1 } : { scaleX: 0 }}
+                transition={{ duration: 1, ease: "easeOut", delay: 1 }}
+              />
+            </span>
+          </motion.h2>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             <motion.div 
-              initial={{ opacity: 0, x: -30 }}
-              animate={isMissionInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -30 }}
-              transition={{ duration: 0.7 }}
-              className="backdrop-blur-sm bg-gradient-to-b from-black/40 to-vampire-dark/40 p-8 rounded-xl border border-draugr-900/40 relative"
+              initial={{ opacity: 0, x: -30, rotateY: 10 }}
+              animate={isMissionInView ? { 
+                opacity: 1, 
+                x: 0, 
+                rotateY: 0,
+                transition: {
+                  duration: 0.8,
+                  ease: [0.25, 0.1, 0.25, 1]
+                }
+              } : { 
+                opacity: 0, 
+                x: -30, 
+                rotateY: 10 
+              }}
+              className="backdrop-blur-sm bg-gradient-to-b from-black/40 to-vampire-dark/40 p-8 rounded-xl border border-draugr-900/40 relative overflow-hidden"
+              whileHover={{
+                boxShadow: "0 0 20px rgba(239, 35, 60, 0.2)",
+                borderColor: "rgba(239, 35, 60, 0.3)",
+                transition: { duration: 0.3 }
+              }}
             >
               <div className="absolute top-0 right-0 w-10 h-10 border-t-2 border-r-2 border-draugr-500/40 rounded-tr-xl" />
               <div className="absolute bottom-0 left-0 w-10 h-10 border-b-2 border-l-2 border-draugr-500/40 rounded-bl-xl" />
@@ -165,12 +352,28 @@ const AboutPage = () => {
                 <span className="mr-3 text-gray-400">سال تجربه</span>
               </div>
             </motion.div>
-            
             <motion.div 
-              initial={{ opacity: 0, x: 30 }}
-              animate={isMissionInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 30 }}
-              transition={{ duration: 0.7 }}
-              className="backdrop-blur-sm bg-gradient-to-b from-black/40 to-vampire-dark/40 p-8 rounded-xl border border-draugr-900/40 relative"
+              initial={{ opacity: 0, x: 30, rotateY: -10 }}
+              animate={isMissionInView ? { 
+                opacity: 1, 
+                x: 0, 
+                rotateY: 0,
+                transition: {
+                  duration: 0.8,
+                  ease: [0.25, 0.1, 0.25, 1],
+                  delay: 0.2
+                }
+              } : { 
+                opacity: 0, 
+                x: 30, 
+                rotateY: -10 
+              }}
+              className="backdrop-blur-sm bg-gradient-to-b from-black/40 to-vampire-dark/40 p-8 rounded-xl border border-draugr-900/40 relative overflow-hidden"
+              whileHover={{
+                boxShadow: "0 0 20px rgba(239, 35, 60, 0.2)",
+                borderColor: "rgba(239, 35, 60, 0.3)",
+                transition: { duration: 0.3 }
+              }}
             >
               <div className="absolute top-0 right-0 w-10 h-10 border-t-2 border-r-2 border-draugr-500/40 rounded-tr-xl" />
               <div className="absolute bottom-0 left-0 w-10 h-10 border-b-2 border-l-2 border-draugr-500/40 rounded-bl-xl" />
@@ -195,44 +398,10 @@ const AboutPage = () => {
               </div>
             </motion.div>
           </div>
-        </section>
+        </motion.section>
 
-        {/* Team Section */}
-        <section ref={teamRef} className="mb-20">
-          <motion.h2 
-            initial={{ opacity: 0 }}
-            animate={isTeamInView ? { opacity: 1 } : { opacity: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-3xl font-bold mb-12 text-center"
-          >
-            <span className="relative">
-              تیم ما
-              <span className="absolute -bottom-2 left-0 right-0 h-0.5 bg-gradient-to-r from-draugr-900/0 via-draugr-500 to-draugr-900/0"></span>
-            </span>
-          </motion.h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {teamMembers.map((member, index) => (
-              <motion.div 
-                key={member.id}
-                initial={{ opacity: 0, y: 30 }}
-                animate={isTeamInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="group"
-              >
-                <div className="relative overflow-hidden rounded-xl bg-gradient-to-b from-black/60 to-vampire-dark/60 backdrop-blur-sm border border-gray-800 p-1">
-                  {/* Glow Effect */}
-                  <div className="absolute -inset-0.5 bg-gradient-to-r from-draugr-900/0 via-draugr-500/40 to-draugr-900/0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  
-                  <div className="relative rounded-lg overflow-hidden">
-                    <div className="aspect-w-1 aspect-h-1">
-                      <img 
-                        src={member.image} 
-                        alt={member.name}
-                        className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-70"></div>
-                    </div>
+                        {/* Team Section - with cinematic reveal */}        <motion.section           ref={teamRef}           className="mb-20"          style={{ y: teamY }}        >          {/* Section title with cinematic typewriter effect */}          <div className="relative">            <motion.div              className="absolute inset-0 bg-gradient-to-r from-draugr-900/0 via-draugr-500/20 to-draugr-900/0 blur-md"              initial={{ opacity: 0, scaleX: 0 }}              animate={isTeamInView ? { opacity: 1, scaleX: 1 } : { opacity: 0, scaleX: 0 }}              transition={{ duration: 1.2 }}            />                        <motion.h2               initial={{ opacity: 0, filter: "blur(10px)" }}              animate={isTeamInView ? {                 opacity: 1,                 filter: "blur(0px)",                textShadow: [                  "0 0 5px rgba(239, 35, 60, 0.3), 0 0 10px rgba(239, 35, 60, 0.2)",                  "0 0 10px rgba(239, 35, 60, 0.5), 0 0 20px rgba(239, 35, 60, 0.3)",                  "0 0 5px rgba(239, 35, 60, 0.3), 0 0 10px rgba(239, 35, 60, 0.2)"                ]              } : {                 opacity: 0,                filter: "blur(10px)"               }}              transition={{                 duration: 0.8,                textShadow: {                  repeat: Infinity,                  duration: 3,                  repeatType: "mirror"                }              }}              className="text-3xl font-bold mb-12 text-center relative"            >              <span className="relative">                تیم ما                <motion.span                   className="absolute -bottom-2 left-0 right-0 h-0.5 bg-gradient-to-r from-draugr-900/0 via-draugr-500 to-draugr-900/0"                  initial={{ scaleX: 0 }}                  animate={isTeamInView ? { scaleX: 1 } : { scaleX: 0 }}                  transition={{ duration: 0.7, delay: 0.5 }}                />              </span>            </motion.h2>          </div>                    {/* Team members with staggered reveal and hover effects */}          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">            {teamMembers.map((member, index) => (              <motion.div                 key={member.id}                initial={{ opacity: 0, y: 50, rotateY: 10 }}                animate={isTeamInView ? {                   opacity: 1,                   y: 0,                   rotateY: 0,                  transition: {                    type: "spring",                    stiffness: 100,                    damping: 15,                    delay: 0.3 + index * 0.2                  }                } : {                   opacity: 0,                   y: 50,                   rotateY: 10                 }}                whileHover={{                   y: -10,                  transition: { duration: 0.3 }                }}                className="group transform perspective-[1000px]"              >
+                                <motion.div                   className="relative overflow-hidden rounded-xl bg-gradient-to-b from-black/60 to-vampire-dark/60 backdrop-blur-sm border border-gray-800 p-1"                  whileHover={{                     rotateY: [-2, 2],                    rotateX: [1, -1],                    transition: {                      rotateY: {                        repeat: Infinity,                        repeatType: "mirror",                        duration: 2,                        ease: "easeInOut"                      },                      rotateX: {                        repeat: Infinity,                        repeatType: "mirror",                        duration: 1.5,                        ease: "easeInOut"                      }                    }                  }}                >                  {/* Animated glow effect */}                  <motion.div                     className="absolute -inset-0.5 bg-gradient-to-r from-draugr-900/0 via-draugr-500/40 to-draugr-900/0 rounded-lg opacity-0 group-hover:opacity-100"                    animate={{                      background: [                        "linear-gradient(90deg, rgba(239,35,60,0) 0%, rgba(239,35,60,0.3) 50%, rgba(239,35,60,0) 100%)",                        "linear-gradient(90deg, rgba(239,35,60,0) 0%, rgba(239,35,60,0.6) 50%, rgba(239,35,60,0) 100%)",                        "linear-gradient(90deg, rgba(239,35,60,0) 0%, rgba(239,35,60,0.3) 50%, rgba(239,35,60,0) 100%)"                      ]                    }}                    transition={{                      duration: 2,                      repeat: Infinity,                      repeatType: "mirror"                    }}                  />                                    <div className="relative rounded-lg overflow-hidden">                    <div className="aspect-w-1 aspect-h-1">                      <motion.img                         src={member.image}                         alt={member.name}                        className="w-full h-full object-cover"                        whileHover={{                           scale: 1.1,                          filter: "brightness(1.1)",                          transition: { duration: 0.5 }                        }}                      />                      <motion.div                         className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"                        initial={{ opacity: 0.7 }}                        whileHover={{                           opacity: 0.5,                          background: "linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)",                          transition: { duration: 0.3 }                        }}                      />
                     
                     <div className="absolute bottom-0 left-0 right-0 p-6">
                       <h3 className="text-xl font-bold text-white">{member.name}</h3>
@@ -310,7 +479,7 @@ const AboutPage = () => {
           </motion.div>
         </section>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
