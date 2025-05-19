@@ -11,9 +11,11 @@ const AboutPage = () => {
   const headingRef = useRef(null);
   const missionRef = useRef(null);
   const teamRef = useRef(null);
+  const ctaRef = useRef(null);
   const isHeadingInView = useInView(headingRef, { once: false, margin: "-100px 0px" });
   const isMissionInView = useInView(missionRef, { once: false, margin: "-100px 0px" });
   const isTeamInView = useInView(teamRef, { once: false, margin: "-100px 0px" });
+  const isCtaInView = useInView(ctaRef, { once: false, margin: "-100px 0px" });
   
   // For main scroll progress
   const { scrollYProgress } = useScroll({
@@ -40,6 +42,7 @@ const AboutPage = () => {
   const titleY = useTransform(smoothScrollProgress, [0, 0.1, 0.3], [0, -30, -60]);
   const missionY = useTransform(smoothScrollProgress, [0.2, 0.4], [50, 0]);
   const teamY = useTransform(smoothScrollProgress, [0.5, 0.7], [50, 0]);
+  const ctaY = useTransform(smoothScrollProgress, [0.7, 0.9], [40, 0]);
   
   // Subtle rotation for 3D effect
   const pageRotate = useTransform(smoothScrollProgress, [0, 0.5, 1], [-2, 0, 2]);
@@ -400,12 +403,163 @@ const AboutPage = () => {
           </div>
         </motion.section>
 
-                        {/* Team Section - with cinematic reveal */}        <motion.section           ref={teamRef}           className="mb-20"          style={{ y: teamY }}        >          {/* Section title with cinematic typewriter effect */}          <div className="relative">            <motion.div              className="absolute inset-0 bg-gradient-to-r from-draugr-900/0 via-draugr-500/20 to-draugr-900/0 blur-md"              initial={{ opacity: 0, scaleX: 0 }}              animate={isTeamInView ? { opacity: 1, scaleX: 1 } : { opacity: 0, scaleX: 0 }}              transition={{ duration: 1.2 }}            />                        <motion.h2               initial={{ opacity: 0, filter: "blur(10px)" }}              animate={isTeamInView ? {                 opacity: 1,                 filter: "blur(0px)",                textShadow: [                  "0 0 5px rgba(239, 35, 60, 0.3), 0 0 10px rgba(239, 35, 60, 0.2)",                  "0 0 10px rgba(239, 35, 60, 0.5), 0 0 20px rgba(239, 35, 60, 0.3)",                  "0 0 5px rgba(239, 35, 60, 0.3), 0 0 10px rgba(239, 35, 60, 0.2)"                ]              } : {                 opacity: 0,                filter: "blur(10px)"               }}              transition={{                 duration: 0.8,                textShadow: {                  repeat: Infinity,                  duration: 3,                  repeatType: "mirror"                }              }}              className="text-3xl font-bold mb-12 text-center relative"            >              <span className="relative">                تیم ما                <motion.span                   className="absolute -bottom-2 left-0 right-0 h-0.5 bg-gradient-to-r from-draugr-900/0 via-draugr-500 to-draugr-900/0"                  initial={{ scaleX: 0 }}                  animate={isTeamInView ? { scaleX: 1 } : { scaleX: 0 }}                  transition={{ duration: 0.7, delay: 0.5 }}                />              </span>            </motion.h2>          </div>                    {/* Team members with staggered reveal and hover effects */}          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">            {teamMembers.map((member, index) => (              <motion.div                 key={member.id}                initial={{ opacity: 0, y: 50, rotateY: 10 }}                animate={isTeamInView ? {                   opacity: 1,                   y: 0,                   rotateY: 0,                  transition: {                    type: "spring",                    stiffness: 100,                    damping: 15,                    delay: 0.3 + index * 0.2                  }                } : {                   opacity: 0,                   y: 50,                   rotateY: 10                 }}                whileHover={{                   y: -10,                  transition: { duration: 0.3 }                }}                className="group transform perspective-[1000px]"              >
-                                <motion.div                   className="relative overflow-hidden rounded-xl bg-gradient-to-b from-black/60 to-vampire-dark/60 backdrop-blur-sm border border-gray-800 p-1"                  whileHover={{                     rotateY: [-2, 2],                    rotateX: [1, -1],                    transition: {                      rotateY: {                        repeat: Infinity,                        repeatType: "mirror",                        duration: 2,                        ease: "easeInOut"                      },                      rotateX: {                        repeat: Infinity,                        repeatType: "mirror",                        duration: 1.5,                        ease: "easeInOut"                      }                    }                  }}                >                  {/* Animated glow effect */}                  <motion.div                     className="absolute -inset-0.5 bg-gradient-to-r from-draugr-900/0 via-draugr-500/40 to-draugr-900/0 rounded-lg opacity-0 group-hover:opacity-100"                    animate={{                      background: [                        "linear-gradient(90deg, rgba(239,35,60,0) 0%, rgba(239,35,60,0.3) 50%, rgba(239,35,60,0) 100%)",                        "linear-gradient(90deg, rgba(239,35,60,0) 0%, rgba(239,35,60,0.6) 50%, rgba(239,35,60,0) 100%)",                        "linear-gradient(90deg, rgba(239,35,60,0) 0%, rgba(239,35,60,0.3) 50%, rgba(239,35,60,0) 100%)"                      ]                    }}                    transition={{                      duration: 2,                      repeat: Infinity,                      repeatType: "mirror"                    }}                  />                                    <div className="relative rounded-lg overflow-hidden">                    <div className="aspect-w-1 aspect-h-1">                      <motion.img                         src={member.image}                         alt={member.name}                        className="w-full h-full object-cover"                        whileHover={{                           scale: 1.1,                          filter: "brightness(1.1)",                          transition: { duration: 0.5 }                        }}                      />                      <motion.div                         className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"                        initial={{ opacity: 0.7 }}                        whileHover={{                           opacity: 0.5,                          background: "linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)",                          transition: { duration: 0.3 }                        }}                      />
+        {/* Team Section - with cinematic reveal */}
+        <motion.section 
+          ref={teamRef} 
+          className="mb-20"
+          style={{ y: teamY }}
+        >
+          {/* Section title with cinematic typewriter effect */}
+          <div className="relative">
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-draugr-900/0 via-draugr-500/20 to-draugr-900/0 blur-md"
+              initial={{ opacity: 0, scaleX: 0 }}
+              animate={isTeamInView ? { opacity: 1, scaleX: 1 } : { opacity: 0, scaleX: 0 }}
+              transition={{ duration: 1.2 }}
+            />
+            
+            <motion.h2 
+              initial={{ opacity: 0, filter: "blur(10px)" }}
+              animate={isTeamInView ? { 
+                opacity: 1, 
+                filter: "blur(0px)",
+                textShadow: [
+                  "0 0 5px rgba(239, 35, 60, 0.3), 0 0 10px rgba(239, 35, 60, 0.2)",
+                  "0 0 10px rgba(239, 35, 60, 0.5), 0 0 20px rgba(239, 35, 60, 0.3)",
+                  "0 0 5px rgba(239, 35, 60, 0.3), 0 0 10px rgba(239, 35, 60, 0.2)"
+                ]
+              } : { 
+                opacity: 0,
+                filter: "blur(10px)" 
+              }}
+              transition={{ 
+                duration: 0.8,
+                textShadow: {
+                  repeat: Infinity,
+                  duration: 3,
+                  repeatType: "mirror"
+                }
+              }}
+              className="text-3xl font-bold mb-12 text-center relative"
+            >
+              <span className="relative">
+                تیم ما
+                <motion.span 
+                  className="absolute -bottom-2 left-0 right-0 h-0.5 bg-gradient-to-r from-draugr-900/0 via-draugr-500 to-draugr-900/0"
+                  initial={{ scaleX: 0 }}
+                  animate={isTeamInView ? { scaleX: 1 } : { scaleX: 0 }}
+                  transition={{ duration: 0.7, delay: 0.5 }}
+                />
+              </span>
+            </motion.h2>
+          </div>
+          
+          {/* Team members with staggered reveal and hover effects */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {teamMembers.map((member, index) => (
+              <motion.div 
+                key={member.id}
+                initial={{ opacity: 0, y: 50, rotateY: 10 }}
+                animate={isTeamInView ? { 
+                  opacity: 1, 
+                  y: 0, 
+                  rotateY: 0,
+                  transition: {
+                    type: "spring",
+                    stiffness: 100,
+                    damping: 15,
+                    delay: 0.3 + index * 0.2
+                  }
+                } : { 
+                  opacity: 0, 
+                  y: 50, 
+                  rotateY: 10 
+                }}
+                whileHover={{ 
+                  y: -10,
+                  transition: { duration: 0.3 }
+                }}
+                className="group transform perspective-[1000px]"
+              >
+                <motion.div 
+                  className="relative overflow-hidden rounded-xl bg-gradient-to-b from-black/60 to-vampire-dark/60 backdrop-blur-sm border border-gray-800 p-1"
+                  whileHover={{ 
+                    rotateY: [-2, 2],
+                    rotateX: [1, -1],
+                    transition: {
+                      rotateY: {
+                        repeat: Infinity,
+                        repeatType: "mirror",
+                        duration: 2,
+                        ease: "easeInOut"
+                      },
+                      rotateX: {
+                        repeat: Infinity,
+                        repeatType: "mirror",
+                        duration: 1.5,
+                        ease: "easeInOut"
+                      }
+                    }
+                  }}
+                >
+                  {/* Animated glow effect */}
+                  <motion.div 
+                    className="absolute -inset-0.5 bg-gradient-to-r from-draugr-900/0 via-draugr-500/40 to-draugr-900/0 rounded-lg opacity-0 group-hover:opacity-100"
+                    animate={{
+                      background: [
+                        "linear-gradient(90deg, rgba(239,35,60,0) 0%, rgba(239,35,60,0.3) 50%, rgba(239,35,60,0) 100%)",
+                        "linear-gradient(90deg, rgba(239,35,60,0) 0%, rgba(239,35,60,0.6) 50%, rgba(239,35,60,0) 100%)",
+                        "linear-gradient(90deg, rgba(239,35,60,0) 0%, rgba(239,35,60,0.3) 50%, rgba(239,35,60,0) 100%)"
+                      ]
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      repeatType: "mirror"
+                    }}
+                  />
+                  
+                  <div className="relative rounded-lg overflow-hidden">
+                    <div className="aspect-w-1 aspect-h-1">
+                      <motion.img 
+                        src={member.image} 
+                        alt={member.name}
+                        className="w-full h-full object-cover"
+                        whileHover={{ 
+                          scale: 1.1,
+                          filter: "brightness(1.1)",
+                          transition: { duration: 0.5 }
+                        }}
+                      />
+                      <motion.div 
+                        className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"
+                        initial={{ opacity: 0.7 }}
+                        whileHover={{ 
+                          opacity: 0.5,
+                          background: "linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)",
+                          transition: { duration: 0.3 }
+                        }}
+                      />
+                    </div>
                     
                     <div className="absolute bottom-0 left-0 right-0 p-6">
-                      <h3 className="text-xl font-bold text-white">{member.name}</h3>
-                      <p className="text-draugr-400 mb-2">{member.role}</p>
+                      <motion.h3 
+                        className="text-xl font-bold text-white"
+                        whileHover={{
+                          textShadow: "0 0 8px rgba(239, 35, 60, 0.5)",
+                          transition: { duration: 0.2 }
+                        }}
+                      >
+                        {member.name}
+                      </motion.h3>
+                      <motion.p 
+                        className="text-draugr-400 mb-2"
+                        initial={{ opacity: 0.8 }}
+                        whileHover={{ opacity: 1, x: 3 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        {member.role}
+                      </motion.p>
                       <p className="text-gray-400 text-sm">{member.bio}</p>
                       
                       <motion.div 
@@ -416,68 +570,190 @@ const AboutPage = () => {
                       />
                       
                       <div className="flex mt-4 space-x-3 rtl:space-x-reverse">
-                        <a href="#" className="w-8 h-8 rounded-full bg-draugr-900/80 flex items-center justify-center text-white hover:bg-draugr-800 transition-colors">
+                        <motion.a 
+                          href="#" 
+                          className="w-8 h-8 rounded-full bg-draugr-900/80 flex items-center justify-center text-white hover:bg-draugr-800 transition-colors"
+                          whileHover={{ 
+                            scale: 1.2, 
+                            boxShadow: "0 0 10px rgba(239, 35, 60, 0.5)"
+                          }}
+                          whileTap={{ scale: 0.9 }}
+                        >
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-twitter" viewBox="0 0 16 16">
                             <path d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z"/>
                           </svg>
-                        </a>
-                        <a href="#" className="w-8 h-8 rounded-full bg-draugr-900/80 flex items-center justify-center text-white hover:bg-draugr-800 transition-colors">
+                        </motion.a>
+                        <motion.a 
+                          href="#" 
+                          className="w-8 h-8 rounded-full bg-draugr-900/80 flex items-center justify-center text-white hover:bg-draugr-800 transition-colors"
+                          whileHover={{ 
+                            scale: 1.2, 
+                            boxShadow: "0 0 10px rgba(239, 35, 60, 0.5)"
+                          }}
+                          whileTap={{ scale: 0.9 }}
+                        >
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-linkedin" viewBox="0 0 16 16">
                             <path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854V1.146zm4.943 12.248V6.169H2.542v7.225h2.401zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248-.822 0-1.359.54-1.359 1.248 0 .694.521 1.248 1.327 1.248h.016zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016a5.54 5.54 0 0 1 .016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225h2.4z"/>
                           </svg>
-                        </a>
-                        <a href="#" className="w-8 h-8 rounded-full bg-draugr-900/80 flex items-center justify-center text-white hover:bg-draugr-800 transition-colors">
+                        </motion.a>
+                        <motion.a 
+                          href="#" 
+                          className="w-8 h-8 rounded-full bg-draugr-900/80 flex items-center justify-center text-white hover:bg-draugr-800 transition-colors"
+                          whileHover={{ 
+                            scale: 1.2, 
+                            boxShadow: "0 0 10px rgba(239, 35, 60, 0.5)"
+                          }}
+                          whileTap={{ scale: 0.9 }}
+                        >
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-instagram" viewBox="0 0 16 16">
                             <path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.917 3.917 0 0 0-1.417.923A3.927 3.927 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.916 3.916 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.926 3.926 0 0 0-.923-1.417A3.911 3.911 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0h.003zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599.28.28.453.546.598.92.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.47 2.47 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.478 2.478 0 0 1-.92-.598 2.48 2.48 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233 0-2.136.008-2.388.046-3.231.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92.28-.28.546-.453.92-.598.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045v.002zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92zm-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217zm0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334z"/>
                           </svg>
-                        </a>
+                        </motion.a>
                       </div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               </motion.div>
             ))}
           </div>
-        </section>
+        </motion.section>
         
-        {/* Join Us CTA */}
-        <section className="text-center max-w-4xl mx-auto">
+        {/* Join Us CTA - with epic cinematic reveal */}
+        <motion.section 
+          ref={ctaRef}
+          className="text-center max-w-4xl mx-auto"
+          style={{ y: ctaY }}
+        >
+          {/* Cinematic trailer-style reveal */}
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            initial={{ height: 0, opacity: 0 }}
+            whileInView={{ 
+              height: "auto", 
+              opacity: 1,
+              transition: {
+                height: {
+                  duration: 0.8,
+                  ease: [0.25, 1, 0.5, 1]
+                },
+                opacity: {
+                  duration: 1.2,
+                  delay: 0.2
+                }
+              }
+            }}
             viewport={{ once: true, margin: "-100px 0px" }}
             className="backdrop-blur-sm bg-gradient-to-b from-black/40 to-vampire-dark/40 p-10 rounded-2xl border border-draugr-900/40 relative overflow-hidden"
           >
             {/* Corner accents */}
-            <div className="absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-draugr-500/40 rounded-tr-2xl" />
-            <div className="absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 border-draugr-500/40 rounded-bl-2xl" />
+            <motion.div 
+              className="absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-draugr-500/40 rounded-tr-2xl"
+              initial={{ opacity: 0, scale: 0.5 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              viewport={{ once: true }}
+            />
+            <motion.div 
+              className="absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 border-draugr-500/40 rounded-bl-2xl"
+              initial={{ opacity: 0, scale: 0.5 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              viewport={{ once: true }}
+            />
             
-            <h2 className="text-3xl font-bold mb-6">با ما همراه شوید</h2>
-            <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
+            <motion.h2 
+              className="text-3xl font-bold mb-6"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ 
+                opacity: 1, 
+                y: 0,
+                textShadow: [
+                  "0 0 5px rgba(239, 35, 60, 0.3), 0 0 10px rgba(239, 35, 60, 0.2)",
+                  "0 0 10px rgba(239, 35, 60, 0.5), 0 0 20px rgba(239, 35, 60, 0.3)",
+                  "0 0 5px rgba(239, 35, 60, 0.3), 0 0 10px rgba(239, 35, 60, 0.2)"
+                ]
+              }}
+              transition={{ 
+                duration: 0.6, 
+                delay: 0.6,
+                textShadow: {
+                  repeat: Infinity,
+                  duration: 3,
+                  repeatType: "mirror"
+                }
+              }}
+              viewport={{ once: true }}
+            >
+              با ما همراه شوید
+            </motion.h2>
+            
+            <motion.p 
+              className="text-gray-300 mb-8 max-w-2xl mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
+              viewport={{ once: true }}
+            >
               به دنیای اسرارآمیز دراگر بپیوندید و از آخرین محصولات و تخفیف‌های ویژه ما باخبر شوید. ما به دنبال گسترش خانواده دراگر هستیم.
-            </p>
+            </motion.p>
             
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <motion.button 
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                className="px-8 py-3.5 bg-gradient-to-r from-draugr-800 to-draugr-600 hover:from-draugr-700 hover:to-draugr-500 text-white font-medium rounded-lg relative overflow-hidden group"
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                viewport={{ once: true }}
+                className="relative"
               >
-                <span className="relative z-10">عضویت در خبرنامه</span>
-                <span className="absolute inset-0 w-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-shimmer"></span>
-              </motion.button>
+                <motion.div 
+                                    className="absolute -inset-1 rounded-lg bg-gradient-to-r from-draugr-900/0 via-draugr-500/40 to-draugr-900/0 opacity-0"                  whileHover={{ opacity: 1 }}                  animate={{                    background: [                      "linear-gradient(90deg, rgba(239,35,60,0) 0%, rgba(239,35,60,0.2) 50%, rgba(239,35,60,0) 100%)",                      "linear-gradient(90deg, rgba(239,35,60,0) 0%, rgba(239,35,60,0.4) 50%, rgba(239,35,60,0) 100%)",                      "linear-gradient(90deg, rgba(239,35,60,0) 0%, rgba(239,35,60,0.2) 50%, rgba(239,35,60,0) 100%)"                    ]                  }}                  transition={{                    duration: 0.3,                    background: {                      duration: 2,                      repeat: Infinity,                      repeatType: "mirror"                    }                  }}
+                />
+                <motion.button 
+                  whileHover={{ 
+                    scale: 1.03,
+                    textShadow: "0 0 8px rgba(255, 255, 255, 0.5)",
+                    boxShadow: "0 0 15px rgba(239, 35, 60, 0.4)"
+                  }}
+                  whileTap={{ scale: 0.97 }}
+                  className="px-8 py-3.5 bg-gradient-to-r from-draugr-800 to-draugr-600 hover:from-draugr-700 hover:to-draugr-500 text-white font-medium rounded-lg relative overflow-hidden group"
+                >
+                  <span className="relative z-10 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                      <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                    </svg>
+                    عضویت در خبرنامه
+                  </span>
+                  <span className="absolute inset-0 w-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-shimmer"></span>
+                </motion.button>
+              </motion.div>
               
-              <motion.button 
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                className="px-8 py-3.5 bg-black/50 border border-draugr-900/60 hover:border-draugr-500/60 text-white font-medium rounded-lg"
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.6 }}
+                viewport={{ once: true }}
+                className="relative"
               >
-                ارتباط با ما
-              </motion.button>
+                <motion.button 
+                  whileHover={{ 
+                    scale: 1.03,
+                    boxShadow: "0 0 20px rgba(0, 0, 0, 0.5)",
+                    borderColor: "rgba(239, 35, 60, 0.6)"
+                  }}
+                  whileTap={{ scale: 0.97 }}
+                  className="px-8 py-3.5 bg-black/50 border border-draugr-900/60 hover:border-draugr-500/60 text-white font-medium rounded-lg backdrop-blur-sm group"
+                >
+                  <span className="flex items-center group-hover:text-draugr-300 transition-colors duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                    </svg>
+                    ارتباط با ما
+                  </span>
+                </motion.button>
+              </motion.div>
             </div>
           </motion.div>
-        </section>
+        </motion.section>
       </div>
     </motion.div>
   );
