@@ -157,7 +157,8 @@ const Header = ({ cartItems, onCartClick }) => {
           ))}
         </nav>
         
-        <div className="flex items-center space-x-3 md:space-x-4">
+        <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4">
+          {/* Login button - Visible on all screen sizes, next to cart */}
           <motion.button 
             whileHover={{ 
               scale: 1.05, 
@@ -165,7 +166,7 @@ const Header = ({ cartItems, onCartClick }) => {
               textShadow: '0 0 8px rgba(255, 255, 255, 0.8)'
             }}
             whileTap={{ scale: 0.95 }}
-            className="hidden sm:block bg-gradient-to-r from-draugr-900 to-draugr-700 text-white px-4 py-2 rounded-md font-medium border border-draugr-600 hover:border-draugr-500 text-sm ml-3 md:ml-4 transition-all duration-300"
+            className="bg-gradient-to-r from-draugr-900 to-draugr-700 text-white px-2 sm:px-3 py-1.5 rounded-md font-medium border border-draugr-600 hover:border-draugr-500 text-xs sm:text-sm transition-all duration-300"
             onClick={() => navigate('/login')}
           >
             ورود
@@ -201,7 +202,7 @@ const Header = ({ cartItems, onCartClick }) => {
           >
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              className="h-6 w-6" 
+              className="h-5 w-5" 
               fill="none" 
               viewBox="0 0 24 24" 
               stroke="currentColor"
@@ -246,18 +247,18 @@ const Header = ({ cartItems, onCartClick }) => {
               }}
             />
 
-            {/* Menu content */}
+            {/* Menu content - Reduced width for better small screen support */}
             <motion.div
               initial={{ opacity: 0, x: '100%' }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: '100%' }}
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="md:hidden fixed top-0 right-0 h-screen w-3/4 bg-gradient-to-b from-black to-draugr-950 shadow-[-10px_0px_30px_rgba(0,0,0,0.5)] z-50 overflow-y-auto"
+              className="md:hidden fixed top-0 right-0 h-screen w-2/3 sm:w-3/5 bg-gradient-to-b from-black to-draugr-950 shadow-[-10px_0px_30px_rgba(0,0,0,0.5)] z-50 overflow-y-auto"
             >
               <div className="w-full h-full flex flex-col">
                 {/* Menu Header with Close Button */}
-                <div className="p-4 flex justify-between items-center border-b border-draugr-800">
-                  <span className="blood-text text-xl font-bold">{brandName}</span>
+                <div className="p-3 flex justify-between items-center border-b border-draugr-800">
+                  <span className="blood-text text-lg font-bold">{brandName}</span>
                   <motion.button
                     whileHover={{ scale: 1.1, rotate: 90 }}
                     whileTap={{ scale: 0.9 }}
@@ -266,7 +267,7 @@ const Header = ({ cartItems, onCartClick }) => {
                   >
                     <svg 
                       xmlns="http://www.w3.org/2000/svg" 
-                      className="h-6 w-6" 
+                      className="h-5 w-5" 
                       fill="none" 
                       viewBox="0 0 24 24" 
                       stroke="currentColor"
@@ -281,9 +282,9 @@ const Header = ({ cartItems, onCartClick }) => {
                   </motion.button>
                 </div>
                 
-                {/* Mobile Navigation Links */}
-                <div className="py-4 px-4 overflow-y-auto flex-1">
-                  <div className="flex flex-col space-y-1">
+                {/* Mobile Navigation Links - Reduced text size and spacing */}
+                <div className="py-3 px-3 overflow-y-auto flex-1">
+                  <div className="flex flex-col space-y-0.5">
                     {navigationItems.map((item, index) => (
                       <MobileNavLink 
                         key={index}
@@ -295,18 +296,6 @@ const Header = ({ cartItems, onCartClick }) => {
                       />
                     ))}
                   </div>
-
-                  {/* Login Button (Mobile) */}
-                  <motion.button 
-                    whileTap={{ scale: 0.95 }}
-                    className="w-full bg-gradient-to-r from-draugr-900 to-draugr-700 text-white py-3 rounded-md font-medium border border-draugr-600 hover:border-draugr-500 mt-6 transition-all duration-300"
-                    onClick={() => {
-                      navigate('/login');
-                      toggleMobileMenu();
-                    }}
-                  >
-                    ورود / ثبت نام
-                  </motion.button>
                 </div>
               </div>
             </motion.div>
@@ -477,14 +466,14 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
   return (
     <div className="border-b border-draugr-800 last:border-b-0">
       <div 
-        className="flex justify-between items-center py-3 px-2 text-white hover:bg-draugr-900 transition-all duration-200 rounded-sm cursor-pointer"
+        className="flex justify-between items-center py-2 px-1.5 text-white hover:bg-draugr-900 transition-all duration-200 rounded-sm cursor-pointer"
         onClick={handleClick}
       >
-        <span className="font-medium">{label}</span>
+        <span className="text-sm font-medium">{label}</span>
         {isNested && (
           <motion.svg 
             xmlns="http://www.w3.org/2000/svg" 
-            className="h-5 w-5" 
+            className="h-4 w-4" 
             fill="none" 
             viewBox="0 0 24 24" 
             stroke="currentColor"
@@ -503,24 +492,24 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3 }}
-          className="bg-draugr-950 pl-4 py-2"
+          className="bg-draugr-950 pl-3 py-1.5"
         >
           {/* Special accordion style for Shop in mobile view */}
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             {navItem.subcategories.map((category, idx) => (
-              <div key={idx} className="border-b border-draugr-800 last:border-b-0 pb-2">
+              <div key={idx} className="border-b border-draugr-800 last:border-b-0 pb-1.5">
                 <div 
-                  className="flex justify-between items-center py-2 px-2 text-white cursor-pointer"
+                  className="flex justify-between items-center py-1.5 px-1.5 text-white cursor-pointer"
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleCategory(idx);
                   }}
                   >
-                  <span className="text-sm font-medium text-draugr-400">{category.name}</span>
+                  <span className="text-xs font-medium text-draugr-400">{category.name}</span>
                   {category.items && category.items.length > 0 && (
                       <motion.svg 
                         xmlns="http://www.w3.org/2000/svg" 
-                      className="h-4 w-4" 
+                      className="h-3.5 w-3.5" 
                         fill="none" 
                         viewBox="0 0 24 24" 
                         stroke="currentColor"
@@ -538,13 +527,13 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="pr-2 pl-4 py-1"
+                    className="pr-1.5 pl-3 py-0.5"
                         >
                     {category.items.map((item, itemIdx) => (
                       <Link 
                         key={itemIdx}
                         to={`/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}/${item.toLowerCase().replace(/\s+/g, '-')}`}
-                        className="block py-1.5 text-xs text-gray-400 hover:text-gray-200"
+                        className="block py-1 text-xs text-gray-400 hover:text-gray-200"
                         onClick={onClick}
                       >
                         {item}
@@ -556,7 +545,7 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
                 {(!category.items || category.items.length === 0) && (
                   <Link 
                     to={`/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}`}
-                    className="block py-1.5 px-2 text-xs text-gray-400 hover:text-gray-200"
+                    className="block py-1 px-1.5 text-xs text-gray-400 hover:text-gray-200"
                     onClick={onClick}
                   >
                     {category.name}
