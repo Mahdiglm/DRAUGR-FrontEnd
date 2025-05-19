@@ -331,9 +331,9 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           />
         </div>
         
-        {/* Mobile view: Single item slider - Adjusted height */}
+        {/* Mobile view: Single item slider - Increased height to prevent cutoff */}
         {isMobile && (
-          <div className="w-full px-2 pt-2 overflow-hidden relative min-h-[280px] sm:min-h-[300px]">
+          <div className="w-full px-2 pt-2 pb-3 overflow-hidden relative min-h-[300px] sm:min-h-[320px]">
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={`mobile-slide-${activeIndex}`}
@@ -345,7 +345,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
                 className="absolute w-full h-full flex justify-center items-center"
                 style={{ width: 'calc(100% - 16px)', left: '8px' }} // Centering with padding
               >
-                <div className="w-full max-w-[280px]"> {/* Max width for mobile card */}
+                <div className="w-full max-w-[280px] mb-2"> {/* Added margin-bottom */}
                   <ProductCard 
                     product={displayProducts[activeIndex]} 
                     onAddToCart={onAddToCart} 
@@ -393,8 +393,8 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           </div>
         )}
 
-        {/* Pagination indicators - With improved positioning for mobile */}
-        <div className="absolute bottom-[-12px] sm:bottom-[-16px] md:bottom-[-24px] left-0 right-0 mx-auto z-30">
+        {/* Pagination indicators - With further improved positioning for mobile */}
+        <div className="absolute bottom-[-8px] sm:bottom-[-12px] md:bottom-[-20px] left-0 right-0 mx-auto z-30 mt-3">
           {isMobile ? (
             // Mobile pagination with improved styling
             <motion.div 
