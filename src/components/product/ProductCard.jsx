@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
-const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled = false, inSlider = false }) => {
+const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled = false, inSlider = false, isPremium = false }) => {
   const { id, name, description, price, imageUrl } = product;
   const navigate = useNavigate();
 
@@ -35,13 +35,15 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
     }
   };
 
-  // Special styling for slider cards
+  // Special styling for slider cards with premium enhancements
   const sliderStyles = inSlider ? {
     boxShadow: isHighlighted 
-      ? "0 10px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(220, 38, 38, 0.35)" 
+      ? isPremium 
+        ? "0 15px 35px rgba(0, 0, 0, 0.7), 0 0 20px rgba(220, 38, 38, 0.4)" 
+        : "0 10px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(220, 38, 38, 0.35)" 
       : "0 5px 15px rgba(0, 0, 0, 0.3)",
-    border: "none",
-    borderRadius: "1rem",
+    border: isPremium && isHighlighted ? "1px solid rgba(220, 38, 38, 0.2)" : "none",
+    borderRadius: isPremium ? "1.25rem" : "1rem",
     overflow: "hidden",
   } : {
     boxShadow: isHighlighted 
@@ -55,24 +57,32 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       whileHover={isDisabled ? {} : { 
-        y: -5,
-        scale: 1.02,
+        y: isPremium ? -8 : -5,
+        scale: isPremium ? 1.04 : 1.02,
         transition: { 
           type: "spring", 
-          stiffness: 200, 
-          damping: 25 
+          stiffness: isPremium ? 250 : 200, 
+          damping: isPremium ? 20 : 25 
         }
       }}
       style={sliderStyles}
-      className={`bg-gradient-to-b ${inSlider ? 'from-[#1c0b0f] to-black' : 'from-black to-black'} rounded-lg overflow-hidden h-full flex flex-col relative
+      className={`bg-gradient-to-b ${
+        isPremium && inSlider 
+          ? 'from-[#251012] via-[#1c0b0f] to-black' 
+          : inSlider 
+            ? 'from-[#1c0b0f] to-black' 
+            : 'from-black to-black'
+      } rounded-lg overflow-hidden h-full flex flex-col relative
         ${isDisabled ? 'pointer-events-none opacity-80' : 'cursor-pointer'}
         transform-gpu
         ${inSlider ? '' : 'before:absolute before:inset-0 before:rounded-lg before:pointer-events-none hover:before:border before:border-red-600 before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300'}
+        ${isPremium && isHighlighted ? 'shadow-lg' : ''}
       `}
     >
       <div 
-        className={`${inSlider ? 'h-48 sm:h-56 md:h-64' : 'h-64 sm:h-72 md:h-80'} bg-cover bg-center relative overflow-hidden
+        className={`${inSlider ? isPremium ? 'h-52 sm:h-60 md:h-64' : 'h-48 sm:h-56 md:h-64' : 'h-64 sm:h-72 md:h-80'} bg-cover bg-center relative overflow-hidden
           ${isDisabled ? '' : 'cursor-pointer'}
+          ${isPremium ? 'group-hover:scale-105 transition-transform duration-700' : ''}
         `}
         style={{ 
           backgroundImage: imageUrl ? `url(${imageUrl})` : 'none',
@@ -85,31 +95,91 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
         {/* Image gradient overlay for better visibility */}
         <div className={`absolute inset-0 ${inSlider ? 'bg-gradient-to-t from-[#1c0b0f]/90 via-black/40 to-transparent' : 'bg-gradient-to-t from-red-950/70 via-black/40 to-transparent opacity-0 hover:opacity-100'} transition-opacity duration-300`}></div>
         
-        {/* Highlight badge */}
+        {/* Highlight badge with premium styling */}
         {isHighlighted && (
-          <div className={`absolute top-2 right-2 ${inSlider ? 'bg-gradient-to-r from-[#8b1d2c] to-[#5c0d19] text-white' : 'bg-gradient-to-r from-red-700 to-red-900 text-white'} text-xs px-2 py-1 rounded-md shadow-lg shadow-red-800/30`}>
-            ویژه
+          <div className={`absolute ${isPremium ? 'top-3 right-3' : 'top-2 right-2'} ${
+            isPremium && inSlider 
+              ? 'bg-gradient-to-r from-[#c43148] to-[#8b1d2c] text-white font-medium px-3 py-1.5 rounded-md shadow-lg shadow-red-900/50 border border-red-900/20'
+              : inSlider 
+                ? 'bg-gradient-to-r from-[#8b1d2c] to-[#5c0d19] text-white px-2 py-1 rounded-md shadow-lg shadow-red-800/30'
+                : 'bg-gradient-to-r from-red-700 to-red-900 text-white px-2 py-1 rounded-md shadow-lg shadow-red-800/30'
+          }`}>
+            {isPremium ? 'محصول ویژه' : 'ویژه'}
+          </div>
+        )}
+        
+        {/* Premium flourish */}
+        {isPremium && isHighlighted && (
+          <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+            <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-red-900/20 to-transparent opacity-40"></div>
           </div>
         )}
       </div>
       <div className={`p-4 flex-grow flex flex-col min-h-0 ${inSlider ? 'bg-gradient-to-b from-[#1c0b0f]/70 to-black' : 'bg-black'}`}>
         <h3 
-          className={`font-bold text-lg truncate ${isDisabled ? 'text-gray-400' : `cursor-pointer ${inSlider ? 'text-[#e8a9b1] hover:text-[#f4cbd0]' : 'text-red-50 hover:text-red-400'} transition-colors duration-300`}`}
+          className={`font-bold ${isPremium && isHighlighted ? 'text-xl' : 'text-lg'} truncate ${
+            isDisabled 
+              ? 'text-gray-400' 
+              : `cursor-pointer ${
+                  isPremium && inSlider
+                    ? 'text-[#f4c3c8] hover:text-white' 
+                    : inSlider 
+                      ? 'text-[#e8a9b1] hover:text-[#f4cbd0]' 
+                      : 'text-red-50 hover:text-red-400'
+                } transition-colors duration-300`
+          }`}
           onClick={handleViewDetails}
         >
           {name}
         </h3>
-        <p className="text-gray-400 text-sm mb-3 line-clamp-1">{description}</p>
-        <div className={`flex justify-between items-center mt-auto pt-2 ${inSlider ? 'border-t border-[#3c171e]/50' : 'border-t border-red-800'}`}>
-          <span className={`font-bold text-base ${inSlider ? 'text-[#d64356]' : 'text-red-500'}`}>{price.toFixed(2)} تومان</span>
-          <div className="flex gap-2">
+        <p className={`${isPremium && isHighlighted ? 'text-gray-300' : 'text-gray-400'} text-sm mb-3 ${isPremium ? 'line-clamp-2' : 'line-clamp-1'}`}>
+          {description}
+        </p>
+        <div className={`flex justify-between items-center mt-auto pt-2 ${
+          isPremium && inSlider
+            ? 'border-t border-red-900/30' 
+            : inSlider 
+              ? 'border-t border-[#3c171e]/50' 
+              : 'border-t border-red-800'
+        }`}>
+          {/* Price with premium styling */}
+          <span className={`font-bold ${isPremium && isHighlighted ? 'text-lg' : 'text-base'} ${
+            isPremium && inSlider 
+              ? 'text-[#ff4d60]' 
+              : inSlider 
+                ? 'text-[#d64356]' 
+                : 'text-red-500'
+          }`}>
+            {isPremium && isHighlighted && (
+              <span className="inline-block animate-pulse-slow">★ </span>
+            )}
+            {price.toFixed(2)} تومان
+          </span>
+
+          {/* Action buttons with premium styling */}
+          <div className="flex gap-2.5">
             {!isDisabled && (
               <>
                 <motion.button
-                  whileHover={{ scale: 1.1, backgroundColor: inSlider ? "#c42b3b" : "#dc2626" }}
+                  whileHover={{ 
+                    scale: isPremium ? 1.15 : 1.1, 
+                    backgroundColor: isPremium && inSlider ? "#e12d40" : inSlider ? "#c42b3b" : "#dc2626",
+                    boxShadow: isPremium ? "0 0 12px rgba(225, 45, 64, 0.4)" : undefined
+                  }}
                   whileTap={{ scale: 0.9 }}
                   onClick={handleAddToCart}
-                  className={`${inSlider ? 'bg-[#a11d2b] hover:bg-[#b8242f]' : 'bg-red-700 hover:bg-red-600'} text-white p-1.5 rounded-full w-8 h-8 flex items-center justify-center shadow-md shadow-black/30 transition-all duration-200`}
+                  className={`
+                    ${isPremium && inSlider 
+                      ? 'bg-gradient-to-br from-[#d41d31] to-[#8b1d2c] hover:from-[#e12d40] hover:to-[#a1242f]' 
+                      : inSlider 
+                        ? 'bg-[#a11d2b] hover:bg-[#b8242f]' 
+                        : 'bg-red-700 hover:bg-red-600'
+                    } 
+                    text-white ${isPremium ? 'p-2' : 'p-1.5'} rounded-full 
+                    ${isPremium ? 'w-9 h-9' : 'w-8 h-8'} 
+                    flex items-center justify-center ${isPremium ? 'shadow-lg shadow-red-900/40' : 'shadow-md shadow-black/30'} 
+                    transition-all duration-200
+                  `}
                   aria-label={`افزودن ${name} به سبد خرید`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -117,10 +187,25 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
                   </svg>
                 </motion.button>
                 <motion.button
-                  whileHover={{ scale: 1.1, backgroundColor: inSlider ? "#7c141e" : "#7f1d1d" }}
+                  whileHover={{ 
+                    scale: isPremium ? 1.15 : 1.1, 
+                    backgroundColor: isPremium && inSlider ? "#9b1d29" : inSlider ? "#7c141e" : "#7f1d1d",
+                    boxShadow: isPremium ? "0 0 12px rgba(155, 29, 41, 0.4)" : undefined
+                  }}
                   whileTap={{ scale: 0.9 }}
                   onClick={handleViewDetails}
-                  className={`${inSlider ? 'bg-[#60111a] hover:bg-[#701319]' : 'bg-red-900 hover:bg-red-800'} text-white p-1.5 rounded-full w-8 h-8 flex items-center justify-center shadow-md shadow-black/30 transition-all duration-200`}
+                  className={`
+                    ${isPremium && inSlider 
+                      ? 'bg-gradient-to-br from-[#7a131f] to-[#5c0d19] hover:from-[#9b1d29] hover:to-[#68101c]' 
+                      : inSlider 
+                        ? 'bg-[#60111a] hover:bg-[#701319]' 
+                        : 'bg-red-900 hover:bg-red-800'
+                    } 
+                    text-white ${isPremium ? 'p-2' : 'p-1.5'} rounded-full 
+                    ${isPremium ? 'w-9 h-9' : 'w-8 h-8'} 
+                    flex items-center justify-center ${isPremium ? 'shadow-lg shadow-red-900/40' : 'shadow-md shadow-black/30'} 
+                    transition-all duration-200
+                  `}
                   aria-label={`مشاهده جزئیات ${name}`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

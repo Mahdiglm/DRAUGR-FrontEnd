@@ -307,6 +307,50 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
     }
   };
 
+  const enhancedStyles = `
+    .featured-product {
+      position: relative;
+      transform: perspective(1000px);
+      transform-style: preserve-3d;
+      transition: all 0.3s ease;
+    }
+    
+    .featured-product-active {
+      position: relative;
+      transform: perspective(1000px);
+      transform-style: preserve-3d;
+      transition: all 0.3s ease;
+      z-index: 25;
+    }
+    
+    .featured-product-active::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      z-index: -2;
+      background: linear-gradient(135deg, rgba(220, 38, 38, 0.4), rgba(153, 27, 27, 0.1), rgba(220, 38, 38, 0.2));
+      border-radius: inherit;
+      animation: rotateGradient 6s linear infinite;
+    }
+    
+    @keyframes rotateGradient {
+      0% { background-position: 0% 0%; }
+      100% { background-position: 100% 100%; }
+    }
+    
+    .sidebar-horror {
+      background: linear-gradient(145deg, #1a1a1a, #111111);
+      box-shadow: 
+        0 10px 30px -10px rgba(0, 0, 0, 0.9),
+        0 0 10px 2px rgba(154, 36, 50, 0.3),
+        inset 0 0 15px rgba(0, 0, 0, 0.5),
+        inset 0 0 10px rgba(239, 35, 60, 0.2); /* Added inner red glow */
+      border: 1px solid rgba(154, 36, 50, 0.4); /* Darker border */
+      position: relative;
+      overflow: hidden;
+    }
+  `;
+
   return (
     <div className="relative w-full py-4 md:py-8 overflow-hidden">
       {/* Slider container with subtle background */}
@@ -376,13 +420,53 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
                       animate={groupState}
                       transition={{ duration: 0.5 }}
                     >
-                      <div className="relative rounded-xl overflow-hidden transition-all">
+                      <div className={`relative rounded-2xl overflow-hidden transition-all group
+                        ${groupState === "foreground" ? "featured-product-active" : "featured-product"}
+                      `}>
+                        {/* Glow effect for featured product */}
+                        {groupState === "foreground" && (
+                          <motion.div 
+                            className="absolute inset-0 -m-1 rounded-2xl z-[-1] bg-gradient-to-b from-draugr-500/50 via-draugr-600/20 to-transparent"
+                            animate={{ 
+                              boxShadow: ['0 0 25px rgba(154, 36, 50, 0.3)', '0 0 45px rgba(154, 36, 50, 0.4)', '0 0 25px rgba(154, 36, 50, 0.3)']
+                            }}
+                            transition={{ 
+                              duration: 3, 
+                              repeat: Infinity, 
+                              ease: "easeInOut" 
+                            }}
+                          />
+                        )}
+                        
+                        {/* Corner accents for active product */}
+                        {groupState === "foreground" && (
+                          <>
+                            <div className="absolute top-0 left-0 w-8 h-8 z-10">
+                              <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-draugr-500 to-transparent"></div>
+                              <div className="absolute top-0 left-0 h-full w-[2px] bg-gradient-to-b from-draugr-500 to-transparent"></div>
+                            </div>
+                            <div className="absolute top-0 right-0 w-8 h-8 z-10">
+                              <div className="absolute top-0 right-0 w-full h-[2px] bg-gradient-to-l from-draugr-500 to-transparent"></div>
+                              <div className="absolute top-0 right-0 h-full w-[2px] bg-gradient-to-b from-draugr-500 to-transparent"></div>
+                            </div>
+                            <div className="absolute bottom-0 left-0 w-8 h-8 z-10">
+                              <div className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-draugr-500 to-transparent"></div>
+                              <div className="absolute bottom-0 left-0 h-full w-[2px] bg-gradient-to-t from-draugr-500 to-transparent"></div>
+                            </div>
+                            <div className="absolute bottom-0 right-0 w-8 h-8 z-10">
+                              <div className="absolute bottom-0 right-0 w-full h-[2px] bg-gradient-to-l from-draugr-500 to-transparent"></div>
+                              <div className="absolute bottom-0 right-0 h-full w-[2px] bg-gradient-to-t from-draugr-500 to-transparent"></div>
+                            </div>
+                          </>
+                        )}
+                        
                         <ProductCard 
                           product={product} 
                           onAddToCart={groupState === "foreground" ? onAddToCart : null} 
                           isHighlighted={groupState === "foreground"}
                           isDisabled={groupState !== "foreground"}
                           inSlider={true}
+                          isPremium={true} // New prop to indicate premium styling for featured products
                         />
                       </div>
                     </motion.div>
