@@ -1,761 +1,577 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { motion, useScroll, useTransform, useInView, useSpring, useMotionValue } from 'framer-motion';
+import React, { useRef, useEffect, useState } from 'react';
+import { motion, useScroll, useTransform, useSpring, useInView } from 'framer-motion';
 
-// Custom hook for parallax effect
-const useParallax = (value, distance) => {
-  return useTransform(value, [0, 1], [-distance, distance]);
-};
+// Import skull image
+import skullImg from '../../assets/skull.jpg';
 
-const AboutPage = () => {
-  const containerRef = useRef(null);
-  const headingRef = useRef(null);
-  const missionRef = useRef(null);
-  const teamRef = useRef(null);
-  const ctaRef = useRef(null);
-  const isHeadingInView = useInView(headingRef, { once: false, margin: "-100px 0px" });
-  const isMissionInView = useInView(missionRef, { once: false, margin: "-100px 0px" });
-  const isTeamInView = useInView(teamRef, { once: false, margin: "-100px 0px" });
-  const isCtaInView = useInView(ctaRef, { once: false, margin: "-100px 0px" });
-  
-  // For main scroll progress
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start end", "end start"]
-  });
-  
-  // Apply spring physics to smoothen the scrollYProgress
-  const smoothScrollProgress = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 30,
-    restDelta: 0.001
-  });
-  
-  // For parallax effects
-  const backgroundY = useParallax(smoothScrollProgress, 100);
-  const noiseOpacity = useTransform(smoothScrollProgress, [0, 0.5, 1], [0.05, 0.15, 0.05]);
-  
-  // For neon lines
-  const leftLineProgress = useTransform(smoothScrollProgress, [0, 1], [0, 100]);
-  const rightLineProgress = useTransform(smoothScrollProgress, [0, 1], [0, 100]);
-  
-  // Different speeds for different elements - more cinematic
-  const titleY = useTransform(smoothScrollProgress, [0, 0.1, 0.3], [0, -30, -60]);
-  const missionY = useTransform(smoothScrollProgress, [0.2, 0.4], [50, 0]);
-  const teamY = useTransform(smoothScrollProgress, [0.5, 0.7], [50, 0]);
-  const ctaY = useTransform(smoothScrollProgress, [0.7, 0.9], [40, 0]);
-  
-  // Subtle rotation for 3D effect
-  const pageRotate = useTransform(smoothScrollProgress, [0, 0.5, 1], [-2, 0, 2]);
-  
-  // For animated text
-  const [letters, setLetters] = useState([]);
-  useEffect(() => {
-    const text = "دراگر";
-    setLetters(text.split(''));
-  }, []);
-  
-  // Team members data
-  const teamMembers = [
-    {
-      id: 1,
-      name: "ساره احمدی",
-      role: "طراح تجربه کاربری",
-      bio: "متخصص در طراحی تجارب کاربری ترسناک و غوطه‌ور",
-      image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=500&q=60"
-    },
-    {
-      id: 2,
-      name: "علی رضوی",
-      role: "مدیر محصول",
-      bio: "استراتژیست محصول با علاقه به داستان‌های ترسناک و افسانه‌ای",
-      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=500&q=60"
-    },
-    {
-      id: 3,
-      name: "مریم محمدی",
-      role: "توسعه‌دهنده فرانت‌اند",
-      bio: "متخصص در ایجاد تجربیات تعاملی و انیمیشن‌های منحصر به فرد",
-      image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=500&q=60"
-    }
-  ];
+// Section component with fade-in and parallax effects
+const StorySection = ({ children, className, overlayOpacity = 0.7, dark = true }) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: false, amount: 0.3 });
 
   return (
-    <motion.div 
-      ref={containerRef}
-      style={{ rotateX: pageRotate, perspective: 1000 }}
-      className="min-h-screen bg-gradient-to-b from-midnight to-vampire-dark text-white py-20 relative overflow-hidden"
+    <motion.section
+      ref={ref}
+      className={`relative min-h-screen w-full flex items-center justify-center overflow-hidden ${className}`}
     >
-      {/* Animated background elements with parallax */}
+      {/* Dark overlay with the same style as top section */}
+      <div className="absolute inset-0 bg-black bg-opacity-60" />
+      
+      {/* Content wrapper */}
       <motion.div 
-        className="absolute inset-0 z-0 overflow-hidden pointer-events-none"
-        style={{ y: backgroundY }}
+        className="container mx-auto px-4 py-16 z-10 relative"
+        variants={{
+          hidden: { opacity: 0, y: 50 },
+          visible: { opacity: 1, y: 0 },
+        }}
+        initial="hidden"
+        animate={isInView ? "visible" : "hidden"}
+        transition={{ duration: 0.8, ease: "easeOut" }}
       >
-        {/* Left neon line - zigzag pattern - enhanced with glow pulse */}
-        <svg className="absolute h-full w-full" preserveAspectRatio="none">
-          <motion.path
-            d="M-10,0 Q30,150 5,300 Q-20,450 30,600 Q60,750 5,900 Q-20,1050 30,1200 Q60,1350 5,1500"
-            stroke="url(#leftLineGradient)"
-            strokeWidth="2"
-            fill="none"
-            initial={{ pathLength: 0 }}
-            style={{ 
-              pathLength: leftLineProgress,
-              filter: "drop-shadow(0 0 8px #ef233c) drop-shadow(0 0 12px #ef233c)",
-              opacity: 0.8,
-              strokeDasharray: "5 5"
-            }}
-          />
-          <motion.defs
-            animate={{
-              filter: ["drop-shadow(0 0 10px #ef233c)", "drop-shadow(0 0 20px #ef233c)", "drop-shadow(0 0 10px #ef233c)"]
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              repeatType: "mirror",
-              ease: "easeInOut"
-            }}
-          >
-            <linearGradient id="leftLineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#ef233c" stopOpacity="0.2" />
-              <stop offset="50%" stopColor="#ef233c" stopOpacity="1" />
-              <stop offset="100%" stopColor="#ef233c" stopOpacity="0.2" />
-            </linearGradient>
-          </motion.defs>
-        </svg>
-        
-        {/* Right neon line - curved pattern - enhanced with glow pulse */}
-        <svg className="absolute h-full w-full" preserveAspectRatio="none">
-          <motion.path
-            d="M110,0 C120,300 90,450 110,600 C130,750 80,900 110,1200 C120,1350 110,1500 120,1800"
-            stroke="url(#rightLineGradient)"
-            strokeWidth="2"
-            fill="none"
-            initial={{ pathLength: 0 }}
-            style={{ 
-              pathLength: rightLineProgress,
-              filter: "drop-shadow(0 0 8px #ef233c) drop-shadow(0 0 12px #ef233c)",
-              opacity: 0.8,
-              strokeDasharray: "10 5"
-            }}
-          />
-          <motion.defs
-            animate={{
-              filter: ["drop-shadow(0 0 10px #ef233c)", "drop-shadow(0 0 15px #ef233c)", "drop-shadow(0 0 10px #ef233c)"]
-            }}
-            transition={{
-              duration: 4,
-              repeat: Infinity,
-              repeatType: "mirror",
-              ease: "easeInOut",
-              delay: 1.5
-            }}
-          >
-            <linearGradient id="rightLineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#ef233c" stopOpacity="0.2" />
-              <stop offset="50%" stopColor="#ef233c" stopOpacity="1" />
-              <stop offset="100%" stopColor="#ef233c" stopOpacity="0.2" />
-            </linearGradient>
-          </motion.defs>
-        </svg>
-        
-        {/* Background noise texture - now with dynamic opacity */}
-        <motion.div 
-          className="absolute inset-0 bg-center bg-cover"
+        {children}
+      </motion.div>
+    </motion.section>
+  );
+};
+
+// Text reveal animation component
+const RevealText = ({ children, delay = 0, className = "" }) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: false, amount: 0.3 });
+  
+  return (
+    <motion.div
+      ref={ref}
+      className={`overflow-hidden ${className}`}
+      variants={{
+        hidden: { opacity: 0 },
+        visible: { opacity: 1 },
+      }}
+      initial="hidden"
+      animate={isInView ? "visible" : "hidden"}
+      transition={{ duration: 0.5, delay }}
+    >
+      <motion.div
+        variants={{
+          hidden: { y: 100 },
+          visible: { y: 0 },
+        }}
+        transition={{ duration: 0.7, ease: "easeOut" }}
+      >
+        {children}
+      </motion.div>
+    </motion.div>
+  );
+};
+
+// Floating runes effect
+const FloatingRunes = ({ count = 25 }) => {
+  // Norse-inspired rune characters
+  const runes = ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᚾ', 'ᛁ', 'ᛃ', 'ᛇ', 'ᛈ', 'ᛉ', 'ᛊ', 'ᛏ', 'ᛒ', 'ᛖ', 'ᛗ', 'ᛚ', 'ᛜ', 'ᛞ', 'ᛟ'];
+  
+  // PART 1: Create runes that are already in each section at page load
+  const immediateRunes = Array.from({ length: 4 }).map((_, sectionIndex) => {
+    return Array.from({ length: Math.ceil(count / 4) }).map((_, i) => {
+      // Distribute across the current section
+      const x = Math.random() * 100; // Random horizontal position
+      
+      // Position vertically within current section (0-25%, 25-50%, etc.)
+      const sectionStart = sectionIndex * 25;
+      const y = sectionStart + Math.random() * 25;
+      
+      // Animation properties
+      const rune = runes[Math.floor(Math.random() * runes.length)];
+      const size = Math.random() * 3 + 0.8;
+      const opacity = Math.random() * 0.4 + 0.1;
+      const rotateStart = Math.random() * 360;
+      const rotateEnd = rotateStart + Math.random() * 360;
+      
+      // Faster animation for immediate runes
+      const initialDelay = Math.random() * 2; // Very short initial delay
+      const duration = Math.random() * 10 + 15; // 15-25 seconds (much faster)
+      const horizontalDrift = (Math.random() - 0.5) * 20;
+      
+      return {
+        id: `immediate-${sectionIndex}-${i}`,
+        x,
+        y,
+        rune,
+        size,
+        opacity,
+        rotateStart,
+        rotateEnd,
+        initialDelay,
+        duration,
+        horizontalDrift
+      };
+    });
+  }).flat();
+  
+  // PART 2: Create continuous stream of runes from below the viewport
+  const streamRunes = Array.from({ length: 5 }).map((_, sectionIndex) => {
+    return Array.from({ length: Math.ceil(count / 5) }).map((_, i) => {
+      // Distribute horizontally across the page
+      const x = Math.random() * 100;
+      
+      // Vertical starting position - below the viewport with variance
+      const sectionOffset = sectionIndex * 100;
+      const y = 100 + sectionOffset + Math.random() * 50;
+      
+      // Create animation properties
+      const rune = runes[Math.floor(Math.random() * runes.length)];
+      const size = Math.random() * 3 + 0.8;
+      const opacity = Math.random() * 0.4 + 0.1;
+      const rotateStart = Math.random() * 360;
+      const rotateEnd = rotateStart + Math.random() * 360;
+      
+      // Faster animations with staggered starts
+      const initialDelay = Math.random() * 15; // Shorter delay range
+      const duration = Math.random() * 15 + 20; // 20-35 second journey (faster)
+      const horizontalDrift = (Math.random() - 0.5) * 30;
+      
+      return {
+        id: `stream-${sectionIndex}-${i}`,
+        x,
+        y,
+        rune,
+        size,
+        opacity,
+        rotateStart,
+        rotateEnd,
+        initialDelay,
+        duration,
+        horizontalDrift
+      };
+    });
+  }).flat();
+  
+  // Combine both sets of runes
+  const allRunes = [...immediateRunes, ...streamRunes];
+
+  return (
+    <div className="absolute inset-0 w-full h-full overflow-hidden">
+      {allRunes.map((runeConfig) => (
+        <motion.div
+          key={runeConfig.id}
+          className="absolute text-draugr-500 font-bold"
           style={{ 
-            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2000 2000' fill='none'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.4'/%3E%3C/svg%3E")`,
-            backgroundSize: '200px 200px',
-            opacity: noiseOpacity
+            left: `${runeConfig.x}%`,
+            top: `${runeConfig.y}%`,
+            fontSize: `${runeConfig.size}rem`,
+            opacity: runeConfig.opacity,
+            zIndex: 0,
+          }}
+          animate={{ 
+            y: '-150vh', // Move upward beyond the top of the page
+            x: runeConfig.horizontalDrift,
+            rotate: [runeConfig.rotateStart, runeConfig.rotateEnd]
+          }}
+          transition={{ 
+            duration: runeConfig.duration,
+            delay: runeConfig.initialDelay,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+        >
+          {runeConfig.rune}
+        </motion.div>
+      ))}
+    </div>
+  );
+};
+
+// 2D Skull SVG component
+const SkullSVG = () => {
+  return (
+    <div className="w-full h-full flex items-center justify-center">
+      <motion.svg
+        width="100%"
+        height="100%"
+        viewBox="0 0 100 100"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ 
+          opacity: 1, 
+          scale: 1,
+          rotateY: [0, 10, 0, -10, 0],
+        }}
+        transition={{ 
+          opacity: { duration: 1 },
+          scale: { duration: 1 },
+          rotateY: { 
+            repeat: Infinity, 
+            duration: 8, 
+            ease: "easeInOut" 
+          }
+        }}
+      >
+        {/* Simple skull shape */}
+        <motion.path
+          d="M50 10 C30 10, 15 30, 15 50 C15 65, 25 75, 35 80 L35 90 L65 90 L65 80 C75 75, 85 65, 85 50 C85 30, 70 10, 50 10 Z"
+          stroke="#ff0000"
+          strokeWidth="1"
+          animate={{ 
+            fill: ['#330000', '#660000', '#330000'],
+            filter: ['drop-shadow(0 0 2px #ff0000)', 'drop-shadow(0 0 8px #ff0000)', 'drop-shadow(0 0 2px #ff0000)'],
+          }}
+          transition={{ 
+            duration: 4,
+            repeat: Infinity, 
+            ease: "easeInOut" 
           }}
         />
         
-        {/* Floating particles effect */}
-        {[...Array(15)].map((_, index) => (
-          <motion.div 
-            key={`particle-${index}`}
-            className="absolute rounded-full bg-draugr-500"
-            style={{ 
-              width: Math.random() * 3 + 1,
-              height: Math.random() * 3 + 1,
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              opacity: Math.random() * 0.3 + 0.1,
-              filter: "blur(1px)"
-            }}
-            animate={{
-              y: [0, Math.random() * 100 + 50],
-              opacity: [0.3, 0],
-              scale: [1, Math.random() * 0.5 + 0.5]
-            }}
-            transition={{
-              duration: Math.random() * 10 + 10,
-              repeat: Infinity,
-              ease: "linear",
-              delay: Math.random() * 5
-            }}
-          />
-        ))}
-      </motion.div>
+        {/* Left eye */}
+        <motion.circle 
+          cx="35" 
+          cy="45" 
+          r="8" 
+          animate={{ 
+            fill: ['#000000', '#330000', '#000000'],
+          }}
+          transition={{ 
+            duration: 3,
+            repeat: Infinity, 
+            ease: "easeInOut",
+            repeatDelay: 1
+          }}
+        />
+        
+        {/* Right eye */}
+        <motion.circle 
+          cx="65" 
+          cy="45" 
+          r="8" 
+          animate={{ 
+            fill: ['#000000', '#330000', '#000000'],
+          }}
+          transition={{ 
+            duration: 3,
+            repeat: Infinity, 
+            ease: "easeInOut",
+            repeatDelay: 1
+          }}
+        />
+        
+        {/* Nose */}
+        <motion.path 
+          d="M50 50 L45 65 L55 65 Z" 
+          animate={{ 
+            fill: ['#330000', '#660000', '#330000'],
+          }}
+          transition={{ 
+            duration: 3,
+            repeat: Infinity, 
+            ease: "easeInOut" 
+          }}
+        />
+        
+        {/* Teeth */}
+        <motion.path 
+          d="M40 70 L40 75 L45 75 L45 70 M47.5 70 L47.5 75 L52.5 75 L52.5 70 M55 70 L55 75 L60 75 L60 70" 
+          stroke="#ffffff"
+          strokeWidth="1"
+          fill="#ffffff"
+          animate={{ 
+            opacity: [0.8, 1, 0.8],
+          }}
+          transition={{ 
+            duration: 4,
+            repeat: Infinity, 
+            ease: "easeInOut" 
+          }}
+        />
+      </motion.svg>
+    </div>
+  );
+};
 
-      {/* Main content container */}
-      <div className="container mx-auto px-6 relative z-10">
-        {/* Hero Section - with enhanced animations */}
-        <motion.section 
-          ref={headingRef} 
-          className="mb-20 text-center"
-          style={{ y: titleY }}
-        >
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            animate={isHeadingInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-            transition={{ duration: 0.8, ease: [0.6, 0.05, 0.01, 0.9] }}
-            className="relative inline-block"
+const AboutPage = () => {
+  // For main scroll progress
+  const scrollRef = useRef(null);
+  const { scrollYProgress } = useScroll({ target: scrollRef });
+  
+  // Smooth progress for various effects
+  const smoothProgress = useSpring(scrollYProgress, { stiffness: 100, damping: 30 });
+  
+  // Track browser performance
+  const [isLowPerformance, setIsLowPerformance] = useState(false);
+  
+  // Check device capabilities on mount
+  useEffect(() => {
+    // Simple performance detection - can be improved
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isOldBrowser = !window.IntersectionObserver || !window.requestAnimationFrame;
+    setIsLowPerformance(isMobile || isOldBrowser);
+  }, []);
+
+  return (
+    <div ref={scrollRef} className="bg-midnight font-vazirmatn relative">
+      {/* Blood overlay indicator for scroll progress */}
+      <motion.div 
+        className="fixed top-0 left-0 right-0 h-1 bg-draugr-500 origin-left z-50"
+        style={{ scaleX: smoothProgress }}
+      />
+      
+      {/* Global background with runes - positioned to cover all content sections */}
+      {!isLowPerformance && (
+        <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none" style={{ zIndex: 1 }}>
+          <FloatingRunes count={isLowPerformance ? 20 : 150} />
+        </div>
+      )}
+      
+      {/* Hero section */}
+      <section className="w-full h-screen relative flex items-center justify-center overflow-hidden">
+        {/* Background with consistent style */}
+        <div className="absolute inset-0 bg-black bg-opacity-60"></div>
+
+        {/* Title with animation */}
+        <div className="container mx-auto px-4 text-center z-10 relative">
+          <motion.h1 
+            className="text-7xl md:text-8xl font-extrabold mb-6 text-white"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.5 }}
           >
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              <span className="text-white">درباره</span>
-              <span className="relative mx-3">
-                {letters.map((letter, index) => (
-                  <motion.span
-                    key={index}
-                    className="inline-block text-draugr-500"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={isHeadingInView ? { 
-                      opacity: 1, 
-                      y: 0,
-                      textShadow: [
-                        "0 0 5px rgba(239, 35, 60, 0.5), 0 0 10px rgba(239, 35, 60, 0.2)",
-                        "0 0 10px rgba(239, 35, 60, 0.8), 0 0 20px rgba(239, 35, 60, 0.4)",
-                        "0 0 5px rgba(239, 35, 60, 0.5), 0 0 10px rgba(239, 35, 60, 0.2)"
-                      ]
-                    } : { opacity: 0, y: 20 }}
-                    transition={{ 
-                      duration: 0.8, 
-                      delay: 0.2 + index * 0.1,
-                      textShadow: {
-                        repeat: Infinity,
-                        duration: 2,
-                        repeatType: "mirror"
-                      }
-                    }}
-                  >
-                    {letter}
-                  </motion.span>
-                ))}
-              </span>
-            </h1>
-            <motion.div 
-              className="absolute -bottom-2 left-0 right-0 h-0.5 bg-gradient-to-r from-draugr-900/0 via-draugr-500 to-draugr-900/0"
-              animate={{ 
-                boxShadow: [
-                  "0 0 5px 0px rgba(239, 35, 60, 0.3)",
-                  "0 0 10px 2px rgba(239, 35, 60, 0.6)",
-                  "0 0 5px 0px rgba(239, 35, 60, 0.3)"
-                ]
-              }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                repeatType: "mirror",
-                ease: "easeInOut"
-              }}
-            />
-          </motion.div>
+            <span className="text-draugr-500 text-shadow-horror">DRAUGR</span>
+          </motion.h1>
           
-          <motion.p 
+          <motion.p
+            className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto mb-10"
             initial={{ opacity: 0 }}
-            animate={isHeadingInView ? { opacity: 1 } : { opacity: 0 }}
-            transition={{ duration: 0.8, delay: 0.6, ease: [0.6, 0.05, 0.01, 0.9] }}
-            className="text-xl text-gray-300 max-w-3xl mx-auto mt-8"
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 1 }}
           >
-            ما در دراگر با الهام از افسانه‌های اسکاندیناوی، محصولاتی منحصر به فرد و با کیفیت برای علاقه‌مندان به دنیای تاریک و اسرارآمیز ارائه می‌دهیم.
+            داستان اصیل تولد یک افسانه
           </motion.p>
-          
-          {/* Cinematic fade-in effect for the separator line */}
-          <motion.div 
-            className="w-24 h-0.5 bg-gradient-to-r from-draugr-900/0 via-draugr-500/80 to-draugr-900/0 mx-auto mt-12"
-            initial={{ width: 0, opacity: 0 }}
-            animate={isHeadingInView ? { width: 96, opacity: 1 } : { width: 0, opacity: 0 }}
-            transition={{ duration: 1, delay: 0.8 }}
-          />
-        </motion.section>
+        </div>
+      </section>
 
-        {/* Mission & Vision Section - with enhanced animations */}
-        <motion.section 
-          ref={missionRef} 
-          className="mb-20"
-          style={{ y: missionY }}
-        >
-          {/* Section title with reveal animation */}
-          <motion.h2 
-            className="text-3xl font-bold mb-10 text-center hidden md:block"
-            initial={{ opacity: 0, clipPath: "inset(0 100% 0 0)" }}
-            animate={isMissionInView ? { 
-              opacity: 1, 
-              clipPath: "inset(0 0% 0 0)"
-            } : { 
-              opacity: 0, 
-              clipPath: "inset(0 100% 0 0)" 
-            }}
-            transition={{ duration: 1.2, ease: [0.25, 1, 0.5, 1], delay: 0.2 }}
-          >
-            <span className="relative">
-              افسانه ما
-              <motion.span 
-                className="absolute -bottom-2 left-0 right-0 h-0.5 bg-gradient-to-r from-draugr-900/0 via-draugr-500 to-draugr-900/0"
-                initial={{ scaleX: 0 }}
-                animate={isMissionInView ? { scaleX: 1 } : { scaleX: 0 }}
-                transition={{ duration: 1, ease: "easeOut", delay: 1 }}
-              />
-            </span>
-          </motion.h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-            <motion.div 
-              initial={{ opacity: 0, x: -30, rotateY: 10 }}
-              animate={isMissionInView ? { 
-                opacity: 1, 
-                x: 0, 
-                rotateY: 0,
-                transition: {
-                  duration: 0.8,
-                  ease: [0.25, 0.1, 0.25, 1]
-                }
-              } : { 
-                opacity: 0, 
-                x: -30, 
-                rotateY: 10 
-              }}
-              className="backdrop-blur-sm bg-gradient-to-b from-black/40 to-vampire-dark/40 p-8 rounded-xl border border-draugr-900/40 relative overflow-hidden"
-              whileHover={{
-                boxShadow: "0 0 20px rgba(239, 35, 60, 0.2)",
-                borderColor: "rgba(239, 35, 60, 0.3)",
-                transition: { duration: 0.3 }
-              }}
-            >
-              <div className="absolute top-0 right-0 w-10 h-10 border-t-2 border-r-2 border-draugr-500/40 rounded-tr-xl" />
-              <div className="absolute bottom-0 left-0 w-10 h-10 border-b-2 border-l-2 border-draugr-500/40 rounded-bl-xl" />
-              
-              <h2 className="text-2xl font-bold mb-6 flex items-center">
-                <span className="w-8 h-8 bg-draugr-900 rounded flex items-center justify-center mr-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-draugr-500" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                    <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-                  </svg>
-                </span>
-                ماموریت ما
-              </h2>
-              <p className="text-gray-300 leading-relaxed">
-                ماموریت ما ارائه محصولات منحصر به فرد و با کیفیت برای افرادی است که به دنبال تجربه‌ای متفاوت و اصیل هستند. ما تلاش می‌کنیم تا با الهام از داستان‌های اسطوره‌ای اسکاندیناوی، محصولاتی خلق کنیم که هویت و فرهنگ را به زندگی روزمره بیاورند.
+      {/* Origin story */}
+      <StorySection overlayOpacity={0.8}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          <div className="text-right">
+            <RevealText>
+              <h2 className="text-3xl md:text-4xl font-bold mb-6 text-draugr-500">افسانه‌های باستانی</h2>
+            </RevealText>
+            <RevealText delay={0.2}>
+              <p className="text-lg text-gray-300 mb-6 leading-relaxed">
+                در روزگاران کهن، در سرزمین‌های یخزده اسکاندیناوی، افسانه‌های مردگان متحرک شکل گرفت. اجساد جنگجویانی که نه به دنیای مردگان رفتند و نه در دنیای زندگان جایی داشتند.
               </p>
-              
-              <div className="mt-8 h-0.5 bg-gradient-to-r from-draugr-900/0 via-draugr-900/50 to-draugr-900/0"></div>
-              
-              <div className="mt-6 flex items-center">
-                <span className="text-draugr-500 text-3xl font-bold">+۵</span>
-                <span className="mr-3 text-gray-400">سال تجربه</span>
-              </div>
-            </motion.div>
-            <motion.div 
-              initial={{ opacity: 0, x: 30, rotateY: -10 }}
-              animate={isMissionInView ? { 
-                opacity: 1, 
-                x: 0, 
-                rotateY: 0,
-                transition: {
-                  duration: 0.8,
-                  ease: [0.25, 0.1, 0.25, 1],
-                  delay: 0.2
-                }
-              } : { 
-                opacity: 0, 
-                x: 30, 
-                rotateY: -10 
-              }}
-              className="backdrop-blur-sm bg-gradient-to-b from-black/40 to-vampire-dark/40 p-8 rounded-xl border border-draugr-900/40 relative overflow-hidden"
-              whileHover={{
-                boxShadow: "0 0 20px rgba(239, 35, 60, 0.2)",
-                borderColor: "rgba(239, 35, 60, 0.3)",
-                transition: { duration: 0.3 }
-              }}
-            >
-              <div className="absolute top-0 right-0 w-10 h-10 border-t-2 border-r-2 border-draugr-500/40 rounded-tr-xl" />
-              <div className="absolute bottom-0 left-0 w-10 h-10 border-b-2 border-l-2 border-draugr-500/40 rounded-bl-xl" />
-              
-              <h2 className="text-2xl font-bold mb-6 flex items-center">
-                <span className="w-8 h-8 bg-draugr-900 rounded flex items-center justify-center mr-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-draugr-500" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                </span>
-                چشم‌انداز ما
-              </h2>
-              <p className="text-gray-300 leading-relaxed">
-                چشم‌انداز ما ایجاد یک برند جهانی است که داستان‌های اسطوره‌ای را با طراحی مدرن و معاصر ترکیب می‌کند. ما می‌خواهیم محصولاتی ارائه دهیم که نه تنها کاربردی هستند، بلکه به خریداران ما این امکان را می‌دهند تا بخشی از فرهنگ غنی اسکاندیناوی را در زندگی خود داشته باشند.
+            </RevealText>
+            <RevealText delay={0.3}>
+              <p className="text-lg text-gray-300 mb-6 leading-relaxed">
+                <span className="text-draugr-400 font-semibold">دراوگر</span> - موجوداتی با چشمان آبی درخشان که در شب‌های تاریک از قبرهای خود برمی‌خاستند. آنها محافظان گنجینه‌های باستانی و رازهایی بودند که بشر نباید به آنها دست می‌یافت.
               </p>
-              
-              <div className="mt-8 h-0.5 bg-gradient-to-r from-draugr-900/0 via-draugr-900/50 to-draugr-900/0"></div>
-              
-              <div className="mt-6 flex items-center">
-                <span className="text-draugr-500 text-3xl font-bold">+۱۰۰۰</span>
-                <span className="mr-3 text-gray-400">مشتری راضی</span>
-              </div>
-            </motion.div>
+            </RevealText>
           </div>
-        </motion.section>
-
-        {/* Team Section - with cinematic reveal */}
-        <motion.section 
-          ref={teamRef} 
-          className="mb-20"
-          style={{ y: teamY }}
-        >
-          {/* Section title with cinematic typewriter effect */}
-          <div className="relative">
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-draugr-900/0 via-draugr-500/20 to-draugr-900/0 blur-md"
-              initial={{ opacity: 0, scaleX: 0 }}
-              animate={isTeamInView ? { opacity: 1, scaleX: 1 } : { opacity: 0, scaleX: 0 }}
-              transition={{ duration: 1.2 }}
+          
+          <div className="h-[400px] md:h-[500px] relative bg-transparent rounded-lg overflow-hidden">
+            {/* Skull image */}
+            <img 
+              src={skullImg} 
+              alt="Skull" 
+              className="w-auto h-auto max-w-[70%] max-h-[70%] object-contain absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-transparent"
+              style={{ backgroundColor: 'transparent' }}
             />
-            
-            <motion.h2 
-              initial={{ opacity: 0, filter: "blur(10px)" }}
-              animate={isTeamInView ? { 
-                opacity: 1, 
-                filter: "blur(0px)",
-                textShadow: [
-                  "0 0 5px rgba(239, 35, 60, 0.3), 0 0 10px rgba(239, 35, 60, 0.2)",
-                  "0 0 10px rgba(239, 35, 60, 0.5), 0 0 20px rgba(239, 35, 60, 0.3)",
-                  "0 0 5px rgba(239, 35, 60, 0.3), 0 0 10px rgba(239, 35, 60, 0.2)"
-                ]
-              } : { 
-                opacity: 0,
-                filter: "blur(10px)" 
-              }}
-              transition={{ 
-                duration: 0.8,
-                textShadow: {
-                  repeat: Infinity,
-                  duration: 3,
-                  repeatType: "mirror"
-                }
-              }}
-              className="text-3xl font-bold mb-12 text-center relative"
-            >
-              <span className="relative">
-                تیم ما
-                <motion.span 
-                  className="absolute -bottom-2 left-0 right-0 h-0.5 bg-gradient-to-r from-draugr-900/0 via-draugr-500 to-draugr-900/0"
-                  initial={{ scaleX: 0 }}
-                  animate={isTeamInView ? { scaleX: 1 } : { scaleX: 0 }}
-                  transition={{ duration: 0.7, delay: 0.5 }}
-                />
-              </span>
-            </motion.h2>
           </div>
+        </div>
+      </StorySection>
+      
+      {/* The curse & transition period */}
+      <StorySection overlayOpacity={0.75}>
+        <RevealText>
+          <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center text-draugr-500">نفرین باستانی</h2>
+        </RevealText>
+        
+        <div className="max-w-4xl mx-auto">
+          <RevealText delay={0.2}>
+            <p className="text-lg text-gray-300 mb-6 leading-relaxed text-center">
+              افسانه‌ها می‌گویند که نفرین <span className="text-draugr-400 font-semibold">دراوگر</span> با آنهایی که اشیاء مقدس را از آرامگاه‌های باستانی خارج کنند، خواهد بود. اما برخی باور داشتند که این اشیاء قدرتمند، دارای خصوصیات جادویی هستند که می‌توانند مرز بین زندگی و مرگ را از بین ببرند.
+            </p>
+          </RevealText>
           
-          {/* Team members with staggered reveal and hover effects */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {teamMembers.map((member, index) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-10">
+            {['دوران باستان', 'قرون وسطی', 'دوران مدرن'].map((era, index) => (
               <motion.div 
-                key={member.id}
-                initial={{ opacity: 0, y: 50, rotateY: 10 }}
-                animate={isTeamInView ? { 
-                  opacity: 1, 
-                  y: 0, 
-                  rotateY: 0,
-                  transition: {
-                    type: "spring",
-                    stiffness: 100,
-                    damping: 15,
-                    delay: 0.3 + index * 0.2
-                  }
-                } : { 
-                  opacity: 0, 
-                  y: 50, 
-                  rotateY: 10 
-                }}
-                whileHover={{ 
-                  y: -10,
-                  transition: { duration: 0.3 }
-                }}
-                className="group transform perspective-[1000px]"
+                key={index}
+                className="bg-black bg-opacity-40 border border-draugr-900 rounded-lg p-6 text-center"
+                whileHover={{ y: -5, scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 300, damping: 15 }}
               >
-                <motion.div 
-                  className="relative overflow-hidden rounded-xl bg-gradient-to-b from-black/60 to-vampire-dark/60 backdrop-blur-sm border border-gray-800 p-1"
-                  whileHover={{ 
-                    rotateY: [-2, 2],
-                    rotateX: [1, -1],
-                    transition: {
-                      rotateY: {
-                        repeat: Infinity,
-                        repeatType: "mirror",
-                        duration: 2,
-                        ease: "easeInOut"
-                      },
-                      rotateX: {
-                        repeat: Infinity,
-                        repeatType: "mirror",
-                        duration: 1.5,
-                        ease: "easeInOut"
-                      }
-                    }
-                  }}
-                >
-                  {/* Animated glow effect */}
-                  <motion.div 
-                    className="absolute -inset-0.5 bg-gradient-to-r from-draugr-900/0 via-draugr-500/40 to-draugr-900/0 rounded-lg opacity-0 group-hover:opacity-100"
-                    animate={{
-                      background: [
-                        "linear-gradient(90deg, rgba(239,35,60,0) 0%, rgba(239,35,60,0.3) 50%, rgba(239,35,60,0) 100%)",
-                        "linear-gradient(90deg, rgba(239,35,60,0) 0%, rgba(239,35,60,0.6) 50%, rgba(239,35,60,0) 100%)",
-                        "linear-gradient(90deg, rgba(239,35,60,0) 0%, rgba(239,35,60,0.3) 50%, rgba(239,35,60,0) 100%)"
-                      ]
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      repeatType: "mirror"
-                    }}
-                  />
-                  
-                  <div className="relative rounded-lg overflow-hidden">
-                    <div className="aspect-w-1 aspect-h-1">
-                      <motion.img 
-                        src={member.image} 
-                        alt={member.name}
-                        className="w-full h-full object-cover"
-                        whileHover={{ 
-                          scale: 1.1,
-                          filter: "brightness(1.1)",
-                          transition: { duration: 0.5 }
-                        }}
-                      />
-                      <motion.div 
-                        className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"
-                        initial={{ opacity: 0.7 }}
-                        whileHover={{ 
-                          opacity: 0.5,
-                          background: "linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)",
-                          transition: { duration: 0.3 }
-                        }}
-                      />
-                    </div>
-                    
-                    <div className="absolute bottom-0 left-0 right-0 p-6">
-                      <motion.h3 
-                        className="text-xl font-bold text-white"
-                        whileHover={{
-                          textShadow: "0 0 8px rgba(239, 35, 60, 0.5)",
-                          transition: { duration: 0.2 }
-                        }}
-                      >
-                        {member.name}
-                      </motion.h3>
-                      <motion.p 
-                        className="text-draugr-400 mb-2"
-                        initial={{ opacity: 0.8 }}
-                        whileHover={{ opacity: 1, x: 3 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        {member.role}
-                      </motion.p>
-                      <p className="text-gray-400 text-sm">{member.bio}</p>
-                      
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        whileInView={{ width: '100%' }}
-                        transition={{ duration: 0.5, delay: 0.2 }}
-                        className="h-0.5 bg-gradient-to-r from-draugr-900/0 via-draugr-500/60 to-draugr-900/0 mt-4"
-                      />
-                      
-                      <div className="flex mt-4 space-x-3 rtl:space-x-reverse">
-                        <motion.a 
-                          href="#" 
-                          className="w-8 h-8 rounded-full bg-draugr-900/80 flex items-center justify-center text-white hover:bg-draugr-800 transition-colors"
-                          whileHover={{ 
-                            scale: 1.2, 
-                            boxShadow: "0 0 10px rgba(239, 35, 60, 0.5)"
-                          }}
-                          whileTap={{ scale: 0.9 }}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-twitter" viewBox="0 0 16 16">
-                            <path d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z"/>
-                          </svg>
-                        </motion.a>
-                        <motion.a 
-                          href="#" 
-                          className="w-8 h-8 rounded-full bg-draugr-900/80 flex items-center justify-center text-white hover:bg-draugr-800 transition-colors"
-                          whileHover={{ 
-                            scale: 1.2, 
-                            boxShadow: "0 0 10px rgba(239, 35, 60, 0.5)"
-                          }}
-                          whileTap={{ scale: 0.9 }}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-linkedin" viewBox="0 0 16 16">
-                            <path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854V1.146zm4.943 12.248V6.169H2.542v7.225h2.401zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248-.822 0-1.359.54-1.359 1.248 0 .694.521 1.248 1.327 1.248h.016zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016a5.54 5.54 0 0 1 .016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225h2.4z"/>
-                          </svg>
-                        </motion.a>
-                        <motion.a 
-                          href="#" 
-                          className="w-8 h-8 rounded-full bg-draugr-900/80 flex items-center justify-center text-white hover:bg-draugr-800 transition-colors"
-                          whileHover={{ 
-                            scale: 1.2, 
-                            boxShadow: "0 0 10px rgba(239, 35, 60, 0.5)"
-                          }}
-                          whileTap={{ scale: 0.9 }}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-instagram" viewBox="0 0 16 16">
-                            <path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.917 3.917 0 0 0-1.417.923A3.927 3.927 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.916 3.916 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.926 3.926 0 0 0-.923-1.417A3.911 3.911 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0h.003zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599.28.28.453.546.598.92.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.47 2.47 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.478 2.478 0 0 1-.92-.598 2.48 2.48 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233 0-2.136.008-2.388.046-3.231.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92.28-.28.546-.453.92-.598.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045v.002zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92zm-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217zm0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334z"/>
-                          </svg>
-                        </motion.a>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
+                <RevealText delay={0.3 + index * 0.1}>
+                  <h3 className="text-xl font-bold mb-3 text-draugr-400">{era}</h3>
+                  <p className="text-gray-400">
+                    {index === 0 && "اشیاء دراوگر در معابد مخفی و آرامگاه‌های پادشاهان نگهداری می‌شدند."}
+                    {index === 1 && "جستجوگران شجاع به دنبال این گنجینه‌ها بودند، بیشترشان هرگز بازنگشتند."}
+                    {index === 2 && "افسانه‌ها به واقعیت تبدیل شدند. اشیاء باستانی به دست کسانی که درک عمیقی از قدرت آنها داشتند، افتاد."}
+                  </p>
+                </RevealText>
               </motion.div>
             ))}
           </div>
-        </motion.section>
-        
-        {/* Join Us CTA - with epic cinematic reveal */}
-        <motion.section 
-          ref={ctaRef}
-          className="text-center max-w-4xl mx-auto"
-          style={{ y: ctaY }}
-        >
-          {/* Cinematic trailer-style reveal */}
-          <motion.div 
-            initial={{ height: 0, opacity: 0 }}
-            whileInView={{ 
-              height: "auto", 
-              opacity: 1,
-              transition: {
-                height: {
-                  duration: 0.8,
-                  ease: [0.25, 1, 0.5, 1]
-                },
-                opacity: {
-                  duration: 1.2,
-                  delay: 0.2
-                }
-              }
-            }}
-            viewport={{ once: true, margin: "-100px 0px" }}
-            className="backdrop-blur-sm bg-gradient-to-b from-black/40 to-vampire-dark/40 p-10 rounded-2xl border border-draugr-900/40 relative overflow-hidden"
-          >
-            {/* Corner accents */}
-            <motion.div 
-              className="absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-draugr-500/40 rounded-tr-2xl"
-              initial={{ opacity: 0, scale: 0.5 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              viewport={{ once: true }}
-            />
-            <motion.div 
-              className="absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 border-draugr-500/40 rounded-bl-2xl"
-              initial={{ opacity: 0, scale: 0.5 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              viewport={{ once: true }}
-            />
+          
+          <RevealText delay={0.6}>
+            <p className="text-lg text-gray-300 leading-relaxed text-center">
+              سالیان طولانی، این اشیاء فراموش شدند. تا اینکه گروهی از باستان‌شناسان و متخصصان فرهنگ نوردیک، مجموعه‌ای از آنها را کشف کردند و تصمیم گرفتند تا قدرت آنها را با جهان به اشتراک بگذارند.
+            </p>
+          </RevealText>
+        </div>
+      </StorySection>
+      
+      {/* Birth of the shop */}
+      <StorySection overlayOpacity={0.6}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+          <div>
+            <RevealText>
+              <h2 className="text-3xl md:text-4xl font-bold mb-6 text-draugr-500">تولد فروشگاه DRAUGR</h2>
+            </RevealText>
             
-            <motion.h2 
-              className="text-3xl font-bold mb-6"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ 
-                opacity: 1, 
-                y: 0,
-                textShadow: [
-                  "0 0 5px rgba(239, 35, 60, 0.3), 0 0 10px rgba(239, 35, 60, 0.2)",
-                  "0 0 10px rgba(239, 35, 60, 0.5), 0 0 20px rgba(239, 35, 60, 0.3)",
-                  "0 0 5px rgba(239, 35, 60, 0.3), 0 0 10px rgba(239, 35, 60, 0.2)"
-                ]
-              }}
-              transition={{ 
-                duration: 0.6, 
-                delay: 0.6,
-                textShadow: {
-                  repeat: Infinity,
-                  duration: 3,
-                  repeatType: "mirror"
-                }
-              }}
-              viewport={{ once: true }}
-            >
-              با ما همراه شوید
-            </motion.h2>
+            <RevealText delay={0.2}>
+              <p className="text-lg text-gray-300 mb-6 leading-relaxed">
+                در سال ۲۰۲۲، گروهی از علاقه‌مندان به فرهنگ نوردیک و اساطیر اسکاندیناوی، تصمیم گرفتند تا مجموعه‌ای از آثار الهام‌گرفته از افسانه‌های دراوگر را به دوستداران این فرهنگ عرضه کنند.
+              </p>
+            </RevealText>
             
-            <motion.p 
-              className="text-gray-300 mb-8 max-w-2xl mx-auto"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.8 }}
-              viewport={{ once: true }}
-            >
-              به دنیای اسرارآمیز دراگر بپیوندید و از آخرین محصولات و تخفیف‌های ویژه ما باخبر شوید. ما به دنبال گسترش خانواده دراگر هستیم.
-            </motion.p>
+            <RevealText delay={0.3}>
+              <p className="text-lg text-gray-300 mb-6 leading-relaxed">
+                فروشگاه <span className="text-draugr-400 font-semibold">DRAUGR</span> با هدف عرضه محصولات منحصربه‌فرد و دست‌ساز با کیفیت بالا، افتتاح شد. هر محصول، داستانی از افسانه‌های نوردیک را با خود به همراه دارد.
+              </p>
+            </RevealText>
             
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                viewport={{ once: true }}
-                className="relative"
-              >
-                <motion.div 
-                                    className="absolute -inset-1 rounded-lg bg-gradient-to-r from-draugr-900/0 via-draugr-500/40 to-draugr-900/0 opacity-0"                  whileHover={{ opacity: 1 }}                  animate={{                    background: [                      "linear-gradient(90deg, rgba(239,35,60,0) 0%, rgba(239,35,60,0.2) 50%, rgba(239,35,60,0) 100%)",                      "linear-gradient(90deg, rgba(239,35,60,0) 0%, rgba(239,35,60,0.4) 50%, rgba(239,35,60,0) 100%)",                      "linear-gradient(90deg, rgba(239,35,60,0) 0%, rgba(239,35,60,0.2) 50%, rgba(239,35,60,0) 100%)"                    ]                  }}                  transition={{                    duration: 0.3,                    background: {                      duration: 2,                      repeat: Infinity,                      repeatType: "mirror"                    }                  }}
-                />
-                <motion.button 
-                  whileHover={{ 
-                    scale: 1.03,
-                    textShadow: "0 0 8px rgba(255, 255, 255, 0.5)",
-                    boxShadow: "0 0 15px rgba(239, 35, 60, 0.4)"
-                  }}
-                  whileTap={{ scale: 0.97 }}
-                  className="px-8 py-3.5 bg-gradient-to-r from-draugr-800 to-draugr-600 hover:from-draugr-700 hover:to-draugr-500 text-white font-medium rounded-lg relative overflow-hidden group"
-                >
-                  <span className="relative z-10 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                      <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                    </svg>
-                    عضویت در خبرنامه
-                  </span>
-                  <span className="absolute inset-0 w-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-shimmer"></span>
-                </motion.button>
-              </motion.div>
+            <RevealText delay={0.4}>
+              <p className="text-lg text-gray-300 leading-relaxed">
+                امروز، ما افتخار می‌کنیم که بخشی از این میراث غنی را با شما به اشتراک می‌گذاریم. هر محصول با احترام به تاریخ و افسانه‌های نوردیک، طراحی و تولید شده است.
+              </p>
+            </RevealText>
+          </div>
+          
+          <div className="space-y-6">
+            {/* Timeline visualization */}
+            <div className="relative pt-2 pb-10">
+              {/* Timeline line */}
+              <div className="absolute right-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-draugr-900 via-draugr-500 to-draugr-900"></div>
               
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.6 }}
-                viewport={{ once: true }}
-                className="relative"
-              >
-                <motion.button 
-                  whileHover={{ 
-                    scale: 1.03,
-                    boxShadow: "0 0 20px rgba(0, 0, 0, 0.5)",
-                    borderColor: "rgba(239, 35, 60, 0.6)"
-                  }}
-                  whileTap={{ scale: 0.97 }}
-                  className="px-8 py-3.5 bg-black/50 border border-draugr-900/60 hover:border-draugr-500/60 text-white font-medium rounded-lg backdrop-blur-sm group"
-                >
-                  <span className="flex items-center group-hover:text-draugr-300 transition-colors duration-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                    </svg>
-                    ارتباط با ما
-                  </span>
-                </motion.button>
-              </motion.div>
+              {/* Timeline points */}
+              {[
+                { year: "۲۰۲۲", text: "کشف مجموعه آثار باستانی در شمال نروژ" },
+                { year: "۲۰۲۳", text: "تأسیس فروشگاه DRAUGR و عرضه اولین محصولات" },
+                { year: "۲۰۲۴", text: "گسترش مجموعه و اضافه شدن محصولات جدید" },
+              ].map((item, index) => (
+                <RevealText key={index} delay={0.2 + index * 0.15}>
+                  <div className="flex items-start mb-8 relative">
+                    {/* Timeline node */}
+                    <div className="absolute right-4 w-3 h-3 bg-draugr-500 rounded-full transform translate-x-1/2 mt-1.5 shadow-glow"></div>
+                    
+                    {/* Year */}
+                    <div className="w-16 text-right ml-3 mr-10 mt-0.5">
+                      <span className="font-bold text-draugr-500">{item.year}</span>
+                    </div>
+                    
+                    {/* Content */}
+                    <div className="bg-black bg-opacity-40 p-4 rounded-lg border-r border-draugr-800 flex-1">
+                      <p className="text-gray-300">{item.text}</p>
+                    </div>
+                  </div>
+                </RevealText>
+              ))}
             </div>
-          </motion.div>
-        </motion.section>
-      </div>
-    </motion.div>
+          </div>
+        </div>
+      </StorySection>
+      
+      {/* Our philosophy */}
+      <StorySection className="">
+        <RevealText>
+          <h2 className="text-3xl md:text-4xl font-bold mb-10 text-center text-draugr-500">فلسفه ما</h2>
+        </RevealText>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          {[
+            {
+              title: "کیفیت بی‌نظیر",
+              description: "هر محصول با دقت و توجه به جزئیات ساخته می‌شود تا کیفیتی ماندگار داشته باشد.",
+              icon: (
+                <svg className="w-12 h-12 text-draugr-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              ),
+            },
+            {
+              title: "طراحی اصیل",
+              description: "الهام گرفته از افسانه‌های نوردیک و فرهنگ غنی اسکاندیناوی با طرح‌های منحصربه‌فرد.",
+              icon: (
+                <svg className="w-12 h-12 text-draugr-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              ),
+            },
+            {
+              title: "تجربه ماندگار",
+              description: "هر محصول تنها یک کالا نیست، بلکه دروازه‌ای به دنیای افسانه‌های کهن است.",
+              icon: (
+                <svg className="w-12 h-12 text-draugr-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              ),
+            },
+          ].map((item, index) => (
+            <RevealText key={index} delay={0.2 + index * 0.1}>
+              <motion.div 
+                className="bg-black bg-opacity-30 p-6 rounded-lg text-center hover:bg-opacity-50 transition-all duration-300"
+                whileHover={{ y: -5, scale: 1.03 }}
+                transition={{ type: "spring", stiffness: 300, damping: 15 }}
+              >
+                <div className="flex justify-center">
+                  {item.icon}
+                </div>
+                <h3 className="text-xl font-bold mb-3 text-draugr-400">{item.title}</h3>
+                <p className="text-gray-300">{item.description}</p>
+              </motion.div>
+            </RevealText>
+          ))}
+        </div>
+        
+        <RevealText delay={0.6}>
+          <div className="text-center mt-16">
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+              در <span className="text-draugr-400 font-semibold">DRAUGR</span>، ما تنها محصول نمی‌فروشیم، بلکه قسمتی از افسانه را با شما به اشتراک می‌گذاریم.
+            </p>
+          </div>
+        </RevealText>
+      </StorySection>
+      
+      {/* Join us section */}
+      <section className="w-full h-screen relative flex items-center justify-center overflow-hidden">
+        {/* Background with consistent style */}
+        <div className="absolute inset-0 bg-black bg-opacity-60"></div>
+        
+        {/* Content container */}
+        <div className="container mx-auto px-4 text-center relative z-10">
+          <RevealText>
+            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-draugr-500">به افسانه بپیوندید</h2>
+          </RevealText>
+          
+          <RevealText delay={0.2}>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-10">
+              تجربه منحصربه‌فرد محصولات DRAUGR را امتحان کنید و وارد دنیای افسانه‌های نوردیک شوید.
+            </p>
+          </RevealText>
+          
+          <RevealText delay={0.4}>
+            <motion.a
+              href="/shop"
+              className="inline-block bg-draugr-800 hover:bg-draugr-700 text-white font-bold py-4 px-8 rounded-lg shadow-horror transition-all duration-300"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              اکتشاف محصولات
+            </motion.a>
+          </RevealText>
+        </div>
+      </section>
+    </div>
   );
 };
 
