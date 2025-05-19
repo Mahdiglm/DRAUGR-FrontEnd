@@ -46,11 +46,11 @@ const MainLayout = () => {
     }
   };
 
-  const removeFromCart = (productId) => {
+  const removeFromCart = (productId, removeCompletely = false) => {
     const product = cartItems.find(item => item.id === productId);
     
-    if (product && product.quantity > 1) {
-      // If quantity > 1, just decrement the quantity
+    if (product && product.quantity > 1 && !removeCompletely) {
+      // If quantity > 1, just decrement the quantity (unless removeCompletely flag is true)
       const updatedCartItems = cartItems.map(item => 
         item.id === productId 
           ? { ...item, quantity: item.quantity - 1 } 
@@ -60,9 +60,9 @@ const MainLayout = () => {
       showTemporaryMessage(`یک عدد از ${product.name} از سبد خرید کم شد`);
     } else {
       // Remove the item completely
-    setCartItems(cartItems.filter(item => item.id !== productId));
-    if (product) {
-      showTemporaryMessage(`${product.name} از سبد خرید حذف شد`);
+      setCartItems(cartItems.filter(item => item.id !== productId));
+      if (product) {
+        showTemporaryMessage(`${product.name} از سبد خرید حذف شد`);
       }
     }
   };

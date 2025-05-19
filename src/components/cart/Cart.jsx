@@ -12,6 +12,12 @@ const Cart = ({ items, removeItem, isOpen, onClose, addToCartPlus }) => {
     setIsLowPerformance(isLowPerformanceDevice());
   }, []);
   
+  // Define a function to completely remove an item regardless of quantity
+  const removeItemCompletely = (itemId) => {
+    // Call removeItem with a flag that indicates complete removal
+    removeItem(itemId, true);
+  };
+  
   // Memoize calculations to prevent recalculation on each render
   const { totalPrice, totalQuantity } = useMemo(() => {
     return {
@@ -217,14 +223,16 @@ const Cart = ({ items, removeItem, isOpen, onClose, addToCartPlus }) => {
                                   </div>
                                 )}
                               </div>
+                              {/* Fixed positioning for the trashcan icon */}
                               <motion.button
                                 whileHover={isLowPerformance ? { color: "#ef4444" } : { scale: 1.2, color: "#ef4444" }}
                                 whileTap={{ scale: 0.9 }}
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  removeItem(item.id);
+                                  // Use the new function to completely remove the item
+                                  removeItemCompletely(item.id);
                                 }}
-                                className="text-gray-600 hover:text-draugr-500 p-1 -mt-1 -mr-1 focus:outline-none transition-colors duration-300"
+                                className="text-gray-600 hover:text-draugr-500 p-1.5 focus:outline-none transition-colors duration-300 flex items-center justify-center"
                                 aria-label={`حذف ${item.name} از سبد خرید`}
                               >
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
