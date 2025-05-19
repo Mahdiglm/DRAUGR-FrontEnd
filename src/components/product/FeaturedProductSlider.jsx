@@ -310,7 +310,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
   return (
     <div className="relative w-full py-6 md:py-8 overflow-hidden">
       {/* Slider container with subtle background */}
-      <div className="relative flex flex-col md:flex-row justify-center items-center min-h-[600px] md:min-h-[550px] w-full overflow-visible pt-4">
+      <div className="relative flex flex-col md:flex-row justify-center items-center min-h-[450px] md:min-h-[550px] w-full overflow-visible pt-4">
         {/* Ambient background and shadows */}
         <div className="absolute inset-0 z-[1] opacity-20">
           <motion.div 
@@ -333,7 +333,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
         
         {/* Mobile view: Single item slider */}
         {isMobile && (
-          <div className="w-full px-2 pt-4 overflow-hidden relative min-h-[450px]">
+          <div className="w-full px-2 pt-4 overflow-hidden relative min-h-[380px]">
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={`mobile-slide-${activeIndex}`}
