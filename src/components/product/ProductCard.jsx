@@ -56,17 +56,11 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
       transition={{ duration: 0.5 }}
       whileHover={isDisabled ? {} : { 
         y: -5,
-        scale: 1.05,
-        rotateX: -5,
-        rotateY: 5,
-        boxShadow: isHighlighted 
-          ? "0 15px 30px rgba(239,35,60,0.4)" 
-          : "0 8px 20px rgba(0,0,0,0.4)",
+        scale: 1.02,
         transition: { 
           type: "spring", 
           stiffness: 200, 
-          damping: 25,
-          mass: 1,
+          damping: 25 
         }
       }}
       style={sliderStyles}
