@@ -3,13 +3,13 @@ import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { products } from '../../utils/mockData';
 import productBackground from '../../assets/BackGround-Product.jpg';
+import LazyImage from '../shared/LazyImage';
 
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart, showTemporaryMessage } = useOutletContext();
   const [quantity, setQuantity] = useState(1);
-  const [imageError, setImageError] = useState(false);
   
   // Find the product by ID
   const product = products.find(p => p.id === parseInt(id));
@@ -40,10 +40,6 @@ const ProductDetail = () => {
     
     // Show confirmation message
     showTemporaryMessage(`${quantity} عدد ${product.name} به سبد خرید اضافه شد`);
-  };
-
-  const handleImageError = () => {
-    setImageError(true);
   };
   
   // Category translations
@@ -121,23 +117,11 @@ const ProductDetail = () => {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="relative aspect-square rounded-lg overflow-hidden shadow-horror"
             >
-              {!imageError ? (
-                <img 
-                  src={product.imageUrl} 
-                  alt={product.name} 
-                  className="w-full h-full object-cover"
-                  onError={handleImageError}
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gray-800">
-                  <div className="text-center p-4">
-                    <svg className="mx-auto h-12 w-12 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <p className="mt-2 text-gray-400">تصویر محصول در دسترس نیست</p>
-                  </div>
-                </div>
-              )}
+              <LazyImage 
+                src={product.imageUrl} 
+                alt={product.name} 
+                className="w-full h-full object-cover"
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-50"></div>
             </motion.div>
             
