@@ -87,25 +87,37 @@ const Footer = () => {
             </h4>
             <p className="text-gray-300 mb-4 sm:mb-6 text-xs sm:text-sm">از محصولات جدید و تخفیف‌های ویژه مطلع شوید.</p>
             
-            <div className="bg-gradient-to-r from-gray-900 to-gray-800 p-4 rounded-lg border border-gray-700 shadow-lg">
-              <div className="mb-4">
+            <div className="bg-gradient-to-r from-vampire-dark to-draugr-800 p-5 rounded-lg border border-draugr-800 shadow-vampire relative overflow-hidden">
+              {/* Subtle animated blood texture overlay */}
+              <div className="absolute inset-0 opacity-10 mix-blend-overlay bg-blood-texture"></div>
+              
+              {/* Corner rune-like accents */}
+              <div className="absolute -top-1 -left-1 w-3 h-3 border-t border-l border-draugr-600"></div>
+              <div className="absolute -top-1 -right-1 w-3 h-3 border-t border-r border-draugr-600"></div>
+              <div className="absolute -bottom-1 -left-1 w-3 h-3 border-b border-l border-draugr-600"></div>
+              <div className="absolute -bottom-1 -right-1 w-3 h-3 border-b border-r border-draugr-600"></div>
+              
+              <div className="mb-4 relative">
               <input 
                 type="email" 
                 placeholder="ایمیل شما" 
-                  className="bg-gray-800 text-white px-4 py-3 rounded-md w-full text-xs sm:text-sm focus:outline-none border border-gray-700 focus:border-draugr-500 focus:ring-1 focus:ring-draugr-500 transition-all duration-300"
+                className="bg-black bg-opacity-50 text-white px-4 py-3 rounded-md w-full text-xs sm:text-sm focus:outline-none border border-draugr-900 focus:border-draugr-500 focus:ring-1 focus:ring-draugr-500 transition-all duration-300 shadow-sm shadow-draugr-900/30"
               />
               </div>
-              <button className="w-full bg-gradient-to-r from-draugr-800 to-draugr-600 text-white px-4 py-3 rounded-md text-xs sm:text-sm hover:from-draugr-700 hover:to-draugr-500 transition-all duration-300 font-medium flex items-center justify-center group">
-                <span>عضویت در خبرنامه</span>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 group-hover:translate-x-1 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <button className="w-full bg-gradient-to-r from-draugr-800 to-draugr-700 text-white px-4 py-3 rounded-md text-xs sm:text-sm hover:from-draugr-700 hover:to-draugr-500 transition-all duration-300 font-medium flex items-center justify-center group relative overflow-hidden shadow-sm shadow-draugr-800/50">
+                {/* Hover glow effect */}
+                <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-draugr-600/0 via-draugr-500/30 to-draugr-600/0 opacity-0 group-hover:opacity-100 transform -translate-x-full group-hover:translate-x-full transition-all duration-1000 ease-out"></span>
+                
+                <span className="relative z-10">عضویت در خبرنامه</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 group-hover:translate-x-1 transition-transform duration-300 relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </button>
-              <div className="mt-4 pt-3 border-t border-gray-700 flex items-center text-xs text-gray-400">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-draugr-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="mt-4 pt-3 border-t border-draugr-900/70 flex items-center text-xs text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-draugr-500 animate-pulse-slow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
-                ما هرگز اطلاعات شما را به اشتراک نمی‌گذاریم
+                <span className="text-gray-300/80">ما هرگز اطلاعات شما را به اشتراک نمی‌گذاریم</span>
               </div>
             </div>
             
