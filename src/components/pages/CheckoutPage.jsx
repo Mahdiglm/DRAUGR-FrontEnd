@@ -4,98 +4,212 @@ import { useNavigate, useOutletContext, Link } from 'react-router-dom';
 
 // Step components
 const ShippingForm = ({ formData, updateFormData, goToNext }) => {
+  // Validation state
+  const [touchedFields, setTouchedFields] = useState({});
+  
+  // Mark field as touched when user interacts with it
+  const markTouched = (field) => {
+    setTouchedFields(prev => ({ ...prev, [field]: true }));
+  };
+  
+  // Check if form is valid
+  const isFormValid = formData.firstName && formData.lastName && formData.phone && 
+                      formData.address && formData.postalCode;
+  
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
-      className="bg-black/30 p-6 rounded-lg shadow-horror"
+      className="backdrop-blur-sm bg-gradient-to-b from-black/60 to-vampire-dark/80 p-6 sm:p-8 rounded-xl shadow-horror border border-draugr-900/40"
     >
-      <h2 className="text-2xl font-bold mb-6 text-draugr-400">اطلاعات ارسال</h2>
+      <div className="flex items-center mb-6">
+        <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-draugr-900 mr-3">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-draugr-500" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+          </svg>
+        </div>
+        <h2 className="text-2xl font-bold text-white">
+          <span className="text-draugr-400">اطلاعات</span> ارسال
+        </h2>
+      </div>
       
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1" htmlFor="firstName">نام</label>
+      <div className="space-y-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="relative group">
+            <label className="block text-sm font-medium mb-1.5 text-gray-300" htmlFor="firstName">
+              نام <span className="text-draugr-500">*</span>
+            </label>
+            <div className="relative">
+              <input 
+                type="text" 
+                id="firstName" 
+                value={formData.firstName} 
+                onChange={(e) => updateFormData('firstName', e.target.value)}
+                onBlur={() => markTouched('firstName')}
+                className="w-full p-3 pl-10 rounded-lg bg-midnight/80 border border-gray-700 text-white focus:border-draugr-600 focus:ring-1 focus:ring-draugr-600 transition-colors" 
+                required 
+              />
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                </svg>
+              </div>
+            </div>
+            {touchedFields.firstName && !formData.firstName && (
+              <p className="mt-1 text-xs text-draugr-500">لطفاً نام خود را وارد کنید</p>
+            )}
+            <div className="absolute -bottom-0.5 left-3 right-3 h-px bg-gradient-to-r from-draugr-900/0 via-draugr-600/30 to-draugr-900/0 group-focus-within:via-draugr-500/60 transition-all duration-300"></div>
+          </div>
+          
+          <div className="relative group">
+            <label className="block text-sm font-medium mb-1.5 text-gray-300" htmlFor="lastName">
+              نام خانوادگی <span className="text-draugr-500">*</span>
+            </label>
+            <div className="relative">
+              <input 
+                type="text" 
+                id="lastName" 
+                value={formData.lastName} 
+                onChange={(e) => updateFormData('lastName', e.target.value)}
+                onBlur={() => markTouched('lastName')}
+                className="w-full p-3 pl-10 rounded-lg bg-midnight/80 border border-gray-700 text-white focus:border-draugr-600 focus:ring-1 focus:ring-draugr-600 transition-colors" 
+                required 
+              />
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                </svg>
+              </div>
+            </div>
+            {touchedFields.lastName && !formData.lastName && (
+              <p className="mt-1 text-xs text-draugr-500">لطفاً نام خانوادگی خود را وارد کنید</p>
+            )}
+            <div className="absolute -bottom-0.5 left-3 right-3 h-px bg-gradient-to-r from-draugr-900/0 via-draugr-600/30 to-draugr-900/0 group-focus-within:via-draugr-500/60 transition-all duration-300"></div>
+          </div>
+        </div>
+        
+        <div className="relative group">
+          <label className="block text-sm font-medium mb-1.5 text-gray-300" htmlFor="phone">
+            شماره تماس <span className="text-draugr-500">*</span>
+          </label>
+          <div className="relative">
             <input 
-              type="text" 
-              id="firstName" 
-              value={formData.firstName} 
-              onChange={(e) => updateFormData('firstName', e.target.value)}
-              className="w-full p-3 rounded bg-midnight border border-gray-700 text-white" 
+              type="tel" 
+              id="phone" 
+              value={formData.phone} 
+              onChange={(e) => updateFormData('phone', e.target.value)}
+              onBlur={() => markTouched('phone')}
+              className="w-full p-3 pl-10 rounded-lg bg-midnight/80 border border-gray-700 text-white focus:border-draugr-600 focus:ring-1 focus:ring-draugr-600 transition-colors" 
               required 
             />
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+              </svg>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1" htmlFor="lastName">نام خانوادگی</label>
+          {touchedFields.phone && !formData.phone && (
+            <p className="mt-1 text-xs text-draugr-500">لطفاً شماره تماس خود را وارد کنید</p>
+          )}
+          <div className="absolute -bottom-0.5 left-3 right-3 h-px bg-gradient-to-r from-draugr-900/0 via-draugr-600/30 to-draugr-900/0 group-focus-within:via-draugr-500/60 transition-all duration-300"></div>
+        </div>
+        
+        <div className="relative group">
+          <label className="block text-sm font-medium mb-1.5 text-gray-300" htmlFor="email">
+            ایمیل <span className="text-gray-500">(اختیاری)</span>
+          </label>
+          <div className="relative">
             <input 
-              type="text" 
-              id="lastName" 
-              value={formData.lastName} 
-              onChange={(e) => updateFormData('lastName', e.target.value)}
-              className="w-full p-3 rounded bg-midnight border border-gray-700 text-white" 
+              type="email" 
+              id="email" 
+              value={formData.email} 
+              onChange={(e) => updateFormData('email', e.target.value)}
+              className="w-full p-3 pl-10 rounded-lg bg-midnight/80 border border-gray-700 text-white focus:border-draugr-600 focus:ring-1 focus:ring-draugr-600 transition-colors" 
+            />
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+              </svg>
+            </div>
+          </div>
+          <div className="absolute -bottom-0.5 left-3 right-3 h-px bg-gradient-to-r from-draugr-900/0 via-draugr-600/30 to-draugr-900/0 group-focus-within:via-draugr-500/60 transition-all duration-300"></div>
+        </div>
+        
+        <div className="relative group">
+          <label className="block text-sm font-medium mb-1.5 text-gray-300" htmlFor="address">
+            آدرس <span className="text-draugr-500">*</span>
+          </label>
+          <div className="relative">
+            <textarea 
+              id="address" 
+              rows="3" 
+              value={formData.address} 
+              onChange={(e) => updateFormData('address', e.target.value)}
+              onBlur={() => markTouched('address')}
+              className="w-full p-3 rounded-lg bg-midnight/80 border border-gray-700 text-white focus:border-draugr-600 focus:ring-1 focus:ring-draugr-600 transition-colors" 
               required 
             />
+            <div className="absolute left-3 top-5 text-gray-500">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+              </svg>
+            </div>
           </div>
+          {touchedFields.address && !formData.address && (
+            <p className="mt-1 text-xs text-draugr-500">لطفاً آدرس خود را وارد کنید</p>
+          )}
+          <div className="absolute -bottom-0.5 left-3 right-3 h-px bg-gradient-to-r from-draugr-900/0 via-draugr-600/30 to-draugr-900/0 group-focus-within:via-draugr-500/60 transition-all duration-300"></div>
         </div>
         
-        <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="phone">شماره تماس</label>
-          <input 
-            type="tel" 
-            id="phone" 
-            value={formData.phone} 
-            onChange={(e) => updateFormData('phone', e.target.value)}
-            className="w-full p-3 rounded bg-midnight border border-gray-700 text-white" 
-            required 
-          />
+        <div className="relative group">
+          <label className="block text-sm font-medium mb-1.5 text-gray-300" htmlFor="postalCode">
+            کد پستی <span className="text-draugr-500">*</span>
+          </label>
+          <div className="relative">
+            <input 
+              type="text" 
+              id="postalCode" 
+              value={formData.postalCode} 
+              onChange={(e) => updateFormData('postalCode', e.target.value)}
+              onBlur={() => markTouched('postalCode')}
+              className="w-full p-3 pl-10 rounded-lg bg-midnight/80 border border-gray-700 text-white focus:border-draugr-600 focus:ring-1 focus:ring-draugr-600 transition-colors" 
+              required 
+            />
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732l-3.354 1.935-1.18 4.455a1 1 0 01-1.933 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732l3.354-1.935 1.18-4.455A1 1 0 0112 2z" clipRule="evenodd" />
+              </svg>
+            </div>
+          </div>
+          {touchedFields.postalCode && !formData.postalCode && (
+            <p className="mt-1 text-xs text-draugr-500">لطفاً کد پستی خود را وارد کنید</p>
+          )}
+          <div className="absolute -bottom-0.5 left-3 right-3 h-px bg-gradient-to-r from-draugr-900/0 via-draugr-600/30 to-draugr-900/0 group-focus-within:via-draugr-500/60 transition-all duration-300"></div>
         </div>
         
-        <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="email">ایمیل</label>
-          <input 
-            type="email" 
-            id="email" 
-            value={formData.email} 
-            onChange={(e) => updateFormData('email', e.target.value)}
-            className="w-full p-3 rounded bg-midnight border border-gray-700 text-white" 
-            required 
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="address">آدرس</label>
-          <textarea 
-            id="address" 
-            rows="3" 
-            value={formData.address} 
-            onChange={(e) => updateFormData('address', e.target.value)}
-            className="w-full p-3 rounded bg-midnight border border-gray-700 text-white" 
-            required 
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="postalCode">کد پستی</label>
-          <input 
-            type="text" 
-            id="postalCode" 
-            value={formData.postalCode} 
-            onChange={(e) => updateFormData('postalCode', e.target.value)}
-            className="w-full p-3 rounded bg-midnight border border-gray-700 text-white" 
-            required 
-          />
-        </div>
-        
-        <div className="pt-4">
+        <div className="pt-4 mt-3">
           <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
             onClick={goToNext}
-            className="w-full py-3 bg-gradient-to-r from-draugr-800 to-draugr-600 text-white rounded-md font-medium"
-            disabled={!formData.firstName || !formData.lastName || !formData.phone || !formData.address || !formData.postalCode}
+            disabled={!isFormValid}
+            className={`w-full py-3.5 rounded-lg font-medium text-white flex items-center justify-center relative overflow-hidden ${
+              isFormValid 
+                ? 'bg-gradient-to-r from-draugr-800 to-draugr-600 hover:from-draugr-700 hover:to-draugr-500 shadow-lg shadow-draugr-900/30' 
+                : 'bg-gray-700 cursor-not-allowed opacity-70'
+            }`}
           >
-            ادامه به پرداخت
+            <span className="relative z-10 flex items-center">
+              ادامه به پرداخت
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </span>
+            {isFormValid && (
+              <span className="absolute inset-0 w-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-shimmer"></span>
+            )}
           </motion.button>
         </div>
       </div>
@@ -109,93 +223,248 @@ const PaymentForm = ({ formData, updateFormData, goToNext, goToPrevious }) => {
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
-      className="bg-black/30 p-6 rounded-lg shadow-horror"
+      className="backdrop-blur-sm bg-gradient-to-b from-black/60 to-vampire-dark/80 p-6 sm:p-8 rounded-xl shadow-horror border border-draugr-900/40"
     >
-      <h2 className="text-2xl font-bold mb-6 text-draugr-400">روش پرداخت</h2>
+      <div className="flex items-center mb-6">
+        <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-draugr-900 mr-3">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-draugr-500" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+            <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
+          </svg>
+        </div>
+        <h2 className="text-2xl font-bold text-white">
+          <span className="text-draugr-400">روش</span> پرداخت
+        </h2>
+      </div>
       
-      <div className="space-y-4">
-        <div className="mb-4">
-          <div className="flex items-center space-x-3 rtl:space-x-reverse mb-4">
-            <input 
-              type="radio" 
-              id="online" 
-              name="paymentMethod" 
-              value="online" 
-              checked={formData.paymentMethod === 'online'} 
-              onChange={() => updateFormData('paymentMethod', 'online')}
-              className="w-5 h-5 accent-draugr-600" 
-            />
-            <label htmlFor="online" className="font-medium">پرداخت آنلاین</label>
-          </div>
+      <div className="space-y-6">
+        <div className="p-5 rounded-lg bg-midnight/60 border border-gray-800">
+          <h3 className="text-lg font-medium mb-4 text-white">انتخاب روش پرداخت</h3>
           
-          <div className="flex items-center space-x-3 rtl:space-x-reverse">
-            <input 
-              type="radio" 
-              id="cod" 
-              name="paymentMethod" 
-              value="cod" 
-              checked={formData.paymentMethod === 'cod'} 
-              onChange={() => updateFormData('paymentMethod', 'cod')}
-              className="w-5 h-5 accent-draugr-600" 
-            />
-            <label htmlFor="cod" className="font-medium">پرداخت در محل</label>
+          <div className="space-y-4">
+            <div 
+              className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all duration-300 ${
+                formData.paymentMethod === 'online' 
+                ? 'border-draugr-500 bg-draugr-900/40 shadow-sm shadow-draugr-500/20' 
+                : 'border-gray-700 hover:border-gray-600'
+              }`}
+              onClick={() => updateFormData('paymentMethod', 'online')}
+            >
+              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                formData.paymentMethod === 'online' ? 'border-draugr-500' : 'border-gray-500'
+              }`}>
+                {formData.paymentMethod === 'online' && (
+                  <motion.div 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="w-2.5 h-2.5 rounded-full bg-draugr-500"
+                  />
+                )}
+              </div>
+              <div className="mr-3 flex-1">
+                <label htmlFor="online" className="font-medium text-white cursor-pointer">پرداخت آنلاین</label>
+                <p className="text-xs text-gray-400 mt-1">پرداخت امن و آنی از طریق درگاه‌های بانکی</p>
+              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+              </svg>
+            </div>
+            
+            <div 
+              className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all duration-300 ${
+                formData.paymentMethod === 'cod' 
+                ? 'border-draugr-500 bg-draugr-900/40 shadow-sm shadow-draugr-500/20' 
+                : 'border-gray-700 hover:border-gray-600'
+              }`}
+              onClick={() => updateFormData('paymentMethod', 'cod')}
+            >
+              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                formData.paymentMethod === 'cod' ? 'border-draugr-500' : 'border-gray-500'
+              }`}>
+                {formData.paymentMethod === 'cod' && (
+                  <motion.div 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="w-2.5 h-2.5 rounded-full bg-draugr-500"
+                  />
+                )}
+              </div>
+              <div className="mr-3 flex-1">
+                <label htmlFor="cod" className="font-medium text-white cursor-pointer">پرداخت در محل</label>
+                <p className="text-xs text-gray-400 mt-1">پرداخت وجه هنگام تحویل سفارش</p>
+              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z" />
+              </svg>
+            </div>
           </div>
         </div>
         
-        {formData.paymentMethod === 'online' && (
-          <div className="p-4 bg-vampire-dark rounded-lg">
-            <h3 className="text-lg font-medium mb-4">انتخاب درگاه پرداخت</h3>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div 
-                className={`p-3 border rounded-lg flex items-center justify-center cursor-pointer ${formData.gateway === 'shaparak' ? 'border-draugr-500 bg-draugr-900/30' : 'border-gray-700'}`}
-                onClick={() => updateFormData('gateway', 'shaparak')}
-              >
-                <span>شاپرک</span>
-              </div>
+        <AnimatePresence>
+          {formData.paymentMethod === 'online' && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="p-5 rounded-lg bg-gradient-to-br from-vampire-dark/80 to-midnight/70 border border-gray-800"
+            >
+              <h3 className="text-lg font-medium mb-4 text-white">انتخاب درگاه پرداخت</h3>
               
-              <div 
-                className={`p-3 border rounded-lg flex items-center justify-center cursor-pointer ${formData.gateway === 'zarinpal' ? 'border-draugr-500 bg-draugr-900/30' : 'border-gray-700'}`}
-                onClick={() => updateFormData('gateway', 'zarinpal')}
-              >
-                <span>زرین‌پال</span>
+              <div className="grid grid-cols-2 gap-4">
+                <motion.div 
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`p-4 border rounded-lg flex flex-col items-center cursor-pointer transition-all duration-300 ${
+                    formData.gateway === 'shaparak' 
+                    ? 'border-draugr-500 bg-black/40 shadow-sm shadow-draugr-500/20' 
+                    : 'border-gray-700 hover:border-gray-600 bg-black/20'
+                  }`}
+                  onClick={() => updateFormData('gateway', 'shaparak')}
+                >
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gray-800 mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-draugr-500" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                      <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span className="text-sm font-medium text-white">شاپرک</span>
+                  {formData.gateway === 'shaparak' && (
+                    <motion.div 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="mt-2 w-6 h-6 rounded-full flex items-center justify-center bg-draugr-900"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-draugr-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </motion.div>
+                  )}
+                </motion.div>
+                
+                <motion.div 
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`p-4 border rounded-lg flex flex-col items-center cursor-pointer transition-all duration-300 ${
+                    formData.gateway === 'zarinpal' 
+                    ? 'border-draugr-500 bg-black/40 shadow-sm shadow-draugr-500/20' 
+                    : 'border-gray-700 hover:border-gray-600 bg-black/20'
+                  }`}
+                  onClick={() => updateFormData('gateway', 'zarinpal')}
+                >
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gray-800 mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-500" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+                    </svg>
+                  </div>
+                  <span className="text-sm font-medium text-white">زرین‌پال</span>
+                  {formData.gateway === 'zarinpal' && (
+                    <motion.div 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="mt-2 w-6 h-6 rounded-full flex items-center justify-center bg-draugr-900"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-draugr-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </motion.div>
+                  )}
+                </motion.div>
+                
+                <motion.div 
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`p-4 border rounded-lg flex flex-col items-center cursor-pointer transition-all duration-300 ${
+                    formData.gateway === 'sadad' 
+                    ? 'border-draugr-500 bg-black/40 shadow-sm shadow-draugr-500/20' 
+                    : 'border-gray-700 hover:border-gray-600 bg-black/20'
+                  }`}
+                  onClick={() => updateFormData('gateway', 'sadad')}
+                >
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gray-800 mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span className="text-sm font-medium text-white">سداد</span>
+                  {formData.gateway === 'sadad' && (
+                    <motion.div 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="mt-2 w-6 h-6 rounded-full flex items-center justify-center bg-draugr-900"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-draugr-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </motion.div>
+                  )}
+                </motion.div>
+                
+                <motion.div 
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`p-4 border rounded-lg flex flex-col items-center cursor-pointer transition-all duration-300 ${
+                    formData.gateway === 'sep' 
+                    ? 'border-draugr-500 bg-black/40 shadow-sm shadow-draugr-500/20' 
+                    : 'border-gray-700 hover:border-gray-600 bg-black/20'
+                  }`}
+                  onClick={() => updateFormData('gateway', 'sep')}
+                >
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gray-800 mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span className="text-sm font-medium text-white">سپ</span>
+                  {formData.gateway === 'sep' && (
+                    <motion.div 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="mt-2 w-6 h-6 rounded-full flex items-center justify-center bg-draugr-900"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-draugr-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </motion.div>
+                  )}
+                </motion.div>
               </div>
-              
-              <div 
-                className={`p-3 border rounded-lg flex items-center justify-center cursor-pointer ${formData.gateway === 'sadad' ? 'border-draugr-500 bg-draugr-900/30' : 'border-gray-700'}`}
-                onClick={() => updateFormData('gateway', 'sadad')}
-              >
-                <span>سداد</span>
-              </div>
-              
-              <div 
-                className={`p-3 border rounded-lg flex items-center justify-center cursor-pointer ${formData.gateway === 'sep' ? 'border-draugr-500 bg-draugr-900/30' : 'border-gray-700'}`}
-                onClick={() => updateFormData('gateway', 'sep')}
-              >
-                <span>سپ</span>
-              </div>
-            </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
         
         <div className="flex items-center pt-6 space-x-4 rtl:space-x-reverse">
           <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
             onClick={goToPrevious}
-            className="w-1/2 py-3 bg-gray-800 text-white rounded-md font-medium"
+            className="w-1/2 py-3.5 bg-gray-800 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors duration-300 flex justify-center items-center"
           >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 11H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
+            </svg>
             بازگشت
           </motion.button>
           
           <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
             onClick={goToNext}
-            className="w-1/2 py-3 bg-gradient-to-r from-draugr-800 to-draugr-600 text-white rounded-md font-medium"
             disabled={!formData.paymentMethod || (formData.paymentMethod === 'online' && !formData.gateway)}
+            className={`w-1/2 py-3.5 rounded-lg font-medium text-white flex items-center justify-center relative overflow-hidden ${
+              (formData.paymentMethod && !(formData.paymentMethod === 'online' && !formData.gateway))
+                ? 'bg-gradient-to-r from-draugr-800 to-draugr-600 hover:from-draugr-700 hover:to-draugr-500 shadow-lg shadow-draugr-900/30' 
+                : 'bg-gray-700 cursor-not-allowed opacity-70'
+            }`}
           >
-            مرور سفارش
+            <span className="relative z-10 flex items-center">
+              مرور سفارش
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </span>
+            {(formData.paymentMethod && !(formData.paymentMethod === 'online' && !formData.gateway)) && (
+              <span className="absolute inset-0 w-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-shimmer"></span>
+            )}
           </motion.button>
         </div>
       </div>
@@ -209,80 +478,184 @@ const ReviewOrder = ({ formData, cartItems, totalPrice, goToPrevious, placeOrder
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
-      className="bg-black/30 p-6 rounded-lg shadow-horror"
+      className="backdrop-blur-sm bg-gradient-to-b from-black/60 to-vampire-dark/80 p-6 sm:p-8 rounded-xl shadow-horror border border-draugr-900/40"
     >
-      <h2 className="text-2xl font-bold mb-6 text-draugr-400">مرور سفارش</h2>
+      <div className="flex items-center mb-6">
+        <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-draugr-900 mr-3">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-draugr-500" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+            <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
+          </svg>
+        </div>
+        <h2 className="text-2xl font-bold text-white">
+          <span className="text-draugr-400">مرور</span> سفارش
+        </h2>
+      </div>
       
       <div className="space-y-6">
-        <div>
-          <h3 className="text-lg font-medium mb-2">اطلاعات شخصی</h3>
-          <div className="bg-midnight p-4 rounded-lg">
-            <p>{formData.firstName} {formData.lastName}</p>
-            <p>{formData.phone}</p>
-            <p>{formData.email}</p>
+        <motion.div 
+          className="p-5 rounded-lg bg-gradient-to-br from-midnight/90 to-vampire-dark/60 border border-gray-800"
+          whileHover={{ boxShadow: "0 0 15px rgba(0,0,0,0.3)" }}
+        >
+          <div className="flex items-center mb-3">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-draugr-500 mr-2" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+            </svg>
+            <h3 className="text-lg font-medium text-white">اطلاعات شخصی</h3>
           </div>
-        </div>
-        
-        <div>
-          <h3 className="text-lg font-medium mb-2">آدرس تحویل</h3>
-          <div className="bg-midnight p-4 rounded-lg">
-            <p>{formData.address}</p>
-            <p>کد پستی: {formData.postalCode}</p>
-          </div>
-        </div>
-        
-        <div>
-          <h3 className="text-lg font-medium mb-2">روش پرداخت</h3>
-          <div className="bg-midnight p-4 rounded-lg">
-            <p>{formData.paymentMethod === 'online' ? 'پرداخت آنلاین' : 'پرداخت در محل'}</p>
-            {formData.paymentMethod === 'online' && (
-              <p>درگاه: {formData.gateway === 'shaparak' ? 'شاپرک' : formData.gateway === 'zarinpal' ? 'زرین‌پال' : formData.gateway === 'sadad' ? 'سداد' : 'سپ'}</p>
-            )}
-          </div>
-        </div>
-        
-        <div>
-          <h3 className="text-lg font-medium mb-2">سفارش شما</h3>
-          <div className="bg-midnight p-4 rounded-lg space-y-3">
-            {cartItems.map(item => (
-              <div key={item.id} className="flex justify-between items-center border-b border-gray-800 pb-2">
-                <div className="flex items-center">
-                  <div className="w-12 h-12 rounded overflow-hidden mr-3">
-                    <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
-                  </div>
-                  <div>
-                    <p className="font-medium">{item.name}</p>
-                    <p className="text-sm text-gray-400">{item.quantity} × {item.price.toLocaleString('fa-IR')} تومان</p>
-                  </div>
-                </div>
-                <p className="font-bold">{(item.price * item.quantity).toLocaleString('fa-IR')} تومان</p>
+          
+          <div className="bg-black/40 p-4 rounded-lg border border-gray-800">
+            <div className="flex flex-col space-y-2">
+              <div className="flex justify-between">
+                <span className="text-gray-400">نام و نام خانوادگی:</span>
+                <span className="font-medium">{formData.firstName} {formData.lastName}</span>
               </div>
-            ))}
-            
-            <div className="flex justify-between items-center pt-2">
-              <p className="font-bold">مجموع</p>
-              <p className="font-bold text-draugr-500">{totalPrice.toLocaleString('fa-IR')} تومان</p>
+              <div className="flex justify-between">
+                <span className="text-gray-400">شماره تماس:</span>
+                <span className="font-medium">{formData.phone}</span>
+              </div>
+              {formData.email && (
+                <div className="flex justify-between">
+                  <span className="text-gray-400">ایمیل:</span>
+                  <span className="font-medium">{formData.email}</span>
+                </div>
+              )}
             </div>
           </div>
-        </div>
+        </motion.div>
+        
+        <motion.div 
+          className="p-5 rounded-lg bg-gradient-to-br from-midnight/90 to-vampire-dark/60 border border-gray-800"
+          whileHover={{ boxShadow: "0 0 15px rgba(0,0,0,0.3)" }}
+        >
+          <div className="flex items-center mb-3">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-draugr-500 mr-2" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+            </svg>
+            <h3 className="text-lg font-medium text-white">آدرس تحویل</h3>
+          </div>
+          
+          <div className="bg-black/40 p-4 rounded-lg border border-gray-800">
+            <p className="mb-2 whitespace-pre-line">{formData.address}</p>
+            <div className="flex justify-between items-center pt-2 border-t border-gray-800">
+              <span className="text-gray-400">کد پستی:</span>
+              <span className="font-medium">{formData.postalCode}</span>
+            </div>
+          </div>
+        </motion.div>
+        
+        <motion.div 
+          className="p-5 rounded-lg bg-gradient-to-br from-midnight/90 to-vampire-dark/60 border border-gray-800"
+          whileHover={{ boxShadow: "0 0 15px rgba(0,0,0,0.3)" }}
+        >
+          <div className="flex items-center mb-3">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-draugr-500 mr-2" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+              <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
+            </svg>
+            <h3 className="text-lg font-medium text-white">روش پرداخت</h3>
+          </div>
+          
+          <div className="bg-black/40 p-4 rounded-lg border border-gray-800">
+            <div className="flex items-center">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-br from-draugr-800 to-draugr-900 mr-3">
+                {formData.paymentMethod === 'online' ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-draugr-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                    <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-draugr-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+                  </svg>
+                )}
+              </div>
+              <div>
+                <p className="font-medium">{formData.paymentMethod === 'online' ? 'پرداخت آنلاین' : 'پرداخت در محل'}</p>
+                {formData.paymentMethod === 'online' && (
+                  <p className="text-sm text-gray-400 mt-1">
+                    درگاه: {formData.gateway === 'shaparak' ? 'شاپرک' : 
+                           formData.gateway === 'zarinpal' ? 'زرین‌پال' : 
+                           formData.gateway === 'sadad' ? 'سداد' : 'سپ'}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+        
+        <motion.div 
+          className="p-5 rounded-lg bg-gradient-to-br from-midnight/90 to-vampire-dark/60 border border-gray-800"
+          whileHover={{ boxShadow: "0 0 15px rgba(0,0,0,0.3)" }}
+        >
+          <div className="flex items-center mb-3">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-draugr-500 mr-2" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+            </svg>
+            <h3 className="text-lg font-medium text-white">اقلام سفارش</h3>
+          </div>
+          
+          <div className="bg-black/40 rounded-lg border border-gray-800">
+            <div className="max-h-[300px] overflow-y-auto horror-scrollbar">
+              {cartItems.map(item => (
+                <div key={item.id} className="flex justify-between items-center p-4 border-b border-gray-800">
+                  <div className="flex items-center">
+                    <div className="w-16 h-16 rounded-md overflow-hidden mr-3 border border-gray-800 relative">
+                      <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                      <div className="absolute bottom-1 right-1 bg-draugr-900 text-white text-xs px-1.5 py-0.5 rounded font-bold">
+                        {item.quantity}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="font-medium">{item.name}</p>
+                      <p className="text-sm text-gray-400">{item.quantity} × {item.price.toLocaleString('fa-IR')} تومان</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-white">{(item.price * item.quantity).toLocaleString('fa-IR')}</p>
+                    <p className="text-xs text-gray-400">تومان</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="p-4 flex justify-between items-center font-bold border-t border-gray-700 bg-gradient-to-r from-vampire-dark/50 to-black/40">
+              <p className="text-white">مجموع</p>
+              <div className="flex items-baseline">
+                <p className="text-xl text-draugr-500">{totalPrice.toLocaleString('fa-IR')}</p>
+                <p className="text-xs mr-1 text-draugr-400/80">تومان</p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
         
         <div className="flex items-center pt-4 space-x-4 rtl:space-x-reverse">
           <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
             onClick={goToPrevious}
-            className="w-1/2 py-3 bg-gray-800 text-white rounded-md font-medium"
+            className="w-1/2 py-3.5 bg-gray-800 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors duration-300 flex justify-center items-center"
           >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
+            </svg>
             بازگشت
           </motion.button>
           
           <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
             onClick={placeOrder}
-            className="w-1/2 py-3 bg-gradient-to-r from-draugr-800 to-draugr-600 text-white rounded-md font-medium"
+            className="w-1/2 py-3.5 rounded-lg font-medium text-white flex items-center justify-center relative overflow-hidden bg-gradient-to-r from-draugr-800 to-draugr-600 hover:from-draugr-700 hover:to-draugr-500 shadow-lg shadow-draugr-900/30"
           >
-            ثبت سفارش
+            <span className="relative z-10 flex items-center">
+              تکمیل خرید و پرداخت
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+            </span>
+            <span className="absolute inset-0 w-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-shimmer"></span>
           </motion.button>
         </div>
       </div>
@@ -295,40 +668,144 @@ const OrderConfirmation = ({ orderNumber, navigate }) => {
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="bg-black/30 p-6 rounded-lg shadow-horror text-center"
+      className="backdrop-blur-sm bg-gradient-to-b from-black/60 to-vampire-dark/80 p-8 rounded-xl shadow-horror border border-draugr-900/40 relative overflow-hidden"
     >
-      <div className="w-20 h-20 bg-draugr-900/50 rounded-full mx-auto flex items-center justify-center mb-6">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-draugr-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-        </svg>
-      </div>
+      {/* Decorative corner accents */}
+      <div className="absolute top-0 right-0 w-12 h-12 border-t-2 border-r-2 border-draugr-500/40 rounded-tr-xl" />
+      <div className="absolute bottom-0 left-0 w-12 h-12 border-b-2 border-l-2 border-draugr-500/40 rounded-bl-xl" />
       
-      <h2 className="text-2xl font-bold mb-3 text-draugr-400">سفارش شما با موفقیت ثبت شد</h2>
-      <p className="mb-6">شماره سفارش: <span className="font-bold">{orderNumber}</span></p>
+      {/* Subtle animated background */}
+      <motion.div 
+        className="absolute inset-0 opacity-20 pointer-events-none"
+        animate={{
+          backgroundPosition: ['0% 0%', '100% 100%']
+        }}
+        transition={{
+          duration: 15,
+          ease: "linear",
+          repeat: Infinity,
+          repeatType: "reverse"
+        }}
+        style={{
+          backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 2000 2000\' fill=\'none\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\' opacity=\'0.4\'/%3E%3C/svg%3E")',
+          backgroundSize: '200% 200%'
+        }}
+      />
       
-      <div className="max-w-md mx-auto bg-midnight p-4 rounded-lg mb-6">
-        <p className="mb-2">از خرید شما متشکریم!</p>
-        <p className="text-sm text-gray-400">اطلاعات سفارش به ایمیل شما ارسال خواهد شد.</p>
-      </div>
-      
-      <div className="flex space-x-4 rtl:space-x-reverse justify-center">
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => navigate('/')}
-          className="px-5 py-2 bg-gray-800 text-white rounded-md"
+      <div className="text-center relative">
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+          className="w-24 h-24 bg-gradient-to-br from-draugr-900/80 to-draugr-700/40 rounded-full mx-auto flex items-center justify-center mb-6 shadow-lg relative"
         >
-          بازگشت به خانه
-        </motion.button>
+          {/* Inner glow effect */}
+          <div className="absolute inset-0 rounded-full blur-md bg-draugr-500/20"></div>
+          
+          {/* Pulsing animation */}
+          <motion.div
+            animate={{ 
+              boxShadow: [
+                "0 0 0 0px rgba(239, 35, 60, 0.2)",
+                "0 0 0 10px rgba(239, 35, 60, 0)",
+                "0 0 0 0px rgba(239, 35, 60, 0.2)"
+              ],
+              scale: [0.95, 1.05, 0.95]
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="absolute inset-0 rounded-full"
+          />
+          
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-draugr-500 relative" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+        </motion.div>
         
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => {}}
-          className="px-5 py-2 bg-gradient-to-r from-draugr-800 to-draugr-600 text-white rounded-md"
+        <motion.h2 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="text-2xl sm:text-3xl font-bold mb-4 text-white"
         >
-          پیگیری سفارش
-        </motion.button>
+          <span className="text-draugr-400">سفارش شما</span> با موفقیت ثبت شد
+        </motion.h2>
+        
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+          className="mb-8"
+        >
+          <div className="bg-gradient-to-br from-midnight/90 to-vampire-dark/60 border border-gray-800 rounded-lg inline-block px-6 py-3">
+            <p className="text-gray-400 text-sm">شماره سفارش</p>
+            <p className="font-mono text-xl font-bold tracking-wide text-white mt-1">{orderNumber}</p>
+          </div>
+        </motion.div>
+        
+        <motion.div 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.5, duration: 0.5 }}
+          className="max-w-lg mx-auto bg-black/40 p-5 rounded-lg mb-8 border border-gray-800 relative"
+          whileHover={{ boxShadow: "0 0 15px rgba(0,0,0,0.3)" }}
+        >
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-draugr-900/0 via-draugr-500/30 to-draugr-900/0"></div>
+          
+          <h3 className="text-lg font-medium mb-3 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-draugr-500 ml-2" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            </svg>
+            <span>اطلاعات</span>
+          </h3>
+          
+          <p className="mb-3 text-white">از خرید شما متشکریم!</p>
+          <p className="text-sm text-gray-400">اطلاعات سفارش به ایمیل شما ارسال خواهد شد. در صورت نیاز به پشتیبانی با ما تماس بگیرید.</p>
+          
+          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-draugr-900/0 via-draugr-500/30 to-draugr-900/0"></div>
+        </motion.div>
+        
+        <motion.div 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.6, duration: 0.5 }}
+          className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 space-x-0 sm:space-x-4 rtl:space-x-reverse justify-center"
+        >
+          <motion.button
+            whileHover={{ 
+              scale: 1.03,
+              boxShadow: "0 0 15px rgba(0,0,0,0.3)"
+            }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => navigate('/')}
+            className="px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors duration-300 flex items-center justify-center"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+            </svg>
+            بازگشت به خانه
+          </motion.button>
+          
+          <motion.button
+            whileHover={{ 
+              scale: 1.03,
+              boxShadow: "0 0 15px rgba(239, 35, 60, 0.2)"
+            }}
+            whileTap={{ scale: 0.97 }}
+            className="px-6 py-3 rounded-lg font-medium text-white flex items-center justify-center relative overflow-hidden bg-gradient-to-r from-draugr-900 to-draugr-700 hover:from-draugr-800 hover:to-draugr-600 shadow-lg shadow-draugr-900/30"
+          >
+            <span className="relative z-10 flex items-center">
+              پیگیری سفارش
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </span>
+            <span className="absolute inset-0 w-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-shimmer"></span>
+          </motion.button>
+        </motion.div>
       </div>
     </motion.div>
   );
@@ -344,7 +821,7 @@ const CheckoutProgress = ({ currentStep }) => {
   ];
   
   return (
-    <div className="mb-8">
+    <div className="mb-10">
       <div className="flex justify-between relative">
         {steps.map((step, index) => {
           const isCompleted = currentStep > step.num;
@@ -352,40 +829,118 @@ const CheckoutProgress = ({ currentStep }) => {
           
           return (
             <div key={step.num} className="flex flex-col items-center relative z-10">
-              <div 
-                className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
+              <motion.div 
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ 
+                  scale: 1, 
+                  opacity: 1,
+                }}
+                transition={{ 
+                  delay: index * 0.1,
+                  duration: 0.4, 
+                  ease: "backOut" 
+                }}
+                className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold relative ${
                   isCompleted 
-                    ? 'bg-draugr-600' 
+                    ? 'bg-gradient-to-br from-draugr-700 to-draugr-900' 
                     : isActive 
-                    ? 'bg-draugr-800 ring-2 ring-draugr-500 ring-opacity-50'
-                    : 'bg-gray-700'
+                    ? 'bg-gradient-to-br from-draugr-800 to-draugr-900 ring-2 ring-draugr-500 ring-opacity-70'
+                    : 'bg-gradient-to-br from-gray-700 to-gray-900'
                 }`}
               >
-                {isCompleted ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                ) : (
-                  step.num
+                {/* Glow effect for active step */}
+                {isActive && (
+                  <motion.div 
+                    className="absolute inset-0 rounded-full blur-md"
+                    animate={{ 
+                      boxShadow: [
+                        "0 0 4px 2px rgba(239, 35, 60, 0.3)",
+                        "0 0 8px 4px rgba(239, 35, 60, 0.2)",
+                        "0 0 4px 2px rgba(239, 35, 60, 0.3)"
+                      ] 
+                    }}
+                    transition={{ 
+                      duration: 2, 
+                      repeat: Infinity,
+                      ease: "easeInOut" 
+                    }}
+                  />
                 )}
-              </div>
-              <div className={`mt-2 text-sm whitespace-nowrap ${isActive || isCompleted ? 'text-white' : 'text-gray-500'}`}>
+                
+                {/* Pulse effect for completed steps */}
+                {isCompleted && (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.6 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="absolute inset-0 rounded-full bg-draugr-600/20"
+                  />
+                )}
+                
+                {isCompleted ? (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </motion.div>
+                ) : (
+                  <span className="relative">{step.num}</span>
+                )}
+              </motion.div>
+              
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ 
+                  opacity: 1, 
+                  y: 0,
+                  color: isActive || isCompleted ? '#ffffff' : 'rgba(156, 163, 175, 0.8)'
+                }}
+                transition={{ 
+                  delay: index * 0.1 + 0.1,
+                  duration: 0.4
+                }}
+                className="mt-3 text-sm whitespace-nowrap font-medium"
+              >
                 {step.title}
-              </div>
+              </motion.div>
             </div>
           );
         })}
         
-        {/* Progress line */}
-        <div className="absolute top-5 left-0 right-0 h-1 bg-gray-700 -translate-y-1/2 z-0">
-          <div 
-            className="h-full bg-draugr-600" 
-            style={{ 
-              width: `${(currentStep - 1) / (steps.length - 1) * 100}%`,
-              transition: 'width 0.5s ease-in-out'
+        {/* Progress line - decorative line connecting the steps */}
+        <div className="absolute top-6 left-0 right-0 h-0.5 bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 -translate-y-1/2 z-0 rounded-full"></div>
+        
+        {/* Animated progress overlay */}
+        <motion.div 
+          className="absolute top-6 left-0 h-0.5 bg-gradient-to-r from-draugr-700 via-draugr-500 to-draugr-700 -translate-y-1/2 z-0 rounded-full overflow-hidden"
+          style={{ 
+            width: `${(currentStep - 1) / (steps.length - 1) * 100}%`,
+          }}
+          initial={{ width: 0 }}
+          animate={{ 
+            width: `${(currentStep - 1) / (steps.length - 1) * 100}%`,
+          }}
+          transition={{ 
+            duration: 0.5,
+            ease: "easeInOut"
+          }}
+        >
+          {/* Animated shimmer effect */}
+          <motion.div 
+            className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-draugr-300/30 to-transparent"
+            animate={{ 
+              x: ['-100%', '100%'] 
             }}
-          ></div>
-        </div>
+            transition={{ 
+              repeat: Infinity, 
+              duration: 2,
+              ease: "linear"
+            }}
+          />
+        </motion.div>
       </div>
     </div>
   );
@@ -401,50 +956,99 @@ const CheckoutSummary = ({ cartItems }) => {
   const total = subtotal + shipping;
   
   return (
-    <div className="bg-black/30 p-6 rounded-lg shadow-horror h-fit">
-      <h3 className="text-xl font-bold mb-4 text-draugr-400">خلاصه سفارش</h3>
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="backdrop-blur-sm bg-gradient-to-b from-black/60 to-vampire-dark/80 p-6 rounded-xl shadow-horror border border-draugr-900/40 h-fit relative"
+    >
+      {/* Decorative corner accents */}
+      <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-draugr-500/30 rounded-tr-lg opacity-80" />
+      <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-draugr-500/30 rounded-bl-lg opacity-80" />
       
-      <div className="space-y-4">
-        <div className="max-h-60 overflow-y-auto custom-scrollbar">
-          {cartItems.map(item => (
-            <div key={item.id} className="flex items-center gap-3 mb-3 pb-3 border-b border-gray-800">
-              <div className="w-16 h-16 rounded overflow-hidden flex-shrink-0">
-                <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+      <div className="flex items-center mb-6">
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-draugr-900 mr-3">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-draugr-500" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+          </svg>
+        </div>
+        <h3 className="text-xl font-bold text-white">
+          <span className="text-draugr-400">خلاصه</span> سفارش
+        </h3>
+      </div>
+      
+      <div className="space-y-6">
+        {cartItems.length > 0 ? (
+          <div className="bg-black/40 rounded-lg border border-gray-800 overflow-hidden">
+            {/* Scrollable items container */}
+            <div className="max-h-60 overflow-y-auto horror-scrollbar">
+              {cartItems.map(item => (
+                <div key={item.id} className="flex items-center gap-3 p-4 border-b border-gray-800 hover:bg-black/20 transition duration-200">
+                  <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0 border border-gray-800 shadow-md relative">
+                    <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                    <div className="absolute bottom-1 right-1 bg-draugr-900 text-white text-xs px-1.5 py-0.5 rounded font-bold">
+                      {item.quantity || 1}
+                    </div>
+                  </div>
+                  
+                  <div className="flex-1 min-w-0 pr-1">
+                    <h4 className="font-medium text-white truncate">{item.name}</h4>
+                    <div className="flex justify-between items-center mt-1">
+                      <span className="text-xs text-gray-400">{item.quantity || 1} × {item.price.toLocaleString('fa-IR')}</span>
+                      <span className="font-bold text-white">{((item.price) * (item.quantity || 1)).toLocaleString('fa-IR')}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {/* Cart totals */}
+            <div className="border-t border-gray-800 divide-y divide-gray-800/70">
+              {/* Subtotal */}
+              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-black/20 to-transparent">
+                <span className="text-gray-300">جمع جزء</span>
+                <span className="font-medium text-white">{subtotal.toLocaleString('fa-IR')} تومان</span>
               </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="font-medium truncate">{item.name}</h4>
-                <div className="flex justify-between items-center mt-1">
-                  <span className="text-sm text-gray-400">{item.quantity || 1} عدد</span>
-                  <span className="font-bold">{((item.price) * (item.quantity || 1)).toLocaleString('fa-IR')} تومان</span>
+              
+              {/* Shipping */}
+              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-black/20 to-transparent">
+                <span className="text-gray-300">هزینه ارسال</span>
+                <span>
+                  {shipping === 0 
+                    ? <span className="text-green-500 font-medium">رایگان</span> 
+                    : <span className="text-white font-medium">{shipping.toLocaleString('fa-IR')} تومان</span>
+                  }
+                </span>
+              </div>
+              
+              {/* Total */}
+              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-vampire-dark/50 to-black/40">
+                <span className="font-bold text-white">مجموع</span>
+                <div className="flex items-baseline">
+                  <span className="text-xl font-bold text-draugr-500">{total.toLocaleString('fa-IR')}</span>
+                  <span className="text-xs text-draugr-400 mr-1">تومان</span>
                 </div>
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <div className="bg-black/40 rounded-lg border border-gray-800 p-5 text-center">
+            <p className="text-gray-400">سبد خرید شما خالی است</p>
+          </div>
+        )}
         
-        <div className="pt-4 space-y-2">
-          <div className="flex justify-between">
-            <span>جمع جزء</span>
-            <span>{subtotal.toLocaleString('fa-IR')} تومان</span>
+        {/* Security notes */}
+        <div className="bg-gradient-to-br from-midnight/70 to-black/50 rounded-lg p-4 border border-gray-800">
+          <div className="flex items-center mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-draugr-500 ml-2" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            <h4 className="font-medium text-white">پرداخت امن</h4>
           </div>
-          
-          <div className="flex justify-between">
-            <span>هزینه ارسال</span>
-            <span>
-              {shipping === 0 
-                ? <span className="text-green-500">رایگان</span> 
-                : `${shipping.toLocaleString('fa-IR')} تومان`
-              }
-            </span>
-          </div>
-          
-          <div className="border-t border-gray-700 my-2 pt-2 flex justify-between font-bold">
-            <span>مجموع</span>
-            <span className="text-draugr-500">{total.toLocaleString('fa-IR')} تومان</span>
-          </div>
+          <p className="text-xs text-gray-400">تمامی تراکنش‌های شما از طریق درگاه‌های معتبر و با پروتکل‌های امنیتی انجام می‌شود.</p>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -496,13 +1100,25 @@ const CheckoutPage = () => {
   
   return (
     <div 
-      className="min-h-screen py-12 relative"
+      className="min-h-screen py-16 relative"
       style={{
-        background: 'linear-gradient(to bottom, #1a1a1a, #0a0a0a)'
+        background: 'linear-gradient(to bottom, #0c0c0c, #0a0a0a)'
       }}
     >
+      {/* Add shimmer animation keyframes */}
+      <style jsx global>{`
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+        .animate-shimmer {
+          animation: shimmer 2s infinite;
+        }
+      `}</style>
+      
       {/* Atmospheric background effects */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        {/* Noise texture background */}
         <div 
           className="absolute inset-0 bg-center bg-cover opacity-5"
           style={{ 
@@ -529,22 +1145,44 @@ const CheckoutPage = () => {
             backgroundSize: '200% 200%'
           }}
         />
+        
+        {/* Blood veins decoration */}
+        <div className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0c3.38 23.16 9.5 56.27 36.5 64C66 74 80 56 80 40L100 0H0z' fill='%23ef233c' fill-opacity='0.05'/%3E%3C/svg%3E")`,
+            backgroundSize: '80px 80px'
+          }}
+        ></div>
       </div>
       
       <div className="container mx-auto px-4 relative z-10">
-        <Link to="/shop" className="inline-flex items-center text-draugr-500 hover:text-draugr-400 mb-8">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-          </svg>
-          بازگشت به فروشگاه
-        </Link>
-      
-        <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center text-shadow-horror">تکمیل سفارش</h1>
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <Link to="/shop" className="inline-flex items-center text-draugr-500 hover:text-draugr-400 mb-8 group">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 transition-transform duration-300 group-hover:-translate-x-1" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+            </svg>
+            بازگشت به فروشگاه
+          </Link>
+        
+          <h1 className="text-3xl md:text-4xl font-bold mb-10 text-center text-shadow-horror flex items-center justify-center">
+            <span className="text-white">تکمیل</span>
+            <span className="text-draugr-500 mx-3">سفارش</span>
+          </h1>
+        </motion.div>
         
         {currentStep < 4 && (
-          <div className="mx-auto max-w-4xl mb-8">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            className="mx-auto max-w-4xl mb-10"
+          >
             <CheckoutProgress currentStep={currentStep} />
-          </div>
+          </motion.div>
         )}
         
         <div className="mx-auto max-w-6xl">
