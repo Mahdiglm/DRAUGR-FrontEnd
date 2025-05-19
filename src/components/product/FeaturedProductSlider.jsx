@@ -398,7 +398,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           {isMobile ? (
             // Mobile pagination with improved styling
             <motion.div 
-              className="inline-flex items-center justify-center h-6 bg-black/60 px-3 py-1 rounded-full backdrop-blur-md border border-gray-800/30 shadow-lg"
+              className="inline-flex items-center justify-center h-6 px-3 py-1"
               initial={{ y: 10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.3 }}
@@ -436,7 +436,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           ) : (
             // Desktop pagination with container and improved styling
             <motion.div 
-              className="inline-flex items-center justify-center h-7 bg-black/40 px-5 py-1.5 rounded-full backdrop-blur-md border border-gray-800/20 shadow-lg"
+              className="inline-flex items-center justify-center h-7 px-5 py-1.5"
               initial={{ y: 10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.3 }}
