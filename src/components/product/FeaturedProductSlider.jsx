@@ -14,10 +14,10 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
   const resumeTimerRef = useRef(null);
   const componentMounted = useRef(true);
   
-  // Total number of groups for desktop
-  const totalGroups = 4;
-  // Total number of items for mobile
-  const totalItemsMobile = 8;
+  // Total number of groups for desktop - REDUCED FROM 4 TO 3
+  const totalGroups = 3;
+  // Total number of items for mobile - REDUCED FROM 8 TO 6
+  const totalItemsMobile = 6;
   
   // Check if we're on mobile
   useEffect(() => {
@@ -122,20 +122,19 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
     }, 3000);
   };
 
-  // Ensure we have exactly 8 products
-  const firstEightProducts = products && products.length ? products.slice(0, 8) : [];
+  // Ensure we have exactly 6 products (reduced from 8)
+  const firstSixProducts = products && products.length ? products.slice(0, 6) : [];
   
-  const displayProducts = [...firstEightProducts];
-  while (displayProducts.length < 8) {
-    displayProducts.push(displayProducts[displayProducts.length % firstEightProducts.length]);
+  const displayProducts = [...firstSixProducts];
+  while (displayProducts.length < 6) {
+    displayProducts.push(displayProducts[displayProducts.length % firstSixProducts.length]);
   }
 
-  // Create product groups for desktop: [0,1], [2,3], [4,5], and [6,7]
+  // Create product groups for desktop: [0,1], [2,3], and [4,5] - REDUCED by one group
   const productGroupsDesktop = [
     [displayProducts[0], displayProducts[1]],
     [displayProducts[2], displayProducts[3]],
-    [displayProducts[4], displayProducts[5]],
-    [displayProducts[6], displayProducts[7]]
+    [displayProducts[4], displayProducts[5]]
   ];
 
   if (!products || products.length === 0) {
@@ -394,7 +393,7 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
           </div>
         )}
 
-        {/* Pagination indicators */}
+        {/* Pagination indicators - Update for 6 items / 3 groups */}
         <div className="absolute bottom-[-24px] md:bottom-[-28px] left-0 right-0 mx-auto z-30">
           {isMobile ? (
             // Mobile pagination with improved styling
