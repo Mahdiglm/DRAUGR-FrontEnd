@@ -174,7 +174,7 @@ const Header = ({ cartItems, onCartClick }) => {
           </motion.button>
 
           {/* Spacer div to force distance */}
-          <div className="w-6 sm:w-8 md:w-12"></div>
+          <div className="w-5 sm:w-6 md:w-10"></div>
 
           <motion.div 
             whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
@@ -198,7 +198,7 @@ const Header = ({ cartItems, onCartClick }) => {
           </motion.div>
           
           {/* Another spacer div */}
-          <div className="w-4 sm:w-6 md:w-8"></div>
+          <div className="w-3 sm:w-5 md:w-6"></div>
           
           {/* Mobile Menu Button - Smaller for phones */}
           <motion.button 
