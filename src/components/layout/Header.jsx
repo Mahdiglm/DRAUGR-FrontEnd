@@ -178,7 +178,12 @@ const Header = ({ cartItems, onCartClick }) => {
 
           <motion.div 
             whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
-            transition={{ rotate: { duration: 0.5 } }}
+            initial={{ scale: 1, rotate: 0 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ 
+              rotate: { duration: 0.5 },
+              scale: { duration: 0.3, ease: "easeOut" } 
+            }}
             whileTap={{ scale: 0.95 }}
             className="relative cursor-pointer"
             onClick={onCartClick}
