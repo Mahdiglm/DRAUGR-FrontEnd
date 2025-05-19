@@ -309,9 +309,9 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
   };
 
   return (
-    <div className="relative w-full py-12 md:py-16 overflow-hidden">
+    <div className="relative w-full py-6 md:py-8 overflow-hidden">
       {/* Slider container with subtle background */}
-      <div className="relative flex flex-col md:flex-row justify-center items-center min-h-[600px] md:min-h-[550px] w-full overflow-visible pt-8">
+      <div className="relative flex flex-col md:flex-row justify-center items-center min-h-[600px] md:min-h-[550px] w-full overflow-visible pt-4">
         {/* Ambient background and shadows */}
         <div className="absolute inset-0 z-[1] opacity-20">
           <motion.div 

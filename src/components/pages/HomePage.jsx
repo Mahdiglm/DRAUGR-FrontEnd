@@ -484,7 +484,7 @@ const HomePage = () => {
 
         {/* Featured Products */}
         <motion.section 
-          className="py-12 sm:py-16 md:py-20 bg-gradient-to-b from-charcoal to-midnight w-full relative overflow-hidden"
+          className="py-8 sm:py-10 md:py-12 bg-gradient-to-b from-charcoal to-midnight w-full relative overflow-hidden"
           style={{
             backgroundImage: `url(${mainBackground})`,
             backgroundSize: 'cover',
@@ -536,8 +536,8 @@ const HomePage = () => {
           
           {/* Content container with enhanced styling */}
           <div className="relative z-10 container mx-auto px-4">
-            <div className="mb-8 text-center">
-              <h2 className="text-3xl md:text-4xl font-bold text-white text-shadow-horror mb-4">
+            <div className="mb-4 text-center">
+              <h2 className="text-3xl md:text-4xl font-bold text-white text-shadow-horror mb-2">
                 <span className="relative inline-block">
                   محصولات ویژه
                   <motion.span 
@@ -546,7 +546,7 @@ const HomePage = () => {
                   ></motion.span>
                 </span>
               </h2>
-              <p className="text-gray-400 max-w-2xl mx-auto">محصولات برتر و منحصر به فرد ما را کشف کنید، هر کدام با ویژگی‌های خاص طراحی شده‌اند.</p>
+              <p className="text-gray-400 max-w-2xl mx-auto mb-2">محصولات برتر و منحصر به فرد ما را کشف کنید، هر کدام با ویژگی‌های خاص طراحی شده‌اند.</p>
             </div>
             
             {/* Ensure products are available before rendering slider 
