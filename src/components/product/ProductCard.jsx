@@ -57,12 +57,13 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       whileHover={isDisabled ? {} : { 
-        y: isPremium ? -8 : -5,
-        scale: isPremium ? 1.04 : 1.02,
+        y: isPremium ? -12 : -5,
+        scale: isPremium ? 1.06 : 1.02,
+        boxShadow: isPremium ? "0 25px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(220, 38, 38, 0.45)" : undefined,
         transition: { 
           type: "spring", 
-          stiffness: isPremium ? 250 : 200, 
-          damping: isPremium ? 20 : 25 
+          stiffness: isPremium ? 300 : 200, 
+          damping: isPremium ? 18 : 25 
         }
       }}
       style={sliderStyles}
@@ -82,14 +83,17 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
       <div 
         className={`${inSlider ? isPremium ? 'h-52 sm:h-60 md:h-64' : 'h-48 sm:h-56 md:h-64' : 'h-64 sm:h-72 md:h-80'} bg-cover bg-center relative overflow-hidden
           ${isDisabled ? '' : 'cursor-pointer'}
-          ${isPremium ? 'group-hover:scale-105 transition-transform duration-700' : ''}
         `}
         style={{ 
           backgroundImage: imageUrl ? `url(${imageUrl})` : 'none',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          transition: 'transform 0.3s ease'
+          transition: 'all 0.7s ease',
+          transform: isPremium && !isDisabled ? 'scale(1.0)' : 'scale(1.0)',
+          filter: isPremium && !isDisabled ? 'brightness(1.0)' : 'brightness(1.0)'
         }}
+        data-premium={isPremium ? "true" : "false"}
+        data-highlighted={isHighlighted ? "true" : "false"}
         onClick={handleViewDetails}
       >
         {/* Image gradient overlay for better visibility */}
