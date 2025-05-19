@@ -157,8 +157,9 @@ const Header = ({ cartItems, onCartClick }) => {
           ))}
         </nav>
         
-        <div className="flex items-center space-x-4 sm:space-x-6 md:space-x-8">
-          {/* Login button - Visible on all screen sizes, next to cart */}
+        {/* Header right section: completely restructured for better spacing */}
+        <div className="flex items-center">
+          {/* Login button - With extra margin for clear separation */}
           <motion.button 
             whileHover={{ 
               scale: 1.05, 
@@ -166,11 +167,14 @@ const Header = ({ cartItems, onCartClick }) => {
               textShadow: '0 0 8px rgba(255, 255, 255, 0.8)'
             }}
             whileTap={{ scale: 0.95 }}
-            className="bg-gradient-to-r from-draugr-900 to-draugr-700 text-white px-2 sm:px-3 py-1.5 rounded-md font-medium border border-draugr-600 hover:border-draugr-500 text-xs sm:text-sm transition-all duration-300 mr-6 sm:mr-8 md:mr-10"
+            className="bg-gradient-to-r from-draugr-900 to-draugr-700 text-white px-2 sm:px-3 py-1.5 rounded-md font-medium border border-draugr-600 hover:border-draugr-500 text-xs sm:text-sm transition-all duration-300"
             onClick={() => navigate('/login')}
           >
             ورود
           </motion.button>
+
+          {/* Spacer div to force distance */}
+          <div className="w-6 sm:w-8 md:w-12"></div>
 
           <motion.div 
             whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
@@ -192,6 +196,9 @@ const Header = ({ cartItems, onCartClick }) => {
               </motion.span>
             )}
           </motion.div>
+          
+          {/* Another spacer div */}
+          <div className="w-4 sm:w-6 md:w-8"></div>
           
           {/* Mobile Menu Button - Smaller for phones */}
           <motion.button 
