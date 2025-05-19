@@ -161,6 +161,13 @@ const productItemVariants = {
 const ShopPage = () => {
   const { addToCart } = useOutletContext();
   
+  // NEW: skeleton loading state
+  const [isLoading, setIsLoading] = useState(true);
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 700); // artificial delay for demo
+    return () => clearTimeout(timer);
+  }, []);
+  
   // States for filters
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -638,50 +645,58 @@ const ShopPage = () => {
                   animate="visible"
                   exit={{ opacity: 0 }}
                 >
-                  {sortedProducts.length === 0 ? (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="text-center py-20 bg-ash bg-opacity-30 rounded-lg"
-                    >
-                      <motion.svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        className="h-20 w-20 mx-auto text-draugr-600 mb-4" 
-                        fill="none" 
-                        viewBox="0 0 24 24" 
-                        stroke="currentColor"
-                        initial={{ scale: 0.5, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ delay: 0.1, type: 'spring', stiffness: 150 }}
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9 14h6" />
-                      </motion.svg>
-                      <h3 className="text-xl font-bold text-white mb-2">محصولی یافت نشد</h3>
-                      <p className="text-gray-400 mb-4">در دخمه‌های ما چیزی با این مشخصات پیدا نشد!</p>
-                      <motion.button
-                        onClick={resetFilters}
-                        className="bg-draugr-800 text-white py-2 px-6 rounded-md shadow-horror"
-                        whileHover={{ scale: 1.05, backgroundColor: 'rgba(239, 35, 60, 0.8)' }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        پاک کردن فیلترها
-                      </motion.button>
-                    </motion.div>
-                  ) : (
+                  {isLoading ? (
                     <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-5">
-                      {sortedProducts.map(product => (
-                        <motion.div 
-                          key={product.id} 
-                          variants={productItemVariants}
-                          className="h-full" 
-                        >
-                          <ProductCard
-                            product={product}
-                            onAddToCart={addToCart}
-                          />
-                        </motion.div>
+                      {Array.from({ length: 8 }).map((_, idx) => (
+                        <div key={idx} className="bg-ash/40 rounded-lg h-60 sm:h-72 md:h-80 animate-pulse shadow-inner shadow-black/40"></div>
                       ))}
                     </div>
+                  ) : (
+                    sortedProducts.length === 0 ? (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="text-center py-20 bg-ash bg-opacity-30 rounded-lg"
+                      >
+                        <motion.svg 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          className="h-20 w-20 mx-auto text-draugr-600 mb-4" 
+                          fill="none" 
+                          viewBox="0 0 24 24" 
+                          stroke="currentColor"
+                          initial={{ scale: 0.5, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ delay: 0.1, type: 'spring', stiffness: 150 }}
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9 14h6" />
+                        </motion.svg>
+                        <h3 className="text-xl font-bold text-white mb-2">محصولی یافت نشد</h3>
+                        <p className="text-gray-400 mb-4">در دخمه‌های ما چیزی با این مشخصات پیدا نشد!</p>
+                        <motion.button
+                          onClick={resetFilters}
+                          className="bg-draugr-800 text-white py-2 px-6 rounded-md shadow-horror"
+                          whileHover={{ scale: 1.05, backgroundColor: 'rgba(239, 35, 60, 0.8)' }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          پاک کردن فیلترها
+                        </motion.button>
+                      </motion.div>
+                    ) : (
+                      <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-5">
+                        {sortedProducts.map(product => (
+                          <motion.div 
+                            key={product.id} 
+                            variants={productItemVariants}
+                            className="h-full" 
+                          >
+                            <ProductCard
+                              product={product}
+                              onAddToCart={addToCart}
+                            />
+                          </motion.div>
+                        ))}
+                      </div>
+                    )
                   )}
                 </motion.div>
               ) : (
