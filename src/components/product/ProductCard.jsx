@@ -63,10 +63,16 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
         transition: { 
           type: "spring", 
           stiffness: isPremium ? 300 : 200, 
-          damping: isPremium ? 18 : 25 
+          damping: isPremium ? 18 : 25,
+          boxShadow: { duration: 0.3 }
         }
       }}
-      style={sliderStyles}
+      style={{
+        ...sliderStyles,
+        transformOrigin: 'center center',
+        backfaceVisibility: 'hidden',
+        WebkitBackfaceVisibility: 'hidden',
+      }}
       className={`bg-gradient-to-b ${
         isPremium && inSlider 
           ? 'from-[#251012] via-[#1c0b0f] to-black' 
@@ -88,12 +94,7 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
           backgroundImage: imageUrl ? `url(${imageUrl})` : 'none',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          transition: 'all 0.7s ease',
-          transform: isPremium && !isDisabled ? 'scale(1.0)' : 'scale(1.0)',
-          filter: isPremium && !isDisabled ? 'brightness(1.0)' : 'brightness(1.0)'
         }}
-        data-premium={isPremium ? "true" : "false"}
-        data-highlighted={isHighlighted ? "true" : "false"}
         onClick={handleViewDetails}
       >
         {/* Image gradient overlay for better visibility */}
@@ -171,7 +172,11 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
                     boxShadow: isPremium ? "0 0 12px rgba(225, 45, 64, 0.4)" : undefined
                   }}
                   whileTap={{ scale: 0.9 }}
-                  onClick={handleAddToCart}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAddToCart(e);
+                  }}
+                  style={{ pointerEvents: 'auto' }}
                   className={`
                     ${isPremium && inSlider 
                       ? 'bg-gradient-to-br from-[#d41d31] to-[#8b1d2c] hover:from-[#e12d40] hover:to-[#a1242f]' 
@@ -197,7 +202,11 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
                     boxShadow: isPremium ? "0 0 12px rgba(155, 29, 41, 0.4)" : undefined
                   }}
                   whileTap={{ scale: 0.9 }}
-                  onClick={handleViewDetails}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleViewDetails();
+                  }}
+                  style={{ pointerEvents: 'auto' }}
                   className={`
                     ${isPremium && inSlider 
                       ? 'bg-gradient-to-br from-[#7a131f] to-[#5c0d19] hover:from-[#9b1d29] hover:to-[#68101c]' 

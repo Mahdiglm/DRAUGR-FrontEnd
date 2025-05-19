@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProductCard from './ProductCard';
 import { safeBlur, safeFilterTransition } from '../../utils/animationHelpers';
+import { useNavigate } from 'react-router-dom';
 
 const FeaturedProductSlider = ({ products, onAddToCart }) => {
   const [activeGroup, setActiveGroup] = useState(0);
@@ -18,6 +19,8 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
   const totalGroups = 3;
   // Total number of items for mobile - REDUCED FROM 8 TO 6
   const totalItemsMobile = 6;
+  
+  const navigate = useNavigate();
   
   // Check if we're on mobile
   useEffect(() => {
@@ -313,6 +316,9 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
       transform: perspective(1000px);
       transform-style: preserve-3d;
       transition: all 0.3s ease;
+      will-change: transform;
+      cursor: pointer;
+      transform-origin: center;
     }
     
     .featured-product-active {
@@ -321,6 +327,9 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
       transform-style: preserve-3d;
       transition: all 0.3s ease;
       z-index: 25;
+      will-change: transform;
+      cursor: pointer;
+      transform-origin: center;
     }
     
     .featured-product-active::before {
@@ -331,6 +340,16 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
       background: linear-gradient(135deg, rgba(220, 38, 38, 0.4), rgba(153, 27, 27, 0.1), rgba(220, 38, 38, 0.2));
       border-radius: inherit;
       animation: rotateGradient 6s linear infinite;
+    }
+    
+    /* Ensure all content inside the card behaves as one unit */
+    .featured-product *, .featured-product-active * {
+      pointer-events: none;
+    }
+    
+    /* But keep the card itself interactive */
+    .featured-product, .featured-product-active {
+      pointer-events: auto;
     }
     
     @keyframes rotateGradient {
@@ -348,17 +367,6 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
       border: 1px solid rgba(154, 36, 50, 0.4); /* Darker border */
       position: relative;
       overflow: hidden;
-    }
-    
-    /* Product image hover effects */
-    .featured-product:hover [data-premium="true"] {
-      transform: scale(1.08);
-      filter: brightness(1.1);
-    }
-    
-    .featured-product-active:hover [data-premium="true"] {
-      transform: scale(1.08);
-      filter: brightness(1.15);
     }
   `;
 
@@ -431,9 +439,12 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
                       animate={groupState}
                       transition={{ duration: 0.5 }}
                     >
-                      <div className={`relative rounded-2xl overflow-hidden transition-all group
-                        ${groupState === "foreground" ? "featured-product-active" : "featured-product"}
-                      `}>
+                      <div 
+                        className={`relative rounded-2xl overflow-hidden transition-all group
+                          ${groupState === "foreground" ? "featured-product-active" : "featured-product"}
+                        `}
+                        onClick={() => groupState === "foreground" && navigate(`/product/${product.id}`)}
+                      >
                         {/* Glow effect for featured product */}
                         {groupState === "foreground" && (
                           <motion.div 
