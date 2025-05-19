@@ -14,23 +14,6 @@ const MainLayout = () => {
   const [showMessage, setShowMessage] = useState(false);
   const [message, setMessage] = useState('');
 
-  // Load cart from localStorage on initial render
-  useEffect(() => {
-    const savedCart = localStorage.getItem('draugrCart');
-    if (savedCart) {
-      try {
-        setCartItems(JSON.parse(savedCart));
-      } catch (error) {
-        console.error('Failed to parse saved cart:', error);
-      }
-    }
-  }, []);
-
-  // Save cart to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('draugrCart', JSON.stringify(cartItems));
-  }, [cartItems]);
-
   // Expose these functions through React Context in a real app
   const addToCart = (product) => {
     // Check if the product is already in the cart

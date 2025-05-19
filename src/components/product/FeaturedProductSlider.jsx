@@ -2,48 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProductCard from './ProductCard';
 import { safeBlur, safeFilterTransition } from '../../utils/animationHelpers';
-import { Link } from 'react-router-dom';
-
-// Enhanced lazy loading component for images with better error handling and loading states
-const LazyImage = ({ src, alt, className }) => {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [isError, setIsError] = useState(false);
-
-  const handleLoad = () => {
-    setIsLoaded(true);
-  };
-
-  const handleError = () => {
-    setIsError(true);
-  };
-
-  return (
-    <div className={`${className} relative overflow-hidden`}>
-      {!isLoaded && !isError && (
-        <div className="absolute inset-0 bg-gray-800 animate-pulse flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-draugr-500 border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      )}
-      
-      {isError && (
-        <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
-          <svg className="w-10 h-10 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-        </div>
-      )}
-      
-      <img 
-        src={src} 
-        alt={alt} 
-        className={`${className} ${isLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}
-        loading="lazy"
-        onLoad={handleLoad}
-        onError={handleError}
-      />
-    </div>
-  );
-};
 
 const FeaturedProductSlider = ({ products, onAddToCart }) => {
   const [activeGroup, setActiveGroup] = useState(0);
@@ -389,11 +347,6 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
                 style={{ width: 'calc(100% - 16px)', left: '8px' }} // Centering with padding
               >
                 <div className="w-full max-w-[280px]"> {/* Max width for mobile card */}
-                  <LazyImage 
-                    src={displayProducts[activeIndex].imageUrl} 
-                    alt={displayProducts[activeIndex].name}
-                    className="w-full h-full object-cover"
-                  />
                   <ProductCard 
                     product={displayProducts[activeIndex]} 
                     onAddToCart={onAddToCart} 
@@ -425,11 +378,6 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
                       transition={{ duration: 0.5 }}
                     >
                       <div className="relative rounded-xl overflow-hidden transition-all">
-                        <LazyImage 
-                          src={product.imageUrl} 
-                          alt={product.name}
-                          className="w-full h-full object-cover"
-                        />
                         <ProductCard 
                           product={product} 
                           onAddToCart={groupState === "foreground" ? onAddToCart : null} 
@@ -604,4 +552,4 @@ const FeaturedProductSlider = ({ products, onAddToCart }) => {
   );
 };
 
-export default FeaturedProductSlider;
+export default FeaturedProductSlider; 

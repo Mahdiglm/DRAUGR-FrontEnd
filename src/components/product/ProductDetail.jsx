@@ -3,7 +3,6 @@ import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { products } from '../../utils/mockData';
 import productBackground from '../../assets/BackGround-Product.jpg';
-import LazyImage from '../shared/LazyImage';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -117,7 +116,7 @@ const ProductDetail = () => {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="relative aspect-square rounded-lg overflow-hidden shadow-horror"
             >
-              <LazyImage 
+              <img 
                 src={product.imageUrl} 
                 alt={product.name} 
                 className="w-full h-full object-cover"
