@@ -69,6 +69,24 @@ const FloatingRunes = ({ count = 25 }) => {
   // Norse-inspired rune characters
   const runes = ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᚾ', 'ᛁ', 'ᛃ', 'ᛇ', 'ᛈ', 'ᛉ', 'ᛊ', 'ᛏ', 'ᛒ', 'ᛖ', 'ᛗ', 'ᛚ', 'ᛜ', 'ᛞ', 'ᛟ'];
   
+  // Detect if we're on mobile
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    // Check on initial load
+    checkMobile();
+    
+    // Add event listener for resize
+    window.addEventListener('resize', checkMobile);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
   // PART 1: Create runes that are already in each section at page load
   const immediateRunes = Array.from({ length: 4 }).map((_, sectionIndex) => {
     return Array.from({ length: Math.ceil(count / 4) }).map((_, i) => {
@@ -81,15 +99,17 @@ const FloatingRunes = ({ count = 25 }) => {
       
       // Animation properties
       const rune = runes[Math.floor(Math.random() * runes.length)];
-      const size = Math.random() * 2 + 0.8;
-      const opacity = Math.random() * 0.2 + 0.05; // Reduced opacity range
+      // Similar size for both mobile and desktop, but slightly larger on mobile
+      const size = isMobile ? (Math.random() * 3 + 1.5) : (Math.random() * 2.5 + 1.2);
+      // Higher opacity for both
+      const opacity = isMobile ? (Math.random() * 0.4 + 0.15) : (Math.random() * 0.35 + 0.1);
       const rotateStart = Math.random() * 360;
       const rotateEnd = rotateStart + Math.random() * 360;
       
-      // Faster animation for immediate runes
+      // Animation speeds
       const initialDelay = Math.random() * 2; // Very short initial delay
-      const duration = Math.random() * 10 + 15; // 15-25 seconds (much faster)
-      const horizontalDrift = (Math.random() - 0.5) * 20;
+      const duration = isMobile ? (Math.random() * 15 + 25) : (Math.random() * 12 + 20); // Slightly slower on mobile
+      const horizontalDrift = (Math.random() - 0.5) * (isMobile ? 10 : 15); // Similar drift
       
       return {
         id: `immediate-${sectionIndex}-${i}`,
@@ -119,15 +139,17 @@ const FloatingRunes = ({ count = 25 }) => {
       
       // Create animation properties
       const rune = runes[Math.floor(Math.random() * runes.length)];
-      const size = Math.random() * 2 + 0.8;
-      const opacity = Math.random() * 0.2 + 0.05; // Reduced opacity range
+      // Similar size for both mobile and desktop, but slightly larger on mobile
+      const size = isMobile ? (Math.random() * 3 + 1.5) : (Math.random() * 2.5 + 1.2);
+      // Higher opacity for both
+      const opacity = isMobile ? (Math.random() * 0.4 + 0.15) : (Math.random() * 0.35 + 0.1);
       const rotateStart = Math.random() * 360;
       const rotateEnd = rotateStart + Math.random() * 360;
       
-      // Faster animations with staggered starts
-      const initialDelay = Math.random() * 15; // Shorter delay range
-      const duration = Math.random() * 15 + 20; // 20-35 second journey (faster)
-      const horizontalDrift = (Math.random() - 0.5) * 30;
+      // Animation speeds
+      const initialDelay = Math.random() * (isMobile ? 10 : 12); // Similar delay
+      const duration = isMobile ? (Math.random() * 20 + 30) : (Math.random() * 18 + 25); // Similar speed
+      const horizontalDrift = (Math.random() - 0.5) * (isMobile ? 15 : 20); // Similar drift
       
       return {
         id: `stream-${sectionIndex}-${i}`,
@@ -160,6 +182,10 @@ const FloatingRunes = ({ count = 25 }) => {
             fontSize: `${runeConfig.size}rem`,
             opacity: runeConfig.opacity,
             zIndex: 0,
+            // Add text shadow for better visibility on all backgrounds, slightly less intense on desktop
+            textShadow: isMobile ? 
+              '0 0 8px rgba(0, 0, 0, 0.7)' : 
+              '0 0 6px rgba(0, 0, 0, 0.5)',
           }}
           animate={{ 
             y: '-150vh', // Move upward beyond the top of the page
@@ -300,10 +326,10 @@ const AboutPage = () => {
   
   // Check device capabilities on mount
   useEffect(() => {
-    // Simple performance detection - can be improved
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    // Better mobile detection with screen size check
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
     const isOldBrowser = !window.IntersectionObserver || !window.requestAnimationFrame;
-    setIsLowPerformance(isMobile || isOldBrowser);
+    setIsLowPerformance(isMobile && isOldBrowser); // Only set low performance if both mobile AND old browser
   }, []);
 
   return (
@@ -315,11 +341,10 @@ const AboutPage = () => {
       />
       
       {/* Global background with runes - positioned to cover all content sections */}
-      {!isLowPerformance && (
-        <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none" style={{ zIndex: 1 }}>
-          <FloatingRunes count={isLowPerformance ? 10 : 70} />
-        </div>
-      )}
+      {/* Always render, but adjust count based on performance */}
+      <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none" style={{ zIndex: 1 }}>
+        <FloatingRunes count={isLowPerformance ? 15 : 40} />
+      </div>
       
       {/* Hero section */}
       <section className="w-full h-screen relative flex items-center justify-center overflow-hidden">
