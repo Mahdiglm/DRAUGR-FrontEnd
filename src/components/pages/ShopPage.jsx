@@ -10,98 +10,63 @@ const shopBackground = "https://images.unsplash.com/photo-1574015974293-817f0ebf
 
 // Custom CSS for glowing effects and enhanced styling
 const enhancedStyles = `
-  .sidebar-horror {
-    background: linear-gradient(145deg, #1a1a1a, #111111);
-    box-shadow: 
-      0 10px 30px -10px rgba(0, 0, 0, 0.9),
-      0 0 10px 2px rgba(154, 36, 50, 0.3),
-      inset 0 0 15px rgba(0, 0, 0, 0.5),
-      inset 0 0 10px rgba(239, 35, 60, 0.2); /* Added inner red glow */
-    border: 1px solid rgba(154, 36, 50, 0.4); /* Darker border */
-    position: relative;
-    overflow: hidden;
+  .sidebar-minimal {
+    background: rgba(12, 12, 14, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(40, 40, 45, 0.8);
+    border-radius: 0.75rem;
+    transition: all 0.3s ease;
   }
   
-  .sidebar-horror::before {
+  .sidebar-minimal:hover {
+    border-color: rgba(70, 70, 75, 0.8);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  }
+  
+  .checkbox-minimal {
+    appearance: none;
+    width: 1rem;
+    height: 1rem;
+    border: 1px solid rgba(154, 36, 50, 0.5);
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+    position: relative;
+    cursor: pointer;
+    background: rgba(20, 20, 22, 0.6);
+  }
+  
+  .checkbox-minimal:checked {
+    background: rgb(154, 36, 50);
+    border-color: rgb(154, 36, 50);
+  }
+  
+  .checkbox-minimal:checked::after {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
+    left: 5px;
+    top: 2px;
+    width: 5px;
+    height: 9px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  
+  .filter-divider {
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(239, 35, 60, 0.6), transparent);
-    animation: glowPulse 4s ease-in-out infinite;
-    z-index: 1;
+    background: rgba(40, 40, 45, 0.5);
+    margin: 1rem 0;
   }
   
-  .sidebar-horror::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 5px;
-    background: linear-gradient(to right, transparent, rgba(154, 36, 50, 0.4), transparent);
-    filter: blur(3px);
-    z-index: 0;
+  .input-minimal {
+    background: rgba(20, 20, 22, 0.6);
+    border: 1px solid rgba(40, 40, 45, 0.7);
+    transition: all 0.2s ease;
   }
   
-  @keyframes glowPulse {
-    0% { opacity: 0.3; }
-    50% { opacity: 0.8; }
-    100% { opacity: 0.3; }
-  }
-  
-  .horror-divider {
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(239, 35, 60, 0.4), transparent);
-    margin: 16px 0;
-    position: relative;
-  }
-  
-  .horror-divider::after {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 1px;
-    background: inherit;
-    top: 1px;
-    left: 0;
-    filter: blur(1px);
-  }
-  
-  .filter-content {
-    position: relative;
-    z-index: 10;
-  }
-  
-  .filter-title {
-    text-shadow: 0 0 8px rgba(239, 35, 60, 0.6);
-    position: relative;
-    display: inline-block;
-  }
-  
-  .filter-title::after {
-    content: '';
-    position: absolute;
-    bottom: -4px;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(239, 35, 60, 0.8), transparent);
-  }
-  
-  .noise-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='a'%3E%3CfeTurbulence baseFrequency='.8' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)' opacity='.08'/%3E%3C/svg%3E");
-    opacity: 0.2;
-    mix-blend-mode: overlay;
-    pointer-events: none;
-    z-index: 2;
+  .input-minimal:focus {
+    border-color: rgba(154, 36, 50, 0.5);
+    box-shadow: 0 0 0 1px rgba(154, 36, 50, 0.1);
   }
 `;
 
@@ -406,113 +371,162 @@ const ShopPage = () => {
         
         <div className="flex flex-col md:flex-row">
           
-          {/* Filters Sidebar - Desktop */}
+          {/* Redesigned Filters Sidebar - Desktop */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
             className="hidden md:block w-64 lg:w-72 relative h-fit sticky top-24"
           >
-            <div className="sidebar-horror p-5 rounded-lg">
-              <div className="filter-content">
-                <motion.h3 
-                  className="text-xl font-bold text-white mb-4 flex items-center filter-title"
-                  animate={{ textShadow: ['0 0 4px rgba(239,35,60,0.3)', '0 0 8px rgba(239,35,60,0.6)', '0 0 4px rgba(239,35,60,0.3)'] }}
-                  transition={{ duration: 4, repeat: Infinity }}
-                >
+            <div className="sidebar-minimal p-5">
+              {/* Filter Header */}
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-white text-lg font-medium flex items-center space-x-2 space-x-reverse">
                   <FilterIcon />
                   <span className="mr-2">فیلترها</span>
-                </motion.h3>
-                
-                <div className="space-y-6">
-                  <div>
-                    <h4 className="text-lg font-medium text-white mb-2 filter-title">جستجو</h4>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="جستجوی محصولات..."
-                        className="w-full bg-ash bg-opacity-70 text-white py-2 px-3 pr-10 rounded-md focus:outline-none focus:ring-1 focus:ring-draugr-500 focus:shadow-[0_0_10px_rgba(239,35,60,0.3)]"
-                      />
-                      <span className="absolute left-3 top-2.5 text-gray-400">
-                        <SearchIcon />
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="horror-divider"></div>
-                  
-                  <div>
-                    <h4 className="text-lg font-medium text-white mb-2 filter-title">دسته‌بندی‌ها</h4>
-                    <motion.div 
-                      className="space-y-1 max-h-48 overflow-y-auto scrollbar-hide"
-                    >
-                      {expandedCategories.map(category => (
-                        <div key={category.id} className="flex items-center">
-                          <input
-                            type="checkbox"
-                            id={`category-${category.slug}`}
-                            checked={selectedCategories.includes(category.slug)}
-                            onChange={() => toggleCategory(category.slug)}
-                            className="hidden"
-                          />
-                          <motion.label
-                            htmlFor={`category-${category.slug}`}
-                            className={`block w-full px-3 py-2 rounded-md cursor-pointer transition-all ${
-                              selectedCategories.includes(category.slug)
-                                ? 'bg-draugr-800 text-white shadow-[0_0_10px_rgba(239,35,60,0.3)] border-l-2 border-draugr-500'
-                                : 'text-gray-300 hover:bg-ash hover:bg-opacity-60 hover:border-l-2 hover:border-draugr-600'
-                            }`}
-                            whileHover={{ 
-                              x: selectedCategories.includes(category.slug) ? 0 : 4,
-                              backgroundColor: selectedCategories.includes(category.slug) ? 'rgba(239, 35, 60, 0.9)' : 'rgba(239, 35, 60, 0.15)',
-                              boxShadow: selectedCategories.includes(category.slug) ? "0 0 12px rgba(239,35,60,0.5)" : "0 0 8px rgba(239,35,60,0.3)",
-                              transition: { duration: 0.15 }
-                            }}
-                            whileTap={{ scale: 0.98 }}
-                          >
-                            {category.name}
-                          </motion.label>
-                        </div>
-                      ))}
-                    </motion.div>
-                  </div>
-                  
-                  <div className="horror-divider"></div>
-                  
-                  <div>
-                    <h4 className="text-lg font-medium text-white mb-2 filter-title">مرتب‌سازی</h4>
-                    <select
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value)}
-                      className="w-full bg-ash bg-opacity-70 text-white py-2 px-3 rounded-md focus:outline-none focus:ring-1 focus:ring-draugr-500"
-                    >
-                      <option value="newest">جدیدترین</option>
-                      <option value="price-low">ارزان‌ترین</option>
-                      <option value="price-high">گران‌ترین</option>
-                      <option value="name">بر اساس نام</option>
-                    </select>
-                  </div>
-                  
-                  <div className="horror-divider"></div>
-                  
-                  <div className="pt-2">
-                    <motion.button
-                      onClick={resetFilters}
-                      className="w-full bg-vampire-dark text-white py-2 px-4 rounded-md border border-draugr-700 hover:bg-vampire-primary transition-all hover:shadow-[0_0_15px_rgba(239,35,60,0.4)]"
-                      whileHover={{ 
-                        scale: 1.03,
-                        boxShadow: "0 0 15px rgba(239,35,60,0.4)"
-                      }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      پاک کردن فیلترها
-                    </motion.button>
-                  </div>
+                </h3>
+                {(selectedCategories.length > 0 || searchTerm) && (
+                  <motion.button
+                    onClick={resetFilters}
+                    className="text-gray-400 text-xs hover:text-draugr-300 transition-colors p-1.5 hover:underline"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    پاک کردن
+                  </motion.button>
+                )}
+              </div>
+              
+              {/* Search Input */}
+              <div className="mb-5">
+                <label htmlFor="search-filter" className="block text-sm font-medium text-gray-300 mb-1.5">
+                  جستجو
+                </label>
+                <div className="relative">
+                  <input
+                    id="search-filter"
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="نام محصول..."
+                    className="w-full input-minimal text-white py-2 px-3 pr-8 rounded-md focus:outline-none text-sm"
+                  />
+                  <span className="absolute left-2.5 top-2.5 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </span>
                 </div>
               </div>
-              <div className="noise-overlay"></div>
+              
+              <div className="filter-divider"></div>
+              
+              {/* Sort By */}
+              <div className="mb-5">
+                <label htmlFor="sort-filter" className="block text-sm font-medium text-gray-300 mb-1.5">
+                  مرتب‌سازی
+                </label>
+                <select
+                  id="sort-filter"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full input-minimal text-white py-2 px-3 rounded-md focus:outline-none text-sm appearance-none bg-no-repeat"
+                  style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23a3a3a3' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`, backgroundPosition: 'left 0.5rem center', backgroundSize: '1.5em 1.5em'}}
+                >
+                  <option value="newest">جدیدترین</option>
+                  <option value="price-low">ارزان‌ترین</option>
+                  <option value="price-high">گران‌ترین</option>
+                  <option value="name">بر اساس نام</option>
+                </select>
+              </div>
+              
+              <div className="filter-divider"></div>
+              
+              {/* Category Filter */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-300 mb-2.5 flex items-center justify-between">
+                  <span>دسته‌بندی‌ها</span>
+                  <span className="text-xs text-gray-500">{selectedCategories.length} مورد</span>
+                </h4>
+                <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-draugr-600/40 scrollbar-track-transparent">
+                  {expandedCategories.map(category => (
+                    <div key={category.id} className="flex items-center">
+                      <label htmlFor={`category-filter-${category.slug}`} className="flex items-center text-sm text-gray-300 cursor-pointer py-1.5 px-1 hover:text-white transition-colors w-full rounded hover:bg-white/5">
+                        <input
+                          type="checkbox"
+                          id={`category-filter-${category.slug}`}
+                          checked={selectedCategories.includes(category.slug)}
+                          onChange={() => toggleCategory(category.slug)}
+                          className="checkbox-minimal ml-2"
+                        />
+                        {category.name}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Active Filters Summary */}
+              {(selectedCategories.length > 0 || searchTerm) && (
+                <>
+                  <div className="filter-divider"></div>
+                  <div className="text-sm">
+                    <h4 className="font-medium text-gray-300 mb-2">فیلترهای فعال</h4>
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedCategories.map(categorySlug => {
+                        const categoryName = expandedCategories.find(c => c.slug === categorySlug)?.name;
+                        return (
+                          <motion.span 
+                            key={categorySlug}
+                            layout
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            className="inline-flex items-center bg-draugr-900/70 text-white text-xs px-2 py-1 rounded-md"
+                          >
+                            {categoryName}
+                            <button
+                              onClick={() => toggleCategory(categorySlug)}
+                              className="ml-1.5 text-gray-400 hover:text-white"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                              </svg>
+                            </button>
+                          </motion.span>
+                        );
+                      })}
+                      
+                      {searchTerm && (
+                        <motion.span 
+                          layout
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                          className="inline-flex items-center bg-draugr-900/70 text-white text-xs px-2 py-1 rounded-md"
+                        >
+                          "{searchTerm}"
+                          <button
+                            onClick={() => setSearchTerm('')}
+                            className="ml-1.5 text-gray-400 hover:text-white"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                        </motion.span>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+              
+              <div className="filter-divider"></div>
+              
+              {/* Results Count */}
+              <div className="text-center text-sm text-gray-400">
+                {sortedProducts.length} محصول یافت شد
+              </div>
             </div>
           </motion.div>
           
@@ -948,7 +962,7 @@ const ShopPage = () => {
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
                     className="w-full bg-draugr-charcoal text-white py-3 px-4 rounded-lg border border-draugr-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 focus:shadow-[0_0_15px_rgba(239,35,60,0.3)] transition-all duration-150 appearance-none bg-no-repeat"
-                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23a3a3a3' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`, backgroundPosition: 'right 0.75rem center', backgroundSize: '1.5em 1.5em'}}
+                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23a3a3a3' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`, backgroundPosition: 'left 0.5rem center', backgroundSize: '1.5em 1.5em'}}
                   >
                     <option value="newest" className="bg-draugr-deepcharcoal text-white">جدیدترین</option>
                     <option value="price-low" className="bg-draugr-deepcharcoal text-white">ارزان‌ترین</option>
