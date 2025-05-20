@@ -5,8 +5,8 @@ import { useOutletContext } from 'react-router-dom';
 import ProductCard from '../product/ProductCard';
 import { products, categories } from '../../utils/mockData';
 
-// Using only a fallback background image URL
-const shopBackground = "https://images.unsplash.com/photo-1574015974293-817f0ebf0e95?q=80&w=1800&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
+// Import background image
+import shopBgImage from '../../assets/Background-Hero.jpg';
 
 // Custom CSS for glowing effects and enhanced styling
 const enhancedStyles = `
@@ -329,7 +329,7 @@ const ShopPage = () => {
       transition={{ duration: 0.8 }}
       className="min-h-screen w-full relative overflow-hidden py-8 md:py-12"
       style={{
-        backgroundImage: `url(${shopBackground})`,
+        backgroundImage: `url(${shopBgImage})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
