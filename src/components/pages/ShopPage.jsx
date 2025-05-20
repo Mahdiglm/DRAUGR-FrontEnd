@@ -92,10 +92,10 @@ const SearchIcon = () => (
 // Expanded category options for the demo
 const expandedCategories = [
   ...categories,
-  { id: 5, name: "کتاب‌های نادر", slug: "rare-books" },
-  { id: 6, name: "جواهرات", slug: "jewelry" },
-  { id: 7, name: "ابزارها", slug: "tools" },
-  { id: 8, name: "گیاهان", slug: "herbs" }
+  { id: 9, name: "کتاب‌های نادر", slug: "rare-books" },
+  { id: 10, name: "جواهرات", slug: "jewelry" },
+  { id: 11, name: "ابزارها", slug: "tools" },
+  { id: 12, name: "گیاهان", slug: "herbs" }
 ];
 
 // Animation variants for product grid
