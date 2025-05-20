@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { HashRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import './App.css'
 
@@ -16,6 +16,9 @@ if (typeof window !== 'undefined') {
 if (typeof document !== 'undefined') {
   document.body.classList.add('theme-draugr');
   document.body.style.backgroundColor = '#121212';
+  // Force apply critical styles directly
+  document.body.style.color = 'rgba(255, 255, 255, 0.9)';
+  document.body.style.backgroundImage = "url(\"data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='pattern' width='40' height='40' viewBox='0 0 40 40' patternUnits='userSpaceOnUse' patternTransform='rotate(45)'%3E%3Crect width='100%25' height='100%25' fill='%23121212'/%3E%3Ccircle cx='20' cy='20' r='1' fill='%23ff0000' fill-opacity='0.05'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23pattern)'/%3E%3C/svg%3E\")";
 }
 
 // Components
@@ -36,7 +39,7 @@ import SignUp from './components/auth/SignUp'
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>
-      <BrowserRouter>
+      <HashRouter>
         <Routes>
           <Route path="/" element={<MainLayout />}>
             <Route index element={<HomePage />} />
@@ -48,7 +51,7 @@ createRoot(document.getElementById('root')).render(
             <Route path="signup" element={<SignUp />} />
           </Route>
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
     </ErrorBoundary>
   </StrictMode>,
 )
