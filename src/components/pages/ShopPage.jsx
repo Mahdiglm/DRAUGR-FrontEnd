@@ -11,33 +11,51 @@ import shopBgImage from '../../assets/Background-Hero.jpg';
 // Custom CSS for glowing effects and enhanced styling
 const enhancedStyles = `
   .sidebar-minimal {
-    background: rgba(12, 12, 14, 0.7);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(40, 40, 45, 0.8);
-    border-radius: 0.75rem;
+    background: rgba(12, 12, 14, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(60, 60, 65, 0.3);
+    border-radius: 0.85rem;
     transition: all 0.3s ease;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2), 
+                inset 0 0 40px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .sidebar-minimal::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(139, 0, 0, 0.2), transparent);
+    opacity: 0.5;
   }
   
   .sidebar-minimal:hover {
-    border-color: rgba(70, 70, 75, 0.8);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    border-color: rgba(139, 0, 0, 0.2);
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3),
+                inset 0 0 40px rgba(0, 0, 0, 0.2);
   }
   
   .checkbox-minimal {
     appearance: none;
     width: 1rem;
     height: 1rem;
-    border: 1px solid rgba(154, 36, 50, 0.5);
+    border: 1px solid rgba(154, 36, 50, 0.4);
     border-radius: 0.25rem;
     transition: all 0.2s ease;
     position: relative;
     cursor: pointer;
-    background: rgba(20, 20, 22, 0.6);
+    background: rgba(20, 20, 22, 0.4);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
   }
   
   .checkbox-minimal:checked {
-    background: rgb(154, 36, 50);
+    background: linear-gradient(to bottom right, rgb(154, 36, 50), rgb(101, 24, 33));
     border-color: rgb(154, 36, 50);
+    box-shadow: 0 0 5px rgba(154, 36, 50, 0.4);
   }
   
   .checkbox-minimal:checked::after {
@@ -54,39 +72,110 @@ const enhancedStyles = `
   
   .filter-divider {
     height: 1px;
-    background: rgba(40, 40, 45, 0.5);
-    margin: 1rem 0;
+    background: linear-gradient(90deg, transparent, rgba(60, 60, 65, 0.4), transparent);
+    margin: 1.1rem 0;
+    position: relative;
   }
   
   .input-minimal {
-    background: rgba(20, 20, 22, 0.6);
-    border: 1px solid rgba(40, 40, 45, 0.7);
-    transition: all 0.2s ease;
-    border-radius: 0.375rem;
-    padding: 0.5rem 1rem;
-    color: #fff;
+    background: rgba(20, 20, 22, 0.4);
+    border: 1px solid rgba(60, 60, 65, 0.4);
+    border-radius: 0.5rem;
+    padding: 0.6rem 1rem;
+    color: rgba(255, 255, 255, 0.9);
     font-size: 0.875rem;
     width: 100%;
+    transition: all 0.25s ease;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(5px);
   }
   
   .input-minimal:focus {
     border-color: rgba(154, 36, 50, 0.5);
-    box-shadow: 0 0 0 1px rgba(154, 36, 50, 0.1);
+    box-shadow: 0 0 0 1px rgba(154, 36, 50, 0.1), inset 0 1px 3px rgba(0, 0, 0, 0.1);
     outline: none;
+    background: rgba(25, 25, 28, 0.6);
   }
   
   .input-minimal::placeholder {
-    color: rgba(156, 163, 175, 0.5);
+    color: rgba(156, 163, 175, 0.4);
   }
   
   /* Custom styling for select dropdown */
   .select-minimal {
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23a3a3a3' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
-    background-position: left 0.5rem center;
+    background-position: left 0.75rem center;
     background-repeat: no-repeat;
-    background-size: 1.5em 1.5em;
-    padding-left: 2.5rem;
+    background-size: 1.25em 1.25em;
+    padding-left: 2.75rem;
+    border-radius: 0.5rem;
+    background-color: rgba(20, 20, 22, 0.4);
+    border: 1px solid rgba(60, 60, 65, 0.4);
+    padding: 0.6rem 1rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.875rem;
+    width: 100%;
+    transition: all 0.25s ease;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+  }
+  
+  .select-minimal:focus {
+    border-color: rgba(154, 36, 50, 0.5);
+    box-shadow: 0 0 0 1px rgba(154, 36, 50, 0.1), inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    outline: none;
+  }
+  
+  /* Category item hover effect */
+  .category-item {
+    position: relative;
+    transition: all 0.2s ease;
+    border-radius: 0.375rem;
+    overflow: hidden;
+  }
+  
+  .category-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+  
+  /* Filter tags */
+  .filter-tag {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(40, 40, 45, 0.5);
+    border: 1px solid rgba(154, 36, 50, 0.2);
+    border-radius: 0.375rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-right: 0.25rem;
+    margin-bottom: 0.25rem;
+    transition: all 0.2s ease;
+  }
+  
+  .filter-tag:hover {
+    background: rgba(154, 36, 50, 0.2);
+    border-color: rgba(154, 36, 50, 0.4);
+  }
+  
+  .filter-tag-close {
+    margin-left: 0.375rem;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+  }
+  
+  .filter-tag-close:hover {
+    opacity: 1;
+  }
+  
+  /* Text gradient for headings */
+  .text-gradient {
+    background: linear-gradient(to right, rgba(255, 255, 255, 0.9), rgba(154, 36, 50, 0.7));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
   }
 `;
 
@@ -400,10 +489,10 @@ const ShopPage = () => {
           >
             <div className="sidebar-minimal p-5">
               {/* Filter Header */}
-              <div className="mb-4 flex items-center justify-between">
+              <div className="mb-5 flex items-center justify-between border-b border-draugr-800/30 pb-3">
                 <h3 className="text-white text-lg font-medium flex items-center space-x-2 space-x-reverse">
                   <FilterIcon />
-                  <span className="mr-2">فیلترها</span>
+                  <span className="mr-2 text-gradient">فیلترها</span>
                 </h3>
                 {(selectedCategories.length > 0 || searchTerm) && (
                   <motion.button
@@ -419,7 +508,7 @@ const ShopPage = () => {
               
               {/* Search Input */}
               <div className="mb-5">
-                <label htmlFor="search-filter" className="block text-sm font-medium text-gray-300 mb-1.5">
+                <label htmlFor="search-filter" className="block text-sm font-medium text-gradient mb-1.5">
                   جستجو
                 </label>
                 <div className="relative">
@@ -443,7 +532,7 @@ const ShopPage = () => {
               
               {/* Sort By */}
               <div className="mb-5">
-                <label htmlFor="sort-filter" className="block text-sm font-medium text-gray-300 mb-1.5">
+                <label htmlFor="sort-filter" className="block text-sm font-medium text-gradient mb-1.5">
                   مرتب‌سازی
                 </label>
                 <select
@@ -463,14 +552,14 @@ const ShopPage = () => {
               
               {/* Category Filter */}
               <div>
-                <h4 className="text-sm font-medium text-gray-300 mb-2.5 flex items-center justify-between">
+                <h4 className="text-sm font-medium text-gradient mb-2.5 flex items-center justify-between">
                   <span>دسته‌بندی‌ها</span>
                   <span className="text-xs text-gray-500">{selectedCategories.length} مورد</span>
                 </h4>
                 <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-draugr-600/40 scrollbar-track-transparent">
                   {expandedCategories.map(category => (
                     <div key={category.id} className="flex items-center">
-                      <label htmlFor={`category-filter-${category.slug}`} className="flex items-center text-sm text-gray-300 cursor-pointer py-1.5 px-1 hover:text-white transition-colors w-full rounded hover:bg-white/5">
+                      <label htmlFor={`category-filter-${category.slug}`} className="flex items-center text-sm text-gray-300 cursor-pointer py-1.5 px-1 hover:text-white transition-colors w-full category-item">
                         <input
                           type="checkbox"
                           id={`category-filter-${category.slug}`}
@@ -490,7 +579,7 @@ const ShopPage = () => {
                 <>
                   <div className="filter-divider"></div>
                   <div className="text-sm">
-                    <h4 className="font-medium text-gray-300 mb-2">فیلترهای فعال</h4>
+                    <h4 className="font-medium text-gradient mb-2">فیلترهای فعال</h4>
                     <div className="flex flex-wrap gap-1.5">
                       {selectedCategories.map(categorySlug => {
                         const categoryName = expandedCategories.find(c => c.slug === categorySlug)?.name;
@@ -501,12 +590,12 @@ const ShopPage = () => {
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.8 }}
-                            className="inline-flex items-center bg-draugr-900/70 text-white text-xs px-2 py-1 rounded-md"
+                            className="filter-tag"
                           >
                             {categoryName}
                             <button
                               onClick={() => toggleCategory(categorySlug)}
-                              className="ml-1.5 text-gray-400 hover:text-white"
+                              className="filter-tag-close"
                             >
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -522,12 +611,12 @@ const ShopPage = () => {
                           initial={{ opacity: 0, scale: 0.8 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.8 }}
-                          className="inline-flex items-center bg-draugr-900/70 text-white text-xs px-2 py-1 rounded-md"
+                          className="filter-tag"
                         >
                           "{searchTerm}"
                           <button
                             onClick={() => setSearchTerm('')}
-                            className="ml-1.5 text-gray-400 hover:text-white"
+                            className="filter-tag-close"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
                               <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -617,18 +706,17 @@ const ShopPage = () => {
                           initial={{ opacity: 0, scale: 0.8 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.8 }}
-                          className="inline-flex items-center bg-vampire-primary text-white px-2.5 py-1 rounded-md text-sm shadow-md"
-                          whileHover={{ backgroundColor: "rgba(239, 35, 60, 1)" }}
+                          className="filter-tag"
                         >
                           {categoryName}
-                          <motion.button 
+                          <button
                             onClick={() => toggleCategory(categorySlug)}
-                            className="mr-1.5 text-white hover:text-gray-200"
-                            whileHover={{scale:1.2}}
-                            whileTap={{scale:0.9}}
+                            className="filter-tag-close"
                           >
-                            ×
-                          </motion.button>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                          </button>
                         </motion.span>
                       );
                     })}
@@ -639,18 +727,17 @@ const ShopPage = () => {
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.8 }}
-                        className="inline-flex items-center bg-vampire-primary text-white px-2.5 py-1 rounded-md text-sm shadow-md"
-                        whileHover={{ backgroundColor: "rgba(239, 35, 60, 1)" }}
+                        className="filter-tag"
                       >
                         جستجو: "{searchTerm}"
-                        <motion.button 
+                        <button
                           onClick={() => setSearchTerm('')}
-                          className="mr-1.5 text-white hover:text-gray-200"
-                          whileHover={{scale:1.2}}
-                          whileTap={{scale:0.9}}
+                          className="filter-tag-close"
                         >
-                          ×
-                        </motion.button>
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </button>
                       </motion.span>
                     )}
                   </AnimatePresence>
