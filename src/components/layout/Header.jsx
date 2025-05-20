@@ -366,6 +366,11 @@ const NavLink = ({ to, label, isNested = false, navItem }) => {
     };
   }, [isHovering]);
   
+  // Handle click to navigate to the shop page even when nested
+  const handleClick = () => {
+    navigate(to);
+  };
+  
   return (
     <div 
       className="relative"
@@ -376,10 +381,10 @@ const NavLink = ({ to, label, isNested = false, navItem }) => {
       <motion.div
         whileHover={{ y: -2 }}
         whileTap={{ y: 0 }}
-        className={`cursor-pointer text-white text-sm font-medium px-2 py-2 mx-1 rounded-md transition-colors duration-200 relative group ${
+        className={`cursor-pointer text-white text-sm font-medium px-3 py-2 mx-1 rounded-md transition-colors duration-200 relative group ${
           isHovering ? 'text-draugr-500 bg-black bg-opacity-80' : 'hover:text-draugr-300'
         }`}
-        onClick={() => isNested ? null : navigate(to)}
+        onClick={handleClick}
       >
         <div className="flex items-center space-x-1 rtl:space-x-reverse">
           <span>{label}</span>
@@ -392,8 +397,8 @@ const NavLink = ({ to, label, isNested = false, navItem }) => {
               stroke="currentColor"
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        )}
+            </svg>
+          )}
         </div>
         {/* Animated red underline on hover */}
         <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-draugr-500 transition-all duration-300 group-hover:w-full"></span>
@@ -401,33 +406,36 @@ const NavLink = ({ to, label, isNested = false, navItem }) => {
       
       {/* Enhanced dropdown menu with multiple columns for shop */}
       {isNested && isHovering && navItem.name === "فروشگاه" && (
-            <motion.div
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 10 }}
           transition={{ duration: 0.2 }}
-          className="absolute top-full right-0 mt-1 py-2 bg-black border border-draugr-800 shadow-lg rounded-md z-10 overflow-hidden min-w-fit text-right"
+          className="absolute top-full right-0 mt-1 py-3 bg-gradient-to-b from-black via-draugr-950 to-black border border-draugr-800 shadow-lg rounded-md z-10 overflow-hidden min-w-fit text-right backdrop-blur-md"
           style={{ 
             minWidth: '650px',
             maxHeight: '80vh',
-            overflowY: 'auto'
+            overflowY: 'auto',
+            boxShadow: '0 10px 25px rgba(139, 0, 0, 0.3), 0 0 10px rgba(255, 0, 0, 0.15) inset'
           }}
-            >
+        >
           {/* Multi-column layout for Shop */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 p-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-4">
             {navItem.subcategories.map((category, idx) => (
-              <div key={idx} className="p-2">
-                <h3 className="text-draugr-500 font-bold text-sm pb-2 border-b border-draugr-900 mb-2">
+              <div key={idx} className="p-3 bg-black bg-opacity-50 rounded-lg border border-draugr-900 hover:border-draugr-700 transition-colors duration-300">
+                <h3 className="text-draugr-500 font-bold text-sm pb-2 border-b border-draugr-800 mb-3 flex items-center">
+                  <span className="bg-draugr-900 w-1.5 h-1.5 rounded-full mr-2"></span>
                   {category.name}
                 </h3>
-                <ul className="space-y-1">
+                <ul className="space-y-2">
                   {category.items && category.items.length > 0 ? (
                     category.items.map((item, itemIdx) => (
                       <li key={itemIdx}>
                         <Link 
                           to={`/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}/${item.toLowerCase().replace(/\s+/g, '-')}`}
-                          className="block px-4 py-1.5 text-sm text-gray-300 hover:bg-draugr-900 hover:text-white transition-colors rounded"
+                          className="block px-4 py-1.5 text-sm text-gray-300 hover:bg-draugr-900 hover:text-white transition-all duration-200 rounded group flex items-center"
                         >
+                          <span className="w-1 h-1 bg-draugr-500 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                           {item}
                         </Link>
                       </li>
@@ -436,18 +444,29 @@ const NavLink = ({ to, label, isNested = false, navItem }) => {
                     <li>
                       <Link 
                         to={`/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}`}
-                        className="block px-4 py-1.5 text-sm text-gray-300 hover:bg-draugr-900 hover:text-white transition-colors rounded"
-                  >
+                        className="block px-4 py-1.5 text-sm text-gray-300 hover:bg-draugr-900 hover:text-white transition-all duration-200 rounded group flex items-center"
+                      >
+                        <span className="w-1 h-1 bg-draugr-500 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                         {category.name}
                       </Link>
                     </li>
                   )}
                 </ul>
               </div>
-                ))}
-              </div>
-            </motion.div>
-          )}
+            ))}
+          </div>
+          
+          {/* View All Products Button */}
+          <div className="mt-2 px-4 pb-2 text-center">
+            <Link 
+              to="/shop"
+              className="inline-block px-5 py-2 bg-gradient-to-r from-draugr-900 to-draugr-800 text-white text-sm font-medium rounded-md hover:from-draugr-800 hover:to-draugr-700 transition-all duration-300 border border-draugr-700 hover:border-draugr-600"
+            >
+              مشاهده همه محصولات
+            </Link>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 };
@@ -471,6 +490,8 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
       navigate(to);
       if (onClick) onClick();
     } else {
+      // Both navigate and toggle expand for Shop
+      navigate(to);
       toggleExpanded();
     }
   };
@@ -478,95 +499,111 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
   return (
     <div className="border-b border-draugr-800 last:border-b-0">
       <div 
-        className="flex justify-between items-center py-2 px-1.5 text-white hover:bg-draugr-900 transition-all duration-200 rounded-sm cursor-pointer"
+        className="flex justify-between items-center py-2.5 px-2 text-white hover:bg-draugr-900 transition-all duration-200 rounded-sm cursor-pointer"
         onClick={handleClick}
       >
         <span className="text-sm font-medium">{label}</span>
         {isNested && (
           <motion.svg 
             xmlns="http://www.w3.org/2000/svg" 
-            className="h-4 w-4" 
+            className="h-4 w-4 text-draugr-500" 
             fill="none" 
             viewBox="0 0 24 24" 
             stroke="currentColor"
             animate={{ rotate: isExpanded ? 180 : 0 }}
             transition={{ duration: 0.3 }}
           >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </motion.svg>
         )}
       </div>
       
       {/* Only show subcategories for فروشگاه (Shop) */}
       {isNested && isExpanded && navItem.name === "فروشگاه" && (
-            <motion.div
+        <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-          className="bg-draugr-950 pl-3 py-1.5"
+          transition={{ duration: 0.3 }}
+          className="bg-draugr-950 rounded-md mx-2 my-2 overflow-hidden border border-draugr-900"
         >
           {/* Special accordion style for Shop in mobile view */}
-          <div className="space-y-0.5">
+          <div className="space-y-1 p-1.5">
             {navItem.subcategories.map((category, idx) => (
-              <div key={idx} className="border-b border-draugr-800 last:border-b-0 pb-1.5">
+              <div key={idx} className="bg-black bg-opacity-50 rounded-md overflow-hidden mb-1.5 last:mb-0">
                 <div 
-                  className="flex justify-between items-center py-1.5 px-1.5 text-white cursor-pointer"
+                  className="flex justify-between items-center py-2 px-3 text-white cursor-pointer border-b border-draugr-800 hover:bg-draugr-900 transition-colors"
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleCategory(idx);
                   }}
-                  >
-                  <span className="text-xs font-medium text-draugr-400">{category.name}</span>
+                >
+                  <span className="text-xs font-medium text-draugr-400 flex items-center">
+                    <span className="w-1.5 h-1.5 bg-draugr-500 rounded-full mr-2"></span>
+                    {category.name}
+                  </span>
                   {category.items && category.items.length > 0 && (
-                      <motion.svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                      className="h-3.5 w-3.5" 
-                        fill="none" 
-                        viewBox="0 0 24 24" 
-                        stroke="currentColor"
+                    <motion.svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      className="h-3.5 w-3.5 text-draugr-500" 
+                      fill="none" 
+                      viewBox="0 0 24 24" 
+                      stroke="currentColor"
                       animate={{ rotate: activeCategory === idx ? 180 : 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </motion.svg>
-                    )}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </motion.svg>
+                  )}
                 </div>
                   
                 {category.items && category.items.length > 0 && activeCategory === idx && (
-                        <motion.div
+                  <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="pr-1.5 pl-3 py-0.5"
-                        >
+                    className="py-1.5 bg-draugr-950 bg-opacity-70"
+                  >
                     {category.items.map((item, itemIdx) => (
                       <Link 
                         key={itemIdx}
                         to={`/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}/${item.toLowerCase().replace(/\s+/g, '-')}`}
-                        className="block py-1 text-xs text-gray-400 hover:text-gray-200"
+                        className="block py-1.5 px-3 text-xs text-gray-400 hover:text-white hover:bg-draugr-900 transition-all duration-200 group flex items-center"
                         onClick={onClick}
                       >
+                        <span className="w-1 h-1 bg-draugr-500 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                         {item}
                       </Link>
-                          ))}
-                        </motion.div>
-                      )}
+                    ))}
+                  </motion.div>
+                )}
                 
                 {(!category.items || category.items.length === 0) && (
                   <Link 
                     to={`/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}`}
-                    className="block py-1 px-1.5 text-xs text-gray-400 hover:text-gray-200"
+                    className="block py-1.5 px-3 text-xs text-gray-400 hover:text-white hover:bg-draugr-900 transition-all duration-200 rounded-b-md group flex items-center"
                     onClick={onClick}
                   >
+                    <span className="w-1 h-1 bg-draugr-500 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                     {category.name}
                   </Link>
-                  )}
-                </div>
-              ))}
+                )}
+              </div>
+            ))}
           </div>
-            </motion.div>
+          
+          {/* View All Products Button for Mobile */}
+          <div className="p-2 border-t border-draugr-800 bg-black bg-opacity-30">
+            <Link 
+              to="/shop"
+              className="block w-full text-center px-3 py-1.5 bg-gradient-to-r from-draugr-900 to-draugr-800 text-white text-xs font-medium rounded-md hover:from-draugr-800 hover:to-draugr-700 transition-all duration-300 border border-draugr-700"
+              onClick={onClick}
+            >
+              مشاهده همه محصولات
+            </Link>
+          </div>
+        </motion.div>
       )}
     </div>
   );
