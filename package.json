@@ -9,9 +9,9 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "setup-deploy": "git config --global user.email \"your-email@example.com\" ; git config --global user.name \"Your Name\"",
+    "setup-deploy": "git config --global user.email \"mahdi.gholami1384@gmail.com\" ; git config --global user.name \"Mahdiglm\"",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist -r https://github.com/Mahdiglm/DRAUGR-FrontEnd.git"
+    "deploy": "gh-pages -d dist --repo https://github.com/Mahdiglm/DRAUGR-FrontEnd.git"
   },
   "dependencies": {
     "@react-three/drei": "^10.0.7",
