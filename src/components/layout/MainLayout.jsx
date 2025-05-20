@@ -116,33 +116,6 @@ const MainLayout = () => {
     };
   }, []);
 
-  // Audio effect on page load
-  useEffect(() => {
-    const playSpookySound = () => {
-      const audio = new Audio();
-      audio.src = "https://www.soundjay.com/human/sounds/heartbeat-01.mp3"; // Heartbeat sound URL
-      audio.volume = 0.2;
-      audio.play().catch(e => console.log("Auto-play prevented:", e));
-      
-      // Event listener for user interaction to play sound
-      const handleInteraction = () => {
-        audio.play().catch(e => console.log("Play prevented:", e));
-        document.removeEventListener('click', handleInteraction);
-      };
-      
-      document.addEventListener('click', handleInteraction);
-      
-      return () => {
-        audio.pause();
-        audio.src = "";
-        document.removeEventListener('click', handleInteraction);
-      };
-    };
-    
-    const cleanup = playSpookySound();
-    return cleanup;
-  }, []);
-
   return (
     <div className="w-full font-vazirmatn bg-midnight dark">
       <ScrollToTop />
