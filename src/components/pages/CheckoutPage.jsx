@@ -961,6 +961,93 @@ const CheckoutProgress = ({ currentStep }) => {
   );
 };
 
+// Checkout Side Summary
+const CheckoutSummary = ({ cartItems }) => {
+  const subtotal = cartItems.reduce((total, item) => {
+    return total + (item.price * (item.quantity || 1));
+  }, 0);
+  
+  const shipping = subtotal > 1000000 ? 0 : 50000;
+  const total = subtotal + shipping;
+  
+  const isMobile = isMobileDevice();
+  
+  return (
+    <div className="space-y-6">
+      {cartItems.length > 0 ? (
+        <div className="bg-black/40 rounded-lg border border-gray-800 overflow-hidden">
+          {/* Scrollable items container */}
+          <div className="max-h-60 overflow-y-auto horror-scrollbar">
+            {cartItems.map(item => (
+              <div key={item.id} className="flex items-center gap-3 p-4 border-b border-gray-800 hover:bg-black/20 transition duration-200">
+                <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0 border border-gray-800 shadow-md relative">
+                  <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                  <div className="absolute bottom-1 right-1 bg-draugr-900 text-white text-xs px-1.5 py-0.5 rounded font-bold">
+                    {item.quantity || 1}
+                  </div>
+                </div>
+                
+                <div className="flex-1 min-w-0 pr-1">
+                  <h4 className="font-medium text-white truncate">{item.name}</h4>
+                  <div className="flex justify-between items-center mt-1">
+                    <span className="text-xs text-gray-400">{item.quantity || 1} × {item.price.toLocaleString('fa-IR')}</span>
+                    <span className="font-bold text-white">{((item.price) * (item.quantity || 1)).toLocaleString('fa-IR')}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Cart totals */}
+          <div className="border-t border-gray-800 divide-y divide-gray-800/70">
+            {/* Subtotal */}
+            <div className="flex justify-between items-center p-4 bg-gradient-to-r from-black/20 to-transparent">
+              <span className="text-gray-300">جمع جزء</span>
+              <span className="font-medium text-white">{subtotal.toLocaleString('fa-IR')} تومان</span>
+            </div>
+            
+            {/* Shipping */}
+            <div className="flex justify-between items-center p-4 bg-gradient-to-r from-black/20 to-transparent">
+              <span className="text-gray-300">هزینه ارسال</span>
+              <span>
+                {shipping === 0 
+                  ? <span className="text-green-500 font-medium">رایگان</span> 
+                  : <span className="text-white font-medium">{shipping.toLocaleString('fa-IR')} تومان</span>
+                }
+              </span>
+            </div>
+            
+            {/* Total */}
+            <div className="flex justify-between items-center p-4 bg-gradient-to-r from-vampire-dark/50 to-black/40">
+              <span className="font-bold text-white">مجموع</span>
+              <div className="flex items-baseline">
+                <span className="text-xl font-bold text-draugr-500">{total.toLocaleString('fa-IR')}</span>
+                <span className="text-xs text-draugr-400 mr-1">تومان</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-black/40 rounded-lg border border-gray-800 p-5 text-center">
+          <p className="text-gray-400">سبد خرید شما خالی است</p>
+        </div>
+      )}
+      
+      {/* Security notes */}
+      <div className="bg-gradient-to-br from-midnight/70 to-black/50 rounded-lg p-4 border border-gray-800">
+        <div className="flex items-center mb-2">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-draugr-500 ml-2" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944A11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          </svg>
+          <h4 className="font-medium text-white">پرداخت امن</h4>
+        </div>
+        <p className="text-xs text-gray-400">تمامی تراکنش‌های شما از طریق درگاه‌های معتبر و با پروتکل‌های امنیتی انجام می‌شود.</p>
+      </div>
+    </div>
+  );
+};
+
 // Main checkout page component with optimizations
 const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -1199,6 +1286,21 @@ const CheckoutPage = () => {
               <div className={`${isMobile ? 'mt-6' : ''}`}>
                 {/* Custom loading state for summary component */}
                 <div className="backdrop-blur-sm bg-gradient-to-b from-black/60 to-vampire-dark/80 p-6 rounded-xl shadow-horror border border-draugr-900/40 h-fit relative">
+                  {/* Decorative corner accents */}
+                  <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-draugr-500/30 rounded-tr-lg opacity-80" />
+                  <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-draugr-500/30 rounded-bl-lg opacity-80" />
+                  
+                  <div className="flex items-center mb-6">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-draugr-900 mr-3">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-draugr-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-xl font-bold text-white">
+                      <span className="text-draugr-400">خلاصه</span> سفارش
+                    </h3>
+                  </div>
+                  
                   {/* Cart summary content */}
                   <CheckoutSummary cartItems={cartItems} />
                 </div>
