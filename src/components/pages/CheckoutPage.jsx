@@ -1,6 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useOutletContext, Link } from 'react-router-dom';
+
+// Detect if running on a mobile device
+const isMobileDevice = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+};
 
 // Step components
 const ShippingForm = ({ formData, updateFormData, goToNext }) => {
@@ -16,11 +21,24 @@ const ShippingForm = ({ formData, updateFormData, goToNext }) => {
   const isFormValid = formData.firstName && formData.lastName && formData.phone && 
                       formData.address && formData.postalCode;
   
+  // Simplified animations for mobile
+  const isMobile = isMobileDevice();
+  const animProps = isMobile ? 
+    { 
+      initial: { opacity: 0 },
+      animate: { opacity: 1 },
+      exit: { opacity: 0 }
+    } : 
+    {
+      initial: { opacity: 0, x: 20 },
+      animate: { opacity: 1, x: 0 },
+      exit: { opacity: 0, x: -20 }
+    };
+  
   return (
     <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
+      {...animProps}
+      transition={{ duration: isMobile ? 0.3 : 0.5 }}
       className="backdrop-blur-sm bg-gradient-to-b from-black/60 to-vampire-dark/80 p-6 sm:p-8 rounded-xl shadow-horror border border-draugr-900/40"
     >
       <div className="flex items-center mb-6">
@@ -191,8 +209,8 @@ const ShippingForm = ({ formData, updateFormData, goToNext }) => {
         
         <div className="pt-4 mt-3">
           <motion.button
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
+            whileHover={isMobile ? {} : { scale: 1.01 }}
+            whileTap={isMobile ? {} : { scale: 0.99 }}
             onClick={goToNext}
             disabled={!isFormValid}
             className={`w-full py-3.5 rounded-lg font-medium text-white flex items-center justify-center relative overflow-hidden ${
@@ -207,7 +225,7 @@ const ShippingForm = ({ formData, updateFormData, goToNext }) => {
                 <path fillRule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
               </svg>
             </span>
-            {isFormValid && (
+            {isFormValid && !isMobile && (
               <span className="absolute inset-0 w-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-shimmer"></span>
             )}
           </motion.button>
@@ -811,7 +829,7 @@ const OrderConfirmation = ({ orderNumber, navigate }) => {
   );
 };
 
-// Checkout progress indicator
+// Checkout progress indicator with reduced animations for mobile
 const CheckoutProgress = ({ currentStep }) => {
   const steps = [
     { num: 1, title: 'اطلاعات ارسال' },
@@ -819,6 +837,8 @@ const CheckoutProgress = ({ currentStep }) => {
     { num: 3, title: 'مرور سفارش' },
     { num: 4, title: 'تایید' }
   ];
+  
+  const isMobile = isMobileDevice();
   
   return (
     <div className="mb-10">
@@ -830,14 +850,14 @@ const CheckoutProgress = ({ currentStep }) => {
           return (
             <div key={step.num} className="flex flex-col items-center relative z-10">
               <motion.div 
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ 
-                  scale: 1, 
-                  opacity: 1,
-                }}
+                initial={isMobile ? { opacity: 0 } : { scale: 0.8, opacity: 0 }}
+                animate={isMobile ? 
+                  { opacity: 1 } : 
+                  { scale: 1, opacity: 1 }
+                }
                 transition={{ 
-                  delay: index * 0.1,
-                  duration: 0.4, 
+                  delay: isMobile ? 0 : index * 0.1,
+                  duration: isMobile ? 0.2 : 0.4, 
                   ease: "backOut" 
                 }}
                 className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold relative ${
@@ -848,8 +868,8 @@ const CheckoutProgress = ({ currentStep }) => {
                     : 'bg-gradient-to-br from-gray-700 to-gray-900'
                 }`}
               >
-                {/* Glow effect for active step */}
-                {isActive && (
+                {/* Glow effect for active step - simplified for mobile */}
+                {isActive && !isMobile && (
                   <motion.div 
                     className="absolute inset-0 rounded-full blur-md"
                     animate={{ 
@@ -867,20 +887,14 @@ const CheckoutProgress = ({ currentStep }) => {
                   />
                 )}
                 
-                {/* Pulse effect for completed steps */}
-                {isCompleted && (
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.6 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="absolute inset-0 rounded-full bg-draugr-600/20"
-                  />
-                )}
-                
                 {isCompleted ? (
                   <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                    initial={isMobile ? { opacity: 0 } : { scale: 0 }}
+                    animate={isMobile ? { opacity: 1 } : { scale: 1 }}
+                    transition={isMobile ? 
+                      { duration: 0.2 } : 
+                      { type: "spring", stiffness: 400, damping: 15 }
+                    }
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
@@ -892,15 +906,14 @@ const CheckoutProgress = ({ currentStep }) => {
               </motion.div>
               
               <motion.div 
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0 }}
                 animate={{ 
-                  opacity: 1, 
-                  y: 0,
+                  opacity: 1,
                   color: isActive || isCompleted ? '#ffffff' : 'rgba(156, 163, 175, 0.8)'
                 }}
                 transition={{ 
-                  delay: index * 0.1 + 0.1,
-                  duration: 0.4
+                  delay: isMobile ? 0 : index * 0.1 + 0.1,
+                  duration: isMobile ? 0.2 : 0.4
                 }}
                 className="mt-3 text-sm whitespace-nowrap font-medium"
               >
@@ -913,7 +926,7 @@ const CheckoutProgress = ({ currentStep }) => {
         {/* Progress line - decorative line connecting the steps */}
         <div className="absolute top-6 left-0 right-0 h-0.5 bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 -translate-y-1/2 z-0 rounded-full"></div>
         
-        {/* Animated progress overlay */}
+        {/* Animated progress overlay - simplified for mobile */}
         <motion.div 
           className="absolute top-6 left-0 h-0.5 bg-gradient-to-r from-draugr-700 via-draugr-500 to-draugr-700 -translate-y-1/2 z-0 rounded-full overflow-hidden"
           style={{ 
@@ -924,134 +937,31 @@ const CheckoutProgress = ({ currentStep }) => {
             width: `${(currentStep - 1) / (steps.length - 1) * 100}%`,
           }}
           transition={{ 
-            duration: 0.5,
+            duration: isMobile ? 0.3 : 0.5,
             ease: "easeInOut"
           }}
         >
-          {/* Animated shimmer effect */}
-          <motion.div 
-            className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-draugr-300/30 to-transparent"
-            animate={{ 
-              x: ['-100%', '100%'] 
-            }}
-            transition={{ 
-              repeat: Infinity, 
-              duration: 2,
-              ease: "linear"
-            }}
-          />
+          {/* Animated shimmer effect - only on desktop */}
+          {!isMobile && (
+            <motion.div 
+              className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-draugr-300/30 to-transparent"
+              animate={{ 
+                x: ['-100%', '100%'] 
+              }}
+              transition={{ 
+                repeat: Infinity, 
+                duration: 2,
+                ease: "linear"
+              }}
+            />
+          )}
         </motion.div>
       </div>
     </div>
   );
 };
 
-// Checkout Side Summary
-const CheckoutSummary = ({ cartItems }) => {
-  const subtotal = cartItems.reduce((total, item) => {
-    return total + (item.price * (item.quantity || 1));
-  }, 0);
-  
-  const shipping = subtotal > 1000000 ? 0 : 50000;
-  const total = subtotal + shipping;
-  
-  return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="backdrop-blur-sm bg-gradient-to-b from-black/60 to-vampire-dark/80 p-6 rounded-xl shadow-horror border border-draugr-900/40 h-fit relative"
-    >
-      {/* Decorative corner accents */}
-      <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-draugr-500/30 rounded-tr-lg opacity-80" />
-      <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-draugr-500/30 rounded-bl-lg opacity-80" />
-      
-      <div className="flex items-center mb-6">
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-draugr-900 mr-3">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-draugr-500" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
-          </svg>
-        </div>
-        <h3 className="text-xl font-bold text-white">
-          <span className="text-draugr-400">خلاصه</span> سفارش
-        </h3>
-      </div>
-      
-      <div className="space-y-6">
-        {cartItems.length > 0 ? (
-          <div className="bg-black/40 rounded-lg border border-gray-800 overflow-hidden">
-            {/* Scrollable items container */}
-            <div className="max-h-60 overflow-y-auto horror-scrollbar">
-              {cartItems.map(item => (
-                <div key={item.id} className="flex items-center gap-3 p-4 border-b border-gray-800 hover:bg-black/20 transition duration-200">
-                  <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0 border border-gray-800 shadow-md relative">
-                    <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                    <div className="absolute bottom-1 right-1 bg-draugr-900 text-white text-xs px-1.5 py-0.5 rounded font-bold">
-                      {item.quantity || 1}
-                    </div>
-                  </div>
-                  
-                  <div className="flex-1 min-w-0 pr-1">
-                    <h4 className="font-medium text-white truncate">{item.name}</h4>
-                    <div className="flex justify-between items-center mt-1">
-                      <span className="text-xs text-gray-400">{item.quantity || 1} × {item.price.toLocaleString('fa-IR')}</span>
-                      <span className="font-bold text-white">{((item.price) * (item.quantity || 1)).toLocaleString('fa-IR')}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            {/* Cart totals */}
-            <div className="border-t border-gray-800 divide-y divide-gray-800/70">
-              {/* Subtotal */}
-              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-black/20 to-transparent">
-                <span className="text-gray-300">جمع جزء</span>
-                <span className="font-medium text-white">{subtotal.toLocaleString('fa-IR')} تومان</span>
-              </div>
-              
-              {/* Shipping */}
-              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-black/20 to-transparent">
-                <span className="text-gray-300">هزینه ارسال</span>
-                <span>
-                  {shipping === 0 
-                    ? <span className="text-green-500 font-medium">رایگان</span> 
-                    : <span className="text-white font-medium">{shipping.toLocaleString('fa-IR')} تومان</span>
-                  }
-                </span>
-              </div>
-              
-              {/* Total */}
-              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-vampire-dark/50 to-black/40">
-                <span className="font-bold text-white">مجموع</span>
-                <div className="flex items-baseline">
-                  <span className="text-xl font-bold text-draugr-500">{total.toLocaleString('fa-IR')}</span>
-                  <span className="text-xs text-draugr-400 mr-1">تومان</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="bg-black/40 rounded-lg border border-gray-800 p-5 text-center">
-            <p className="text-gray-400">سبد خرید شما خالی است</p>
-          </div>
-        )}
-        
-        {/* Security notes */}
-        <div className="bg-gradient-to-br from-midnight/70 to-black/50 rounded-lg p-4 border border-gray-800">
-          <div className="flex items-center mb-2">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-draugr-500 ml-2" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
-            <h4 className="font-medium text-white">پرداخت امن</h4>
-          </div>
-          <p className="text-xs text-gray-400">تمامی تراکنش‌های شما از طریق درگاه‌های معتبر و با پروتکل‌های امنیتی انجام می‌شود.</p>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
-
+// Main checkout page component with optimizations
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const { cartItems } = useOutletContext();
@@ -1067,6 +977,22 @@ const CheckoutPage = () => {
     gateway: 'shaparak'
   });
   const [orderNumber, setOrderNumber] = useState('');
+  const [isMobile, setIsMobile] = useState(false);
+  const [hasScrolled, setHasScrolled] = useState(false);
+  
+  // Detect mobile device on mount and window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(isMobileDevice());
+    };
+    
+    handleResize(); // Check on mount
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
   
   // Calculate total price
   const totalPrice = cartItems.reduce((total, item) => {
@@ -1079,8 +1005,23 @@ const CheckoutPage = () => {
   };
   
   // Navigation functions
-  const goToNext = () => setCurrentStep(prev => prev + 1);
-  const goToPrevious = () => setCurrentStep(prev => prev - 1);
+  const goToNext = () => {
+    // Scroll to top on mobile when changing steps
+    if (isMobile && !hasScrolled) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setHasScrolled(true);
+    }
+    setCurrentStep(prev => prev + 1);
+  };
+  
+  const goToPrevious = () => {
+    // Scroll to top on mobile when changing steps
+    if (isMobile && !hasScrolled) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setHasScrolled(true);
+    }
+    setCurrentStep(prev => prev - 1);
+  };
   
   // Handle order placement
   const placeOrder = () => {
@@ -1089,6 +1030,11 @@ const CheckoutPage = () => {
     const randomOrderNumber = Math.floor(10000000 + Math.random() * 90000000).toString();
     setOrderNumber(randomOrderNumber);
     setCurrentStep(4); // Move to confirmation step
+    
+    // Scroll to top on mobile
+    if (isMobile) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
   
   // Redirect if cart is empty
@@ -1098,9 +1044,56 @@ const CheckoutPage = () => {
     }
   }, [cartItems, navigate, currentStep]);
   
+  // Reset scroll detection on step change
+  useEffect(() => {
+    setHasScrolled(false);
+  }, [currentStep]);
+  
+  // Import components conditionally based on current step to reduce initial load
+  let StepComponent;
+  
+  if (currentStep === 1) {
+    StepComponent = (
+      <ShippingForm 
+        key="shipping"
+        formData={formData} 
+        updateFormData={updateFormData} 
+        goToNext={goToNext} 
+      />
+    );
+  } else if (currentStep === 2) {
+    StepComponent = (
+      <PaymentForm 
+        key="payment"
+        formData={formData} 
+        updateFormData={updateFormData} 
+        goToNext={goToNext} 
+        goToPrevious={goToPrevious} 
+      />
+    );
+  } else if (currentStep === 3) {
+    StepComponent = (
+      <ReviewOrder 
+        key="review"
+        formData={formData} 
+        cartItems={cartItems} 
+        totalPrice={totalPrice}
+        goToPrevious={goToPrevious} 
+        placeOrder={placeOrder} 
+      />
+    );
+  } else {
+    StepComponent = (
+      <OrderConfirmation 
+        orderNumber={orderNumber} 
+        navigate={navigate} 
+      />
+    );
+  }
+  
   return (
     <div 
-      className="min-h-screen py-16 relative"
+      className="min-h-screen py-8 md:py-16 relative"
       style={{
         background: 'linear-gradient(to bottom, #0c0c0c, #0a0a0a)'
       }}
@@ -1114,52 +1107,61 @@ const CheckoutPage = () => {
         .animate-shimmer {
           animation: shimmer 2s infinite;
         }
+        /* Optimized scrollbar for checkout page */
+        .horror-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .horror-scrollbar::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.2);
+          border-radius: 10px;
+        }
+        .horror-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(239, 35, 60, 0.3);
+          border-radius: 10px;
+        }
+        .horror-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(239, 35, 60, 0.5);
+        }
       `}</style>
       
-      {/* Atmospheric background effects */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        {/* Noise texture background */}
-        <div 
-          className="absolute inset-0 bg-center bg-cover opacity-5"
-          style={{ 
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
-            backgroundSize: '24px 24px',
-            backdropFilter: 'blur(100px)'
-          }}
-        />
-        
-        {/* Subtle fog effect */}
-        <motion.div
-          className="absolute inset-0 opacity-30"
-          animate={{
-            backgroundPosition: ['0% 0%', '100% 100%']
-          }}
-          transition={{
-            duration: 40,
-            ease: "linear",
-            repeat: Infinity,
-            repeatType: "reverse"
-          }}
-          style={{
-            backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 2000 2000\' fill=\'none\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\' opacity=\'0.4\'/%3E%3C/svg%3E")',
-            backgroundSize: '200% 200%'
-          }}
-        />
-        
-        {/* Blood veins decoration */}
-        <div className="absolute inset-0 opacity-10"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0c3.38 23.16 9.5 56.27 36.5 64C66 74 80 56 80 40L100 0H0z' fill='%23ef233c' fill-opacity='0.05'/%3E%3C/svg%3E")`,
-            backgroundSize: '80px 80px'
-          }}
-        ></div>
-      </div>
+      {/* Atmospheric background effects - simplified for mobile */}
+      {!isMobile && (
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          {/* Noise texture background */}
+          <div 
+            className="absolute inset-0 bg-center bg-cover opacity-5"
+            style={{ 
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
+              backgroundSize: '24px 24px',
+              backdropFilter: 'blur(100px)'
+            }}
+          />
+          
+          {/* Subtle fog effect */}
+          <motion.div
+            className="absolute inset-0 opacity-30"
+            animate={{
+              backgroundPosition: ['0% 0%', '100% 100%']
+            }}
+            transition={{
+              duration: 40,
+              ease: "linear",
+              repeat: Infinity,
+              repeatType: "reverse"
+            }}
+            style={{
+              backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 2000 2000\' fill=\'none\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\' opacity=\'0.4\'/%3E%3C/svg%3E")',
+              backgroundSize: '200% 200%'
+            }}
+          />
+        </div>
+      )}
       
       <div className="container mx-auto px-4 relative z-10">
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
+          transition={{ duration: isMobile ? 0.2 : 0.4 }}
         >
           <Link to="/shop" className="inline-flex items-center text-draugr-500 hover:text-draugr-400 mb-8 group">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 transition-transform duration-300 group-hover:-translate-x-1" viewBox="0 0 20 20" fill="currentColor">
@@ -1178,8 +1180,8 @@ const CheckoutPage = () => {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.2 }}
-            className="mx-auto max-w-4xl mb-10"
+            transition={{ duration: isMobile ? 0.2 : 0.4, delay: isMobile ? 0 : 0.2 }}
+            className="mx-auto max-w-4xl mb-6 md:mb-10"
           >
             <CheckoutProgress currentStep={currentStep} />
           </motion.div>
@@ -1187,48 +1189,24 @@ const CheckoutPage = () => {
         
         <div className="mx-auto max-w-6xl">
           {currentStep < 4 ? (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
               <div className="lg:col-span-2">
                 <AnimatePresence mode="wait">
-                  {currentStep === 1 && (
-                    <ShippingForm 
-                      key="shipping"
-                      formData={formData} 
-                      updateFormData={updateFormData} 
-                      goToNext={goToNext} 
-                    />
-                  )}
-                  
-                  {currentStep === 2 && (
-                    <PaymentForm 
-                      key="payment"
-                      formData={formData} 
-                      updateFormData={updateFormData} 
-                      goToNext={goToNext} 
-                      goToPrevious={goToPrevious} 
-                    />
-                  )}
-                  
-                  {currentStep === 3 && (
-                    <ReviewOrder 
-                      key="review"
-                      formData={formData} 
-                      cartItems={cartItems} 
-                      totalPrice={totalPrice}
-                      goToPrevious={goToPrevious} 
-                      placeOrder={placeOrder} 
-                    />
-                  )}
+                  {StepComponent}
                 </AnimatePresence>
               </div>
               
-              <div>
-                <CheckoutSummary cartItems={cartItems} />
+              <div className={`${isMobile ? 'mt-6' : ''}`}>
+                {/* Custom loading state for summary component */}
+                <div className="backdrop-blur-sm bg-gradient-to-b from-black/60 to-vampire-dark/80 p-6 rounded-xl shadow-horror border border-draugr-900/40 h-fit relative">
+                  {/* Cart summary content */}
+                  <CheckoutSummary cartItems={cartItems} />
+                </div>
               </div>
             </div>
           ) : (
             <div className="max-w-2xl mx-auto">
-              <OrderConfirmation orderNumber={orderNumber} navigate={navigate} />
+              {StepComponent}
             </div>
           )}
         </div>
