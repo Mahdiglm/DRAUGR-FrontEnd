@@ -7,7 +7,7 @@ import skullImg from '../../assets/skull.jpg';
 // Section component with fade-in and parallax effects
 const StorySection = ({ children, className, overlayOpacity = 0.7, dark = true }) => {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: false, amount: 0.3 });
+  const isInView = useInView(ref, { once: true, amount: 0.3 });
 
   return (
     <motion.section
@@ -37,7 +37,7 @@ const StorySection = ({ children, className, overlayOpacity = 0.7, dark = true }
 // Text reveal animation component
 const RevealText = ({ children, delay = 0, className = "" }) => {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: false, amount: 0.3 });
+  const isInView = useInView(ref, { once: true, amount: 0.3 });
   
   return (
     <motion.div
@@ -81,8 +81,8 @@ const FloatingRunes = ({ count = 25 }) => {
       
       // Animation properties
       const rune = runes[Math.floor(Math.random() * runes.length)];
-      const size = Math.random() * 3 + 0.8;
-      const opacity = Math.random() * 0.4 + 0.1;
+      const size = Math.random() * 2 + 0.8;
+      const opacity = Math.random() * 0.2 + 0.05; // Reduced opacity range
       const rotateStart = Math.random() * 360;
       const rotateEnd = rotateStart + Math.random() * 360;
       
@@ -119,8 +119,8 @@ const FloatingRunes = ({ count = 25 }) => {
       
       // Create animation properties
       const rune = runes[Math.floor(Math.random() * runes.length)];
-      const size = Math.random() * 3 + 0.8;
-      const opacity = Math.random() * 0.4 + 0.1;
+      const size = Math.random() * 2 + 0.8;
+      const opacity = Math.random() * 0.2 + 0.05; // Reduced opacity range
       const rotateStart = Math.random() * 360;
       const rotateEnd = rotateStart + Math.random() * 360;
       
@@ -317,7 +317,7 @@ const AboutPage = () => {
       {/* Global background with runes - positioned to cover all content sections */}
       {!isLowPerformance && (
         <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none" style={{ zIndex: 1 }}>
-          <FloatingRunes count={isLowPerformance ? 20 : 150} />
+          <FloatingRunes count={isLowPerformance ? 10 : 70} />
         </div>
       )}
       
