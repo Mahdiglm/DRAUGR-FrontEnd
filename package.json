@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "setup-deploy": "git config --global user.email \"mahdiglm@users.noreply.github.com\" ; git config --global user.name \"Mahdiglm\"",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d dist -r https://github.com/Mahdiglm/DRAUGR-FrontEnd.git -b gh-pages",
+    "manual-deploy": "node manual-deploy.js"
   },
   "dependencies": {
     "@react-three/drei": "^10.0.7",
