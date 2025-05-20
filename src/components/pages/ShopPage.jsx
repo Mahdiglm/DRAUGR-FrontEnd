@@ -62,11 +62,31 @@ const enhancedStyles = `
     background: rgba(20, 20, 22, 0.6);
     border: 1px solid rgba(40, 40, 45, 0.7);
     transition: all 0.2s ease;
+    border-radius: 0.375rem;
+    padding: 0.5rem 1rem;
+    color: #fff;
+    font-size: 0.875rem;
+    width: 100%;
   }
   
   .input-minimal:focus {
     border-color: rgba(154, 36, 50, 0.5);
     box-shadow: 0 0 0 1px rgba(154, 36, 50, 0.1);
+    outline: none;
+  }
+  
+  .input-minimal::placeholder {
+    color: rgba(156, 163, 175, 0.5);
+  }
+  
+  /* Custom styling for select dropdown */
+  .select-minimal {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23a3a3a3' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+    background-position: left 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-left: 2.5rem;
   }
 `;
 
@@ -409,9 +429,9 @@ const ShopPage = () => {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="نام محصول..."
-                    className="w-full input-minimal text-white py-2 px-3 pr-8 rounded-md focus:outline-none text-sm"
+                    className="input-minimal"
                   />
-                  <span className="absolute left-2.5 top-2.5 text-gray-400">
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
@@ -430,8 +450,7 @@ const ShopPage = () => {
                   id="sort-filter"
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full input-minimal text-white py-2 px-3 rounded-md focus:outline-none text-sm appearance-none bg-no-repeat"
-                  style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23a3a3a3' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`, backgroundPosition: 'left 0.5rem center', backgroundSize: '1.5em 1.5em'}}
+                  className="select-minimal"
                 >
                   <option value="newest">جدیدترین</option>
                   <option value="price-low">ارزان‌ترین</option>
@@ -552,7 +571,7 @@ const ShopPage = () => {
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="bg-vampire-dark text-white py-1 px-3 rounded-md focus:outline-none focus:ring-1 focus:ring-draugr-500"
+                    className="select-minimal"
                   >
                     <option value="newest">جدیدترین</option>
                     <option value="price-low">ارزان‌ترین</option>
@@ -907,7 +926,7 @@ const ShopPage = () => {
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       placeholder="نام محصول یا کلمه کلیدی..."
-                      className="w-full bg-draugr-charcoal text-white placeholder-gray-500 py-3 px-4 pr-10 rounded-lg border border-draugr-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 focus:shadow-[0_0_15px_rgba(239,35,60,0.3)] transition-all duration-150"
+                      className="input-minimal pr-10"
                     />
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
                       <SearchIcon />
@@ -961,8 +980,7 @@ const ShopPage = () => {
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="w-full bg-draugr-charcoal text-white py-3 px-4 rounded-lg border border-draugr-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 focus:shadow-[0_0_15px_rgba(239,35,60,0.3)] transition-all duration-150 appearance-none bg-no-repeat"
-                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23a3a3a3' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`, backgroundPosition: 'left 0.5rem center', backgroundSize: '1.5em 1.5em'}}
+                    className="select-minimal"
                   >
                     <option value="newest" className="bg-draugr-deepcharcoal text-white">جدیدترین</option>
                     <option value="price-low" className="bg-draugr-deepcharcoal text-white">ارزان‌ترین</option>
