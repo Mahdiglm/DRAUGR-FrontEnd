@@ -381,7 +381,7 @@ const NavLink = ({ to, label, isNested = false, navItem }) => {
       <motion.div
         whileHover={{ y: -2 }}
         whileTap={{ y: 0 }}
-        className={`cursor-pointer text-white text-sm font-medium px-3 py-2 mx-1 rounded-md transition-colors duration-200 relative group ${
+        className={`cursor-pointer text-white text-sm font-medium px-3 py-2 mx-1 rounded-md transition-all duration-200 relative group ${
           isHovering ? 'text-draugr-500 bg-black bg-opacity-80' : 'hover:text-draugr-300'
         }`}
         onClick={handleClick}
@@ -391,51 +391,56 @@ const NavLink = ({ to, label, isNested = false, navItem }) => {
           {isNested && (
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              className={`h-4 w-4 transition-transform ${isHovering ? 'rotate-180' : ''}`} 
+              className={`h-3.5 w-3.5 transition-transform ${isHovering ? 'rotate-180' : ''}`} 
               fill="none" 
               viewBox="0 0 24 24" 
               stroke="currentColor"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
             </svg>
           )}
         </div>
-        {/* Animated red underline on hover */}
-        <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-draugr-500 transition-all duration-300 group-hover:w-full"></span>
+        {/* Animated red underline on hover - more subtle */}
+        <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-draugr-500 transition-all duration-300 group-hover:w-full"></span>
       </motion.div>
       
-      {/* Enhanced dropdown menu with multiple columns for shop */}
+      {/* Enhanced dropdown menu with premium minimal design */}
       {isNested && isHovering && navItem.name === "فروشگاه" && (
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 10 }}
-          transition={{ duration: 0.2 }}
-          className="absolute top-full right-0 mt-1 py-3 bg-gradient-to-b from-black via-draugr-950 to-black border border-draugr-800 shadow-lg rounded-md z-10 overflow-hidden min-w-fit text-right backdrop-blur-md"
+          exit={{ opacity: 0, y: 5 }}
+          transition={{ duration: 0.15, ease: "easeOut" }}
+          className="absolute top-full right-0 mt-1.5 py-4 bg-black border-[0.5px] border-draugr-800/70 shadow-xl rounded-md z-10 overflow-hidden min-w-fit text-right backdrop-blur-lg"
           style={{ 
-            minWidth: '650px',
-            maxHeight: '80vh',
+            minWidth: '600px',
+            maxHeight: '75vh',
             overflowY: 'auto',
-            boxShadow: '0 10px 25px rgba(139, 0, 0, 0.3), 0 0 10px rgba(255, 0, 0, 0.15) inset'
+            backdropFilter: 'blur(16px)',
+            boxShadow: '0 15px 25px rgba(0, 0, 0, 0.4), 0 0 15px rgba(139, 0, 0, 0.15)'
           }}
         >
-          {/* Multi-column layout for Shop */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-4">
+          {/* Premium header with subtle separator */}
+          <div className="px-6 pb-3 mb-2 border-b border-draugr-900/50">
+            <h2 className="text-sm text-gray-400 font-normal tracking-wider uppercase">دسته‌بندی‌های محصولات</h2>
+          </div>
+          
+          {/* Multi-column layout for Shop - more refined */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-4">
             {navItem.subcategories.map((category, idx) => (
-              <div key={idx} className="p-3 bg-black bg-opacity-50 rounded-lg border border-draugr-900 hover:border-draugr-700 transition-colors duration-300">
-                <h3 className="text-draugr-500 font-bold text-sm pb-2 border-b border-draugr-800 mb-3 flex items-center">
-                  <span className="bg-draugr-900 w-1.5 h-1.5 rounded-full mr-2"></span>
+              <div key={idx} className="p-3">
+                <h3 className="text-draugr-500 font-medium text-sm pb-1.5 mb-2 flex items-center">
+                  <span className="bg-draugr-600 w-1 h-1 rounded-full mr-2 opacity-70"></span>
                   {category.name}
                 </h3>
-                <ul className="space-y-2">
+                <ul className="space-y-1 border-r border-draugr-900/30 pr-2">
                   {category.items && category.items.length > 0 ? (
                     category.items.map((item, itemIdx) => (
                       <li key={itemIdx}>
                         <Link 
                           to={`/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}/${item.toLowerCase().replace(/\s+/g, '-')}`}
-                          className="block px-4 py-1.5 text-sm text-gray-300 hover:bg-draugr-900 hover:text-white transition-all duration-200 rounded group flex items-center"
+                          className="block px-3 py-1.5 text-xs text-gray-400 hover:bg-draugr-900/40 hover:text-white transition-all duration-150 rounded-sm group flex items-center"
                         >
-                          <span className="w-1 h-1 bg-draugr-500 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                           {item}
                         </Link>
                       </li>
@@ -444,9 +449,8 @@ const NavLink = ({ to, label, isNested = false, navItem }) => {
                     <li>
                       <Link 
                         to={`/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}`}
-                        className="block px-4 py-1.5 text-sm text-gray-300 hover:bg-draugr-900 hover:text-white transition-all duration-200 rounded group flex items-center"
+                        className="block px-3 py-1.5 text-xs text-gray-400 hover:bg-draugr-900/40 hover:text-white transition-all duration-150 rounded-sm group flex items-center"
                       >
-                        <span className="w-1 h-1 bg-draugr-500 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                         {category.name}
                       </Link>
                     </li>
@@ -456,13 +460,14 @@ const NavLink = ({ to, label, isNested = false, navItem }) => {
             ))}
           </div>
           
-          {/* View All Products Button */}
-          <div className="mt-2 px-4 pb-2 text-center">
+          {/* View All Products Button - more premium */}
+          <div className="mt-3 px-4 pt-2 text-center border-t border-draugr-900/50">
             <Link 
               to="/shop"
-              className="inline-block px-5 py-2 bg-gradient-to-r from-draugr-900 to-draugr-800 text-white text-sm font-medium rounded-md hover:from-draugr-800 hover:to-draugr-700 transition-all duration-300 border border-draugr-700 hover:border-draugr-600"
+              className="inline-block px-5 py-1.5 text-white text-xs font-light tracking-wide uppercase hover:text-draugr-400 transition-all duration-300"
             >
               مشاهده همه محصولات
+              <span className="inline-block mr-1.5 text-[0.6rem]">⟶</span>
             </Link>
           </div>
         </motion.div>
@@ -471,7 +476,7 @@ const NavLink = ({ to, label, isNested = false, navItem }) => {
   );
 };
 
-// Updated MobileNavLink component for mobile navigation
+// Updated MobileNavLink component for mobile navigation - more minimal
 const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeCategory, setActiveCategory] = useState(-1);
@@ -497,62 +502,67 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
   };
   
   return (
-    <div className="border-b border-draugr-800 last:border-b-0">
+    <div className="border-b border-draugr-900/30 last:border-b-0">
       <div 
-        className="flex justify-between items-center py-2.5 px-2 text-white hover:bg-draugr-900 transition-all duration-200 rounded-sm cursor-pointer"
+        className="flex justify-between items-center py-2.5 px-2 text-white hover:bg-black/40 transition-all duration-200 rounded-sm cursor-pointer"
         onClick={handleClick}
       >
-        <span className="text-sm font-medium">{label}</span>
+        <span className="text-sm font-medium tracking-wide">{label}</span>
         {isNested && (
           <motion.svg 
             xmlns="http://www.w3.org/2000/svg" 
-            className="h-4 w-4 text-draugr-500" 
+            className="h-3.5 w-3.5 text-draugr-500/80" 
             fill="none" 
             viewBox="0 0 24 24" 
             stroke="currentColor"
             animate={{ rotate: isExpanded ? 180 : 0 }}
             transition={{ duration: 0.3 }}
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
           </motion.svg>
         )}
       </div>
       
-      {/* Only show subcategories for فروشگاه (Shop) */}
+      {/* Only show subcategories for فروشگاه (Shop) - premium minimal design */}
       {isNested && isExpanded && navItem.name === "فروشگاه" && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.3 }}
-          className="bg-draugr-950 rounded-md mx-2 my-2 overflow-hidden border border-draugr-900"
+          transition={{ duration: 0.25 }}
+          className="bg-black/30 mx-2 my-2 overflow-hidden rounded-md border-[0.5px] border-draugr-900/50"
         >
+          {/* Header */}
+          <div className="px-3 py-2 border-b border-draugr-900/30">
+            <span className="text-xs text-gray-500 uppercase tracking-wide">دسته‌بندی‌ها</span>
+          </div>
+          
           {/* Special accordion style for Shop in mobile view */}
-          <div className="space-y-1 p-1.5">
+          <div className="space-y-0.5 p-1.5">
             {navItem.subcategories.map((category, idx) => (
-              <div key={idx} className="bg-black bg-opacity-50 rounded-md overflow-hidden mb-1.5 last:mb-0">
+              <div key={idx} className="overflow-hidden">
                 <div 
-                  className="flex justify-between items-center py-2 px-3 text-white cursor-pointer border-b border-draugr-800 hover:bg-draugr-900 transition-colors"
+                  className="flex justify-between items-center py-2 px-2 text-white cursor-pointer hover:bg-black/40 transition-colors rounded-sm"
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleCategory(idx);
                   }}
                 >
-                  <span className="text-xs font-medium text-draugr-400 flex items-center">
-                    <span className="w-1.5 h-1.5 bg-draugr-500 rounded-full mr-2"></span>
+                  <span className="text-xs font-medium text-gray-300 flex items-center">
+                    <span className="w-1 h-1 bg-draugr-500/70 rounded-full mr-2"></span>
                     {category.name}
                   </span>
                   {category.items && category.items.length > 0 && (
                     <motion.svg 
                       xmlns="http://www.w3.org/2000/svg" 
-                      className="h-3.5 w-3.5 text-draugr-500" 
+                      className="h-3 w-3 text-draugr-500/70" 
                       fill="none" 
                       viewBox="0 0 24 24" 
                       stroke="currentColor"
                       animate={{ rotate: activeCategory === idx ? 180 : 0 }}
-                      transition={{ duration: 0.3 }}
+                      transition={{ duration: 0.25 }}
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
                     </motion.svg>
                   )}
                 </div>
@@ -563,17 +573,17 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="py-1.5 bg-draugr-950 bg-opacity-70"
+                    className="py-1 pl-4 pr-3"
                   >
                     {category.items.map((item, itemIdx) => (
                       <Link 
                         key={itemIdx}
                         to={`/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}/${item.toLowerCase().replace(/\s+/g, '-')}`}
-                        className="block py-1.5 px-3 text-xs text-gray-400 hover:text-white hover:bg-draugr-900 transition-all duration-200 group flex items-center"
+                        className="block py-1.5 text-xs text-gray-400 hover:text-white transition-all duration-200 group flex items-center"
                         onClick={onClick}
                       >
-                        <span className="w-1 h-1 bg-draugr-500 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                        {item}
+                        <span className="mr-1">•</span>
+                        <span className="mr-1.5">{item}</span>
                       </Link>
                     ))}
                   </motion.div>
@@ -582,10 +592,9 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
                 {(!category.items || category.items.length === 0) && (
                   <Link 
                     to={`/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}`}
-                    className="block py-1.5 px-3 text-xs text-gray-400 hover:text-white hover:bg-draugr-900 transition-all duration-200 rounded-b-md group flex items-center"
+                    className="block py-1.5 px-3 text-xs text-gray-400 hover:text-white transition-all duration-200 rounded-sm ml-4"
                     onClick={onClick}
                   >
-                    <span className="w-1 h-1 bg-draugr-500 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                     {category.name}
                   </Link>
                 )}
@@ -593,14 +602,15 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
             ))}
           </div>
           
-          {/* View All Products Button for Mobile */}
-          <div className="p-2 border-t border-draugr-800 bg-black bg-opacity-30">
+          {/* View All Products Button for Mobile - minimal */}
+          <div className="px-2 py-2 border-t border-draugr-900/30 text-center">
             <Link 
               to="/shop"
-              className="block w-full text-center px-3 py-1.5 bg-gradient-to-r from-draugr-900 to-draugr-800 text-white text-xs font-medium rounded-md hover:from-draugr-800 hover:to-draugr-700 transition-all duration-300 border border-draugr-700"
+              className="block text-center text-xs text-gray-400 py-1 hover:text-draugr-500 transition-colors uppercase tracking-wide"
               onClick={onClick}
             >
               مشاهده همه محصولات
+              <span className="inline-block mr-1 text-[0.6rem]">⟶</span>
             </Link>
           </div>
         </motion.div>
