@@ -11,7 +11,7 @@
     "preview": "vite preview",
     "setup-deploy": "git config --global user.email \"mahdiglm@users.noreply.github.com\" ; git config --global user.name \"Mahdiglm\"",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist -r https://github.com/Mahdiglm/DRAUGR-FrontEnd.git -b gh-pages",
+    "deploy": "gh-pages -d dist --repo=https://github.com/Mahdiglm/DRAUGR-FrontEnd.git --branch=gh-pages",
     "gh-deploy": "npm run build && gh workflow run deploy.yml",
     "simple-deploy": "npm run build && node gh-deploy.js"
   },
