@@ -12,6 +12,12 @@ if (typeof window !== 'undefined') {
   window.history.scrollRestoration = 'manual';
 }
 
+// Add this to ensure the body has proper background color
+if (typeof document !== 'undefined') {
+  document.body.classList.add('theme-draugr');
+  document.body.style.backgroundColor = '#121212';
+}
+
 // Components
 import ErrorBoundary from './components/shared/ErrorBoundary'
 
