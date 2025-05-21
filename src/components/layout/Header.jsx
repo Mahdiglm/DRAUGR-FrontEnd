@@ -162,9 +162,11 @@ const Header = ({ cartItems, onCartClick }) => {
         <div className="flex items-center">
           {/* Login button - With extra margin for clear separation */}
           <motion.div 
-            whileHover={{ 
-              scale: 1.05,
-              boxShadow: '0 0 12px rgba(255, 0, 0, 0.7)'
+            whileHover={{ scale: 1.1 }}
+            initial={{ scale: 1 }}
+            animate={{ scale: 1 }}
+            transition={{ 
+              scale: { duration: 0.3, ease: "easeOut" } 
             }}
             whileTap={{ scale: 0.95 }}
             className="relative cursor-pointer"
@@ -173,7 +175,7 @@ const Header = ({ cartItems, onCartClick }) => {
             <img 
               src={pfpIcon} 
               alt="Profile" 
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-draugr-600 hover:border-draugr-500 transition-all duration-300"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-draugr-600 transition-all duration-300"
             />
           </motion.div>
 
