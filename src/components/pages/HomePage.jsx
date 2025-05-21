@@ -4,7 +4,7 @@ import { useOutletContext, Link } from 'react-router-dom';
 
 import ProductList from '../product/ProductList';
 import FeaturedProductSlider from '../product/FeaturedProductSlider';
-import CategoryWheel from '../shared/CategoryWheel';
+import CategoryRows from '../shared/CategoryRows';
 import { products } from '../../utils/mockData';
 import { safeBlur, safeFilterTransition, isLowPerformanceDevice, getOptimizedAnimationSettings } from '../../utils/animationHelpers';
 // Try with relative path to asset folder
@@ -660,7 +660,7 @@ const HomePage = () => {
           </div>
         </motion.section>
 
-        {/* Category Wheel Section */}
+        {/* Category Rows Section */}
         <motion.section 
           className="py-8 sm:py-12 md:py-16 bg-gradient-to-b from-black to-charcoal w-full relative overflow-hidden"
           initial={{ opacity: 0 }}
@@ -676,7 +676,7 @@ const HomePage = () => {
           
           {/* Content container */}
           <div className="relative z-10 container mx-auto px-4">
-            <CategoryWheel />
+            <CategoryRows />
           </div>
         </motion.section>
       </motion.div>
