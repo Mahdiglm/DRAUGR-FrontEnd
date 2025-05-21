@@ -35,9 +35,9 @@ const CategoryWheel = () => {
 
   return (
     <div className="py-12 relative" ref={containerRef}>
-      <div className="text-center mb-12">
-        <h2 className="text-2xl md:text-3xl font-bold text-white text-shadow-horror">دسته‌بندی‌ها</h2>
-        <div className="h-1 w-24 bg-gradient-to-r from-draugr-900/40 via-draugr-500 to-draugr-900/40 mx-auto mt-2 rounded-full"></div>
+      <div className="text-center mb-16">
+        <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">دسته‌بندی‌ها</h2>
+        <div className="h-px w-16 bg-draugr-500/60 mx-auto mt-2"></div>
       </div>
       
       <div className="relative h-[250px] mx-auto max-w-3xl select-none">
@@ -102,13 +102,13 @@ const CategoryItem = ({ category, index, totalItems, rotation, getCategoryIcon }
   const scale = useTransform(
     y,
     [-ellipseB, 0, ellipseB],
-    [1.1, 1, 0.8]
+    [1.05, 1, 0.85]
   );
   
-  const brightness = useTransform(
+  const opacity = useTransform(
     y,
-    [-ellipseB, ellipseB],
-    [1, 0.7]
+    [-ellipseB, 0, ellipseB],
+    [1, 0.9, 0.7]
   );
   
   const zIndex = useTransform(
@@ -133,45 +133,58 @@ const CategoryItem = ({ category, index, totalItems, rotation, getCategoryIcon }
         y,
         scale,
         zIndex,
-        filter: useTransform(brightness, (b) => `brightness(${b})`)
+        opacity
       }}
       className="absolute origin-center cursor-pointer"
     >
-      <motion.div style={{ scale }}>
-        <Link 
-          to={`/shop?category=${category.slug}`}
-          className="flex flex-col items-center justify-center h-24 w-24 md:h-28 md:w-28 rounded-2xl backdrop-blur-md bg-gradient-to-br from-gray-900/70 to-black/70 shadow-md border border-gray-700/30"
+      <Link 
+        to={`/shop?category=${category.slug}`}
+        className="block"
+      >
+        <motion.div 
+          className="flex flex-col items-center justify-center w-20 h-20 md:w-24 md:h-24 relative"
+          whileHover={{ scale: 1.05 }}
         >
+          {/* Background circle with conditional styling */}
           <motion.div
             style={{
-              background: useTransform(isFront, (front) => 
-                front 
-                  ? 'linear-gradient(to bottom right, rgba(153, 0, 0, 0.9), rgba(102, 0, 0, 0.9))' 
-                  : 'none'
+              backgroundColor: useTransform(isFront, (front) => 
+                front ? 'rgba(30, 30, 30, 0.8)' : 'rgba(20, 20, 20, 0.5)'
               ),
               borderColor: useTransform(isFront, (front) => 
-                front ? 'rgba(255, 0, 0, 0.4)' : 'rgba(75, 75, 75, 0.3)'
+                front ? 'rgba(255, 0, 0, 0.3)' : 'rgba(70, 70, 70, 0.2)'
               ),
-              borderWidth: useTransform(isFront, (front) => front ? '2px' : '1px'),
               boxShadow: useTransform(isFront, (front) => 
-                front ? '0 4px 14px 0 rgba(255, 0, 0, 0.3)' : 'none'
-              )
+                front ? '0 4px 20px rgba(255, 0, 0, 0.12)' : 'none'
+              ),
             }}
-            className="absolute inset-0 rounded-2xl"
+            className="absolute inset-0 rounded-full border backdrop-blur-sm"
           />
-          <div className="text-3xl mb-1 relative z-10">{getCategoryIcon(category.slug)}</div>
+          
+          {/* Front indicator line */}
+          <motion.div
+            style={{
+              opacity: useTransform(isFront, (front) => front ? 1 : 0),
+              width: useTransform(isFront, (front) => front ? '30px' : '0px'),
+            }}
+            className="absolute -bottom-5 h-px bg-draugr-500"
+            transition={{ duration: 0.2 }}
+          />
+          
+          {/* Icon and text */}
+          <div className="text-2xl mb-1 relative z-10">{getCategoryIcon(category.slug)}</div>
           <motion.span 
-            className="text-sm md:text-base font-medium relative z-10"
+            className="text-xs md:text-sm font-medium relative z-10 tracking-wide"
             style={{
               color: useTransform(isFront, (front) => 
-                front ? 'rgba(255, 255, 255, 1)' : 'rgba(210, 210, 210, 0.8)'
+                front ? 'rgba(255, 255, 255, 0.95)' : 'rgba(210, 210, 210, 0.8)'
               )
             }}
           >
             {category.name}
           </motion.span>
-        </Link>
-      </motion.div>
+        </motion.div>
+      </Link>
     </motion.div>
   );
 };
