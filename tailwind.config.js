@@ -82,6 +82,8 @@ module.exports = {
           'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
           'flicker': 'flicker 8s linear infinite',
           'float': 'float 6s ease-in-out infinite',
+          'rotate': 'rotate 60s linear infinite',
+          'rotate-reverse': 'rotate 60s linear reverse infinite',
         },
         keyframes: {
           flicker: {
@@ -91,6 +93,10 @@ module.exports = {
           float: {
             '0%, 100%': { transform: 'translateY(0)' },
             '50%': { transform: 'translateY(-10px)' },
+          },
+          rotate: {
+            '0%': { transform: 'rotate(0deg)' },
+            '100%': { transform: 'rotate(360deg)' },
           }
         },
       },
