@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import pfpIcon from '../../assets/pfp-icon.png';
 
 const Header = ({ cartItems, onCartClick }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -160,18 +161,21 @@ const Header = ({ cartItems, onCartClick }) => {
         {/* Header right section: completely restructured for better spacing */}
         <div className="flex items-center">
           {/* Login button - With extra margin for clear separation */}
-          <motion.button 
+          <motion.div 
             whileHover={{ 
-              scale: 1.05, 
-              boxShadow: '0 0 12px rgba(255, 0, 0, 0.7)',
-              textShadow: '0 0 8px rgba(255, 255, 255, 0.8)'
+              scale: 1.05,
+              boxShadow: '0 0 12px rgba(255, 0, 0, 0.7)'
             }}
             whileTap={{ scale: 0.95 }}
-            className="bg-gradient-to-r from-draugr-900 to-draugr-700 text-white px-2 sm:px-3 py-1.5 rounded-md font-medium border border-draugr-600 hover:border-draugr-500 text-xs sm:text-sm transition-all duration-300"
+            className="relative cursor-pointer"
             onClick={() => navigate('/login')}
           >
-            ورود
-          </motion.button>
+            <img 
+              src={pfpIcon} 
+              alt="Profile" 
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-draugr-600 hover:border-draugr-500 transition-all duration-300"
+            />
+          </motion.div>
 
           {/* Spacer div to force distance */}
           <div className="w-3 sm:w-3 md:w-6"></div>
