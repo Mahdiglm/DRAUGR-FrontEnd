@@ -668,11 +668,22 @@ const HomePage = () => {
           transition={{ duration: 0.8 }}
           viewport={{ once: true, margin: "-100px" }}
         >
-          {/* Dark overlay for better readability */}
-          <div className="absolute inset-0 bg-black bg-opacity-50 z-0"></div>
+          {/* Enhanced background with better visual elements */}
+          <div className="absolute inset-0 bg-black bg-opacity-60 z-0"></div>
           
-          {/* Subtle blood pattern overlay */}
-          <div className="absolute inset-0 bg-blood-texture opacity-10 z-0"></div>
+          {/* Nordic rune patterns as subtle background elements */}
+          <div className="absolute inset-0 opacity-5 z-0 bg-repeat" 
+               style={{
+                 backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+               }}
+          ></div>
+          
+          {/* Blood-like texture overlay for thematic effect */}
+          <div className="absolute inset-0 bg-blood-texture opacity-10 z-0 mix-blend-overlay"></div>
+          
+          {/* Top and bottom gradient fades for smooth section transitions */}
+          <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black to-transparent z-0"></div>
+          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent z-0"></div>
           
           {/* Content container */}
           <div className="relative z-10 container mx-auto px-4">
