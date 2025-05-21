@@ -3,6 +3,7 @@ import { motion, useAnimationControls, animate, useTime, useTransform } from 'fr
 import { Link } from 'react-router-dom';
 import { categories } from '../../utils/mockData';
 import { isLowPerformanceDevice } from '../../utils/animationHelpers';
+import accessoriesIcon from '../../assets/accessories-icon.png';
 
 const CategoryWheel = () => {
   const [isLowPerformance, setIsLowPerformance] = useState(false);
@@ -25,7 +26,7 @@ const CategoryWheel = () => {
       case 'magic':
         return '✨';
       case 'accessories':
-        return '📿';
+        return <img src={accessoriesIcon} alt="Accessories" className="w-7 h-7 object-contain" />;
       case 'rare_books':
         return '📚';
       default:
@@ -163,7 +164,7 @@ const CategoryItem = ({ category, index, totalItems, rotation, getCategoryIcon }
             }}
             className="absolute inset-0 rounded-2xl"
           />
-          <div className="text-3xl mb-1 relative z-10">{getCategoryIcon(category.slug)}</div>
+          <div className="text-3xl mb-1 relative z-10 flex items-center justify-center h-8">{getCategoryIcon(category.slug)}</div>
           <motion.span 
             className="text-sm md:text-base font-medium relative z-10"
             style={{
