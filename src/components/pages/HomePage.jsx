@@ -4,6 +4,7 @@ import { useOutletContext, Link } from 'react-router-dom';
 
 import ProductList from '../product/ProductList';
 import FeaturedProductSlider from '../product/FeaturedProductSlider';
+import CategoryWheel from '../shared/CategoryWheel';
 import { products } from '../../utils/mockData';
 import { safeBlur, safeFilterTransition, isLowPerformanceDevice, getOptimizedAnimationSettings } from '../../utils/animationHelpers';
 // Try with relative path to asset folder
@@ -656,6 +657,26 @@ const HomePage = () => {
                 </motion.div>
               </Link>
             </div>
+          </div>
+        </motion.section>
+
+        {/* Category Wheel Section */}
+        <motion.section 
+          className="py-8 sm:py-12 md:py-16 bg-gradient-to-b from-black to-charcoal w-full relative overflow-hidden"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true, margin: "-100px" }}
+        >
+          {/* Dark overlay for better readability */}
+          <div className="absolute inset-0 bg-black bg-opacity-50 z-0"></div>
+          
+          {/* Subtle blood pattern overlay */}
+          <div className="absolute inset-0 bg-blood-texture opacity-10 z-0"></div>
+          
+          {/* Content container */}
+          <div className="relative z-10 container mx-auto px-4">
+            <CategoryWheel />
           </div>
         </motion.section>
       </motion.div>
