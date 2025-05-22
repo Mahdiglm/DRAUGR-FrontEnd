@@ -279,70 +279,178 @@ const CategoryRows = () => {
   );
 };
 
+// Generate a point on a circuit path based on the given parameters
+const generateCircuitPoint = (angle, radius, centerX, centerY, variation = 0) => {
+  // Add some randomness for more organic circuit paths
+  const adjustedRadius = radius * (1 + variation * (Math.random() * 0.4 - 0.2));
+  const adjustedAngle = angle + variation * (Math.random() * 0.2 - 0.1);
+  
+  return {
+    x: centerX + adjustedRadius * Math.cos(adjustedAngle),
+    y: centerY + adjustedRadius * Math.sin(adjustedAngle)
+  };
+};
+
+// Generate SVG path for circuit trace
+const generateCircuitPath = (startX, startY, endX, endY) => {
+  // Calculate midpoint with some variation
+  const midX = (startX + endX) / 2 + (Math.random() * 10 - 5);
+  const midY = (startY + endY) / 2 + (Math.random() * 10 - 5);
+  
+  // Circuit paths with corners rather than curves
+  if (Math.random() > 0.5) {
+    return `M${startX},${startY} L${midX},${startY} L${midX},${endY} L${endX},${endY}`;
+  } else {
+    return `M${startX},${startY} L${startX},${midY} L${endX},${midY} L${endX},${endY}`;
+  }
+};
+
 const CategoryItem = ({ category, style, ...props }) => {
   const itemRef = useRef(null);
-  const [glowing, setGlowing] = useState(false);
-  const [glowIntensity, setGlowIntensity] = useState(0); // 0 to 1 scale for glow intensity
-  const [mousePosition, setMousePosition] = useState({ x: 0.5, y: 0.5 });
-  
-  // Animation frame for smoother glow effect
+  const [mousePos, setMousePos] = useState({ x: -100, y: -100 });
+  const [isHovering, setIsHovering] = useState(false);
+  const [circuitNodes, setCircuitNodes] = useState([]);
+  const [circuitPaths, setCircuitPaths] = useState([]);
+  const circuitPathsRef = useRef([]);
   const animationFrameRef = useRef(null);
   
+  // Settings for circuit effect
+  const proximityThreshold = 80; // How close the mouse needs to be to activate (px)
+  const nodeCount = 12; // Number of potential circuit nodes
+  const maxActivePaths = 6; // Maximum number of active circuit paths
+  
+  // Generate circuit nodes on mount - these are potential connection points
+  useEffect(() => {
+    const nodes = [];
+    // Generate nodes along the perimeter
+    const nodeRadius = Math.min(CARD_WIDTH, 160) / 2; // Half of card width
+    const centerX = CARD_WIDTH / 2;
+    const centerY = 80; // Half of card height (160px)
+    
+    // Create nodes in a circle around the center
+    for (let i = 0; i < nodeCount; i++) {
+      const angle = (i / nodeCount) * Math.PI * 2;
+      nodes.push({
+        id: i,
+        x: centerX + nodeRadius * Math.cos(angle),
+        y: centerY + nodeRadius * Math.sin(angle),
+        active: false
+      });
+    }
+    
+    // Add some interior nodes
+    for (let i = 0; i < 5; i++) {
+      nodes.push({
+        id: nodeCount + i,
+        x: centerX + (Math.random() - 0.5) * nodeRadius * 1.5, 
+        y: centerY + (Math.random() - 0.5) * nodeRadius * 1.5,
+        active: false
+      });
+    }
+    
+    setCircuitNodes(nodes);
+  }, []);
+
+  // Handle mouse movement
   const handleMouseMove = (e) => {
     if (!itemRef.current) return;
     
     const rect = itemRef.current.getBoundingClientRect();
     
-    // Calculate normalized position (0 to 1) within the element
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
+    // Calculate mouse position relative to card
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
     
-    // Set mouse position for gradient effect
-    setMousePosition({ x, y });
+    // Update mouse position state
+    setMousePos({ x, y });
     
-    // Calculate distance from pointer to nearest edge
-    // This creates a more responsive effect as the pointer gets closer to any edge
-    const distToLeft = x;
-    const distToRight = 1 - x;
-    const distToTop = y;
-    const distToBottom = 1 - y;
-    const minDistToEdge = Math.min(distToLeft, distToRight, distToTop, distToBottom);
-    
-    // Calculate proximity scale (1 when mouse is at the edge, 0 when far away)
-    // The 0.35 value controls how far from the edge the effect starts
-    const proximityScale = Math.max(0, Math.min(1, 1 - (minDistToEdge / 0.35)));
-    
-    // Check if mouse is within proximity range or completely outside the element
-    const padding = 40; // px - how far outside the element we still detect
-    const isInProximity = 
+    // Check if mouse is close enough to the item to be "hovering"
+    const padding = proximityThreshold; // The proximity detection range
+    const isClose = 
       e.clientX >= rect.left - padding &&
       e.clientX <= rect.right + padding &&
       e.clientY >= rect.top - padding &&
       e.clientY <= rect.bottom + padding;
     
-    if (isInProximity) {
-      // Smoothly interpolate to the target glowIntensity for more natural effect
-      animationFrameRef.current = requestAnimationFrame(() => {
-        setGlowIntensity(current => {
-          return current + (proximityScale - current) * 0.2; // Smooth transition to target value
-        });
-      });
-      setGlowing(true);
-    } else if (glowing) {
-      // Fade out when mouse leaves proximity
-      animationFrameRef.current = requestAnimationFrame(() => {
-        setGlowIntensity(current => {
-          const newValue = current * 0.8; // Fade out
-          if (newValue < 0.01) {
-            setGlowing(false);
-            return 0;
-          }
-          return newValue;
-        });
-      });
-    }
+    setIsHovering(isClose);
   };
-
+  
+  // Update circuit paths based on mouse position
+  useEffect(() => {
+    if (!isHovering || circuitNodes.length === 0) return;
+    
+    // Find which nodes are closest to the mouse
+    const nodesWithDistance = circuitNodes.map(node => ({
+      ...node,
+      distance: Math.sqrt(
+        Math.pow(node.x - mousePos.x, 2) + 
+        Math.pow(node.y - mousePos.y, 2)
+      )
+    }));
+    
+    // Sort by distance to mouse
+    const sortedNodes = [...nodesWithDistance].sort((a, b) => a.distance - b.distance);
+    
+    // Get the closest node to the mouse
+    const closestNode = sortedNodes[0];
+    
+    // Only proceed if mouse is close enough to the closest node
+    if (closestNode && closestNode.distance <= proximityThreshold) {
+      // Find other close nodes to connect to
+      const otherCloseNodes = sortedNodes.slice(1, maxActivePaths + 1);
+      
+      // Generate paths between closest node and other nodes
+      const newPaths = otherCloseNodes.map((node, index) => {
+        // Create a unique ID for this path
+        const pathId = `path_${closestNode.id}_${node.id}`;
+        
+        // Generate a circuit path between the nodes
+        const path = generateCircuitPath(
+          closestNode.x, 
+          closestNode.y, 
+          node.x, 
+          node.y
+        );
+        
+        // Calculate intensity based on distance (closer = more intense)
+        const intensity = Math.max(0, 1 - (node.distance / proximityThreshold));
+        
+        // Animation timing offset
+        const animationDelay = index * 0.1;
+        
+        return {
+          id: pathId,
+          path,
+          intensity,
+          timestamp: Date.now(),
+          animationDelay,
+          originNode: closestNode.id,
+          targetNode: node.id
+        };
+      });
+      
+      // Update the circuit paths
+      circuitPathsRef.current = [
+        // Keep recent paths that are still relevant (younger than 1.5 seconds)
+        ...circuitPathsRef.current
+          .filter(path => Date.now() - path.timestamp < 1500),
+        ...newPaths
+      ];
+      
+      // Update the state (but not too frequently)
+      const updateAnimation = () => {
+        setCircuitPaths([...circuitPathsRef.current]);
+      };
+      
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      
+      animationFrameRef.current = requestAnimationFrame(updateAnimation);
+    }
+  }, [mousePos, isHovering, circuitNodes]);
+  
+  // Cleanup
   useEffect(() => {
     window.addEventListener('mousemove', handleMouseMove);
     return () => {
@@ -351,41 +459,10 @@ const CategoryItem = ({ category, style, ...props }) => {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [glowing]);
+  }, []);
   
-  // Determine which edge is closest to the mouse position for the neon trace effect
-  const getClosestEdge = () => {
-    const { x, y } = mousePosition;
-    const distToLeft = x;
-    const distToRight = 1 - x;
-    const distToTop = y;
-    const distToBottom = 1 - y;
-    
-    const minDist = Math.min(distToLeft, distToRight, distToTop, distToBottom);
-    
-    if (minDist === distToLeft) return 'left';
-    if (minDist === distToRight) return 'right';
-    if (minDist === distToTop) return 'top';
-    return 'bottom';
-  };
-  
-  // Calculate the cyberpunk glow effect along the edges
-  const closestEdge = getClosestEdge();
-  const neonColor = 'rgba(232, 30, 54, 1)'; // Vibrant red neon color
-  const neonColorTransparent = 'rgba(232, 30, 54, 0)';
-
-  // Create CSS variables for animation and glow effect
-  const intensity = glowIntensity; 
-  const glowSpread = Math.max(1, Math.floor(intensity * 7)); // Spread increases with intensity
-  const glowBlur = Math.max(3, Math.floor(intensity * 12)); // Blur increases with intensity
-
-  // Dynamic CSS for the animated border effect
-  const borderStyle = {
-    '--glow-intensity': intensity,
-    '--glow-color': neonColor,
-    '--glow-color-transparent': neonColorTransparent,
-    '--border-animation-pos': `${(mousePosition.x * 100)}% ${(mousePosition.y * 100)}%`, 
-  };
+  // Calculate SVG viewBox based on card dimensions
+  const svgViewBox = `0 0 ${CARD_WIDTH} 160`; // 160 is card height
 
   return (
     <div
@@ -393,33 +470,32 @@ const CategoryItem = ({ category, style, ...props }) => {
       className="absolute mx-4 h-40 overflow-visible cursor-pointer select-none"
       style={{
         ...style,
-        zIndex: glowing ? 10 : 1, // Ensure the hovered item appears above others
+        zIndex: isHovering ? 10 : 1,
       }}
       {...props}
     >
-      {/* Cyberpunk border animation styles */}
+      {/* Cyberpunk circuit animations */}
       <style jsx="true">{`
-        @keyframes borderPulse {
-          0% { opacity: 0.7; }
-          50% { opacity: 1; }
-          100% { opacity: 0.7; }
+        @keyframes fadeIn {
+          from { opacity: 0; stroke-dashoffset: 20; }
+          to { opacity: 1; stroke-dashoffset: 0; }
         }
         
-        @keyframes neonFlicker {
-          0% { opacity: 1; }
-          80% { opacity: 1; }
-          83% { opacity: 0.8; }
-          86% { opacity: 1; }
-          90% { opacity: 1; }
-          93% { opacity: 0.6; }
-          96% { opacity: 1; }
-          100% { opacity: 1; }
+        @keyframes fadeOut {
+          from { opacity: 1; }
+          to { opacity: 0; }
         }
         
-        @keyframes neonFlow {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
+        @keyframes pulse {
+          0% { r: 2; opacity: 0.7; }
+          50% { r: 3; opacity: 1; }
+          100% { r: 2; opacity: 0.7; }
+        }
+        
+        @keyframes nodeGlow {
+          0% { filter: drop-shadow(0 0 2px #ff0066); }
+          50% { filter: drop-shadow(0 0 4px #ff0066); }
+          100% { filter: drop-shadow(0 0 2px #ff0066); }
         }
       `}</style>
       
@@ -428,130 +504,86 @@ const CategoryItem = ({ category, style, ...props }) => {
         className="absolute inset-0 bg-gradient-to-b from-[#1c0b0f] to-black rounded-lg overflow-hidden"
         style={{
           boxShadow: "0 5px 15px rgba(0, 0, 0, 0.3)",
-          transform: glowing ? 'translateY(-2px)' : 'none',
           transition: 'transform 0.2s ease-out',
         }}
       />
       
-      {/* Neon border container - actual neon effect happens here */}
-      <div 
-        className="absolute inset-0 rounded-lg overflow-hidden pointer-events-none"
-        style={{
-          ...borderStyle,
-          filter: `drop-shadow(0 0 ${glowBlur}px var(--glow-color))`,
-          transition: 'filter 0.2s ease-out',
-          opacity: intensity,
-        }}
+      {/* SVG overlay for circuit animations */}
+      <svg 
+        className="absolute inset-0 w-full h-full pointer-events-none z-10"
+        viewBox={svgViewBox}
+        xmlns="http://www.w3.org/2000/svg"
       >
-        {/* Top border with circuit pattern */}
-        <div 
-          className="absolute top-0 left-0 right-0 h-[2px] z-20"
-          style={{
-            background: `linear-gradient(90deg, var(--glow-color-transparent) 0%, 
-                                        var(--glow-color) 20%, var(--glow-color) 80%, 
-                                        var(--glow-color-transparent) 100%)`,
-            opacity: closestEdge === 'top' ? 1 : 0.5 * intensity,
-            backgroundSize: '200% 100%',
-            animation: 'neonFlow 3s ease infinite',
-          }}
-        ></div>
-
-        {/* Right border with circuit pattern */}
-        <div 
-          className="absolute top-0 bottom-0 right-0 w-[2px] z-20"
-          style={{
-            background: `linear-gradient(180deg, var(--glow-color-transparent) 0%, 
-                                        var(--glow-color) 20%, var(--glow-color) 80%, 
-                                        var(--glow-color-transparent) 100%)`,
-            opacity: closestEdge === 'right' ? 1 : 0.5 * intensity,
-            backgroundSize: '100% 200%',
-            animation: 'neonFlow 3s ease infinite',
-            animationDelay: '0.1s',
-          }}
-        ></div>
+        <defs>
+          <linearGradient id="circuitGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#ff0066" stopOpacity="1" />
+            <stop offset="100%" stopColor="#ff3300" stopOpacity="0.8" />
+          </linearGradient>
+        </defs>
         
-        {/* Bottom border with circuit pattern */}
-        <div 
-          className="absolute bottom-0 left-0 right-0 h-[2px] z-20"
-          style={{
-            background: `linear-gradient(90deg, var(--glow-color-transparent) 0%, 
-                                        var(--glow-color) 20%, var(--glow-color) 80%, 
-                                        var(--glow-color-transparent) 100%)`,
-            opacity: closestEdge === 'bottom' ? 1 : 0.5 * intensity,
-            backgroundSize: '200% 100%',
-            animation: 'neonFlow 3s ease infinite',
-            animationDelay: '0.2s',
-          }}
-        ></div>
+        {/* Circuit paths */}
+        {circuitPaths.map((pathData) => {
+          const pathAge = Date.now() - pathData.timestamp;
+          const isNew = pathAge < 300;
+          const isOld = pathAge > 1000;
+          
+          // Animation for paths
+          const animationName = isNew ? 'fadeIn' : isOld ? 'fadeOut' : '';
+          const animationDuration = isNew ? '0.3s' : isOld ? '0.5s' : '';
+          
+          return (
+            <g key={pathData.id} style={{ opacity: isOld ? 0.5 : 1 }}>
+              {/* Main path */}
+              <path
+                d={pathData.path}
+                fill="none"
+                stroke="url(#circuitGradient)"
+                strokeWidth={1.5}
+                strokeDasharray="5,3"
+                style={{
+                  animation: animationName ? `${animationName} ${animationDuration} ease-out forwards` : '',
+                  animationDelay: `${pathData.animationDelay}s`,
+                  opacity: pathData.intensity,
+                  filter: `drop-shadow(0 0 ${3 + pathData.intensity * 2}px #ff0066)`,
+                }}
+              />
+              
+              {/* Glow overlay for more intense effect */}
+              <path
+                d={pathData.path}
+                fill="none"
+                stroke="#ff0066"
+                strokeWidth={0.5}
+                strokeOpacity={0.8}
+                style={{
+                  animation: animationName ? `${animationName} ${animationDuration} ease-out forwards` : '',
+                  animationDelay: `${pathData.animationDelay + 0.1}s`,
+                  opacity: pathData.intensity * 0.7,
+                  filter: 'blur(2px)',
+                }}
+              />
+            </g>
+          );
+        })}
         
-        {/* Left border with circuit pattern */}
-        <div 
-          className="absolute top-0 bottom-0 left-0 w-[2px] z-20"
-          style={{
-            background: `linear-gradient(180deg, var(--glow-color-transparent) 0%, 
-                                        var(--glow-color) 20%, var(--glow-color) 80%, 
-                                        var(--glow-color-transparent) 100%)`,
-            opacity: closestEdge === 'left' ? 1 : 0.5 * intensity,
-            backgroundSize: '100% 200%',
-            animation: 'neonFlow 3s ease infinite',
-            animationDelay: '0.3s',
-          }}
-        ></div>
-        
-        {/* Corner accents - top left */}
-        <div 
-          className="absolute top-0 left-0 w-3 h-3 z-20"
-          style={{
-            borderTop: `2px solid ${neonColor}`,
-            borderLeft: `2px solid ${neonColor}`,
-            borderRadius: '2px 0 0 0',
-            opacity: (closestEdge === 'top' || closestEdge === 'left') ? 1 : 0.7 * intensity,
-            animation: 'borderPulse 2s infinite',
-          }}
-        ></div>
-        
-        {/* Corner accents - top right */}
-        <div 
-          className="absolute top-0 right-0 w-3 h-3 z-20"
-          style={{
-            borderTop: `2px solid ${neonColor}`,
-            borderRight: `2px solid ${neonColor}`,
-            borderRadius: '0 2px 0 0',
-            opacity: (closestEdge === 'top' || closestEdge === 'right') ? 1 : 0.7 * intensity,
-            animation: 'borderPulse 2s infinite',
-            animationDelay: '0.5s',
-          }}
-        ></div>
-        
-        {/* Corner accents - bottom right */}
-        <div 
-          className="absolute bottom-0 right-0 w-3 h-3 z-20"
-          style={{
-            borderBottom: `2px solid ${neonColor}`,
-            borderRight: `2px solid ${neonColor}`,
-            borderRadius: '0 0 2px 0',
-            opacity: (closestEdge === 'bottom' || closestEdge === 'right') ? 1 : 0.7 * intensity,
-            animation: 'borderPulse 2s infinite',
-            animationDelay: '1s',
-          }}
-        ></div>
-        
-        {/* Corner accents - bottom left */}
-        <div 
-          className="absolute bottom-0 left-0 w-3 h-3 z-20"
-          style={{
-            borderBottom: `2px solid ${neonColor}`,
-            borderLeft: `2px solid ${neonColor}`,
-            borderRadius: '0 0 0 2px',
-            opacity: (closestEdge === 'bottom' || closestEdge === 'left') ? 1 : 0.7 * intensity,
-            animation: 'borderPulse 2s infinite',
-            animationDelay: '1.5s',
-          }}
-        ></div>
-      </div>
+        {/* Highlight node near cursor */}
+        {isHovering && (
+          <circle
+            cx={mousePos.x}
+            cy={mousePos.y}
+            r={3}
+            fill="#ff0066"
+            style={{
+              filter: 'drop-shadow(0 0 5px #ff0066)',
+              opacity: 0.8,
+              animation: 'pulse 1.5s infinite',
+            }}
+          />
+        )}
+      </svg>
       
       {/* Content */}
-      <div className="relative z-10 h-full flex flex-col justify-center items-center p-4">
+      <div className="relative z-5 h-full flex flex-col justify-center items-center p-4">
         <span className="text-xl font-bold text-white mb-2">{category.name}</span>
         <div 
           className="text-[#d64356] text-sm mt-1 flex items-center border border-red-900/40 px-3 py-1 rounded-full"
