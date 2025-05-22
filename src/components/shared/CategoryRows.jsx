@@ -308,50 +308,18 @@ const generateCircuitPath = (startX, startY, endX, endY) => {
 
 const CategoryItem = ({ category, style, cardWidth, ...props }) => {
   const itemRef = useRef(null);
-  const [mousePos, setMousePos] = useState({ x: -100, y: -100 });
-  const [isHovering, setIsHovering] = useState(false);
-  const [circuitNodes, setCircuitNodes] = useState([]);
-  const [circuitPaths, setCircuitPaths] = useState([]);
-  const circuitPathsRef = useRef([]);
-  const animationFrameRef = useRef(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [isNear, setIsNear] = useState(false);
+  const [proximityData, setProximityData] = useState({
+    edge: null,
+    distance: 100,
+    intensity: 0
+  });
   
-  // Settings for circuit effect
-  const proximityThreshold = 80; // How close the mouse needs to be to activate (px)
-  const nodeCount = 12; // Number of potential circuit nodes
-  const maxActivePaths = 6; // Maximum number of active circuit paths
+  // Settings
+  const proximityThreshold = 60; // How close the mouse needs to be to activate border effect
+  const borderWidth = 2; // Width of the border in pixels
   
-  // Generate circuit nodes on mount - these are potential connection points
-  useEffect(() => {
-    const nodes = [];
-    // Generate nodes along the perimeter
-    const nodeRadius = Math.min(cardWidth, 160) / 2; // Half of card width
-    const centerX = cardWidth / 2;
-    const centerY = 80; // Half of card height (160px)
-    
-    // Create nodes in a circle around the center
-    for (let i = 0; i < nodeCount; i++) {
-      const angle = (i / nodeCount) * Math.PI * 2;
-      nodes.push({
-        id: i,
-        x: centerX + nodeRadius * Math.cos(angle),
-        y: centerY + nodeRadius * Math.sin(angle),
-        active: false
-      });
-    }
-    
-    // Add some interior nodes
-    for (let i = 0; i < 5; i++) {
-      nodes.push({
-        id: nodeCount + i,
-        x: centerX + (Math.random() - 0.5) * nodeRadius * 1.5, 
-        y: centerY + (Math.random() - 0.5) * nodeRadius * 1.5,
-        active: false
-      });
-    }
-    
-    setCircuitNodes(nodes);
-  }, [cardWidth]);
-
   // Handle mouse movement
   const handleMouseMove = (e) => {
     if (!itemRef.current) return;
@@ -365,105 +333,158 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
     // Update mouse position state
     setMousePos({ x, y });
     
-    // Check if mouse is close enough to the item to be "hovering"
-    const padding = proximityThreshold; // The proximity detection range
-    const isClose = 
-      e.clientX >= rect.left - padding &&
-      e.clientX <= rect.right + padding &&
-      e.clientY >= rect.top - padding &&
-      e.clientY <= rect.bottom + padding;
+    // Calculate distances to each edge
+    const distToLeft = x;
+    const distToRight = rect.width - x;
+    const distToTop = y;
+    const distToBottom = rect.height - y;
     
-    setIsHovering(isClose);
+    // Find the closest edge
+    const distances = [
+      { edge: 'left', dist: distToLeft },
+      { edge: 'right', dist: distToRight },
+      { edge: 'top', dist: distToTop },
+      { edge: 'bottom', dist: distToBottom }
+    ];
+    
+    // Sort by distance (closest first)
+    distances.sort((a, b) => a.dist - b.dist);
+    
+    // The closest edge
+    const closestEdge = distances[0];
+    
+    // Calculate intensity based on proximity (1 when at edge, 0 when beyond threshold)
+    const intensity = Math.max(0, 1 - (closestEdge.dist / proximityThreshold));
+    
+    // Only consider "near" if within threshold
+    const near = closestEdge.dist < proximityThreshold;
+    
+    setIsNear(near);
+    
+    if (near) {
+      setProximityData({
+        edge: closestEdge.edge,
+        distance: closestEdge.dist,
+        intensity,
+        // Add normalized position (0-1) along the edge
+        position: getPositionAlongEdge(closestEdge.edge, x, y, rect.width, rect.height)
+      });
+    }
   };
   
-  // Update circuit paths based on mouse position
-  useEffect(() => {
-    if (!isHovering || circuitNodes.length === 0) return;
-    
-    // Find which nodes are closest to the mouse
-    const nodesWithDistance = circuitNodes.map(node => ({
-      ...node,
-      distance: Math.sqrt(
-        Math.pow(node.x - mousePos.x, 2) + 
-        Math.pow(node.y - mousePos.y, 2)
-      )
-    }));
-    
-    // Sort by distance to mouse
-    const sortedNodes = [...nodesWithDistance].sort((a, b) => a.distance - b.distance);
-    
-    // Get the closest node to the mouse
-    const closestNode = sortedNodes[0];
-    
-    // Only proceed if mouse is close enough to the closest node
-    if (closestNode && closestNode.distance <= proximityThreshold) {
-      // Find other close nodes to connect to
-      const otherCloseNodes = sortedNodes.slice(1, maxActivePaths + 1);
-      
-      // Generate paths between closest node and other nodes
-      const newPaths = otherCloseNodes.map((node, index) => {
-        // Create a unique ID for this path
-        const pathId = `path_${closestNode.id}_${node.id}`;
-        
-        // Generate a circuit path between the nodes
-        const path = generateCircuitPath(
-          closestNode.x, 
-          closestNode.y, 
-          node.x, 
-          node.y
-        );
-        
-        // Calculate intensity based on distance (closer = more intense)
-        const intensity = Math.max(0, 1 - (node.distance / proximityThreshold));
-        
-        // Animation timing offset
-        const animationDelay = index * 0.1;
-        
-        return {
-          id: pathId,
-          path,
-          intensity,
-          timestamp: Date.now(),
-          animationDelay,
-          originNode: closestNode.id,
-          targetNode: node.id
-        };
-      });
-      
-      // Update the circuit paths
-      circuitPathsRef.current = [
-        // Keep recent paths that are still relevant (younger than 1.5 seconds)
-        ...circuitPathsRef.current
-          .filter(path => Date.now() - path.timestamp < 1500),
-        ...newPaths
-      ];
-      
-      // Update the state (but not too frequently)
-      const updateAnimation = () => {
-        setCircuitPaths([...circuitPathsRef.current]);
-      };
-      
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-      
-      animationFrameRef.current = requestAnimationFrame(updateAnimation);
+  // Calculate the relative position along an edge (0 to 1)
+  const getPositionAlongEdge = (edge, x, y, width, height) => {
+    switch (edge) {
+      case 'top': return x / width;
+      case 'right': return y / height;
+      case 'bottom': return 1 - (x / width); // Reverse direction for consistency
+      case 'left': return 1 - (y / height); // Reverse direction for consistency
+      default: return 0;
     }
-  }, [mousePos, isHovering, circuitNodes]);
+  };
   
-  // Cleanup
+  // Effect for mouse movement
   useEffect(() => {
     window.addEventListener('mousemove', handleMouseMove);
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-    };
+    return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
   
-  // Calculate SVG viewBox based on card dimensions
-  const svgViewBox = `0 0 ${cardWidth} 160`; // 160 is card height
+  // Generate the glowing border effect
+  const renderBorderEffect = () => {
+    if (!isNear || !proximityData.edge) return null;
+    
+    const { edge, intensity, position } = proximityData;
+    
+    // Base glow color
+    const glowColor = '#ff0066';
+    
+    // Calculate the spread of the glow effect along the edge
+    const spread = 0.2 + intensity * 0.4; // Between 20% and 60% of the edge
+    
+    // The glow should be centered at the position along the edge
+    const start = Math.max(0, position - spread / 2);
+    const end = Math.min(1, position + spread / 2);
+    
+    // Style for the glowing segment
+    const glowSegmentStyle = {
+      position: 'absolute',
+      backgroundColor: 'transparent',
+      opacity: intensity,
+    };
+    
+    // Border gradient - creates a focal point at the cursor position
+    const createGradient = (direction) => {
+      // Create a 3-stop gradient that's transparent at edges and glowing in middle
+      return `linear-gradient(${direction}, 
+                rgba(255, 0, 102, 0) 0%, 
+                rgba(255, 0, 102, ${intensity}) ${(start * 100)}%, 
+                rgba(255, 0, 102, ${intensity * 1.5}) ${(position * 100)}%, 
+                rgba(255, 0, 102, ${intensity}) ${(end * 100)}%, 
+                rgba(255, 0, 102, 0) 100%)`;
+    };
+    
+    // Glow effect specific to each edge
+    switch (edge) {
+      case 'top':
+        return (
+          <div 
+            className="absolute inset-x-0 top-0 pointer-events-none"
+            style={{
+              ...glowSegmentStyle,
+              height: `${borderWidth}px`,
+              backgroundImage: createGradient('to right'),
+              boxShadow: `0 0 ${6 * intensity}px ${glowColor}`,
+              filter: `drop-shadow(0 0 ${4 * intensity}px ${glowColor})`,
+            }}
+          />
+        );
+      
+      case 'right':
+        return (
+          <div 
+            className="absolute inset-y-0 right-0 pointer-events-none"
+            style={{
+              ...glowSegmentStyle,
+              width: `${borderWidth}px`,
+              backgroundImage: createGradient('to bottom'),
+              boxShadow: `0 0 ${6 * intensity}px ${glowColor}`,
+              filter: `drop-shadow(0 0 ${4 * intensity}px ${glowColor})`,
+            }}
+          />
+        );
+      
+      case 'bottom':
+        return (
+          <div 
+            className="absolute inset-x-0 bottom-0 pointer-events-none"
+            style={{
+              ...glowSegmentStyle,
+              height: `${borderWidth}px`,
+              backgroundImage: createGradient('to left'),
+              boxShadow: `0 0 ${6 * intensity}px ${glowColor}`,
+              filter: `drop-shadow(0 0 ${4 * intensity}px ${glowColor})`,
+            }}
+          />
+        );
+      
+      case 'left':
+        return (
+          <div 
+            className="absolute inset-y-0 left-0 pointer-events-none"
+            style={{
+              ...glowSegmentStyle,
+              width: `${borderWidth}px`,
+              backgroundImage: createGradient('to top'),
+              boxShadow: `0 0 ${6 * intensity}px ${glowColor}`,
+              filter: `drop-shadow(0 0 ${4 * intensity}px ${glowColor})`,
+            }}
+          />
+        );
+      
+      default:
+        return null;
+    }
+  };
 
   return (
     <div
@@ -471,32 +492,20 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
       className="absolute mx-4 h-40 overflow-visible cursor-pointer select-none"
       style={{
         ...style,
-        zIndex: isHovering ? 10 : 1,
       }}
       {...props}
     >
-      {/* Cyberpunk circuit animations */}
+      {/* Cyberpunk cyber-trace animation styles */}
       <style jsx="true">{`
-        @keyframes fadeIn {
-          from { opacity: 0; stroke-dashoffset: 20; }
-          to { opacity: 1; stroke-dashoffset: 0; }
+        @keyframes neonPulse {
+          0% { opacity: 0.8; }
+          50% { opacity: 1; }
+          100% { opacity: 0.8; }
         }
         
-        @keyframes fadeOut {
-          from { opacity: 1; }
-          to { opacity: 0; }
-        }
-        
-        @keyframes pulse {
-          0% { r: 2; opacity: 0.7; }
-          50% { r: 3; opacity: 1; }
-          100% { r: 2; opacity: 0.7; }
-        }
-        
-        @keyframes nodeGlow {
-          0% { filter: drop-shadow(0 0 2px #ff0066); }
-          50% { filter: drop-shadow(0 0 4px #ff0066); }
-          100% { filter: drop-shadow(0 0 2px #ff0066); }
+        @keyframes dashOffset {
+          from { stroke-dashoffset: 30; }
+          to { stroke-dashoffset: 0; }
         }
       `}</style>
       
@@ -504,84 +513,38 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
       <div 
         className="absolute inset-0 bg-gradient-to-b from-[#1c0b0f] to-black rounded-lg overflow-hidden"
         style={{
-          boxShadow: "0 5px 15px rgba(0, 0, 0, 0.3)",
-          transition: 'transform 0.2s ease-out',
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
         }}
       />
       
-      {/* SVG overlay for circuit animations */}
-      <svg 
-        className="absolute inset-0 w-full h-full pointer-events-none z-10"
-        viewBox={svgViewBox}
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <defs>
-          <linearGradient id="circuitGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#ff0066" stopOpacity="1" />
-            <stop offset="100%" stopColor="#ff3300" stopOpacity="0.8" />
-          </linearGradient>
-        </defs>
-        
-        {/* Circuit paths */}
-        {circuitPaths.map((pathData) => {
-          const pathAge = Date.now() - pathData.timestamp;
-          const isNew = pathAge < 300;
-          const isOld = pathAge > 1000;
-          
-          // Animation for paths
-          const animationName = isNew ? 'fadeIn' : isOld ? 'fadeOut' : '';
-          const animationDuration = isNew ? '0.3s' : isOld ? '0.5s' : '';
-          
-          return (
-            <g key={pathData.id} style={{ opacity: isOld ? 0.5 : 1 }}>
-              {/* Main path */}
-              <path
-                d={pathData.path}
-                fill="none"
-                stroke="url(#circuitGradient)"
-                strokeWidth={1.5}
-                strokeDasharray="5,3"
-                style={{
-                  animation: animationName ? `${animationName} ${animationDuration} ease-out forwards` : '',
-                  animationDelay: `${pathData.animationDelay}s`,
-                  opacity: pathData.intensity,
-                  filter: `drop-shadow(0 0 ${3 + pathData.intensity * 2}px #ff0066)`,
-                }}
-              />
-              
-              {/* Glow overlay for more intense effect */}
-              <path
-                d={pathData.path}
-                fill="none"
-                stroke="#ff0066"
-                strokeWidth={0.5}
-                strokeOpacity={0.8}
-                style={{
-                  animation: animationName ? `${animationName} ${animationDuration} ease-out forwards` : '',
-                  animationDelay: `${pathData.animationDelay + 0.1}s`,
-                  opacity: pathData.intensity * 0.7,
-                  filter: 'blur(2px)',
-                }}
-              />
-            </g>
-          );
-        })}
-        
-        {/* Highlight node near cursor */}
-        {isHovering && (
-          <circle
-            cx={mousePos.x}
-            cy={mousePos.y}
-            r={3}
-            fill="#ff0066"
-            style={{
-              filter: 'drop-shadow(0 0 5px #ff0066)',
-              opacity: 0.8,
-              animation: 'pulse 1.5s infinite',
-            }}
-          />
-        )}
-      </svg>
+      {/* Thin border outline - always visible */}
+      <div 
+        className="absolute inset-0 rounded-lg pointer-events-none"
+        style={{
+          border: '1px solid rgba(100, 20, 30, 0.4)',
+        }}
+      />
+      
+      {/* Render the proximity-based border effect */}
+      {renderBorderEffect()}
+      
+      {/* Interactive circuit node at cursor position when near edge */}
+      {isNear && proximityData.distance < 20 && (
+        <div
+          className="absolute pointer-events-none"
+          style={{
+            width: '6px',
+            height: '6px',
+            borderRadius: '50%',
+            backgroundColor: '#ff0066',
+            left: `${mousePos.x - 3}px`,
+            top: `${mousePos.y - 3}px`,
+            boxShadow: `0 0 8px #ff0066`,
+            opacity: proximityData.intensity,
+            animation: 'neonPulse 1.5s ease-in-out infinite',
+          }}
+        />
+      )}
       
       {/* Content */}
       <div className="relative z-5 h-full flex flex-col justify-center items-center p-4">
@@ -619,6 +582,78 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
           backgroundSize: "cover"
         }}
       />
+      
+      {/* Edge circuit segments */}
+      {isNear && (
+        <>
+          {/* Add a few decorative circuit segments near the active edge */}
+          <svg
+            className="absolute inset-0 w-full h-full pointer-events-none z-10"
+            viewBox={`0 0 ${cardWidth} 160`}
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            {proximityData.edge === 'top' && (
+              <path
+                d={`M${position * cardWidth},1 v5 h${intensity * 15}`}
+                stroke="#ff0066"
+                strokeWidth="1"
+                fill="none"
+                strokeDasharray="4,2"
+                style={{
+                  opacity: intensity * 0.8,
+                  filter: `drop-shadow(0 0 3px #ff0066)`,
+                  animation: 'dashOffset 1.5s linear infinite',
+                }}
+              />
+            )}
+            
+            {proximityData.edge === 'right' && (
+              <path
+                d={`M${cardWidth - 1},${position * 160} h-5 v${intensity * 15}`}
+                stroke="#ff0066"
+                strokeWidth="1"
+                fill="none"
+                strokeDasharray="4,2"
+                style={{
+                  opacity: intensity * 0.8,
+                  filter: `drop-shadow(0 0 3px #ff0066)`,
+                  animation: 'dashOffset 1.5s linear infinite',
+                }}
+              />
+            )}
+            
+            {proximityData.edge === 'bottom' && (
+              <path
+                d={`M${(1-position) * cardWidth},159 v-5 h-${intensity * 15}`}
+                stroke="#ff0066"
+                strokeWidth="1"
+                fill="none"
+                strokeDasharray="4,2"
+                style={{
+                  opacity: intensity * 0.8,
+                  filter: `drop-shadow(0 0 3px #ff0066)`,
+                  animation: 'dashOffset 1.5s linear infinite',
+                }}
+              />
+            )}
+            
+            {proximityData.edge === 'left' && (
+              <path
+                d={`M1,${(1-position) * 160} h5 v-${intensity * 15}`}
+                stroke="#ff0066"
+                strokeWidth="1"
+                fill="none"
+                strokeDasharray="4,2"
+                style={{
+                  opacity: intensity * 0.8,
+                  filter: `drop-shadow(0 0 3px #ff0066)`,
+                  animation: 'dashOffset 1.5s linear infinite',
+                }}
+              />
+            )}
+          </svg>
+        </>
+      )}
     </div>
   );
 };
