@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useAnimationControls, useTime, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { categories } from '../../utils/mockData';
@@ -138,27 +138,15 @@ const CategoryRows = () => {
         </motion.div>
       </div>
       
-      {/* Category rows with continuous scrolling */}
-      <div className="space-y-12 overflow-hidden py-2">
-        {[1, -1].map((direction, idx) => {
-          // Filter categories for each row
-          const rowCategories = enhancedCategories
-            .filter((_, index) => index % 2 === (idx % 2))
-            .filter(cat => 
-              cat.name.includes(searchTerm) || 
-              cat.description.includes(searchTerm)
-            );
-            
-          return (
-            <CategoryRow 
-              key={idx}
-              categories={rowCategories}
-              direction={direction} 
-              isLowPerformance={isLowPerformance}
-              speed={idx === 0 ? 180 : 150}
-            />
-          );
-        })}
+      {/* Circular loop categories */}
+      <div className="relative h-[300px] md:h-[400px] overflow-hidden perspective-1000 mx-auto max-w-7xl">
+        <CircularCategoryLoop 
+          categories={enhancedCategories.filter(cat => 
+            cat.name.includes(searchTerm) || 
+            cat.description.includes(searchTerm)
+          )}
+          isLowPerformance={isLowPerformance}
+        />
       </div>
       
       {/* View all categories button - simplified */}
@@ -178,47 +166,123 @@ const CategoryRows = () => {
   );
 };
 
-// Category Row with continuous scrolling
-const CategoryRow = ({ categories, direction, isLowPerformance, speed = 120 }) => {
-  // Use time for continuous animation
+// Circular Category Loop Animation
+const CircularCategoryLoop = ({ categories, isLowPerformance }) => {
   const time = useTime();
+  const containerRef = useRef(null);
+  const radius = 200; // Base radius of the ellipse
+  const duration = isLowPerformance ? 30 : 25; // Seconds for a full rotation
+  const itemsCount = 16; // Number of items to display along the path
   
-  // Adjust speed based on performance and direction
-  const adjustedSpeed = isLowPerformance ? speed * 1.5 : speed;
+  // Duplicate categories to ensure enough items
+  const duplicatedCategories = [...categories, ...categories, ...categories, ...categories].slice(0, itemsCount);
   
-  // Create animation
-  const x = useTransform(
+  return (
+    <div 
+      className="h-full w-full relative" 
+      ref={containerRef}
+      style={{ perspective: '1000px' }}
+    >
+      {/* Center point for the ellipse */}
+      <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-0 h-0">
+        {duplicatedCategories.map((category, index) => (
+          <CircularItem 
+            key={`${category.id}-${index}`}
+            category={category}
+            index={index}
+            totalItems={itemsCount}
+            time={time}
+            duration={duration}
+            radius={radius}
+            isLowPerformance={isLowPerformance}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Individual item on circular path
+const CircularItem = ({ category, index, totalItems, time, duration, radius, isLowPerformance }) => {
+  // Calculate position along the ellipse
+  const position = useTransform(
     time,
     (time) => {
-      const progress = (time % (adjustedSpeed * 1000)) / (adjustedSpeed * 1000);
-      return direction > 0 
-        ? `${-100 * progress}%`  // Move left
-        : `${100 * (1 - progress)}%`;  // Move right
+      const cycleProgress = (time % (duration * 1000)) / (duration * 1000);
+      // Offset each item by its position in the array
+      const itemProgress = (cycleProgress + index / totalItems) % 1;
+      
+      // Convert to radians (full circle = 2π)
+      const angle = itemProgress * 2 * Math.PI;
+      
+      // Calculate 3D position on an ellipse
+      // We're making the ellipse wider than tall (2:1 ratio)
+      const x = Math.cos(angle) * radius * 2;
+      const y = Math.sin(angle) * radius * 0.6;
+      // Z coordinate for 3D effect - items further away are "smaller"
+      const z = Math.sin(angle) * radius;
+      
+      return { x, y, z, angle };
     }
   );
   
-  // Duplicate items to create continuous effect
-  const duplicatedCategories = [...categories, ...categories, ...categories];
+  // Scale based on z position (depth)
+  const scale = useTransform(
+    position, 
+    ({ z }) => {
+      // Items in front are larger, items in back are smaller
+      const depthScale = mapRange(z, -radius, radius, 0.7, 1.3);
+      return depthScale;
+    }
+  );
+  
+  // Opacity based on position (items at the back are more transparent)
+  const opacity = useTransform(
+    position,
+    ({ z }) => {
+      return mapRange(z, -radius, radius, 0.4, 1);
+    }
+  );
+  
+  // Z-index based on position (items in front appear above others)
+  const zIndex = useTransform(
+    position,
+    ({ z }) => {
+      return Math.round(mapRange(z, -radius, radius, 1, 100));
+    }
+  );
   
   return (
-    <div className="relative overflow-hidden py-2">
-      {/* Main row - animated */}
-      <motion.div 
-        className="flex items-center"
-        style={{ x }}
-      >
-        <div className="flex items-center whitespace-nowrap">
-          {duplicatedCategories.map((category, index) => (
-            <CategoryItem 
-              key={`${category.id}-${index}`}
-              category={category}
-              isLowPerformance={isLowPerformance}
-            />
-          ))}
-        </div>
-      </motion.div>
-    </div>
+    <motion.div
+      className="absolute transform -translate-x-1/2 -translate-y-1/2"
+      style={{
+        x: useTransform(position, p => p.x),
+        y: useTransform(position, p => p.y),
+        z: useTransform(position, p => p.z),
+        scale,
+        opacity,
+        zIndex,
+        transformStyle: 'preserve-3d',
+      }}
+    >
+      <CategoryItem 
+        category={category}
+        isLowPerformance={isLowPerformance}
+      />
+    </motion.div>
   );
+};
+
+// Helper function to map values from one range to another
+const mapRange = (value, fromMin, fromMax, toMin, toMax) => {
+  // Ensure value is within source range
+  const clampedValue = Math.max(fromMin, Math.min(value, fromMax));
+  
+  // Calculate the percentage in the source range
+  const percentage = (clampedValue - fromMin) / (fromMax - fromMin);
+  
+  // Map to the target range
+  return toMin + percentage * (toMax - toMin);
 };
 
 // Individual category item - simplified design
@@ -226,18 +290,18 @@ const CategoryItem = ({ category, isLowPerformance }) => {
   return (
     <Link
       to={`/shop?category=${category.slug}`}
-      className="inline-flex flex-col items-center justify-center mx-4 group"
+      className="inline-flex flex-col items-center justify-center mx-2 group"
     >
-      <div className="w-16 h-16 md:w-18 md:h-18 rounded-full flex items-center justify-center 
+      <div className="w-16 h-16 rounded-full flex items-center justify-center 
                      bg-gradient-to-br from-gray-900/70 to-black/70 backdrop-blur-sm 
                      border border-gray-800/30 group-hover:border-draugr-500/40 
                      transition-all duration-300 mb-2">
         <span className="text-3xl">{category.icon}</span>
       </div>
-      <span className="text-sm text-gray-300 group-hover:text-white transition-colors duration-300">
+      <span className="text-sm text-gray-300 group-hover:text-white transition-colors duration-300 text-center whitespace-nowrap">
         {category.name}
       </span>
-      <span className="text-xs text-gray-500 group-hover:text-gray-400 transition-colors duration-300">
+      <span className="text-xs text-gray-500 group-hover:text-gray-400 transition-colors duration-300 text-center whitespace-nowrap">
         {category.description}
       </span>
     </Link>
