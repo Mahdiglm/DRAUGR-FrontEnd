@@ -138,8 +138,8 @@ const CategoryRows = () => {
         </motion.div>
       </div>
       
-      {/* Circular loop categories */}
-      <div className="relative h-[300px] md:h-[400px] overflow-hidden perspective-1000 mx-auto max-w-7xl">
+      {/* 2D Elliptical loop categories */}
+      <div className="relative h-[300px] md:h-[400px] overflow-hidden mx-auto max-w-7xl">
         <CircularCategoryLoop 
           categories={enhancedCategories.filter(cat => 
             cat.name.includes(searchTerm) || 
@@ -166,11 +166,12 @@ const CategoryRows = () => {
   );
 };
 
-// Circular Category Loop Animation
+// 2D Circular Category Loop Animation
 const CircularCategoryLoop = ({ categories, isLowPerformance }) => {
   const time = useTime();
   const containerRef = useRef(null);
-  const radius = 200; // Base radius of the ellipse
+  const radiusX = 350; // Horizontal radius (wider)
+  const radiusY = 150; // Vertical radius (shorter)
   const duration = isLowPerformance ? 30 : 25; // Seconds for a full rotation
   const itemsCount = 16; // Number of items to display along the path
   
@@ -181,19 +182,19 @@ const CircularCategoryLoop = ({ categories, isLowPerformance }) => {
     <div 
       className="h-full w-full relative" 
       ref={containerRef}
-      style={{ perspective: '1000px' }}
     >
       {/* Center point for the ellipse */}
       <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-0 h-0">
         {duplicatedCategories.map((category, index) => (
-          <CircularItem 
+          <EllipticalItem 
             key={`${category.id}-${index}`}
             category={category}
             index={index}
             totalItems={itemsCount}
             time={time}
             duration={duration}
-            radius={radius}
+            radiusX={radiusX}
+            radiusY={radiusY}
             isLowPerformance={isLowPerformance}
           />
         ))}
@@ -202,8 +203,8 @@ const CircularCategoryLoop = ({ categories, isLowPerformance }) => {
   );
 };
 
-// Individual item on circular path
-const CircularItem = ({ category, index, totalItems, time, duration, radius, isLowPerformance }) => {
+// Individual item on elliptical path (2D)
+const EllipticalItem = ({ category, index, totalItems, time, duration, radiusX, radiusY, isLowPerformance }) => {
   // Calculate position along the ellipse
   const position = useTransform(
     time,
@@ -215,40 +216,11 @@ const CircularItem = ({ category, index, totalItems, time, duration, radius, isL
       // Convert to radians (full circle = 2π)
       const angle = itemProgress * 2 * Math.PI;
       
-      // Calculate 3D position on an ellipse
-      // We're making the ellipse wider than tall (2:1 ratio)
-      const x = Math.cos(angle) * radius * 2;
-      const y = Math.sin(angle) * radius * 0.6;
-      // Z coordinate for 3D effect - items further away are "smaller"
-      const z = Math.sin(angle) * radius;
+      // Calculate 2D position on an ellipse
+      const x = Math.cos(angle) * radiusX;
+      const y = Math.sin(angle) * radiusY;
       
-      return { x, y, z, angle };
-    }
-  );
-  
-  // Scale based on z position (depth)
-  const scale = useTransform(
-    position, 
-    ({ z }) => {
-      // Items in front are larger, items in back are smaller
-      const depthScale = mapRange(z, -radius, radius, 0.7, 1.3);
-      return depthScale;
-    }
-  );
-  
-  // Opacity based on position (items at the back are more transparent)
-  const opacity = useTransform(
-    position,
-    ({ z }) => {
-      return mapRange(z, -radius, radius, 0.4, 1);
-    }
-  );
-  
-  // Z-index based on position (items in front appear above others)
-  const zIndex = useTransform(
-    position,
-    ({ z }) => {
-      return Math.round(mapRange(z, -radius, radius, 1, 100));
+      return { x, y, angle };
     }
   );
   
@@ -258,11 +230,8 @@ const CircularItem = ({ category, index, totalItems, time, duration, radius, isL
       style={{
         x: useTransform(position, p => p.x),
         y: useTransform(position, p => p.y),
-        z: useTransform(position, p => p.z),
-        scale,
-        opacity,
-        zIndex,
-        transformStyle: 'preserve-3d',
+        // All items have same z-index to maintain insertion order
+        zIndex: 10,
       }}
     >
       <CategoryItem 
@@ -271,18 +240,6 @@ const CircularItem = ({ category, index, totalItems, time, duration, radius, isL
       />
     </motion.div>
   );
-};
-
-// Helper function to map values from one range to another
-const mapRange = (value, fromMin, fromMax, toMin, toMax) => {
-  // Ensure value is within source range
-  const clampedValue = Math.max(fromMin, Math.min(value, fromMax));
-  
-  // Calculate the percentage in the source range
-  const percentage = (clampedValue - fromMin) / (fromMax - fromMin);
-  
-  // Map to the target range
-  return toMin + percentage * (toMax - toMin);
 };
 
 // Individual category item - simplified design
