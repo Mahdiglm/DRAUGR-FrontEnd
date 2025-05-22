@@ -175,57 +175,37 @@ const CategoryRows = () => {
         </motion.div>
       </div>
       
-      {/* Main content with side menus - absolute positioning to go full height */}
+      {/* Left side subcategories - now directly in the main section */}
+      <div className="hidden md:block absolute top-0 left-0 bottom-0 w-1/5 z-10">
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
+          {/* Top fade effect */}
+          <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black to-transparent z-10"></div>
+          <VerticalScrollingMenu 
+            items={subcategories} 
+            direction="up" 
+            columns={2} 
+            startFromEdge={true} 
+            parentRef={sectionRef}
+            fullHeight={true}
+          />
+          {/* Bottom fade effect */}
+          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent z-10"></div>
+        </div>
+      </div>
+
+      {/* Main content - without side menus */}
       <div className="container mx-auto px-4 relative">
-        <div className="flex flex-col md:flex-row justify-between items-start min-h-[calc(100vh-200px)]">
-          {/* Left side subcategories (2 columns moving upward) - Full height column with absolute positioning */}
-          <div className="hidden md:block w-full md:w-1/5 absolute top-0 right-0 md:right-auto md:left-0 h-full">
-            <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
-              {/* Top fade effect */}
-              <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black to-transparent z-10"></div>
-              <VerticalScrollingMenu 
-                items={subcategories} 
-                direction="up" 
-                columns={2} 
-                startFromEdge={true} 
-                parentRef={sectionRef}
-                fullHeight={true}
+        {/* Center circular category animation */}
+        <div className="w-full md:w-3/5 mx-auto">
+          <div className="flex justify-center items-center my-8">
+            <div className="relative w-full h-[300px] md:h-[400px] max-w-[900px] mx-auto overflow-hidden">
+              <CircularCategoryLoop 
+                categories={enhancedCategories.filter(cat => 
+                  cat.name.includes(searchTerm) || 
+                  cat.description.includes(searchTerm)
+                )}
+                isLowPerformance={isLowPerformance}
               />
-              {/* Bottom fade effect */}
-              <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent z-10"></div>
-            </div>
-          </div>
-          
-          {/* Center circular category animation */}
-          <div className="w-full md:w-3/5 mx-auto">
-            <div className="flex justify-center items-center my-8">
-              <div className="relative w-full h-[300px] md:h-[400px] max-w-[900px] mx-auto overflow-hidden">
-                <CircularCategoryLoop 
-                  categories={enhancedCategories.filter(cat => 
-                    cat.name.includes(searchTerm) || 
-                    cat.description.includes(searchTerm)
-                  )}
-                  isLowPerformance={isLowPerformance}
-                />
-              </div>
-            </div>
-          </div>
-          
-          {/* Right side tags (2 columns moving downward) - Full height column with absolute positioning */}
-          <div className="hidden md:block w-full md:w-1/5 absolute top-0 right-0 h-full">
-            <div className="absolute top-0 right-0 w-full h-full overflow-hidden">
-              {/* Top fade effect */}
-              <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black to-transparent z-10"></div>
-              <VerticalScrollingMenu 
-                items={popularTags} 
-                direction="down" 
-                columns={2} 
-                startFromEdge={true}
-                parentRef={sectionRef}
-                fullHeight={true}
-              />
-              {/* Bottom fade effect */}
-              <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent z-10"></div>
             </div>
           </div>
         </div>
@@ -246,7 +226,25 @@ const CategoryRows = () => {
         </div>
       </div>
       
-      {/* View all categories button - simplified */}
+      {/* Right side tags - now directly in the main section */}
+      <div className="hidden md:block absolute top-0 right-0 bottom-0 w-1/5 z-10">
+        <div className="absolute top-0 right-0 w-full h-full overflow-hidden">
+          {/* Top fade effect */}
+          <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black to-transparent z-10"></div>
+          <VerticalScrollingMenu 
+            items={popularTags} 
+            direction="down" 
+            columns={2} 
+            startFromEdge={true}
+            parentRef={sectionRef}
+            fullHeight={true}
+          />
+          {/* Bottom fade effect */}
+          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent z-10"></div>
+        </div>
+      </div>
+      
+      {/* View all categories button */}
       <div className="text-center mt-12">
         <Link to="/shop">
           <motion.button
