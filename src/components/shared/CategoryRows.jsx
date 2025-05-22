@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useAnimationControls, useTime, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { categories } from '../../utils/mockData';
@@ -261,7 +261,7 @@ const CategoryRows = () => {
   );
 };
 
-// Vertical scrolling menu component for sides
+// Vertical scrolling menu component with truly infinite scrolling
 const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = false, parentRef, fullHeight = false }) => {
   const containerRef = useRef(null);
   const [containerHeight, setContainerHeight] = useState(0);
@@ -270,10 +270,11 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = 
   
   // Calculate item height based on content
   const itemHeight = 40; // Height for each item
-  const singleSetHeight = items.length * itemHeight;
+  const itemsPerSet = items.length;
+  const totalSetHeight = itemsPerSet * itemHeight;
   
-  // Define a constant speed in pixels per second - reduced for better performance
-  const SCROLL_SPEED = 15; // pixels per second - decreased for better performance
+  // Define a constant speed in pixels per second
+  const SCROLL_SPEED = 25; // pixels per second - same for both menus
   
   // Update container and parent height on mount and resize
   useEffect(() => {
@@ -288,49 +289,46 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = 
     };
     
     updateSizes();
+    
     window.addEventListener('resize', updateSizes);
     return () => window.removeEventListener('resize', updateSizes);
   }, [parentRef]);
   
-  // Animation frame-based animation with throttling for better performance
+  // Animation frame-based animation for consistent speed
   useEffect(() => {
     let lastTimestamp = 0;
     let animationFrameId = null;
-    let skipFrame = false; // For throttling frames on low-end devices
     
-    // Animation function with performance optimizations
     const animate = (timestamp) => {
-      // Throttle updates on low-end devices
-      if (skipFrame) {
-        skipFrame = false;
+      // Initialize lastTimestamp on first run
+      if (lastTimestamp === 0) {
+        lastTimestamp = timestamp;
         animationFrameId = requestAnimationFrame(animate);
         return;
       }
       
       // Calculate elapsed time since last frame in seconds
-      const deltaTime = lastTimestamp === 0 ? 0.016 : (timestamp - lastTimestamp) / 1000;
+      const deltaTime = (timestamp - lastTimestamp) / 1000;
       lastTimestamp = timestamp;
       
-      // Skip extreme delta values (tab was inactive)
-      if (deltaTime > 0 && deltaTime < 0.1) {
+      // Only update after we have a valid delta time
+      if (deltaTime > 0 && deltaTime < 0.1) { // Avoid jumps if tab was inactive
         // Calculate how much to move based on direction and constant speed
         let movement = SCROLL_SPEED * deltaTime;
         
         // Update position based on direction
-        setScrollY(prevY => {
-          // Move according to direction
-          let newY = prevY + movement;
-          
-          // Reset when we've scrolled a complete set to create seamless loop
-          if (newY > singleSetHeight) {
-            return newY - singleSetHeight;
-          }
-          return newY;
-        });
-        
-        // Throttle on potentially low-end devices
-        if (window.innerWidth < 768) {
-          skipFrame = true; // Skip next frame on mobile devices
+        if (direction === 'up') {
+          setScrollY(prevY => {
+            // Move upward (negative)
+            let newY = prevY - movement;
+            return newY;
+          });
+        } else {
+          setScrollY(prevY => {
+            // Move downward (positive)
+            let newY = prevY + movement;
+            return newY;
+          });
         }
       }
       
@@ -346,74 +344,74 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = 
         cancelAnimationFrame(animationFrameId);
       }
     };
-  }, [direction, singleSetHeight]);
+  }, [direction]);
   
-  // Virtualization - only render items that would be visible
-  const visibleHeight = containerHeight || 500; // Fallback if height not measured yet
+  // Generate enough rows to fill the view and then some
+  const visibleRows = Math.ceil(parentHeight / itemHeight) * 3; // Triple the needed amount
   
-  // Create three sets of items to ensure smooth scrolling
-  // This is much more performant than creating 100 sets
-  const virtualItems = useMemo(() => {
-    // Create just 3 copies - enough for smooth scrolling while keeping DOM light
-    return [...items, ...items, ...items];
-  }, [items]);
-  
-  // Calculate which items should be visible based on current scroll position
-  // This is the key to performance - only render what's needed
-  const visibleItems = useMemo(() => {
-    // Calculate starting index based on scroll position
-    const currentScrollPosition = direction === 'up' ? scrollY : scrollY;
-    const effectivePosition = currentScrollPosition % singleSetHeight;
-    
-    // Calculate visible range with buffer
-    const startIndex = Math.floor(effectivePosition / itemHeight) - 5; // 5 item buffer before
-    const endIndex = Math.ceil((effectivePosition + visibleHeight) / itemHeight) + 5; // 5 item buffer after
-    
-    // Get visible items for each column
-    return Array(columns).fill().map((_, colIndex) => {
-      return virtualItems.filter((_, index) => {
-        const itemIndex = Math.floor(index / columns);
-        return itemIndex >= startIndex && itemIndex <= endIndex && index % columns === colIndex;
-      });
-    });
-  }, [scrollY, virtualItems, visibleHeight, itemHeight, singleSetHeight, columns, direction]);
-  
-  // Prepare the transform for each direction
-  const getTransformStyle = () => {
-    if (direction === 'up') {
-      return { transform: `translateY(-${scrollY}px)` };
-    } else {
-      return { transform: `translateY(${scrollY}px)` };
-    }
+  // Function to render a single item based on index, handling wrapping
+  const renderItem = (index) => {
+    // Normalize the index to wrap around the items array
+    const normalizedIndex = Math.abs(index % itemsPerSet);
+    return items[normalizedIndex];
   };
+  
+  // Generate visible items for each column
+  const generateVisibleItems = () => {
+    // Calculate current "starting" index based on scroll position
+    const startIdx = Math.floor(Math.abs(scrollY) / itemHeight);
+    
+    const columnItems = Array(columns).fill().map(() => []);
+    
+    // Generate enough rows for each column
+    for (let i = 0; i < visibleRows; i++) {
+      const rowIndex = startIdx + i;
+      
+      // Add appropriate item to each column
+      for (let col = 0; col < columns; col++) {
+        const itemIndex = Math.floor(rowIndex / columns) + col;
+        columnItems[col].push({
+          item: renderItem(itemIndex),
+          // Unique key combining item ID, overall index, and column
+          key: `item-${renderItem(itemIndex).id}-${itemIndex}-${col}`
+        });
+      }
+    }
+    
+    return columnItems;
+  };
+  
+  // Get columns of visible items
+  const columnItems = generateVisibleItems();
+  
+  // Calculate the visual offset for smooth scrolling
+  const visualScrollOffset = scrollY % itemHeight;
   
   return (
     <div 
       className={`relative ${fullHeight ? 'h-full min-h-[80vh]' : 'h-full'}`} 
       ref={containerRef}
+      style={{ overflowY: 'hidden' }}
     >
       {/* Grid container for columns */}
       <div className="grid grid-cols-2 gap-x-4 h-full">
-        {visibleItems.map((columnItems, colIndex) => (
-          <div key={colIndex} className="relative overflow-hidden h-full">
+        {columnItems.map((column, colIndex) => (
+          <div key={`col-${colIndex}`} className="relative overflow-hidden h-full">
             <div 
               className="absolute w-full will-change-transform"
               style={{ 
-                ...getTransformStyle(),
-                transformStyle: 'preserve-3d',
-                contain: 'paint layout' // Performance optimization
+                transform: `translateY(${direction === 'up' ? -visualScrollOffset : visualScrollOffset}px)`,
+                transformStyle: 'preserve-3d'
               }}
             >
-              {columnItems.map((item, index) => (
+              {column.map(({ item, key }) => (
                 <div 
-                  key={`${item.id}-${index}`} 
-                  className="mb-3"
+                  key={key}
+                  className="mb-3 will-change-transform"
                   style={{ 
                     transform: "translateZ(0)",
                     backfaceVisibility: "hidden",
-                    WebkitFontSmoothing: "antialiased",
-                    height: `${itemHeight}px`, // Fix height for accurate calculations
-                    willChange: 'auto' // Let browser decide optimization
+                    WebkitFontSmoothing: "antialiased"
                   }}
                 >
                   <Link 
@@ -541,7 +539,7 @@ const EllipticalItem = ({ category, index, totalItems, time, duration, radiusX, 
   );
   
   return (
-    <motion.div
+      <motion.div 
       className="absolute transform -translate-x-1/2 -translate-y-1/2"
       style={{
         x: useTransform(position, p => p.x),
@@ -550,12 +548,12 @@ const EllipticalItem = ({ category, index, totalItems, time, duration, radiusX, 
         zIndex: 10,
       }}
     >
-      <CategoryItem 
+            <CategoryItem 
         category={category}
         isLowPerformance={isLowPerformance}
         isMobile={isMobile}
-      />
-    </motion.div>
+            />
+      </motion.div>
   );
 };
 
@@ -585,4 +583,4 @@ const CategoryItem = ({ category, isLowPerformance, isMobile }) => {
   );
 };
 
-export default CategoryRows;
+export default CategoryRows; 
