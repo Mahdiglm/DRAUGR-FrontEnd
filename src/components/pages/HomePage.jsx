@@ -678,11 +678,11 @@ const HomePage = () => {
               categoryItems={categories}
             />
             
-            {/* Second row - left to right */}
+            {/* Second row - left to right (without title) */}
             <CategoryRows 
               direction="ltr" 
-              title="محصولات ویژه" 
-              subtitle="اکتشاف دنیای جدیدی از محصولات خاص و منحصر به فرد"
+              title="" 
+              subtitle=""
               categoryItems={additionalCategories}
             />
           </div>

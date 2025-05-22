@@ -271,15 +271,17 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
   }, [defaultSpeed, direction]);
 
   return (
-    <div className="py-8 sm:py-12 md:py-16 w-full relative overflow-hidden">
-      <div className="container mx-auto px-4 mb-8">
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-100 mb-2">
-          {title}
-        </h2>
-        <p className="text-gray-400">
-          {subtitle}
-        </p>
-      </div>
+    <div className="py-4 sm:py-6 md:py-8 w-full relative overflow-hidden">
+      {(title.trim() || subtitle.trim()) && (
+        <div className="container mx-auto px-4 mb-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-100 mb-2">
+            {title}
+          </h2>
+          <p className="text-gray-400">
+            {subtitle}
+          </p>
+        </div>
+      )}
       
       <div 
         ref={containerRef}
