@@ -154,4 +154,22 @@ export const additionalCategories = [
   { id: 10, name: "سنگ‌های جادویی", slug: "magic_stones" },
   { id: 11, name: "نوشته‌های باستانی", slug: "ancient_scrolls" },
   { id: 12, name: "عناصر ماورایی", slug: "occult_items" }
+];
+
+export const thirdRowCategories = [
+  { id: 13, name: "جواهرات افسونگر", slug: "enchanted_jewelry" },
+  { id: 14, name: "ابزارهای نجومی", slug: "astronomical_tools" },
+  { id: 15, name: "نقشه‌های باستانی", slug: "ancient_maps" },
+  { id: 16, name: "جام‌های مقدس", slug: "sacred_chalices" },
+  { id: 17, name: "تندیس‌های کهن", slug: "ancient_statues" },
+  { id: 18, name: "ادویه‌های نادر", slug: "rare_spices" }
+];
+
+export const fourthRowCategories = [
+  { id: 19, name: "نشان‌های قبیله‌ای", slug: "tribal_emblems" },
+  { id: 20, name: "رمزنگاری‌ها", slug: "cryptic_writings" },
+  { id: 21, name: "چوب‌دستی‌های جادویی", slug: "magic_wands" },
+  { id: 22, name: "نقاب‌های آیینی", slug: "ritual_masks" },
+  { id: 23, name: "ابزارهای کیمیاگری", slug: "alchemy_tools" },
+  { id: 24, name: "سازهای موسیقی کهن", slug: "ancient_instruments" }
 ]; 

@@ -5,7 +5,7 @@ import { useOutletContext, Link } from 'react-router-dom';
 import ProductList from '../product/ProductList';
 import FeaturedProductSlider from '../product/FeaturedProductSlider';
 import CategoryRows from '../shared/CategoryRows';
-import { products, categories, additionalCategories } from '../../utils/mockData';
+import { products, categories, additionalCategories, thirdRowCategories, fourthRowCategories } from '../../utils/mockData';
 import { safeBlur, safeFilterTransition, isLowPerformanceDevice, getOptimizedAnimationSettings } from '../../utils/animationHelpers';
 // Try with relative path to asset folder
 import heroBackground from '../../assets/Background-Hero.jpg';
@@ -662,7 +662,7 @@ const HomePage = () => {
 
         {/* Category Rows Section */}
         <motion.section 
-          className="py-8 sm:py-12 md:py-16 w-full relative overflow-hidden"
+          className="py-6 sm:py-8 md:py-10 w-full relative overflow-hidden"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
@@ -684,6 +684,22 @@ const HomePage = () => {
               title="" 
               subtitle=""
               categoryItems={additionalCategories}
+            />
+            
+            {/* Third row - right to left (without title) */}
+            <CategoryRows 
+              direction="rtl" 
+              title="" 
+              subtitle=""
+              categoryItems={thirdRowCategories}
+            />
+            
+            {/* Fourth row - left to right (without title) */}
+            <CategoryRows 
+              direction="ltr" 
+              title="" 
+              subtitle=""
+              categoryItems={fourthRowCategories}
             />
           </div>
         </motion.section>
