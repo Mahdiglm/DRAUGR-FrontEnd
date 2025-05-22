@@ -331,24 +331,7 @@ const CategoryItem = ({ category, style, ...props }) => {
       {...props}
     >
       {/* Card background with borders */}
-      <div 
-        className="absolute inset-0 bg-gradient-to-b from-[#1c0b0f] to-black rounded-lg overflow-hidden"
-        style={{
-          boxShadow: glowing 
-            ? "0 10px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(220, 38, 38, 0.35)" 
-            : "0 5px 15px rgba(0, 0, 0, 0.3), inset 0 0 0 1px #60111a", 
-          transition: "box-shadow 0.3s ease-out",
-        }}
-      />
-      
-      {/* Red accent line top */}
-      <div 
-        className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-red-800 to-transparent" 
-        style={{
-          opacity: glowing ? 0.8 : 0.4,
-          transition: "opacity 0.3s ease-out",
-        }}
-      />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#1c0b0f] to-black rounded-lg overflow-hidden" />
       
       {/* Content */}
       <div className="relative z-10 h-full flex flex-col justify-center items-center p-4">
@@ -379,34 +362,6 @@ const CategoryItem = ({ category, style, ...props }) => {
         </div>
       </div>
       
-      {/* Hover effects - transform container */}
-      <div 
-        className="absolute inset-0 rounded-lg transition-transform duration-300 ease-out"
-        style={{
-          transform: glowing ? 'translateY(-5px)' : 'none'
-        }}
-      />
-      
-      {/* Glow effect wrapper */}
-      <div 
-        className="absolute inset-0 rounded-lg transition-opacity duration-300"
-        style={{
-          ...gradientPosition,
-          opacity: glowing ? 1 : 0,
-          pointerEvents: 'none'
-        }}
-      />
-      
-      {/* Border accent when hovered */}
-      <div 
-        className="absolute inset-0 rounded-lg pointer-events-none"
-        style={{
-          border: glowing ? "1px solid #dc2626" : "none",
-          opacity: glowing ? 0.6 : 0,
-          transition: "opacity 0.3s ease-out"
-        }}
-      />
-      
       {/* Noise texture overlay */}
       <div 
         className="absolute inset-0 opacity-10 mix-blend-overlay pointer-events-none"
@@ -415,6 +370,83 @@ const CategoryItem = ({ category, style, ...props }) => {
           backgroundSize: "cover"
         }}
       />
+      
+      {/* Cyberpunk corner accents - these are placed at each corner */}
+      <div className="absolute top-0 left-0 w-4 h-4 pointer-events-none" style={{ opacity: glowing ? 1 : 0.3, transition: 'opacity 0.3s ease' }}>
+        <div className="absolute top-0 left-0 w-3 h-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 8px #dc2626, 0 0 4px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
+        <div className="absolute top-0 left-0 h-3 w-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 8px #dc2626, 0 0 4px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
+      </div>
+      
+      <div className="absolute top-0 right-0 w-4 h-4 pointer-events-none" style={{ opacity: glowing ? 1 : 0.3, transition: 'opacity 0.3s ease' }}>
+        <div className="absolute top-0 right-0 w-3 h-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 8px #dc2626, 0 0 4px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
+        <div className="absolute top-0 right-0 h-3 w-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 8px #dc2626, 0 0 4px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
+      </div>
+      
+      <div className="absolute bottom-0 left-0 w-4 h-4 pointer-events-none" style={{ opacity: glowing ? 1 : 0.3, transition: 'opacity 0.3s ease' }}>
+        <div className="absolute bottom-0 left-0 w-3 h-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 8px #dc2626, 0 0 4px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
+        <div className="absolute bottom-0 left-0 h-3 w-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 8px #dc2626, 0 0 4px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
+      </div>
+      
+      <div className="absolute bottom-0 right-0 w-4 h-4 pointer-events-none" style={{ opacity: glowing ? 1 : 0.3, transition: 'opacity 0.3s ease' }}>
+        <div className="absolute bottom-0 right-0 w-3 h-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 8px #dc2626, 0 0 4px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
+        <div className="absolute bottom-0 right-0 h-3 w-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 8px #dc2626, 0 0 4px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
+      </div>
+      
+      {/* Cyberpunk edge lighting effect */}
+      <div 
+        className="absolute inset-0 rounded-lg pointer-events-none" 
+        style={{
+          background: 'none',
+          borderRadius: '0.5rem',
+          border: glowing ? '1px solid rgba(220, 38, 38, 0.5)' : '1px solid rgba(96, 17, 26, 0.2)',
+          boxShadow: glowing 
+            ? '0 0 15px rgba(220, 38, 38, 0.4), inset 0 0 8px rgba(220, 38, 38, 0.2)' 
+            : 'none',
+          transition: 'all 0.3s ease-out',
+          opacity: 1
+        }}
+      />
+      
+      {/* Cyberpunk glitch effect (subtle) */}
+      <div 
+        className="absolute inset-0 rounded-lg overflow-hidden pointer-events-none"
+        style={{
+          opacity: glowing ? 0.05 : 0,
+          transition: 'opacity 0.3s ease',
+          backgroundColor: 'transparent'
+        }}
+      >
+        <div className="absolute inset-0 animate-pulse" style={{
+          backgroundImage: 'linear-gradient(to bottom, transparent, rgba(220, 38, 38, 0.2), transparent)',
+          backgroundSize: '100% 10px',
+          backgroundRepeat: 'repeat',
+          mixBlendMode: 'overlay',
+          animation: 'scanline 6s linear infinite'
+        }}></div>
+      </div>
+      
+      {/* Edge accent - horizontal scattered segments */}
+      <div className="absolute top-[10px] inset-x-0 flex justify-between px-1 pointer-events-none" style={{ opacity: glowing ? 1 : 0.3, transition: 'opacity 0.3s ease' }}>
+        <div className="w-[7px] h-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 5px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
+        <div className="w-[15px] h-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 5px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
+        <div className="w-[5px] h-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 5px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
+        <div className="w-[12px] h-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 5px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
+      </div>
+      
+      <div className="absolute bottom-[10px] inset-x-0 flex justify-between px-1 pointer-events-none" style={{ opacity: glowing ? 1 : 0.3, transition: 'opacity 0.3s ease' }}>
+        <div className="w-[12px] h-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 5px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
+        <div className="w-[5px] h-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 5px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
+        <div className="w-[15px] h-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 5px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
+        <div className="w-[7px] h-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 5px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
+      </div>
+      
+      {/* Keyline animation */}
+      <style jsx="true">{`
+        @keyframes scanline {
+          0% { transform: translateY(-100%); }
+          100% { transform: translateY(100%); }
+        }
+      `}</style>
     </div>
   );
 };
