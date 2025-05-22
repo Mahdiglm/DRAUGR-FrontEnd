@@ -139,14 +139,16 @@ const CategoryRows = () => {
       </div>
       
       {/* 2D Elliptical loop categories */}
-      <div className="relative h-[300px] md:h-[400px] overflow-hidden mx-auto max-w-7xl">
-        <CircularCategoryLoop 
-          categories={enhancedCategories.filter(cat => 
-            cat.name.includes(searchTerm) || 
-            cat.description.includes(searchTerm)
-          )}
-          isLowPerformance={isLowPerformance}
-        />
+      <div className="flex justify-center items-center">
+        <div className="relative w-full h-[300px] md:h-[400px] max-w-[1000px] mx-auto overflow-hidden">
+          <CircularCategoryLoop 
+            categories={enhancedCategories.filter(cat => 
+              cat.name.includes(searchTerm) || 
+              cat.description.includes(searchTerm)
+            )}
+            isLowPerformance={isLowPerformance}
+          />
+        </div>
       </div>
       
       {/* View all categories button - simplified */}
@@ -170,10 +172,32 @@ const CategoryRows = () => {
 const CircularCategoryLoop = ({ categories, isLowPerformance }) => {
   const time = useTime();
   const containerRef = useRef(null);
-  const radiusX = 350; // Horizontal radius (wider)
-  const radiusY = 150; // Vertical radius (shorter)
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  
+  // Calculate appropriate radii based on container size 
+  const radiusX = Math.min(dimensions.width * 0.4, 300); // Horizontal radius
+  const radiusY = Math.min(dimensions.height * 0.35, 120); // Vertical radius
   const duration = isLowPerformance ? 30 : 25; // Seconds for a full rotation
   const itemsCount = 16; // Number of items to display along the path
+  
+  // Update dimensions on mount and on resize
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (containerRef.current) {
+        setDimensions({
+          width: containerRef.current.offsetWidth,
+          height: containerRef.current.offsetHeight
+        });
+      }
+    };
+    
+    updateDimensions();
+    window.addEventListener('resize', updateDimensions);
+    
+    return () => {
+      window.removeEventListener('resize', updateDimensions);
+    };
+  }, []);
   
   // Duplicate categories to ensure enough items
   const duplicatedCategories = [...categories, ...categories, ...categories, ...categories].slice(0, itemsCount);
@@ -184,7 +208,7 @@ const CircularCategoryLoop = ({ categories, isLowPerformance }) => {
       ref={containerRef}
     >
       {/* Center point for the ellipse */}
-      <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-0 h-0">
+      <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full flex justify-center items-center">
         {duplicatedCategories.map((category, index) => (
           <EllipticalItem 
             key={`${category.id}-${index}`}
