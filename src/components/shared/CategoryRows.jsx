@@ -594,13 +594,13 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
           >
             {proximityData.edge === 'top' && (
               <path
-                d={`M${position * cardWidth},1 v5 h${intensity * 15}`}
+                d={`M${proximityData.position * cardWidth},1 v5 h${proximityData.intensity * 15}`}
                 stroke="#ff0066"
                 strokeWidth="1"
                 fill="none"
                 strokeDasharray="4,2"
                 style={{
-                  opacity: intensity * 0.8,
+                  opacity: proximityData.intensity * 0.8,
                   filter: `drop-shadow(0 0 3px #ff0066)`,
                   animation: 'dashOffset 1.5s linear infinite',
                 }}
@@ -609,13 +609,13 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
             
             {proximityData.edge === 'right' && (
               <path
-                d={`M${cardWidth - 1},${position * 160} h-5 v${intensity * 15}`}
+                d={`M${cardWidth - 1},${proximityData.position * 160} h-5 v${proximityData.intensity * 15}`}
                 stroke="#ff0066"
                 strokeWidth="1"
                 fill="none"
                 strokeDasharray="4,2"
                 style={{
-                  opacity: intensity * 0.8,
+                  opacity: proximityData.intensity * 0.8,
                   filter: `drop-shadow(0 0 3px #ff0066)`,
                   animation: 'dashOffset 1.5s linear infinite',
                 }}
@@ -624,13 +624,13 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
             
             {proximityData.edge === 'bottom' && (
               <path
-                d={`M${(1-position) * cardWidth},159 v-5 h-${intensity * 15}`}
+                d={`M${(1-proximityData.position) * cardWidth},159 v-5 h-${proximityData.intensity * 15}`}
                 stroke="#ff0066"
                 strokeWidth="1"
                 fill="none"
                 strokeDasharray="4,2"
                 style={{
-                  opacity: intensity * 0.8,
+                  opacity: proximityData.intensity * 0.8,
                   filter: `drop-shadow(0 0 3px #ff0066)`,
                   animation: 'dashOffset 1.5s linear infinite',
                 }}
@@ -639,13 +639,13 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
             
             {proximityData.edge === 'left' && (
               <path
-                d={`M1,${(1-position) * 160} h5 v-${intensity * 15}`}
+                d={`M1,${(1-proximityData.position) * 160} h5 v-${proximityData.intensity * 15}`}
                 stroke="#ff0066"
                 strokeWidth="1"
                 fill="none"
                 strokeDasharray="4,2"
                 style={{
-                  opacity: intensity * 0.8,
+                  opacity: proximityData.intensity * 0.8,
                   filter: `drop-shadow(0 0 3px #ff0066)`,
                   animation: 'dashOffset 1.5s linear infinite',
                 }}
