@@ -109,7 +109,7 @@ const popularTags = [
   { id: 5, name: 'ویژه جادوگران', slug: 'for-wizards' },
   { id: 6, name: 'ویژه جنگجویان', slug: 'for-warriors' },
   { id: 7, name: 'محبوب کاربران', slug: 'popular' },
-  { id: 8, name: 'پیشنهاد درائوگر', slug: 'recommended' }
+  { id: 8, name: 'پیشنهاد درائوگر', slug: 'recommended' },
 ];
 
 const CategoryRows = () => {
@@ -173,26 +173,9 @@ const CategoryRows = () => {
       {/* Main content with side menus */}
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-start">
-          {/* Left side subcategories (2 columns going down) - Only visible on md+ screens */}
+          {/* Left side subcategories (2 columns moving upward) - Only visible on md+ screens */}
           <div className="hidden md:block w-full md:w-1/5 mb-6 md:mb-0">
-            <div className="grid grid-cols-2 gap-x-2 gap-y-1">
-              {subcategories.slice(0, 8).map((subcat, index) => (
-                <motion.div
-                  key={subcat.id}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05, duration: 0.3 }}
-                  className="mb-1"
-                >
-                  <Link 
-                    to={`/shop?subcategory=${subcat.slug}`} 
-                    className="text-sm block py-1 px-2 rounded hover:bg-gray-800/30 transition-colors duration-200 text-gray-300 hover:text-white"
-                  >
-                    {subcat.name}
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
+            <VerticalScrollingMenu items={subcategories} direction="up" columns={2} />
           </div>
           
           {/* Center circular category animation */}
@@ -210,26 +193,9 @@ const CategoryRows = () => {
             </div>
           </div>
           
-          {/* Right side tags (2 columns going up) - Only visible on md+ screens */}
+          {/* Right side tags (2 columns moving downward) - Only visible on md+ screens */}
           <div className="hidden md:block w-full md:w-1/5 mb-6 md:mb-0">
-            <div className="grid grid-cols-2 gap-x-2 gap-y-1">
-              {popularTags.slice(0, 8).map((tag, index) => (
-                <motion.div
-                  key={tag.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: (8 - index) * 0.05, duration: 0.3 }}
-                  className="mb-1"
-                >
-                  <Link 
-                    to={`/shop?tag=${tag.slug}`} 
-                    className="text-sm block py-1 px-2 rounded hover:bg-gray-800/30 transition-colors duration-200 text-gray-300 hover:text-white"
-                  >
-                    {tag.name}
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
+            <VerticalScrollingMenu items={popularTags} direction="down" columns={2} />
           </div>
         </div>
         
@@ -261,6 +227,86 @@ const CategoryRows = () => {
             <span>مشاهده همه محصولات</span>
           </motion.button>
         </Link>
+      </div>
+    </div>
+  );
+};
+
+// Vertical scrolling menu component for sides
+const VerticalScrollingMenu = ({ items, direction, columns = 2 }) => {
+  const containerRef = useRef(null);
+  const time = useTime();
+  const [containerHeight, setContainerHeight] = useState(0);
+  
+  // Double the items to create a seamless loop
+  const duplicatedItems = [...items, ...items];
+  
+  // Calculate item height based on content
+  const itemHeight = 30; // Estimated height for each item
+  const totalContentHeight = duplicatedItems.length * itemHeight;
+  
+  // Get animation duration based on content length
+  const duration = duplicatedItems.length * 1.5; // 1.5 seconds per item
+  
+  // Update container height on mount
+  useEffect(() => {
+    if (containerRef.current) {
+      setContainerHeight(containerRef.current.clientHeight);
+    }
+  }, []);
+  
+  // Calculate animation position based on time
+  const y = useTransform(
+    time,
+    (time) => {
+      const progress = (time % (duration * 1000)) / (duration * 1000);
+      
+      // For upward movement, we start at the bottom
+      if (direction === 'up') {
+        const position = containerHeight + totalContentHeight * progress * -1;
+        return `${position}px`;
+      } 
+      // For downward movement, we start at the top
+      else {
+        const position = -totalContentHeight + totalContentHeight * progress;
+        return `${position}px`;
+      }
+    }
+  );
+  
+  // Split items into columns
+  const columnItems = duplicatedItems.reduce((result, item, index) => {
+    const columnIndex = index % columns;
+    if (!result[columnIndex]) {
+      result[columnIndex] = [];
+    }
+    result[columnIndex].push(item);
+    return result;
+  }, Array(columns).fill().map(() => []));
+  
+  return (
+    <div className="relative h-[300px] md:h-[380px] overflow-hidden" ref={containerRef}>
+      {/* Grid container for columns */}
+      <div className="grid grid-cols-2 gap-x-2 gap-y-1 h-full">
+        {columnItems.map((column, colIndex) => (
+          <div key={colIndex} className="relative overflow-hidden h-full">
+            <motion.div 
+              className="absolute w-full"
+              style={{ y }}
+            >
+              {column.map((item, index) => (
+                <div key={`${item.id}-${index}`} className="mb-2">
+                  <Link 
+                    to={`/shop?${item.category ? 'subcategory' : 'tag'}=${item.slug}`} 
+                    className="text-sm block py-1 px-2 rounded hover:bg-gray-800/30 transition-colors duration-200 text-gray-300 hover:text-white"
+                  >
+                    {item.name}
+                  </Link>
+                </div>
+              ))}
+            </motion.div>
+          </div>
+        ))}
       </div>
     </div>
   );
