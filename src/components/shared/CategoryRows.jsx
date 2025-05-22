@@ -266,16 +266,18 @@ const CategoryRows = () => {
 // Chain-like scrolling menu component for sides
 const ChainScrollingMenu = ({ items, direction, columns = 2, parentRef, fullHeight = false, speed = 25, side = "left" }) => {
   const containerRef = useRef(null);
-  const [activeItems, setActiveItems] = useState([]);
   const [containerHeight, setContainerHeight] = useState(0);
   const [parentHeight, setParentHeight] = useState(0);
+  const [activeItems, setActiveItems] = useState([]);
   
   // Calculate item height
   const itemHeight = 45; // Height for each item
-  const itemSpacing = 12; // Space between items
-  const gapBetweenSets = 70; // Gap between item sets for chain-like effect
+  const itemSpacing = 3; // Space between items - significantly reduced
   
-  // Calculate how many items fit in view plus buffer
+  // Position state for animation
+  const [scrollPosition, setScrollPosition] = useState(0);
+  
+  // Calculate how many items fit in view plus buffer - only on mount and resize
   useEffect(() => {
     if (parentRef?.current) {
       const height = parentRef.current.offsetHeight;
@@ -284,34 +286,26 @@ const ChainScrollingMenu = ({ items, direction, columns = 2, parentRef, fullHeig
       // Determine how many items we need to fill the container plus extras
       const itemsNeeded = Math.ceil(height / (itemHeight + itemSpacing)) * 3;
       
-      // Create array of active items with proper sequencing
-      generateItems(itemsNeeded);
-    }
-  }, [parentRef, items]);
-  
-  // Function to generate items with visual keys for animation
-  const generateItems = (count) => {
-    const generatedItems = [];
-    
-    // Generate many more items than needed to ensure enough content
-    for (let i = 0; i < count * 2; i++) {
-      // Pick item from original array based on index
-      const originalItem = items[i % items.length];
+      // Generate items once instead of on each render
+      const generatedItems = [];
       
-      if (originalItem) {
-        generatedItems.push({
-          ...originalItem,
-          visualKey: `${originalItem.id}-${i}`, // Unique key for React
-          initialPosition: i * (itemHeight + itemSpacing) + (Math.floor(i / items.length) * gapBetweenSets) // Positioning with gaps
-        });
+      // Generate many more items than needed to ensure enough content
+      for (let i = 0; i < itemsNeeded * 2; i++) {
+        // Pick item from original array based on index
+        const originalItem = items[i % items.length];
+        
+        if (originalItem) {
+          generatedItems.push({
+            ...originalItem,
+            visualKey: `${originalItem.id}-${i}`,
+            initialPosition: i * (itemHeight + itemSpacing) // Remove gaps between sets
+          });
+        }
       }
+      
+      setActiveItems(generatedItems);
     }
-    
-    setActiveItems(generatedItems);
-  };
-  
-  // Position state for animation
-  const [scrollPosition, setScrollPosition] = useState(0);
+  }, [parentRef, items, itemHeight, itemSpacing]); // Fixed dependencies
   
   // Animation loop with requestAnimationFrame
   useEffect(() => {
@@ -338,8 +332,8 @@ const ChainScrollingMenu = ({ items, direction, columns = 2, parentRef, fullHeig
           newPos += speed * deltaSec; // Move down (positive)
         }
         
-        // Calculate total content height including gaps between sets
-        const oneSetHeight = items.length * (itemHeight + itemSpacing) + gapBetweenSets;
+        // Calculate total content height
+        const oneSetHeight = items.length * (itemHeight + itemSpacing);
         
         // Reset position when a full set has scrolled to create seamless loop
         // For upward movement
@@ -364,7 +358,7 @@ const ChainScrollingMenu = ({ items, direction, columns = 2, parentRef, fullHeig
         cancelAnimationFrame(animationFrameId);
       }
     };
-  }, [direction, speed, items.length]);
+  }, [direction, speed, items.length, itemHeight, itemSpacing]); // Fixed dependencies
   
   // Split active items into columns
   const columnItems = activeItems.reduce((result, item, index) => {
@@ -406,17 +400,14 @@ const ChainScrollingMenu = ({ items, direction, columns = 2, parentRef, fullHeig
               >
                 <Link 
                   to={`/shop?${item.category ? 'subcategory' : 'tag'}=${item.slug}`} 
-                  className="block py-2 px-3 rounded-md transition-all duration-300
+                  className="block py-2 px-3 mb-1 rounded-md transition-all duration-300
                          border border-gray-700/10 bg-gray-800/20 backdrop-blur-sm
                          hover:border-draugr-500/40 hover:bg-gray-700/40
                          text-gray-300 hover:text-white group"
                 >
                   <div className="flex items-center gap-2 rtl:flex-row-reverse">
                     {item.icon && (
-                      <span className="text-lg opacity-75 group-hover:opacity-100 transition-opacity" 
-                            style={{ 
-                              filter: "drop-shadow(0 0 3px rgba(200,200,255,0.2))" // Glow effect
-                            }}>
+                      <span className="text-lg opacity-75 group-hover:opacity-100 transition-opacity">
                         {item.icon}
                       </span>
                     )}
@@ -427,28 +418,6 @@ const ChainScrollingMenu = ({ items, direction, columns = 2, parentRef, fullHeig
             ))}
           </div>
         ))}
-        
-        {/* Chain decoration - side links to create chain-like visual */}
-        <div className={`absolute top-0 bottom-0 ${side === 'left' ? 'right-0' : 'left-0'} w-[2px]`}>
-          <div className="absolute top-0 bottom-0 w-full bg-gradient-to-b from-transparent via-draugr-600/20 to-transparent"></div>
-          {/* Chain links - animated based on direction */}
-          {Array.from({ length: 40 }).map((_, i) => {
-            const linkPosition = (i * 40) + (scrollPosition % 40) * (direction === "up" ? -1 : 1);
-            
-            return (
-              <div
-                key={`chain-${i}`}
-                className="absolute w-[6px] h-[3px] bg-draugr-500/30"
-                style={{
-                  top: `${linkPosition}px`,
-                  right: side === 'left' ? '-2px' : 'auto',
-                  left: side === 'right' ? '-2px' : 'auto',
-                  boxShadow: '0 0 3px rgba(156, 49, 99, 0.5)'
-                }}
-              />
-            );
-          })}
-        </div>
       </div>
     </div>
   );
