@@ -80,6 +80,38 @@ const enhancedCategories = [
   },
 ];
 
+// Subcategories data for side menus
+const subcategories = [
+  { id: 1, name: 'شمشیرهای افسانه‌ای', slug: 'swords', category: 'weapons' },
+  { id: 2, name: 'تبرها و گرزها', slug: 'axes', category: 'weapons' },
+  { id: 3, name: 'کمان‌های جادویی', slug: 'bows', category: 'weapons' },
+  { id: 4, name: 'سپرهای محافظ', slug: 'shields', category: 'armor' },
+  { id: 5, name: 'زره‌های سنگین', slug: 'heavy-armor', category: 'armor' },
+  { id: 6, name: 'کلاهخودها', slug: 'helmets', category: 'armor' },
+  { id: 7, name: 'معجون‌های درمانگر', slug: 'healing-potions', category: 'potions' },
+  { id: 8, name: 'اکسیرهای نیرو', slug: 'power-potions', category: 'potions' },
+  { id: 9, name: 'طلسم‌های آتش', slug: 'fire-spells', category: 'spells' },
+  { id: 10, name: 'طلسم‌های یخ', slug: 'ice-spells', category: 'spells' },
+  { id: 11, name: 'گردنبندهای قدرت', slug: 'necklaces', category: 'accessories' },
+  { id: 12, name: 'انگشترهای جادویی', slug: 'rings', category: 'accessories' },
+  { id: 13, name: 'کتاب‌های جادوگری', slug: 'magic-books', category: 'rare_books' },
+  { id: 14, name: 'طومارهای باستانی', slug: 'scrolls', category: 'rare_books' },
+  { id: 15, name: 'نوشیدنی‌های نیرو', slug: 'energy-drinks', category: 'drinks' },
+  { id: 16, name: 'شربت‌های جادویی', slug: 'magic-drinks', category: 'drinks' },
+];
+
+// Tags for additional filtering
+const popularTags = [
+  { id: 1, name: 'پرفروش‌ترین', slug: 'bestsellers' },
+  { id: 2, name: 'جدیدترین', slug: 'new-arrivals' },
+  { id: 3, name: 'تخفیف‌دار', slug: 'on-sale' },
+  { id: 4, name: 'ویژه ماجراجویان', slug: 'for-adventurers' },
+  { id: 5, name: 'ویژه جادوگران', slug: 'for-wizards' },
+  { id: 6, name: 'ویژه جنگجویان', slug: 'for-warriors' },
+  { id: 7, name: 'محبوب کاربران', slug: 'popular' },
+  { id: 8, name: 'پیشنهاد درائوگر', slug: 'recommended' }
+];
+
 const CategoryRows = () => {
   const [isLowPerformance, setIsLowPerformance] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -90,7 +122,7 @@ const CategoryRows = () => {
   }, []);
   
   return (
-    <div className="py-10 md:py-16 relative">
+    <div className="py-8 sm:py-12 md:py-16 w-full relative overflow-hidden">
       {/* Section header with simplified styling */}
       <div className="text-center mb-8">
         <motion.h2 
@@ -138,16 +170,82 @@ const CategoryRows = () => {
         </motion.div>
       </div>
       
-      {/* 2D Elliptical loop categories */}
-      <div className="flex justify-center items-center">
-        <div className="relative w-full h-[300px] md:h-[400px] max-w-[900px] mx-auto overflow-hidden">
-          <CircularCategoryLoop 
-            categories={enhancedCategories.filter(cat => 
-              cat.name.includes(searchTerm) || 
-              cat.description.includes(searchTerm)
-            )}
-            isLowPerformance={isLowPerformance}
-          />
+      {/* Main content with side menus */}
+      <div className="container mx-auto px-4">
+        <div className="flex flex-col md:flex-row justify-between items-start">
+          {/* Left side subcategories (2 columns going down) - Only visible on md+ screens */}
+          <div className="hidden md:block w-full md:w-1/5 mb-6 md:mb-0">
+            <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+              {subcategories.slice(0, 8).map((subcat, index) => (
+                <motion.div
+                  key={subcat.id}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05, duration: 0.3 }}
+                  className="mb-1"
+                >
+                  <Link 
+                    to={`/shop?subcategory=${subcat.slug}`} 
+                    className="text-sm block py-1 px-2 rounded hover:bg-gray-800/30 transition-colors duration-200 text-gray-300 hover:text-white"
+                  >
+                    {subcat.name}
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Center circular category animation */}
+          <div className="w-full md:w-3/5">
+            <div className="flex justify-center items-center">
+              <div className="relative w-full h-[300px] md:h-[400px] max-w-[900px] mx-auto overflow-hidden">
+                <CircularCategoryLoop 
+                  categories={enhancedCategories.filter(cat => 
+                    cat.name.includes(searchTerm) || 
+                    cat.description.includes(searchTerm)
+                  )}
+                  isLowPerformance={isLowPerformance}
+                />
+              </div>
+            </div>
+          </div>
+          
+          {/* Right side tags (2 columns going up) - Only visible on md+ screens */}
+          <div className="hidden md:block w-full md:w-1/5 mb-6 md:mb-0">
+            <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+              {popularTags.slice(0, 8).map((tag, index) => (
+                <motion.div
+                  key={tag.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: (8 - index) * 0.05, duration: 0.3 }}
+                  className="mb-1"
+                >
+                  <Link 
+                    to={`/shop?tag=${tag.slug}`} 
+                    className="text-sm block py-1 px-2 rounded hover:bg-gray-800/30 transition-colors duration-200 text-gray-300 hover:text-white"
+                  >
+                    {tag.name}
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+        
+        {/* Mobile subcategories - horizontal scrolling for small screens */}
+        <div className="md:hidden w-full mt-8 overflow-x-auto">
+          <div className="flex space-x-2 pb-3 px-1 -space-x-3 rtl:space-x-reverse">
+            {subcategories.slice(0, 8).map((subcat) => (
+              <Link
+                key={subcat.id}
+                to={`/shop?subcategory=${subcat.slug}`}
+                className="whitespace-nowrap flex-none px-3 py-1 bg-gray-800/30 rounded-full text-xs text-gray-300"
+              >
+                {subcat.name}
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
       
