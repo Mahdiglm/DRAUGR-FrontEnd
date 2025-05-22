@@ -82,39 +82,44 @@ const enhancedCategories = [
 
 // Subcategories data for side menus
 const subcategories = [
-  { id: 1, name: 'شمشیرهای افسانه‌ای', slug: 'swords', category: 'weapons' },
-  { id: 2, name: 'تبرها و گرزها', slug: 'axes', category: 'weapons' },
-  { id: 3, name: 'کمان‌های جادویی', slug: 'bows', category: 'weapons' },
-  { id: 4, name: 'سپرهای محافظ', slug: 'shields', category: 'armor' },
-  { id: 5, name: 'زره‌های سنگین', slug: 'heavy-armor', category: 'armor' },
-  { id: 6, name: 'کلاهخودها', slug: 'helmets', category: 'armor' },
-  { id: 7, name: 'معجون‌های درمانگر', slug: 'healing-potions', category: 'potions' },
-  { id: 8, name: 'اکسیرهای نیرو', slug: 'power-potions', category: 'potions' },
-  { id: 9, name: 'طلسم‌های آتش', slug: 'fire-spells', category: 'spells' },
-  { id: 10, name: 'طلسم‌های یخ', slug: 'ice-spells', category: 'spells' },
-  { id: 11, name: 'گردنبندهای قدرت', slug: 'necklaces', category: 'accessories' },
-  { id: 12, name: 'انگشترهای جادویی', slug: 'rings', category: 'accessories' },
-  { id: 13, name: 'کتاب‌های جادوگری', slug: 'magic-books', category: 'rare_books' },
-  { id: 14, name: 'طومارهای باستانی', slug: 'scrolls', category: 'rare_books' },
-  { id: 15, name: 'نوشیدنی‌های نیرو', slug: 'energy-drinks', category: 'drinks' },
-  { id: 16, name: 'شربت‌های جادویی', slug: 'magic-drinks', category: 'drinks' },
+  { id: 1, name: 'شمشیرهای افسانه‌ای', slug: 'swords', category: 'weapons', icon: '⚔️' },
+  { id: 2, name: 'تبرها و گرزها', slug: 'axes', category: 'weapons', icon: '🪓' },
+  { id: 3, name: 'کمان‌های جادویی', slug: 'bows', category: 'weapons', icon: '🏹' },
+  { id: 4, name: 'سپرهای محافظ', slug: 'shields', category: 'armor', icon: '🛡️' },
+  { id: 5, name: 'زره‌های سنگین', slug: 'heavy-armor', category: 'armor', icon: '👕' },
+  { id: 6, name: 'کلاهخودها', slug: 'helmets', category: 'armor', icon: '⛑️' },
+  { id: 7, name: 'معجون‌های درمانگر', slug: 'healing-potions', category: 'potions', icon: '💊' },
+  { id: 8, name: 'اکسیرهای نیرو', slug: 'power-potions', category: 'potions', icon: '🧪' },
+  { id: 9, name: 'طلسم‌های آتش', slug: 'fire-spells', category: 'spells', icon: '🔥' },
+  { id: 10, name: 'طلسم‌های یخ', slug: 'ice-spells', category: 'spells', icon: '❄️' },
+  { id: 11, name: 'گردنبندهای قدرت', slug: 'necklaces', category: 'accessories', icon: '📿' },
+  { id: 12, name: 'انگشترهای جادویی', slug: 'rings', category: 'accessories', icon: '💍' },
+  { id: 13, name: 'کتاب‌های جادوگری', slug: 'magic-books', category: 'rare_books', icon: '📕' },
+  { id: 14, name: 'طومارهای باستانی', slug: 'scrolls', category: 'rare_books', icon: '📜' },
+  { id: 15, name: 'نوشیدنی‌های نیرو', slug: 'energy-drinks', category: 'drinks', icon: '🥤' },
+  { id: 16, name: 'شربت‌های جادویی', slug: 'magic-drinks', category: 'drinks', icon: '🧃' },
 ];
 
 // Tags for additional filtering
 const popularTags = [
-  { id: 1, name: 'پرفروش‌ترین', slug: 'bestsellers' },
-  { id: 2, name: 'جدیدترین', slug: 'new-arrivals' },
-  { id: 3, name: 'تخفیف‌دار', slug: 'on-sale' },
-  { id: 4, name: 'ویژه ماجراجویان', slug: 'for-adventurers' },
-  { id: 5, name: 'ویژه جادوگران', slug: 'for-wizards' },
-  { id: 6, name: 'ویژه جنگجویان', slug: 'for-warriors' },
-  { id: 7, name: 'محبوب کاربران', slug: 'popular' },
-  { id: 8, name: 'پیشنهاد درائوگر', slug: 'recommended' },
+  { id: 1, name: 'پرفروش‌ترین', slug: 'bestsellers', icon: '🏆' },
+  { id: 2, name: 'جدیدترین', slug: 'new-arrivals', icon: '✨' },
+  { id: 3, name: 'تخفیف‌دار', slug: 'on-sale', icon: '💰' },
+  { id: 4, name: 'ویژه ماجراجویان', slug: 'for-adventurers', icon: '🗺️' },
+  { id: 5, name: 'ویژه جادوگران', slug: 'for-wizards', icon: '🧙' },
+  { id: 6, name: 'ویژه جنگجویان', slug: 'for-warriors', icon: '⚔️' },
+  { id: 7, name: 'محبوب کاربران', slug: 'popular', icon: '❤️' },
+  { id: 8, name: 'پیشنهاد درائوگر', slug: 'recommended', icon: '👑' },
+  { id: 9, name: 'آخرین فرصت', slug: 'last-chance', icon: '⏰' },
+  { id: 10, name: 'ویژه نخبگان', slug: 'for-elites', icon: '🎭' },
+  { id: 11, name: 'نادر و کمیاب', slug: 'rare-items', icon: '💎' },
+  { id: 12, name: 'تجهیزات ویژه', slug: 'special-gear', icon: '🛠️' },
 ];
 
 const CategoryRows = () => {
   const [isLowPerformance, setIsLowPerformance] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const sectionRef = useRef(null);
   
   // Check device performance on mount
   useEffect(() => {
@@ -122,7 +127,7 @@ const CategoryRows = () => {
   }, []);
   
   return (
-    <div className="py-8 sm:py-12 md:py-16 w-full relative overflow-hidden">
+    <div className="py-8 sm:py-12 md:py-16 w-full relative overflow-hidden" ref={sectionRef}>
       {/* Section header with simplified styling */}
       <div className="text-center mb-8">
         <motion.h2 
@@ -170,17 +175,30 @@ const CategoryRows = () => {
         </motion.div>
       </div>
       
-      {/* Main content with side menus */}
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row justify-between items-start">
-          {/* Left side subcategories (2 columns moving upward) - Only visible on md+ screens */}
-          <div className="hidden md:block w-full md:w-1/5 mb-6 md:mb-0">
-            <VerticalScrollingMenu items={subcategories} direction="up" columns={2} />
+      {/* Main content with side menus - absolute positioning to go full height */}
+      <div className="container mx-auto px-4 relative">
+        <div className="flex flex-col md:flex-row justify-between items-start min-h-[calc(100vh-200px)]">
+          {/* Left side subcategories (2 columns moving upward) - Full height column with absolute positioning */}
+          <div className="hidden md:block w-full md:w-1/5 absolute top-0 right-0 md:right-auto md:left-0 h-full">
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
+              {/* Top fade effect */}
+              <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black to-transparent z-10"></div>
+              <VerticalScrollingMenu 
+                items={subcategories} 
+                direction="up" 
+                columns={2} 
+                startFromEdge={true} 
+                parentRef={sectionRef}
+                fullHeight={true}
+              />
+              {/* Bottom fade effect */}
+              <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent z-10"></div>
+            </div>
           </div>
           
           {/* Center circular category animation */}
-          <div className="w-full md:w-3/5">
-            <div className="flex justify-center items-center">
+          <div className="w-full md:w-3/5 mx-auto">
+            <div className="flex justify-center items-center my-8">
               <div className="relative w-full h-[300px] md:h-[400px] max-w-[900px] mx-auto overflow-hidden">
                 <CircularCategoryLoop 
                   categories={enhancedCategories.filter(cat => 
@@ -193,9 +211,22 @@ const CategoryRows = () => {
             </div>
           </div>
           
-          {/* Right side tags (2 columns moving downward) - Only visible on md+ screens */}
-          <div className="hidden md:block w-full md:w-1/5 mb-6 md:mb-0">
-            <VerticalScrollingMenu items={popularTags} direction="down" columns={2} />
+          {/* Right side tags (2 columns moving downward) - Full height column with absolute positioning */}
+          <div className="hidden md:block w-full md:w-1/5 absolute top-0 right-0 h-full">
+            <div className="absolute top-0 right-0 w-full h-full overflow-hidden">
+              {/* Top fade effect */}
+              <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black to-transparent z-10"></div>
+              <VerticalScrollingMenu 
+                items={popularTags} 
+                direction="down" 
+                columns={2} 
+                startFromEdge={true}
+                parentRef={sectionRef}
+                fullHeight={true}
+              />
+              {/* Bottom fade effect */}
+              <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent z-10"></div>
+            </div>
           </div>
         </div>
         
@@ -233,27 +264,41 @@ const CategoryRows = () => {
 };
 
 // Vertical scrolling menu component for sides
-const VerticalScrollingMenu = ({ items, direction, columns = 2 }) => {
+const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = false, parentRef, fullHeight = false }) => {
   const containerRef = useRef(null);
   const time = useTime();
   const [containerHeight, setContainerHeight] = useState(0);
+  const [parentHeight, setParentHeight] = useState(0);
   
-  // Double the items to create a seamless loop
-  const duplicatedItems = [...items, ...items];
+  // Triple the items to create a seamless loop with more content
+  const duplicatedItems = [...items, ...items, ...items, ...items];
   
   // Calculate item height based on content
-  const itemHeight = 30; // Estimated height for each item
+  const itemHeight = 40; // Estimated height for each item with extra padding
   const totalContentHeight = duplicatedItems.length * itemHeight;
   
-  // Get animation duration based on content length
-  const duration = duplicatedItems.length * 1.5; // 1.5 seconds per item
+  // Get animation duration based on content length - slower for more dramatic effect
+  const duration = duplicatedItems.length * 2.5; // 2.5 seconds per item for slower movement
   
-  // Update container height on mount
+  // Update container and parent height on mount
   useEffect(() => {
-    if (containerRef.current) {
-      setContainerHeight(containerRef.current.clientHeight);
-    }
-  }, []);
+    const updateSizes = () => {
+      if (containerRef.current) {
+        setContainerHeight(containerRef.current.clientHeight);
+      }
+      
+      if (parentRef && parentRef.current) {
+        // Get the full section height instead of just the container
+        setParentHeight(parentRef.current.offsetHeight);
+      }
+    };
+    
+    updateSizes();
+    
+    // Update sizes on resize
+    window.addEventListener('resize', updateSizes);
+    return () => window.removeEventListener('resize', updateSizes);
+  }, [parentRef]);
   
   // Calculate animation position based on time
   const y = useTransform(
@@ -261,15 +306,27 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2 }) => {
     (time) => {
       const progress = (time % (duration * 1000)) / (duration * 1000);
       
-      // For upward movement, we start at the bottom
+      // For upward movement
       if (direction === 'up') {
-        const position = containerHeight + totalContentHeight * progress * -1;
-        return `${position}px`;
+        if (startFromEdge) {
+          // Start from the very bottom of the parent container
+          const position = parentHeight - (totalContentHeight * progress);
+          return `${position}px`;
+        } else {
+          const position = containerHeight + totalContentHeight * progress * -1;
+          return `${position}px`;
+        }
       } 
-      // For downward movement, we start at the top
+      // For downward movement
       else {
-        const position = -totalContentHeight + totalContentHeight * progress;
-        return `${position}px`;
+        if (startFromEdge) {
+          // Start from the very top of the parent container (negative position)
+          const position = -totalContentHeight + (totalContentHeight * progress);
+          return `${position}px`;
+        } else {
+          const position = -totalContentHeight + totalContentHeight * progress;
+          return `${position}px`;
+        }
       }
     }
   );
@@ -285,9 +342,9 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2 }) => {
   }, Array(columns).fill().map(() => []));
   
   return (
-    <div className="relative h-[300px] md:h-[380px] overflow-hidden" ref={containerRef}>
+    <div className={`relative ${fullHeight ? 'h-full min-h-[80vh]' : 'h-full'}`} ref={containerRef}>
       {/* Grid container for columns */}
-      <div className="grid grid-cols-2 gap-x-2 gap-y-1 h-full">
+      <div className="grid grid-cols-2 gap-x-4 h-full">
         {columnItems.map((column, colIndex) => (
           <div key={colIndex} className="relative overflow-hidden h-full">
             <motion.div 
@@ -295,12 +352,19 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2 }) => {
               style={{ y }}
             >
               {column.map((item, index) => (
-                <div key={`${item.id}-${index}`} className="mb-2">
+                <div key={`${item.id}-${index}`} className="mb-3">
                   <Link 
                     to={`/shop?${item.category ? 'subcategory' : 'tag'}=${item.slug}`} 
-                    className="text-sm block py-1 px-2 rounded hover:bg-gray-800/30 transition-colors duration-200 text-gray-300 hover:text-white"
+                    className="block py-2 px-3 rounded-md hover:bg-gray-800/50 transition-colors duration-300
+                             border border-gray-700/10 hover:border-draugr-500/30 bg-gray-800/20 backdrop-blur-sm
+                             text-gray-300 hover:text-white group"
                   >
-                    {item.name}
+                    <div className="flex items-center gap-2 rtl:flex-row-reverse">
+                      {item.icon && (
+                        <span className="text-lg opacity-75 group-hover:opacity-100 transition-opacity">{item.icon}</span>
+                      )}
+                      <span className="text-sm">{item.name}</span>
+                    </div>
                   </Link>
                 </div>
               ))}
