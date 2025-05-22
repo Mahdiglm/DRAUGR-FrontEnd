@@ -92,9 +92,6 @@ const CategoryRows = () => {
   return (
     <div className="py-10 md:py-16 relative">
       {/* Minimal background elements */}
-      <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-draugr-800/10 to-transparent"></div>
-      <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-draugr-800/10 to-transparent"></div>
-      
       {/* Section header with simplified styling */}
       <div className="text-center mb-8">
         <motion.h2 
