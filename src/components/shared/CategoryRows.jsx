@@ -264,24 +264,23 @@ const CategoryRows = () => {
 // Vertical scrolling menu component for sides
 const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = false, parentRef, fullHeight = false }) => {
   const containerRef = useRef(null);
-  // Use a higher resolution time for smoother animation
-  const time = useTime({ resolution: 11 }); // ~90fps for extremely smooth animation
   const [containerHeight, setContainerHeight] = useState(0);
   const [parentHeight, setParentHeight] = useState(0);
   
-  // Create a very long duplicated array (6x) to ensure truly seamless infinite loop
-  const duplicatedItems = [...items, ...items, ...items, ...items, ...items, ...items];
+  // Simple animation approach with useMotionValue and useAnimationFrame
+  const [scrollY, setScrollY] = useState(0);
+  
+  // Prepare items - duplicate many times to ensure there's always content
+  const repeatedItems = Array(10).fill([...items]).flat();
   
   // Calculate item height based on content
-  const itemHeight = 40; // Estimated height for each item with extra padding
-  const totalContentHeight = duplicatedItems.length * itemHeight;
+  const itemHeight = 40; // Height for each item
+  const totalContentHeight = items.length * itemHeight;
   
-  // Set a fixed time for full cycle regardless of item count to ensure consistent speeds between menus
-  // This ensures both menus have the same cycle speed regardless of item count
-  const BASE_DURATION = 60; // 60 seconds for a full cycle for both menus
-  const duration = BASE_DURATION;
+  // Define a constant speed in pixels per second
+  const SCROLL_SPEED = 20; // pixels per second - same for both menus
   
-  // Update container and parent height on mount
+  // Update container and parent height on mount and resize
   useEffect(() => {
     const updateSizes = () => {
       if (containerRef.current) {
@@ -289,57 +288,78 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = 
       }
       
       if (parentRef && parentRef.current) {
-        // Get the full section height instead of just the container
         setParentHeight(parentRef.current.offsetHeight);
       }
     };
     
     updateSizes();
     
-    // Update sizes on resize
     window.addEventListener('resize', updateSizes);
     return () => window.removeEventListener('resize', updateSizes);
   }, [parentRef]);
   
-  // Calculate animation position based on time with smoother easing
-  const y = useTransform(
-    time,
-    (time) => {
-      // Use a smoother motion calculation with no jumps
-      const cycleProgress = (time % (duration * 1000)) / (duration * 1000);
+  // Animation frame-based animation for consistent speed
+  useEffect(() => {
+    let startTime = null;
+    let lastTimestamp = 0;
+    let animationFrameId = null;
+    
+    const animate = (timestamp) => {
+      if (!startTime) startTime = timestamp;
       
-      // Apply slight easing for smoother motion - subtle cubic easing
-      const easedProgress = easeInOutCubic(cycleProgress);
+      // Calculate elapsed time since last frame in seconds
+      const deltaTime = (timestamp - lastTimestamp) / 1000;
+      lastTimestamp = timestamp;
       
-      // For upward movement
-      if (direction === 'up') {
-        if (startFromEdge) {
-          // Start from the very bottom of the parent container
-          // Adjusted to ensure no sudden jumps at the end of the animation cycle
-          const position = parentHeight - (totalContentHeight * easedProgress);
-          return position;
+      // Only update after we have a valid delta time
+      if (deltaTime > 0 && deltaTime < 0.1) { // Avoid jumps if tab was inactive
+        // Calculate how much to move based on direction and constant speed
+        let movement = SCROLL_SPEED * deltaTime;
+        
+        // Update position based on direction
+        if (direction === 'up') {
+          setScrollY(prevY => {
+            // Move upward (negative)
+            let newY = prevY - movement;
+            
+            // Reset when we've scrolled a complete set to create seamless loop
+            if (Math.abs(newY) > totalContentHeight) {
+              // Reset but maintain the exact position to avoid jumps
+              return newY + totalContentHeight;
+            }
+            return newY;
+          });
         } else {
-          const position = containerHeight + totalContentHeight * easedProgress * -1;
-          return position;
-        }
-      } 
-      // For downward movement
-      else {
-        if (startFromEdge) {
-          // Start from the very top of the parent container (negative position)
-          // Adjusted to ensure no sudden jumps at the end of the animation cycle
-          const position = -totalContentHeight + (totalContentHeight * easedProgress);
-          return position;
-        } else {
-          const position = -totalContentHeight + totalContentHeight * easedProgress;
-          return position;
+          setScrollY(prevY => {
+            // Move downward (positive)
+            let newY = prevY + movement;
+            
+            // Reset when we've scrolled a complete set
+            if (newY > totalContentHeight) {
+              // Reset but maintain the exact position
+              return newY - totalContentHeight;
+            }
+            return newY;
+          });
         }
       }
-    }
-  );
+      
+      animationFrameId = requestAnimationFrame(animate);
+    };
+    
+    // Start the animation
+    animationFrameId = requestAnimationFrame(animate);
+    
+    // Cleanup
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [direction, totalContentHeight]);
   
   // Split items into columns
-  const columnItems = duplicatedItems.reduce((result, item, index) => {
+  const columnItems = repeatedItems.reduce((result, item, index) => {
     const columnIndex = index % columns;
     if (!result[columnIndex]) {
       result[columnIndex] = [];
@@ -347,6 +367,18 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = 
     result[columnIndex].push(item);
     return result;
   }, Array(columns).fill().map(() => []));
+  
+  // Calculate starting position based on whether to start from edge
+  const getInitialPosition = () => {
+    if (direction === 'up' && startFromEdge) {
+      // For upward starting at bottom
+      return parentHeight;
+    } else if (direction === 'down' && startFromEdge) {
+      // For downward starting at top
+      return -totalContentHeight;
+    }
+    return 0;
+  };
   
   return (
     <div 
@@ -357,23 +389,18 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = 
       <div className="grid grid-cols-2 gap-x-4 h-full">
         {columnItems.map((column, colIndex) => (
           <div key={colIndex} className="relative overflow-hidden h-full">
-            <motion.div 
-              className="absolute w-full"
-              style={{ y }}
-              // Performance optimizations
-              initial={false}
-              transition={{ 
-                type: "tween", 
-                ease: "linear", // Use linear for continuous scrolling with no acceleration/deceleration
-                duration: 0 // Let the useTransform handle timing
+            <div 
+              className="absolute w-full will-change-transform"
+              style={{ 
+                transform: `translateY(${direction === 'down' ? scrollY : -scrollY}px)`,
+                transformStyle: 'preserve-3d'
               }}
             >
               {column.map((item, index) => (
-                <motion.div 
+                <div 
                   key={`${item.id}-${index}`} 
                   className="mb-3 will-change-transform"
                   style={{ 
-                    // Hardware acceleration for smoother scrolling
                     transform: "translateZ(0)",
                     backfaceVisibility: "hidden",
                     WebkitFontSmoothing: "antialiased"
@@ -392,9 +419,9 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = 
                       <span className="text-sm">{item.name}</span>
                     </div>
                   </Link>
-                </motion.div>
+                </div>
               ))}
-            </motion.div>
+            </div>
           </div>
         ))}
       </div>
