@@ -6,132 +6,45 @@
  */
 
 import React, { useRef, useEffect, useState } from 'react';
-import { motion, useAnimationControls } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { categories } from '../../utils/mockData';
 import { getOptimizedAnimationSettings } from '../../utils/animationHelpers';
 
 const CategoryRows = () => {
-  const scrollRef = useRef(null);
   const containerRef = useRef(null);
-  const [containerWidth, setContainerWidth] = useState(0);
-  const [itemWidth, setItemWidth] = useState(0);
-  const controls = useAnimationControls();
-  
-  // Duplicate categories multiple times to ensure we have enough for seamless scrolling
-  const extendedCategories = [...categories, ...categories, ...categories, ...categories];
+  const [scrollSpeed, setScrollSpeed] = useState(20); // seconds to complete one scroll cycle
   
   // Control animation speed based on device performance
-  const scrollSpeed = getOptimizedAnimationSettings(
-    { duration: 30 }, // Default settings for high-performance devices
-    { duration: 40 }  // Optimized settings for low-performance devices
-  );
-
-  // Setup scroll animation
-  useEffect(() => {
-    if (!containerRef.current || !scrollRef.current) return;
-    
-    // Get container dimensions
-    const container = containerRef.current;
-    const scrollContainer = scrollRef.current;
-    
-    // Function to measure container and item widths
-    const measureWidths = () => {
-      if (!container || !scrollContainer) return;
-      
-      setContainerWidth(container.offsetWidth);
-      
-      // Get the first category item if available
-      const firstItem = scrollContainer.querySelector('[data-category-item]');
-      if (firstItem) {
-        // Include margins in width calculation
-        const computedStyle = window.getComputedStyle(firstItem);
-        const marginLeft = parseFloat(computedStyle.marginLeft);
-        const marginRight = parseFloat(computedStyle.marginRight);
-        setItemWidth(firstItem.offsetWidth + marginLeft + marginRight);
-      }
-    };
-    
-    // Initial measurement
-    measureWidths();
-    
-    // Measure on resize
-    window.addEventListener('resize', measureWidths);
-    
-    // Start scroll animation
-    if (itemWidth > 0) {
-      startScrollAnimation();
-    }
-    
-    return () => {
-      window.removeEventListener('resize', measureWidths);
-    };
-  }, [itemWidth]);
+  const defaultScrollSpeed = getOptimizedAnimationSettings(
+    { duration: 20 }, // Default settings for high-performance devices
+    { duration: 30 }  // Optimized settings for low-performance devices
+  ).duration;
   
-  // Start seamless scroll animation when dimensions are known
-  useEffect(() => {
-    if (itemWidth > 0) {
-      startScrollAnimation();
-    }
-  }, [itemWidth]);
-  
-  // Function to start the seamless scroll animation
-  const startScrollAnimation = () => {
-    if (!scrollRef.current || itemWidth === 0) return;
-    
-    // Calculate how far to scroll (one item width)
-    const scrollDistance = -itemWidth;
-    
-    const scroll = async () => {
-      // Reset scroll position when we've moved all items
-      const firstChild = scrollRef.current.firstChild;
-      if (!firstChild) return;
-      
-      // Animate scroll by one item width
-      await controls.start({
-        x: scrollDistance,
-        transition: {
-          duration: scrollSpeed.duration / categories.length,
-          ease: "linear"
-        }
-      });
-      
-      // Move the first item to the end
-      firstChild.style.transform = 'none';
-      scrollRef.current.appendChild(firstChild);
-      
-      // Reset position without animation
-      await controls.set({ x: 0 });
-      
-      // Continue scrolling
-      requestAnimationFrame(scroll);
-    };
-    
-    scroll();
-  };
+  // Clone categories multiple times to ensure we have enough for a long sequence
+  const extendedCategories = [];
+  // Create enough copies to ensure we have more than enough items for the screen width
+  for (let i = 0; i < 10; i++) {
+    extendedCategories.push(...categories);
+  }
 
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (!containerRef.current) return;
       
-      // Slightly adjust scroll speed based on mouse position
+      // Adjust scroll speed based on mouse position
       const container = containerRef.current;
       const { left, width } = container.getBoundingClientRect();
       const mouseXRelative = (e.clientX - left) / width;
       
       // When mouse is on the right side, scroll slightly faster
       // When on the left, scroll slightly slower
-      const speedFactor = 1 + (mouseXRelative - 0.5) * 0.3;
-      
-      // Update animation playback rate
-      const scrollAnimations = container.getAnimations();
-      scrollAnimations.forEach(animation => {
-        animation.playbackRate = speedFactor;
-      });
+      const speedFactor = 1 + (mouseXRelative - 0.5) * 0.4;
+      setScrollSpeed(defaultScrollSpeed / speedFactor);
     };
 
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+  }, [defaultScrollSpeed]);
 
   return (
     <div className="py-8 sm:py-12 md:py-16 w-full relative overflow-hidden">
@@ -152,19 +65,71 @@ const CategoryRows = () => {
           WebkitMaskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)'
         }}
       >
-        <motion.div
-          ref={scrollRef}
-          className="flex"
-          animate={controls}
-        >
-          {extendedCategories.map((category, index) => (
-            <CategoryItem 
-              key={`${category.id}-${index}`} 
-              category={category} 
-              data-category-item="true"
-            />
-          ))}
-        </motion.div>
+        {/* First row - moving left */}
+        <div className="flex relative whitespace-nowrap infinite-scroll-container">
+          <div 
+            className="flex infinite-scroll-animation"
+            style={{
+              animationDuration: `${scrollSpeed}s`,
+              animationTimingFunction: 'linear',
+              animationIterationCount: 'infinite',
+              animationName: 'scrollLeft',
+              animationPlayState: 'running',
+              willChange: 'transform'
+            }}
+          >
+            {extendedCategories.map((category, index) => (
+              <CategoryItem 
+                key={`${category.id}-${index}`} 
+                category={category} 
+              />
+            ))}
+          </div>
+          
+          {/* This is a duplicate set that will seamlessly connect when the first set ends */}
+          <div 
+            className="flex infinite-scroll-animation"
+            style={{
+              animationDuration: `${scrollSpeed}s`,
+              animationTimingFunction: 'linear',
+              animationIterationCount: 'infinite',
+              animationName: 'scrollLeft',
+              animationPlayState: 'running',
+              animationDelay: `-${scrollSpeed / 2}s`,
+              willChange: 'transform'
+            }}
+          >
+            {extendedCategories.map((category, index) => (
+              <CategoryItem 
+                key={`${category.id}-${index}-duplicate`} 
+                category={category} 
+              />
+            ))}
+          </div>
+        </div>
+        
+        {/* Create the CSS animation */}
+        <style jsx="true">{`
+          @keyframes scrollLeft {
+            0% {
+              transform: translateX(0);
+            }
+            100% {
+              transform: translateX(-100%);
+            }
+          }
+          
+          .infinite-scroll-container {
+            display: flex;
+            width: 100%;
+            overflow: visible;
+          }
+          
+          .infinite-scroll-animation {
+            display: flex;
+            flex-shrink: 0;
+          }
+        `}</style>
       </div>
     </div>
   );
