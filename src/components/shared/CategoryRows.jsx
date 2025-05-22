@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, useAnimationControls, useTime, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { categories } from '../../utils/mockData';
@@ -175,18 +175,18 @@ const CategoryRows = () => {
         </motion.div>
       </div>
       
-      {/* Left side subcategories - going downward like a dropping chain */}
+      {/* Left side subcategories - columns with opposite directions */}
       <div className="hidden md:block absolute top-0 left-0 bottom-0 w-1/5 z-10">
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
           {/* Top fade effect */}
           <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black to-transparent z-10"></div>
-          <ChainScrollingMenu 
+          <EnhancedScrollingMenu 
             items={subcategories} 
-            direction="down" 
+            columnDirections={["up", "down"]} // Left column up, right column down
             columns={2} 
             parentRef={sectionRef}
             fullHeight={true}
-            speed={30}
+            speed={25}
             side="left"
           />
           {/* Bottom fade effect */}
@@ -227,18 +227,18 @@ const CategoryRows = () => {
         </div>
       </div>
       
-      {/* Right side tags - going upward like a rising chain */}
+      {/* Right side tags - columns with opposite directions */}
       <div className="hidden md:block absolute top-0 right-0 bottom-0 w-1/5 z-10">
         <div className="absolute top-0 right-0 w-full h-full overflow-hidden">
           {/* Top fade effect */}
           <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black to-transparent z-10"></div>
-          <ChainScrollingMenu 
+          <EnhancedScrollingMenu 
             items={popularTags}
-            direction="up" 
+            columnDirections={["down", "up"]} // Left column down, right column up  
             columns={2} 
             parentRef={sectionRef}
             fullHeight={true}
-            speed={28} // slightly different speed for visual interest
+            speed={25}
             side="right"
           />
           {/* Bottom fade effect */}
@@ -263,125 +263,118 @@ const CategoryRows = () => {
   );
 };
 
-// Chain-like scrolling menu component for sides
-const ChainScrollingMenu = ({ items, direction, columns = 2, parentRef, fullHeight = false, speed = 25, side = "left" }) => {
+// Enhanced scrolling menu component with per-column direction control and performance optimizations
+const EnhancedScrollingMenu = ({ 
+  items, 
+  columnDirections = ["up", "up"], // Default to all columns going up
+  columns = 2, 
+  parentRef, 
+  fullHeight = false, 
+  speed = 25, 
+  side = "left" 
+}) => {
   const containerRef = useRef(null);
-  const [containerHeight, setContainerHeight] = useState(0);
-  const [parentHeight, setParentHeight] = useState(0);
-  const [activeItems, setActiveItems] = useState([]);
+  const [columnItems, setColumnItems] = useState(Array(columns).fill().map(() => []));
+  const scrollPositions = useRef(Array(columns).fill(0));
+  const requestRef = useRef();
+  const previousTimeRef = useRef();
   
   // Calculate item height
-  const itemHeight = 45; // Height for each item
-  const itemSpacing = 3; // Space between items - significantly reduced
+  const itemHeight = 44; // Height for each item
+  const itemSpacing = 0; // No space between items
   
-  // Position state for animation
-  const [scrollPosition, setScrollPosition] = useState(0);
-  
-  // Calculate how many items fit in view plus buffer - only on mount and resize
+  // Initialize columns on mount
   useEffect(() => {
     if (parentRef?.current) {
       const height = parentRef.current.offsetHeight;
-      setParentHeight(height);
       
       // Determine how many items we need to fill the container plus extras
-      const itemsNeeded = Math.ceil(height / (itemHeight + itemSpacing)) * 3;
+      const itemsNeeded = Math.ceil(height / itemHeight) * 4;
       
-      // Generate items once instead of on each render
-      const generatedItems = [];
+      // Distribute items across columns with appropriate keys
+      const newColumnItems = Array(columns).fill().map(() => []);
       
-      // Generate many more items than needed to ensure enough content
-      for (let i = 0; i < itemsNeeded * 2; i++) {
-        // Pick item from original array based on index
-        const originalItem = items[i % items.length];
-        
-        if (originalItem) {
-          generatedItems.push({
-            ...originalItem,
-            visualKey: `${originalItem.id}-${i}`,
-            initialPosition: i * (itemHeight + itemSpacing) // Remove gaps between sets
-          });
+      for (let colIndex = 0; colIndex < columns; colIndex++) {
+        for (let i = 0; i < itemsNeeded; i++) {
+          // Pick item from original array based on index
+          const originalItem = items[i % items.length];
+          
+          if (originalItem) {
+            newColumnItems[colIndex].push({
+              ...originalItem,
+              visualKey: `${originalItem.id}-${colIndex}-${i}`,
+              initialPosition: i * itemHeight
+            });
+          }
         }
       }
       
-      setActiveItems(generatedItems);
+      setColumnItems(newColumnItems);
     }
-  }, [parentRef, items, itemHeight, itemSpacing]); // Fixed dependencies
-  
-  // Animation loop with requestAnimationFrame
-  useEffect(() => {
-    let animationFrameId;
-    let lastTimestamp;
-    
-    const animate = (timestamp) => {
-      if (!lastTimestamp) {
-        lastTimestamp = timestamp;
-      }
-      
-      // Calculate seconds passed since last frame
-      const deltaSec = (timestamp - lastTimestamp) / 1000;
-      lastTimestamp = timestamp;
-      
-      // Update position based on direction and speed
-      setScrollPosition((prevPos) => {
-        let newPos = prevPos;
-        
-        // Movement based on direction
-        if (direction === "up") {
-          newPos -= speed * deltaSec; // Move up (negative)
-        } else {
-          newPos += speed * deltaSec; // Move down (positive)
-        }
-        
-        // Calculate total content height
-        const oneSetHeight = items.length * (itemHeight + itemSpacing);
-        
-        // Reset position when a full set has scrolled to create seamless loop
-        // For upward movement
-        if (direction === "up" && Math.abs(newPos) >= oneSetHeight) {
-          return newPos + oneSetHeight;
-        }
-        // For downward movement
-        else if (direction === "down" && newPos >= oneSetHeight) {
-          return newPos - oneSetHeight;
-        }
-        
-        return newPos;
-      });
-      
-      animationFrameId = requestAnimationFrame(animate);
-    };
-    
-    animationFrameId = requestAnimationFrame(animate);
     
     return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
+      cancelAnimationFrame(requestRef.current);
+    };
+  }, [parentRef, items, columns, itemHeight]);
+  
+  // Animation loop using animationFrame
+  const animate = useCallback((time) => {
+    if (previousTimeRef.current !== undefined) {
+      const deltaTime = (time - previousTimeRef.current) / 1000;
+      
+      // Update each column's position based on its direction
+      for (let i = 0; i < columns; i++) {
+        const direction = columnDirections[i % columnDirections.length];
+        const movement = speed * deltaTime;
+        
+        // Calculate new position based on direction
+        if (direction === "up") {
+          scrollPositions.current[i] -= movement;
+          
+          // Reset position when a full set has scrolled to create seamless loop
+          const itemCount = items.length;
+          const totalHeight = itemCount * itemHeight;
+          
+          if (Math.abs(scrollPositions.current[i]) > totalHeight) {
+            scrollPositions.current[i] += totalHeight;
+          }
+        } else {
+          scrollPositions.current[i] += movement;
+          
+          // Reset position when a full set has scrolled
+          const itemCount = items.length;
+          const totalHeight = itemCount * itemHeight;
+          
+          if (scrollPositions.current[i] > totalHeight) {
+            scrollPositions.current[i] -= totalHeight;
+          }
+        }
       }
-    };
-  }, [direction, speed, items.length, itemHeight, itemSpacing]); // Fixed dependencies
-  
-  // Split active items into columns
-  const columnItems = activeItems.reduce((result, item, index) => {
-    const columnIndex = index % columns;
-    if (!result[columnIndex]) {
-      result[columnIndex] = [];
     }
-    result[columnIndex].push(item);
-    return result;
-  }, Array(columns).fill().map(() => []));
-  
-  // Get transform value based on direction
-  const getItemStyle = (item) => {
-    const basePosition = item.initialPosition;
-    const transformY = direction === "up" ? 
-      basePosition + scrollPosition : // For upward movement
-      basePosition - scrollPosition;  // For downward movement
     
-    return {
-      transform: `translateY(${transformY}px)`,
-      transition: "opacity 0.3s ease",
-    };
-  };
+    previousTimeRef.current = time;
+    requestRef.current = requestAnimationFrame(animate);
+  }, [columnDirections, speed, items.length, columns, itemHeight]);
+  
+  // Start and handle the animation
+  useEffect(() => {
+    requestRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(requestRef.current);
+  }, [animate]);
+  
+  // Get transform style for an item in a specific column
+  const getItemTransform = useCallback((item, colIndex) => {
+    const basePosition = item.initialPosition;
+    const direction = columnDirections[colIndex % columnDirections.length];
+    const scrollPosition = scrollPositions.current[colIndex];
+    
+    // Apply transform based on direction
+    if (direction === "up") {
+      return `translateY(${basePosition + scrollPosition}px)`;
+    } else {
+      return `translateY(${basePosition - scrollPosition}px)`;
+    }
+  }, [columnDirections]);
   
   return (
     <div 
@@ -396,14 +389,22 @@ const ChainScrollingMenu = ({ items, direction, columns = 2, parentRef, fullHeig
               <div 
                 key={item.visualKey}
                 className="absolute w-full will-change-transform"
-                style={getItemStyle(item)}
+                style={{ 
+                  transform: getItemTransform(item, colIndex),
+                  WebkitBackfaceVisibility: "hidden",
+                  WebkitPerspective: 1000,
+                  WebkitTransform: "translate3d(0, 0, 0)",
+                  mozBackfaceVisibility: "hidden",
+                  mozPerspective: 1000,
+                  mozTransform: "translate3d(0, 0, 0)"
+                }}
               >
                 <Link 
                   to={`/shop?${item.category ? 'subcategory' : 'tag'}=${item.slug}`} 
-                  className="block py-2 px-3 mb-1 rounded-md transition-all duration-300
-                         border border-gray-700/10 bg-gray-800/20 backdrop-blur-sm
-                         hover:border-draugr-500/40 hover:bg-gray-700/40
-                         text-gray-300 hover:text-white group"
+                  className="block py-2 px-2 rounded-md transition-all duration-300
+                          border border-gray-700/10 bg-gray-800/20 backdrop-blur-sm
+                          hover:border-draugr-500/40 hover:bg-gray-700/40
+                          text-gray-300 hover:text-white group"
                 >
                   <div className="flex items-center gap-2 rtl:flex-row-reverse">
                     {item.icon && (
@@ -411,7 +412,7 @@ const ChainScrollingMenu = ({ items, direction, columns = 2, parentRef, fullHeig
                         {item.icon}
                       </span>
                     )}
-                    <span className="text-sm">{item.name}</span>
+                    <span className="text-sm whitespace-nowrap overflow-hidden text-ellipsis">{item.name}</span>
                   </div>
                 </Link>
               </div>
