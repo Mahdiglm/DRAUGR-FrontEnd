@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useAnimationControls, useTime, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { categories } from '../../utils/mockData';
@@ -175,18 +175,18 @@ const CategoryRows = () => {
         </motion.div>
       </div>
       
-      {/* Left side subcategories - columns with opposite directions */}
+      {/* Left side subcategories - with mirrored column directions */}
       <div className="hidden md:block absolute top-0 left-0 bottom-0 w-1/5 z-10">
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
           {/* Top fade effect */}
           <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black to-transparent z-10"></div>
-          <EnhancedScrollingMenu 
+          <ChainScrollingMenu 
             items={subcategories} 
-            columnDirections={["up", "down"]} // Left column up, right column down
+            columnDirections={["up", "down"]} // Left column goes up (outer edge), right column goes down (inner edge)
             columns={2} 
             parentRef={sectionRef}
             fullHeight={true}
-            speed={25}
+            speed={30}
             side="left"
           />
           {/* Bottom fade effect */}
@@ -227,18 +227,18 @@ const CategoryRows = () => {
         </div>
       </div>
       
-      {/* Right side tags - columns with opposite directions */}
+      {/* Right side tags - with mirrored column directions */}
       <div className="hidden md:block absolute top-0 right-0 bottom-0 w-1/5 z-10">
         <div className="absolute top-0 right-0 w-full h-full overflow-hidden">
           {/* Top fade effect */}
           <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black to-transparent z-10"></div>
-          <EnhancedScrollingMenu 
+          <ChainScrollingMenu 
             items={popularTags}
-            columnDirections={["down", "up"]} // Left column down, right column up  
+            columnDirections={["down", "up"]} // Left column goes down (inner edge), right column goes up (outer edge)
             columns={2} 
             parentRef={sectionRef}
             fullHeight={true}
-            speed={25}
+            speed={28} // slightly different speed for visual interest
             side="right"
           />
           {/* Bottom fade effect */}
@@ -263,10 +263,10 @@ const CategoryRows = () => {
   );
 };
 
-// Enhanced scrolling menu component with per-column direction control and performance optimizations
-const EnhancedScrollingMenu = ({ 
+// Enhanced chain-like scrolling menu with per-column direction control
+const ChainScrollingMenu = ({ 
   items, 
-  columnDirections = ["up", "up"], // Default to all columns going up
+  columnDirections = [], // Array of directions for each column
   columns = 2, 
   parentRef, 
   fullHeight = false, 
@@ -274,137 +274,155 @@ const EnhancedScrollingMenu = ({
   side = "left" 
 }) => {
   const containerRef = useRef(null);
-  const [columnItems, setColumnItems] = useState(Array(columns).fill().map(() => []));
-  const scrollPositions = useRef(Array(columns).fill(0));
-  const requestRef = useRef();
-  const previousTimeRef = useRef();
+  const animationRef = useRef();
+  const lastTimestampRef = useRef(0);
+  const [activeItems, setActiveItems] = useState([]);
+  const [columnPositions, setColumnPositions] = useState(Array(columns).fill(0));
   
-  // Calculate item height
+  // Calculate item height - remove spacing between items
   const itemHeight = 44; // Height for each item
   const itemSpacing = 0; // No space between items
   
-  // Initialize columns on mount
+  // Calculate how many items fit in view plus buffer - only on mount and resize
   useEffect(() => {
     if (parentRef?.current) {
       const height = parentRef.current.offsetHeight;
       
       // Determine how many items we need to fill the container plus extras
-      const itemsNeeded = Math.ceil(height / itemHeight) * 4;
+      const itemsNeeded = Math.ceil(height / itemHeight) * 4; // 4x buffer for smooth scrolling
       
-      // Distribute items across columns with appropriate keys
-      const newColumnItems = Array(columns).fill().map(() => []);
+      // Generate items once instead of on each render
+      const generatedItems = [];
       
-      for (let colIndex = 0; colIndex < columns; colIndex++) {
-        for (let i = 0; i < itemsNeeded; i++) {
-          // Pick item from original array based on index
-          const originalItem = items[i % items.length];
-          
-          if (originalItem) {
-            newColumnItems[colIndex].push({
-              ...originalItem,
-              visualKey: `${originalItem.id}-${colIndex}-${i}`,
-              initialPosition: i * itemHeight
-            });
-          }
+      // Generate many more items than needed to ensure enough content
+      for (let i = 0; i < itemsNeeded * 2; i++) {
+        // Pick item from original array based on index
+        const originalItem = items[i % items.length];
+        
+        if (originalItem) {
+          generatedItems.push({
+            ...originalItem,
+            visualKey: `${originalItem.id}-${i}`,
+            initialPosition: i * itemHeight // Position items with no gaps
+          });
         }
       }
       
-      setColumnItems(newColumnItems);
+      setActiveItems(generatedItems);
+      
+      // Initialize positions for each column
+      setColumnPositions(Array(columns).fill(0));
     }
     
     return () => {
-      cancelAnimationFrame(requestRef.current);
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
     };
-  }, [parentRef, items, columns, itemHeight]);
+  }, [parentRef, items, itemHeight, columns]);
   
-  // Animation loop using animationFrame
-  const animate = useCallback((time) => {
-    if (previousTimeRef.current !== undefined) {
-      const deltaTime = (time - previousTimeRef.current) / 1000;
+  // Animation loop with requestAnimationFrame - optimized with useRef
+  useEffect(() => {
+    const animate = (timestamp) => {
+      if (!lastTimestampRef.current) {
+        lastTimestampRef.current = timestamp;
+      }
       
-      // Update each column's position based on its direction
-      for (let i = 0; i < columns; i++) {
-        const direction = columnDirections[i % columnDirections.length];
-        const movement = speed * deltaTime;
-        
-        // Calculate new position based on direction
-        if (direction === "up") {
-          scrollPositions.current[i] -= movement;
+      // Calculate seconds passed since last frame (cap at 60fps for smoothness)
+      const deltaSec = Math.min((timestamp - lastTimestampRef.current) / 1000, 1/60);
+      lastTimestampRef.current = timestamp;
+      
+      // Update position for each column with its own direction
+      setColumnPositions(prevPositions => {
+        return prevPositions.map((pos, colIndex) => {
+          // Get the direction for this column
+          const direction = columnDirections[colIndex] || (colIndex % 2 === 0 ? "up" : "down");
+          
+          // Calculate the movement based on the column's direction
+          const movement = speed * deltaSec;
+          let newPos = pos;
+          
+          if (direction === "up") {
+            newPos -= movement; // Move up (negative)
+          } else {
+            newPos += movement; // Move down (positive)
+          }
+          
+          // Calculate total content height
+          const oneSetHeight = items.length * itemHeight;
           
           // Reset position when a full set has scrolled to create seamless loop
-          const itemCount = items.length;
-          const totalHeight = itemCount * itemHeight;
-          
-          if (Math.abs(scrollPositions.current[i]) > totalHeight) {
-            scrollPositions.current[i] += totalHeight;
+          if (direction === "up" && Math.abs(newPos) >= oneSetHeight) {
+            return newPos + oneSetHeight;
+          } else if (direction === "down" && newPos >= oneSetHeight) {
+            return newPos - oneSetHeight;
           }
-        } else {
-          scrollPositions.current[i] += movement;
           
-          // Reset position when a full set has scrolled
-          const itemCount = items.length;
-          const totalHeight = itemCount * itemHeight;
-          
-          if (scrollPositions.current[i] > totalHeight) {
-            scrollPositions.current[i] -= totalHeight;
-          }
-        }
-      }
-    }
+          return newPos;
+        });
+      });
+      
+      animationRef.current = requestAnimationFrame(animate);
+    };
     
-    previousTimeRef.current = time;
-    requestRef.current = requestAnimationFrame(animate);
-  }, [columnDirections, speed, items.length, columns, itemHeight]);
+    animationRef.current = requestAnimationFrame(animate);
+    
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [columnDirections, speed, items.length, itemHeight]);
   
-  // Start and handle the animation
-  useEffect(() => {
-    requestRef.current = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(requestRef.current);
-  }, [animate]);
+  // Split active items into columns
+  const columnItems = activeItems.reduce((result, item, index) => {
+    const columnIndex = index % columns;
+    if (!result[columnIndex]) {
+      result[columnIndex] = [];
+    }
+    result[columnIndex].push(item);
+    return result;
+  }, Array(columns).fill().map(() => []));
   
   // Get transform style for an item in a specific column
-  const getItemTransform = useCallback((item, colIndex) => {
-    const basePosition = item.initialPosition;
-    const direction = columnDirections[colIndex % columnDirections.length];
-    const scrollPosition = scrollPositions.current[colIndex];
+  const getItemStyle = (item, colIndex) => {
+    // Get the direction for this column
+    const direction = columnDirections[colIndex] || (colIndex % 2 === 0 ? "up" : "down");
+    const columnPosition = columnPositions[colIndex] || 0;
     
-    // Apply transform based on direction
-    if (direction === "up") {
-      return `translateY(${basePosition + scrollPosition}px)`;
-    } else {
-      return `translateY(${basePosition - scrollPosition}px)`;
-    }
-  }, [columnDirections]);
+    // Calculate the transform position based on direction and column position
+    const basePosition = item.initialPosition;
+    const transformY = direction === "up" ? 
+      basePosition + columnPosition : // For upward movement
+      basePosition - columnPosition;  // For downward movement
+    
+    return {
+      transform: `translateY(${transformY}px) translateZ(0)`, // Force hardware acceleration
+      willChange: 'transform',
+    };
+  };
   
   return (
     <div 
-      className={`relative ${fullHeight ? 'h-full min-h-[80vh]' : 'h-full'}`} 
+      className={`relative ${fullHeight ? 'h-full min-h-[80vh]' : 'h-full'}`}
       ref={containerRef}
     >
       {/* Grid container for columns */}
-      <div className="grid grid-cols-2 gap-x-4 h-full">
+      <div className="grid grid-cols-2 gap-x-3 h-full">
         {columnItems.map((column, colIndex) => (
           <div key={colIndex} className="relative h-full overflow-hidden">
             {column.map((item) => (
               <div 
                 key={item.visualKey}
-                className="absolute w-full will-change-transform"
-                style={{ 
-                  transform: getItemTransform(item, colIndex),
-                  WebkitBackfaceVisibility: "hidden",
-                  WebkitPerspective: 1000,
-                  WebkitTransform: "translate3d(0, 0, 0)",
-                  mozBackfaceVisibility: "hidden",
-                  mozPerspective: 1000,
-                  mozTransform: "translate3d(0, 0, 0)"
-                }}
+                className="absolute w-full"
+                style={getItemStyle(item, colIndex)}
               >
                 <Link 
                   to={`/shop?${item.category ? 'subcategory' : 'tag'}=${item.slug}`} 
-                  className="block py-2 px-2 rounded-md transition-all duration-300
-                          border border-gray-700/10 bg-gray-800/20 backdrop-blur-sm
-                          hover:border-draugr-500/40 hover:bg-gray-700/40
-                          text-gray-300 hover:text-white group"
+                  className="block py-2 px-3 rounded-md transition-colors duration-200
+                         border-t border-gray-700/5 bg-gray-800/20 backdrop-blur-sm
+                         hover:border-draugr-500/40 hover:bg-gray-700/40
+                         text-gray-300 hover:text-white group"
                 >
                   <div className="flex items-center gap-2 rtl:flex-row-reverse">
                     {item.icon && (
@@ -412,7 +430,7 @@ const EnhancedScrollingMenu = ({
                         {item.icon}
                       </span>
                     )}
-                    <span className="text-sm whitespace-nowrap overflow-hidden text-ellipsis">{item.name}</span>
+                    <span className="text-sm truncate">{item.name}</span>
                   </div>
                 </Link>
               </div>
