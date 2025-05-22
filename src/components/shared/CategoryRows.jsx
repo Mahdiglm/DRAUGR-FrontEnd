@@ -266,25 +266,14 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = 
   const containerRef = useRef(null);
   const [containerHeight, setContainerHeight] = useState(0);
   const [parentHeight, setParentHeight] = useState(0);
-  
-  // The key to TRULY infinite scrolling is to duplicate the list many times
-  // and then reset the position back once we've moved far enough
   const [scrollY, setScrollY] = useState(0);
-  
-  // Create a HUGE number of duplicated items to ensure we never run out
-  // The idea is to have enough items for hours of scrolling without repeating
-  const DUPLICATION_FACTOR = 100; // 100x duplication
-  const repeatedItems = useMemo(() => {
-    return Array(DUPLICATION_FACTOR).fill([...items]).flat();
-  }, [items]);
   
   // Calculate item height based on content
   const itemHeight = 40; // Height for each item
-  // We only need the height of ONE set for the reset calculation
   const singleSetHeight = items.length * itemHeight;
   
-  // Define a constant speed in pixels per second
-  const SCROLL_SPEED = 25; // pixels per second - increased slightly
+  // Define a constant speed in pixels per second - reduced for better performance
+  const SCROLL_SPEED = 15; // pixels per second - decreased for better performance
   
   // Update container and parent height on mount and resize
   useEffect(() => {
@@ -303,52 +292,45 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = 
     return () => window.removeEventListener('resize', updateSizes);
   }, [parentRef]);
   
-  // Improved animation frame-based animation for consistent speed
+  // Animation frame-based animation with throttling for better performance
   useEffect(() => {
-    let startTime = null;
     let lastTimestamp = 0;
     let animationFrameId = null;
+    let skipFrame = false; // For throttling frames on low-end devices
     
-    // Animation function that calculates position based on elapsed time
+    // Animation function with performance optimizations
     const animate = (timestamp) => {
-      if (!startTime) startTime = timestamp;
+      // Throttle updates on low-end devices
+      if (skipFrame) {
+        skipFrame = false;
+        animationFrameId = requestAnimationFrame(animate);
+        return;
+      }
       
       // Calculate elapsed time since last frame in seconds
       const deltaTime = lastTimestamp === 0 ? 0.016 : (timestamp - lastTimestamp) / 1000;
       lastTimestamp = timestamp;
       
-      // Only update after we have a valid delta time
-      if (deltaTime > 0 && deltaTime < 0.1) { // Avoid jumps if tab was inactive
+      // Skip extreme delta values (tab was inactive)
+      if (deltaTime > 0 && deltaTime < 0.1) {
         // Calculate how much to move based on direction and constant speed
         let movement = SCROLL_SPEED * deltaTime;
         
         // Update position based on direction
-        if (direction === 'up') {
-          setScrollY(prevY => {
-            // Move upward (negative)
-            let newY = prevY + movement;
-            
-            // Reset when we've scrolled a complete set to create seamless loop
-            // This is the key to true infinite scrolling - we reset after just one set
-            // to avoid ever getting to the end of our duplicated array
-            if (newY > singleSetHeight) {
-              // Reset but maintain the exact offset to avoid visible jumps
-              return newY - singleSetHeight;
-            }
-            return newY;
-          });
-        } else {
-          setScrollY(prevY => {
-            // Move downward (positive)
-            let newY = prevY + movement;
-            
-            // Reset when we've scrolled a complete set
-            if (newY > singleSetHeight) {
-              // Reset but maintain the exact offset
-              return newY - singleSetHeight;
-            }
-            return newY;
-          });
+        setScrollY(prevY => {
+          // Move according to direction
+          let newY = prevY + movement;
+          
+          // Reset when we've scrolled a complete set to create seamless loop
+          if (newY > singleSetHeight) {
+            return newY - singleSetHeight;
+          }
+          return newY;
+        });
+        
+        // Throttle on potentially low-end devices
+        if (window.innerWidth < 768) {
+          skipFrame = true; // Skip next frame on mobile devices
         }
       }
       
@@ -366,17 +348,35 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = 
     };
   }, [direction, singleSetHeight]);
   
-  // Split items into columns - with virtually unlimited items
-  const columnItems = useMemo(() => {
-    return repeatedItems.reduce((result, item, index) => {
-      const columnIndex = index % columns;
-      if (!result[columnIndex]) {
-        result[columnIndex] = [];
-      }
-      result[columnIndex].push(item);
-      return result;
-    }, Array(columns).fill().map(() => []));
-  }, [repeatedItems, columns]);
+  // Virtualization - only render items that would be visible
+  const visibleHeight = containerHeight || 500; // Fallback if height not measured yet
+  
+  // Create three sets of items to ensure smooth scrolling
+  // This is much more performant than creating 100 sets
+  const virtualItems = useMemo(() => {
+    // Create just 3 copies - enough for smooth scrolling while keeping DOM light
+    return [...items, ...items, ...items];
+  }, [items]);
+  
+  // Calculate which items should be visible based on current scroll position
+  // This is the key to performance - only render what's needed
+  const visibleItems = useMemo(() => {
+    // Calculate starting index based on scroll position
+    const currentScrollPosition = direction === 'up' ? scrollY : scrollY;
+    const effectivePosition = currentScrollPosition % singleSetHeight;
+    
+    // Calculate visible range with buffer
+    const startIndex = Math.floor(effectivePosition / itemHeight) - 5; // 5 item buffer before
+    const endIndex = Math.ceil((effectivePosition + visibleHeight) / itemHeight) + 5; // 5 item buffer after
+    
+    // Get visible items for each column
+    return Array(columns).fill().map((_, colIndex) => {
+      return virtualItems.filter((_, index) => {
+        const itemIndex = Math.floor(index / columns);
+        return itemIndex >= startIndex && itemIndex <= endIndex && index % columns === colIndex;
+      });
+    });
+  }, [scrollY, virtualItems, visibleHeight, itemHeight, singleSetHeight, columns, direction]);
   
   // Prepare the transform for each direction
   const getTransformStyle = () => {
@@ -394,23 +394,26 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = 
     >
       {/* Grid container for columns */}
       <div className="grid grid-cols-2 gap-x-4 h-full">
-        {columnItems.map((column, colIndex) => (
+        {visibleItems.map((columnItems, colIndex) => (
           <div key={colIndex} className="relative overflow-hidden h-full">
             <div 
               className="absolute w-full will-change-transform"
               style={{ 
                 ...getTransformStyle(),
-                transformStyle: 'preserve-3d'
+                transformStyle: 'preserve-3d',
+                contain: 'paint layout' // Performance optimization
               }}
             >
-              {column.map((item, index) => (
+              {columnItems.map((item, index) => (
                 <div 
                   key={`${item.id}-${index}`} 
-                  className="mb-3 will-change-transform"
+                  className="mb-3"
                   style={{ 
                     transform: "translateZ(0)",
                     backfaceVisibility: "hidden",
-                    WebkitFontSmoothing: "antialiased"
+                    WebkitFontSmoothing: "antialiased",
+                    height: `${itemHeight}px`, // Fix height for accurate calculations
+                    willChange: 'auto' // Let browser decide optimization
                   }}
                 >
                   <Link 
