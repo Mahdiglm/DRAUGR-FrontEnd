@@ -173,21 +173,30 @@ const CircularCategoryLoop = ({ categories, isLowPerformance }) => {
   const time = useTime();
   const containerRef = useRef(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [isMobile, setIsMobile] = useState(false);
   
   // Calculate appropriate radii based on container size 
-  const radiusX = Math.min(dimensions.width * 0.4, 300); // Horizontal radius
-  const radiusY = Math.min(dimensions.height * 0.35, 120); // Vertical radius
+  const radiusX = Math.min(dimensions.width * 0.4, isMobile ? 200 : 300); // Smaller radius on mobile
+  const radiusY = Math.min(dimensions.height * 0.35, isMobile ? 100 : 120); // Smaller height on mobile
   const duration = isLowPerformance ? 30 : 25; // Seconds for a full rotation
-  const itemsCount = 8; // Number of items to display along the path - reduced from 16 to prevent crowding
   
-  // Update dimensions on mount and on resize
+  // Responsive item count - 5 for mobile, 8 for desktop
+  const itemsCount = isMobile ? 5 : 8;
+  
+  // Update dimensions and check if mobile on mount and on resize
   useEffect(() => {
     const updateDimensions = () => {
       if (containerRef.current) {
+        const newWidth = containerRef.current.offsetWidth;
+        const newHeight = containerRef.current.offsetHeight;
+        
         setDimensions({
-          width: containerRef.current.offsetWidth,
-          height: containerRef.current.offsetHeight
+          width: newWidth,
+          height: newHeight
         });
+        
+        // Check if mobile based on width (breakpoint at 768px)
+        setIsMobile(window.innerWidth < 768);
       }
     };
     
@@ -199,8 +208,7 @@ const CircularCategoryLoop = ({ categories, isLowPerformance }) => {
     };
   }, []);
   
-  // Duplicate categories to ensure enough items 
-  // We only need to duplicate once since itemsCount is now lower
+  // Duplicate categories to ensure enough items
   const duplicatedCategories = [...categories, ...categories].slice(0, itemsCount);
   
   return (
@@ -221,6 +229,7 @@ const CircularCategoryLoop = ({ categories, isLowPerformance }) => {
             radiusX={radiusX}
             radiusY={radiusY}
             isLowPerformance={isLowPerformance}
+            isMobile={isMobile}
           />
         ))}
       </div>
@@ -229,7 +238,7 @@ const CircularCategoryLoop = ({ categories, isLowPerformance }) => {
 };
 
 // Individual item on elliptical path (2D)
-const EllipticalItem = ({ category, index, totalItems, time, duration, radiusX, radiusY, isLowPerformance }) => {
+const EllipticalItem = ({ category, index, totalItems, time, duration, radiusX, radiusY, isLowPerformance, isMobile }) => {
   // Calculate position along the ellipse
   const position = useTransform(
     time,
@@ -262,22 +271,26 @@ const EllipticalItem = ({ category, index, totalItems, time, duration, radiusX, 
       <CategoryItem 
         category={category}
         isLowPerformance={isLowPerformance}
+        isMobile={isMobile}
       />
     </motion.div>
   );
 };
 
 // Individual category item - simplified design
-const CategoryItem = ({ category, isLowPerformance }) => {
+const CategoryItem = ({ category, isLowPerformance, isMobile }) => {
+  // Smaller icons on mobile
+  const iconSize = isMobile ? "w-14 h-14" : "w-16 h-16";
+  
   return (
     <Link
       to={`/shop?category=${category.slug}`}
       className="inline-flex flex-col items-center justify-center mx-2 group"
     >
-      <div className="w-16 h-16 rounded-full flex items-center justify-center 
+      <div className={`${iconSize} rounded-full flex items-center justify-center 
                      bg-gradient-to-br from-gray-900/70 to-black/70 backdrop-blur-sm 
                      border border-gray-800/30 group-hover:border-draugr-500/40 
-                     transition-all duration-300 mb-2">
+                     transition-all duration-300 mb-2`}>
         <span className="text-3xl">{category.icon}</span>
       </div>
       <span className="text-sm text-gray-300 group-hover:text-white transition-colors duration-300 text-center whitespace-nowrap">
