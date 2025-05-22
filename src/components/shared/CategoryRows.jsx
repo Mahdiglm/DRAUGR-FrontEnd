@@ -20,6 +20,11 @@ const CategoryRows = () => {
   
   // Track the next ID for new items
   const nextIdRef = useRef(1);
+
+  // Constants for layout
+  const CARD_WIDTH = 224; // 56px * 4 (actual width)
+  const CARD_MARGIN = 32;  // 16px on each side (mx-4)
+  const CARD_TOTAL_WIDTH = CARD_WIDTH + CARD_MARGIN; // Total width including margins
   
   // Control animation speed based on device performance
   const defaultSpeed = getOptimizedAnimationSettings(
@@ -35,8 +40,7 @@ const CategoryRows = () => {
       
       // Calculate how many items we need to fill the container width plus buffer
       const containerWidth = containerRef.current.offsetWidth;
-      const cardWidth = 56 + 32; // 56px card width + 32px margins
-      const itemsNeeded = Math.ceil(containerWidth / cardWidth) + 4; // +4 for buffer
+      const itemsNeeded = Math.ceil(containerWidth / CARD_TOTAL_WIDTH) + 4; // +4 for buffer
       
       const initialItems = [];
       for (let i = 0; i < itemsNeeded; i++) {
@@ -44,7 +48,7 @@ const CategoryRows = () => {
         initialItems.push({
           id: nextIdRef.current++,
           category: categories[categoryIndex],
-          positionX: i * cardWidth
+          positionX: i * CARD_TOTAL_WIDTH
         });
       }
       
@@ -82,7 +86,6 @@ const CategoryRows = () => {
       if (!containerRef.current) return movedItems;
       
       const containerWidth = containerRef.current.offsetWidth;
-      const cardWidth = 56 + 32; // 56px card width + 32px margins
       
       // If rightmost item has moved in enough, add a new item
       const rightmostItem = movedItems.reduce(
@@ -93,7 +96,7 @@ const CategoryRows = () => {
       const newItems = [...movedItems];
       
       // If the rightmost item has moved in and there's room, add a new item
-      if (rightmostItem.positionX < containerWidth + cardWidth) {
+      if (rightmostItem.positionX < containerWidth + CARD_MARGIN) {
         // Determine the category index
         const categoryIndex = nextIdRef.current % categories.length;
         
@@ -101,12 +104,12 @@ const CategoryRows = () => {
         newItems.push({
           id: nextIdRef.current++,
           category: categories[categoryIndex],
-          positionX: rightmostItem.positionX + cardWidth
+          positionX: rightmostItem.positionX + CARD_TOTAL_WIDTH
         });
       }
       
       // Remove items that have moved completely off the left edge
-      return newItems.filter(item => item.positionX > -cardWidth);
+      return newItems.filter(item => item.positionX > -CARD_TOTAL_WIDTH);
     });
     
     animationRef.current = requestAnimationFrame(animate);
@@ -184,7 +187,7 @@ const CategoryRows = () => {
                 position: 'absolute',
                 left: 0,
                 transform: `translateX(${item.positionX}px)`,
-                transition: 'none' // Ensure no transitions that could cause jumps
+                width: `${CARD_WIDTH}px`
               }}
             />
           ))}
@@ -236,12 +239,13 @@ const CategoryItem = ({ category, style, ...props }) => {
   };
 
   return (
-    <motion.div
+    <div
       ref={itemRef}
-      className="absolute flex-shrink-0 mx-4 w-56 h-40 overflow-hidden rounded-xl cursor-pointer"
-      whileHover={{ y: -5 }}
-      transition={{ duration: 0.2 }}
-      style={style}
+      className="absolute mx-4 h-40 overflow-hidden rounded-xl cursor-pointer"
+      style={{
+        ...style,
+        zIndex: glowing ? 10 : 1 // Ensure the hovered item appears above others
+      }}
       {...props}
     >
       {/* Background card */}
@@ -251,6 +255,16 @@ const CategoryItem = ({ category, style, ...props }) => {
       <div className="relative z-10 h-full flex flex-col justify-center items-center p-4">
         <span className="text-xl font-bold text-white mb-2">{category.name}</span>
         <div className="text-indigo-300 text-sm">مشاهده محصولات</div>
+      </div>
+      
+      {/* Hover effects */}
+      <div 
+        className="absolute inset-0 rounded-xl transform transition-transform duration-200 ease-out"
+        style={{
+          transform: glowing ? 'translateY(-5px)' : 'none'
+        }}
+      >
+        {/* Empty div for hover transform effect */}
       </div>
       
       {/* Glow effect wrapper */}
@@ -271,7 +285,7 @@ const CategoryItem = ({ category, style, ...props }) => {
           transition: 'box-shadow 0.3s ease-out'
         }}
       />
-    </motion.div>
+    </div>
   );
 };
 
