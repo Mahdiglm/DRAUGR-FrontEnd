@@ -176,10 +176,9 @@ const CategoryRows = () => {
       </div>
       
       {/* Left side subcategories - with mirrored column directions */}
-      <div className="hidden md:block absolute top-0 left-0 bottom-0 w-1/5 z-10">
+      <div className="hidden md:block absolute top-0 left-0 bottom-0 w-1/5 z-10 px-1">
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
-          {/* Top fade effect */}
-          <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black to-transparent z-10"></div>
+          {/* Remove gradient effects */}
           <ChainScrollingMenu 
             items={subcategories} 
             columnDirections={["up", "down"]} // Left column goes up (outer edge), right column goes down (inner edge)
@@ -189,8 +188,6 @@ const CategoryRows = () => {
             speed={30}
             side="left"
           />
-          {/* Bottom fade effect */}
-          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent z-10"></div>
         </div>
       </div>
 
@@ -228,10 +225,9 @@ const CategoryRows = () => {
       </div>
       
       {/* Right side tags - with mirrored column directions */}
-      <div className="hidden md:block absolute top-0 right-0 bottom-0 w-1/5 z-10">
+      <div className="hidden md:block absolute top-0 right-0 bottom-0 w-1/5 z-10 px-1">
         <div className="absolute top-0 right-0 w-full h-full overflow-hidden">
-          {/* Top fade effect */}
-          <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black to-transparent z-10"></div>
+          {/* Remove gradient effects */}
           <ChainScrollingMenu 
             items={popularTags}
             columnDirections={["down", "up"]} // Left column goes down (inner edge), right column goes up (outer edge)
@@ -241,8 +237,6 @@ const CategoryRows = () => {
             speed={28} // slightly different speed for visual interest
             side="right"
           />
-          {/* Bottom fade effect */}
-          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent z-10"></div>
         </div>
       </div>
       
@@ -396,9 +390,11 @@ const ChainScrollingMenu = ({
       basePosition + columnPosition : // For upward movement
       basePosition - columnPosition;  // For downward movement
     
+    // Use standard CSS properties instead of vendor-prefixed ones
     return {
-      transform: `translateY(${transformY}px) translateZ(0)`, // Force hardware acceleration
+      transform: `translateY(${transformY}px)`,
       willChange: 'transform',
+      backfaceVisibility: 'hidden',  // Standard property instead of mozBackfaceVisibility
     };
   };
   
@@ -408,9 +404,9 @@ const ChainScrollingMenu = ({
       ref={containerRef}
     >
       {/* Grid container for columns */}
-      <div className="grid grid-cols-2 gap-x-3 h-full">
+      <div className="grid grid-cols-2 gap-x-6 h-full">
         {columnItems.map((column, colIndex) => (
-          <div key={colIndex} className="relative h-full overflow-hidden">
+          <div key={colIndex} className="relative h-full overflow-hidden px-1">
             {column.map((item) => (
               <div 
                 key={item.visualKey}
