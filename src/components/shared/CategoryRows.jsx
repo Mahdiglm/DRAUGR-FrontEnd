@@ -140,7 +140,7 @@ const CategoryRows = () => {
       
       {/* 2D Elliptical loop categories */}
       <div className="flex justify-center items-center">
-        <div className="relative w-full h-[300px] md:h-[400px] max-w-[1000px] mx-auto overflow-hidden">
+        <div className="relative w-full h-[300px] md:h-[400px] max-w-[900px] mx-auto overflow-hidden">
           <CircularCategoryLoop 
             categories={enhancedCategories.filter(cat => 
               cat.name.includes(searchTerm) || 
@@ -176,15 +176,15 @@ const CircularCategoryLoop = ({ categories, isLowPerformance }) => {
   const [isMobile, setIsMobile] = useState(false);
   
   // Calculate appropriate radii based on container size
-  // Standard horizontal radius 
+  // Reduced horizontal radius to bring items closer to center
   const radiusX = isMobile 
-    ? Math.min(dimensions.width * 0.4, 200) 
-    : Math.min(dimensions.width * 0.4, 350);
+    ? Math.min(dimensions.width * 0.35, 160) 
+    : Math.min(dimensions.width * 0.35, 250); // Reduced from 350 to 250
   
-  // Increased vertical radius to make items go higher at the edges
+  // Reduced vertical radius but still keeping the height at edges
   const radiusY = isMobile 
-    ? Math.min(dimensions.height * 0.35, 100) 
-    : Math.min(dimensions.height * 0.5, 180); // Increased from 120 to 180 for taller edges
+    ? Math.min(dimensions.height * 0.3, 80) 
+    : Math.min(dimensions.height * 0.45, 150); // Reduced from 180 to 150
   
   const duration = isLowPerformance ? 30 : 25; // Seconds for a full rotation
   
@@ -224,8 +224,8 @@ const CircularCategoryLoop = ({ categories, isLowPerformance }) => {
       className="h-full w-full relative" 
       ref={containerRef}
     >
-      {/* Center point for the ellipse */}
-      <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full flex justify-center items-center">
+      {/* Center point for the ellipse - reduced size */}
+      <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4/5 h-4/5 flex justify-center items-center">
         {duplicatedCategories.map((category, index) => (
           <EllipticalItem 
             key={`${category.id}-${index}`}
