@@ -313,75 +313,115 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
   const [proximityData, setProximityData] = useState({
     edge: null,
     distance: 100,
-    intensity: 0
+    intensity: 0,
+    position: 0,
   });
   
   // Settings
   const proximityThreshold = 60; // How close the mouse needs to be to activate border effect
   const borderWidth = 2; // Width of the border in pixels
   
-  // Handle mouse movement
-  const handleMouseMove = (e) => {
-    if (!itemRef.current) return;
+  // Track global mouse position and handle proximity
+  useEffect(() => {
+    const handleGlobalMouseMove = (e) => {
+      if (!itemRef.current) return;
+      
+      const rect = itemRef.current.getBoundingClientRect();
+      
+      // Calculate mouse position relative to card
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      // For proximity detection, also consider points outside the card
+      // Check if mouse is near any edge of the card
+      const distToLeft = Math.abs(x);
+      const distToRight = Math.abs(x - rect.width);
+      const distToTop = Math.abs(y);
+      const distToBottom = Math.abs(y - rect.height);
+      
+      // Find the closest edge and its distance
+      const edges = [
+        { edge: 'left', dist: distToLeft },
+        { edge: 'right', dist: distToRight },
+        { edge: 'top', dist: distToTop },
+        { edge: 'bottom', dist: distToBottom }
+      ];
+      
+      // Sort by distance (closest first)
+      edges.sort((a, b) => a.dist - b.dist);
+      
+      // Calculate total distance from closest point on perimeter
+      // This is used to determine if we're close enough to show the effect
+      // For corners, we need to check if we're near both edges
+      let perimeterDistance;
+      let closestEdge;
+      
+      // Check if we're near a corner (close to two perpendicular edges)
+      // corners are special cases
+      if ((distToLeft <= proximityThreshold && distToTop <= proximityThreshold) ||
+          (distToLeft <= proximityThreshold && distToBottom <= proximityThreshold) ||
+          (distToRight <= proximityThreshold && distToTop <= proximityThreshold) ||
+          (distToRight <= proximityThreshold && distToBottom <= proximityThreshold)) {
+        
+        // We're near a corner, calculate diagonal distance
+        // Find which corner we're closest to
+        let cornerX = x < rect.width / 2 ? 0 : rect.width;
+        let cornerY = y < rect.height / 2 ? 0 : rect.height;
+        
+        // Diagonal distance to corner
+        perimeterDistance = Math.sqrt(
+          Math.pow(x - cornerX, 2) + Math.pow(y - cornerY, 2)
+        );
+        
+        // For corners, we'll use the compass directions
+        if (x < rect.width / 2 && y < rect.height / 2) {
+          closestEdge = 'topLeft';
+        } else if (x >= rect.width / 2 && y < rect.height / 2) {
+          closestEdge = 'topRight';
+        } else if (x < rect.width / 2 && y >= rect.height / 2) {
+          closestEdge = 'bottomLeft';
+        } else {
+          closestEdge = 'bottomRight';
+        }
+      } else {
+        // We're closest to a single edge
+        closestEdge = edges[0].edge;
+        perimeterDistance = edges[0].dist;
+      }
+      
+      // Update mouse position state regardless of proximity
+      setMousePos({ x, y });
+      
+      // Only consider "near" if within threshold
+      const near = perimeterDistance < proximityThreshold; 
+      
+      if (near) {
+        // Calculate intensity based on proximity (1 when at edge, 0 when beyond threshold)
+        const intensity = Math.max(0, 1 - (perimeterDistance / proximityThreshold));
+        
+        // Calculate position along edge (as a percentage)
+        const position = getPositionAlongEdge(closestEdge, x, y, rect.width, rect.height);
+        
+        setIsNear(true);
+        setProximityData({
+          edge: closestEdge,
+          distance: perimeterDistance,
+          intensity,
+          position
+        });
+      } else if (isNear) {
+        // Only reset if we were previously near
+        setIsNear(false);
+      }
+    };
     
-    const rect = itemRef.current.getBoundingClientRect();
+    // Add global mouse move listener
+    window.addEventListener('mousemove', handleGlobalMouseMove);
     
-    // Calculate mouse position relative to card
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    // Update mouse position state
-    setMousePos({ x, y });
-    
-    // Calculate distances to each edge
-    const distToLeft = x;
-    const distToRight = rect.width - x;
-    const distToTop = y;
-    const distToBottom = rect.height - y;
-    
-    // Find the closest edge
-    const distances = [
-      { edge: 'left', dist: distToLeft },
-      { edge: 'right', dist: distToRight },
-      { edge: 'top', dist: distToTop },
-      { edge: 'bottom', dist: distToBottom }
-    ];
-    
-    // Sort by distance (closest first)
-    distances.sort((a, b) => a.dist - b.dist);
-    
-    // The closest edge
-    const closestEdge = distances[0];
-    
-    // Calculate intensity based on proximity (1 when at edge, 0 when beyond threshold)
-    const intensity = Math.max(0, 1 - (closestEdge.dist / proximityThreshold));
-    
-    // Only consider "near" if within threshold
-    const near = closestEdge.dist < proximityThreshold;
-    
-    setIsNear(near);
-    
-    if (near) {
-      setProximityData({
-        edge: closestEdge.edge,
-        distance: closestEdge.dist,
-        intensity,
-        // Add normalized position (0-1) along the edge
-        position: getPositionAlongEdge(closestEdge.edge, x, y, rect.width, rect.height)
-      });
-    }
-  };
-  
-  // Handle mouse enter
-  const handleMouseEnter = () => {
-    // Reset any existing state from other items
-    setIsNear(false);
-  };
-  
-  // Handle mouse leave
-  const handleMouseLeave = () => {
-    setIsNear(false);
-  };
+    return () => {
+      window.removeEventListener('mousemove', handleGlobalMouseMove);
+    };
+  }, [isNear]);
   
   // Calculate the relative position along an edge (0 to 1)
   const getPositionAlongEdge = (edge, x, y, width, height) => {
@@ -390,21 +430,31 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
       case 'right': return y / height;
       case 'bottom': return 1 - (x / width); // Reverse direction for consistency
       case 'left': return 1 - (y / height); // Reverse direction for consistency
+      case 'topLeft': return Math.min(x / width, y / height);
+      case 'topRight': return Math.min(1 - (x / width), y / height);
+      case 'bottomLeft': return Math.min(x / width, 1 - (y / height));
+      case 'bottomRight': return Math.min(1 - (x / width), 1 - (y / height));
       default: return 0;
     }
   };
   
   // Generate the glowing border effect
   const renderBorderEffect = () => {
-    if (!isNear || !proximityData.edge) return null;
+    if (!isNear) return null;
     
     const { edge, intensity, position } = proximityData;
     
     // Base glow color
     const glowColor = '#ff0066';
     
+    // For corner edges, we need a different approach
+    if (edge === 'topLeft' || edge === 'topRight' || edge === 'bottomLeft' || edge === 'bottomRight') {
+      return renderCornerEffect(edge, intensity);
+    }
+    
     // Calculate the spread of the glow effect along the edge
-    const spread = 0.2 + intensity * 0.4; // Between 20% and 60% of the edge
+    // The spread is wider when intensity is lower (further from edge)
+    const spread = 0.3 + (1 - intensity) * 0.4; // Between 30% and 70% of the edge
     
     // The glow should be centered at the position along the edge
     const start = Math.max(0, position - spread / 2);
@@ -419,12 +469,12 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
     
     // Border gradient - creates a focal point at the cursor position
     const createGradient = (direction) => {
-      // Create a 3-stop gradient that's transparent at edges and glowing in middle
+      // Create a multi-stop gradient that's glowing at the center position
       return `linear-gradient(${direction}, 
                 rgba(255, 0, 102, 0) 0%, 
-                rgba(255, 0, 102, ${intensity}) ${(start * 100)}%, 
-                rgba(255, 0, 102, ${intensity * 1.5}) ${(position * 100)}%, 
-                rgba(255, 0, 102, ${intensity}) ${(end * 100)}%, 
+                rgba(255, 0, 102, ${intensity * 0.5}) ${(start * 100)}%, 
+                rgba(255, 0, 102, ${intensity}) ${(position * 100)}%, 
+                rgba(255, 0, 102, ${intensity * 0.5}) ${(end * 100)}%, 
                 rgba(255, 0, 102, 0) 100%)`;
     };
     
@@ -490,6 +540,145 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
         return null;
     }
   };
+  
+  // Render a special corner effect
+  const renderCornerEffect = (corner, intensity) => {
+    const glowColor = '#ff0066';
+    
+    const cornerSize = 24; // Size of the corner effect in pixels
+    const cornerStyle = {
+      position: 'absolute',
+      width: `${cornerSize}px`,
+      height: `${cornerSize}px`,
+      background: 'transparent',
+      opacity: intensity,
+      pointerEvents: 'none',
+    };
+    
+    // For corners, we apply the effect to two edges
+    const borderStyle = {
+      position: 'absolute',
+      background: `linear-gradient(to right, rgba(255, 0, 102, ${intensity}), rgba(255, 0, 102, 0))`,
+      boxShadow: `0 0 ${6 * intensity}px ${glowColor}`,
+      filter: `drop-shadow(0 0 ${4 * intensity}px ${glowColor})`,
+    };
+    
+    switch (corner) {
+      case 'topLeft':
+        return (
+          <div style={cornerStyle} className="top-0 left-0">
+            {/* Top edge */}
+            <div 
+              style={{
+                ...borderStyle,
+                height: `${borderWidth}px`,
+                width: `${cornerSize}px`,
+                top: 0,
+                left: 0
+              }}
+            />
+            {/* Left edge */}
+            <div
+              style={{
+                ...borderStyle,
+                width: `${borderWidth}px`,
+                height: `${cornerSize}px`,
+                top: 0,
+                left: 0,
+                background: `linear-gradient(to bottom, rgba(255, 0, 102, ${intensity}), rgba(255, 0, 102, 0))`,
+              }}
+            />
+          </div>
+        );
+      
+      case 'topRight':
+        return (
+          <div style={cornerStyle} className="top-0 right-0">
+            {/* Top edge */}
+            <div 
+              style={{
+                ...borderStyle,
+                height: `${borderWidth}px`,
+                width: `${cornerSize}px`,
+                top: 0,
+                right: 0,
+                background: `linear-gradient(to left, rgba(255, 0, 102, ${intensity}), rgba(255, 0, 102, 0))`,
+              }}
+            />
+            {/* Right edge */}
+            <div
+              style={{
+                ...borderStyle,
+                width: `${borderWidth}px`,
+                height: `${cornerSize}px`,
+                top: 0,
+                right: 0,
+                background: `linear-gradient(to bottom, rgba(255, 0, 102, ${intensity}), rgba(255, 0, 102, 0))`,
+              }}
+            />
+          </div>
+        );
+      
+      case 'bottomLeft':
+        return (
+          <div style={cornerStyle} className="bottom-0 left-0">
+            {/* Bottom edge */}
+            <div 
+              style={{
+                ...borderStyle,
+                height: `${borderWidth}px`,
+                width: `${cornerSize}px`,
+                bottom: 0,
+                left: 0,
+                background: `linear-gradient(to right, rgba(255, 0, 102, ${intensity}), rgba(255, 0, 102, 0))`,
+              }}
+            />
+            {/* Left edge */}
+            <div
+              style={{
+                ...borderStyle,
+                width: `${borderWidth}px`,
+                height: `${cornerSize}px`,
+                bottom: 0,
+                left: 0,
+                background: `linear-gradient(to top, rgba(255, 0, 102, ${intensity}), rgba(255, 0, 102, 0))`,
+              }}
+            />
+          </div>
+        );
+      
+      case 'bottomRight':
+        return (
+          <div style={cornerStyle} className="bottom-0 right-0">
+            {/* Bottom edge */}
+            <div 
+              style={{
+                ...borderStyle,
+                height: `${borderWidth}px`,
+                width: `${cornerSize}px`,
+                bottom: 0,
+                right: 0,
+                background: `linear-gradient(to left, rgba(255, 0, 102, ${intensity}), rgba(255, 0, 102, 0))`,
+              }}
+            />
+            {/* Right edge */}
+            <div
+              style={{
+                ...borderStyle,
+                width: `${borderWidth}px`,
+                height: `${cornerSize}px`,
+                bottom: 0,
+                right: 0,
+                background: `linear-gradient(to top, rgba(255, 0, 102, ${intensity}), rgba(255, 0, 102, 0))`,
+              }}
+            />
+          </div>
+        );
+      
+      default:
+        return null;
+    }
+  };
 
   return (
     <div
@@ -498,9 +687,6 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
       style={{
         ...style,
       }}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
       {...props}
     >
       {/* Cyberpunk cyber-trace animation styles */}
@@ -582,6 +768,7 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
             viewBox={`0 0 ${cardWidth} 160`}
             xmlns="http://www.w3.org/2000/svg"
           >
+            {/* Dynamically render circuit elements based on the proximity data */}
             {proximityData.edge === 'top' && (
               <path
                 d={`M${proximityData.position * cardWidth},1 v5 h${proximityData.intensity * 15}`}
@@ -630,6 +817,67 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
             {proximityData.edge === 'left' && (
               <path
                 d={`M1,${(1-proximityData.position) * 160} h5 v-${proximityData.intensity * 15}`}
+                stroke="#ff0066"
+                strokeWidth="1"
+                fill="none"
+                strokeDasharray="4,2"
+                style={{
+                  opacity: proximityData.intensity * 0.8,
+                  filter: `drop-shadow(0 0 3px #ff0066)`,
+                  animation: 'dashOffset 1.5s linear infinite',
+                }}
+              />
+            )}
+            
+            {/* For corners, create angled circuit paths */}
+            {proximityData.edge === 'topLeft' && (
+              <path
+                d={`M1,5 h5 l5,5`}
+                stroke="#ff0066"
+                strokeWidth="1"
+                fill="none"
+                strokeDasharray="4,2"
+                style={{
+                  opacity: proximityData.intensity * 0.8,
+                  filter: `drop-shadow(0 0 3px #ff0066)`,
+                  animation: 'dashOffset 1.5s linear infinite',
+                }}
+              />
+            )}
+            
+            {proximityData.edge === 'topRight' && (
+              <path
+                d={`M${cardWidth-1},5 h-5 l-5,5`}
+                stroke="#ff0066"
+                strokeWidth="1"
+                fill="none"
+                strokeDasharray="4,2"
+                style={{
+                  opacity: proximityData.intensity * 0.8,
+                  filter: `drop-shadow(0 0 3px #ff0066)`,
+                  animation: 'dashOffset 1.5s linear infinite',
+                }}
+              />
+            )}
+            
+            {proximityData.edge === 'bottomLeft' && (
+              <path
+                d={`M1,155 h5 l5,-5`}
+                stroke="#ff0066"
+                strokeWidth="1"
+                fill="none"
+                strokeDasharray="4,2"
+                style={{
+                  opacity: proximityData.intensity * 0.8,
+                  filter: `drop-shadow(0 0 3px #ff0066)`,
+                  animation: 'dashOffset 1.5s linear infinite',
+                }}
+              />
+            )}
+            
+            {proximityData.edge === 'bottomRight' && (
+              <path
+                d={`M${cardWidth-1},155 h-5 l-5,-5`}
                 stroke="#ff0066"
                 strokeWidth="1"
                 fill="none"
