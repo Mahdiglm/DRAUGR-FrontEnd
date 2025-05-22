@@ -10,6 +10,11 @@ import { motion } from 'framer-motion';
 import { categories } from '../../utils/mockData';
 import { getOptimizedAnimationSettings } from '../../utils/animationHelpers';
 
+// Constants for layout - moved to global scope for reuse
+const CARD_WIDTH = 224; // 56px * 4 (actual width)
+const CARD_MARGIN = 32;  // 16px on each side (mx-4)
+const CARD_TOTAL_WIDTH = CARD_WIDTH + CARD_MARGIN; // Total width including margins
+
 const CategoryRows = () => {
   const containerRef = useRef(null);
   const beltRef = useRef(null);
@@ -22,11 +27,6 @@ const CategoryRows = () => {
   
   // Track the next ID for new items
   const nextIdRef = useRef(1);
-
-  // Constants for layout
-  const CARD_WIDTH = 224; // 56px * 4 (actual width)
-  const CARD_MARGIN = 32;  // 16px on each side (mx-4)
-  const CARD_TOTAL_WIDTH = CARD_WIDTH + CARD_MARGIN; // Total width including margins
   
   // Control animation speed based on device performance
   const defaultSpeed = getOptimizedAnimationSettings(
@@ -271,6 +271,7 @@ const CategoryRows = () => {
                 transform: `translateX(${item.positionX}px)`,
                 width: `${CARD_WIDTH}px`
               }}
+              cardWidth={CARD_WIDTH}
             />
           ))}
         </div>
@@ -305,7 +306,7 @@ const generateCircuitPath = (startX, startY, endX, endY) => {
   }
 };
 
-const CategoryItem = ({ category, style, ...props }) => {
+const CategoryItem = ({ category, style, cardWidth, ...props }) => {
   const itemRef = useRef(null);
   const [mousePos, setMousePos] = useState({ x: -100, y: -100 });
   const [isHovering, setIsHovering] = useState(false);
@@ -323,8 +324,8 @@ const CategoryItem = ({ category, style, ...props }) => {
   useEffect(() => {
     const nodes = [];
     // Generate nodes along the perimeter
-    const nodeRadius = Math.min(CARD_WIDTH, 160) / 2; // Half of card width
-    const centerX = CARD_WIDTH / 2;
+    const nodeRadius = Math.min(cardWidth, 160) / 2; // Half of card width
+    const centerX = cardWidth / 2;
     const centerY = 80; // Half of card height (160px)
     
     // Create nodes in a circle around the center
@@ -349,7 +350,7 @@ const CategoryItem = ({ category, style, ...props }) => {
     }
     
     setCircuitNodes(nodes);
-  }, []);
+  }, [cardWidth]);
 
   // Handle mouse movement
   const handleMouseMove = (e) => {
@@ -462,7 +463,7 @@ const CategoryItem = ({ category, style, ...props }) => {
   }, []);
   
   // Calculate SVG viewBox based on card dimensions
-  const svgViewBox = `0 0 ${CARD_WIDTH} 160`; // 160 is card height
+  const svgViewBox = `0 0 ${cardWidth} 160`; // 160 is card height
 
   return (
     <div
