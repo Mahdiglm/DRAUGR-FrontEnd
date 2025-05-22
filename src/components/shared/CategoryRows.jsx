@@ -140,7 +140,7 @@ const CategoryRows = () => {
       
       {/* 2D Elliptical loop categories */}
       <div className="flex justify-center items-center">
-        <div className="relative w-full h-[300px] md:h-[400px] max-w-[1400px] mx-auto overflow-hidden">
+        <div className="relative w-full h-[300px] md:h-[400px] max-w-[1000px] mx-auto overflow-hidden">
           <CircularCategoryLoop 
             categories={enhancedCategories.filter(cat => 
               cat.name.includes(searchTerm) || 
@@ -175,14 +175,16 @@ const CircularCategoryLoop = ({ categories, isLowPerformance }) => {
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [isMobile, setIsMobile] = useState(false);
   
-  // Calculate appropriate radii based on container size 
-  // Extended horizontal radius for desktop to make items travel further to edges
+  // Calculate appropriate radii based on container size
+  // Standard horizontal radius 
   const radiusX = isMobile 
     ? Math.min(dimensions.width * 0.4, 200) 
-    : Math.min(dimensions.width * 0.6, 600); // Significantly increased from 450 to 600 (width-focused)
+    : Math.min(dimensions.width * 0.4, 350);
   
-  // Keep vertical radius more modest to maintain the elliptical shape
-  const radiusY = Math.min(dimensions.height * 0.35, isMobile ? 100 : 120);
+  // Increased vertical radius to make items go higher at the edges
+  const radiusY = isMobile 
+    ? Math.min(dimensions.height * 0.35, 100) 
+    : Math.min(dimensions.height * 0.5, 180); // Increased from 120 to 180 for taller edges
   
   const duration = isLowPerformance ? 30 : 25; // Seconds for a full rotation
   
