@@ -17,6 +17,8 @@ const CategoryRows = () => {
   const [speed, setSpeed] = useState(1); // pixels per frame
   const animationRef = useRef(null);
   const lastTimestampRef = useRef(0);
+  const wasVisibleRef = useRef(true);
+  const itemsStateRef = useRef([]); // Reference to keep track of items state for visibility changes
   
   // Track the next ID for new items
   const nextIdRef = useRef(1);
@@ -32,48 +34,110 @@ const CategoryRows = () => {
     { speed: 0.75 }   // Optimized settings for low-performance devices
   ).speed;
   
-  // Initialize category items
+  // Initialize category items - this will run on mount and when tab visibility changes
+  const fillBelt = useCallback(() => {
+    if (!containerRef.current) return;
+    
+    // Calculate how many items we need to fill the container width plus buffer
+    const containerWidth = containerRef.current.offsetWidth;
+    const itemsNeeded = Math.ceil(containerWidth / CARD_TOTAL_WIDTH) + 4; // +4 for buffer
+    
+    // If we already have items, maintain their current positions
+    if (categoryItems.length > 0 && wasVisibleRef.current) {
+      return; // Don't refill if there are already items and the tab was visible
+    }
+    
+    // Otherwise create fresh items
+    const initialItems = [];
+    for (let i = 0; i < itemsNeeded; i++) {
+      const categoryIndex = i % categories.length;
+      initialItems.push({
+        id: nextIdRef.current++,
+        category: categories[categoryIndex],
+        positionX: i * CARD_TOTAL_WIDTH
+      });
+    }
+    
+    setCategoryItems(initialItems);
+    itemsStateRef.current = initialItems;
+  }, [categoryItems]);
+  
+  // Handle tab visibility changes
   useEffect(() => {
-    // Fill the belt with initial items
-    const fillBelt = () => {
-      if (!containerRef.current) return;
-      
-      // Calculate how many items we need to fill the container width plus buffer
-      const containerWidth = containerRef.current.offsetWidth;
-      const itemsNeeded = Math.ceil(containerWidth / CARD_TOTAL_WIDTH) + 4; // +4 for buffer
-      
-      const initialItems = [];
-      for (let i = 0; i < itemsNeeded; i++) {
-        const categoryIndex = i % categories.length;
-        initialItems.push({
-          id: nextIdRef.current++,
-          category: categories[categoryIndex],
-          positionX: i * CARD_TOTAL_WIDTH
-        });
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Tab becomes hidden
+        wasVisibleRef.current = false;
+        
+        // Stop animation when tab is hidden
+        if (animationRef.current) {
+          cancelAnimationFrame(animationRef.current);
+          animationRef.current = null;
+        }
+      } else {
+        // Tab becomes visible again
+        if (!wasVisibleRef.current) {
+          // Tab was previously hidden, now visible again
+          lastTimestampRef.current = 0; // Reset timestamp to avoid huge jumps
+          
+          // If no items are showing or positions are wrong, refill the belt
+          if (categoryItems.length === 0) {
+            fillBelt();
+          }
+          
+          // Restart animation
+          if (!animationRef.current) {
+            animationRef.current = requestAnimationFrame(animate);
+          }
+        }
+        wasVisibleRef.current = true;
       }
-      
-      setCategoryItems(initialItems);
     };
     
+    // Listen for visibility changes
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [animate, categoryItems, fillBelt]);
+  
+  useEffect(() => {
+    // Initial setup
     fillBelt();
     
     // Set up resize handler
     window.addEventListener('resize', fillBelt);
     return () => window.removeEventListener('resize', fillBelt);
-  }, []);
+  }, [fillBelt]);
   
   // Create animation frame handler
   const animate = useCallback((timestamp) => {
+    // Skip animation if tab is not visible
+    if (document.hidden) {
+      animationRef.current = requestAnimationFrame(animate);
+      return;
+    }
+    
     if (!lastTimestampRef.current) {
       lastTimestampRef.current = timestamp;
     }
     
-    // Calculate delta time in milliseconds
-    const deltaTime = timestamp - lastTimestampRef.current;
+    // If too much time has passed (e.g., after tab switch), limit delta
+    const maxDelta = 100; // ms - prevents huge jumps after tab switch
+    const rawDelta = timestamp - lastTimestampRef.current;
+    const deltaTime = Math.min(rawDelta, maxDelta);
+    
     lastTimestampRef.current = timestamp;
     
     // Move each item to the left by speed * deltaTime
     setCategoryItems(prevItems => {
+      // Safety check - if we somehow lost all items, refill
+      if (prevItems.length === 0) {
+        fillBelt();
+        return itemsStateRef.current; // Use the items we just created
+      }
+      
       const moveAmount = speed * deltaTime / 16; // normalize to ~60fps
       
       // Move all items to the left
@@ -109,11 +173,16 @@ const CategoryRows = () => {
       }
       
       // Remove items that have moved completely off the left edge
-      return newItems.filter(item => item.positionX > -CARD_TOTAL_WIDTH);
+      const filteredItems = newItems.filter(item => item.positionX > -CARD_TOTAL_WIDTH);
+      
+      // Update our ref to the current state for recovering after tab switches
+      itemsStateRef.current = filteredItems;
+      
+      return filteredItems;
     });
     
     animationRef.current = requestAnimationFrame(animate);
-  }, [speed]);
+  }, [speed, fillBelt]);
   
   // Start and manage the animation
   useEffect(() => {
