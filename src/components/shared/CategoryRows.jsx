@@ -282,7 +282,11 @@ const CategoryRows = () => {
 const CategoryItem = ({ category, style, ...props }) => {
   const itemRef = useRef(null);
   const [glowing, setGlowing] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [glowIntensity, setGlowIntensity] = useState(0); // 0 to 1 scale for glow intensity
+  const [mousePosition, setMousePosition] = useState({ x: 0.5, y: 0.5 });
+  
+  // Animation frame for smoother glow effect
+  const animationFrameRef = useRef(null);
   
   const handleMouseMove = (e) => {
     if (!itemRef.current) return;
@@ -296,42 +300,255 @@ const CategoryItem = ({ category, style, ...props }) => {
     // Set mouse position for gradient effect
     setMousePosition({ x, y });
     
-    // Determine if mouse is close enough to trigger glow
-    // Add padding to detect mouse slightly outside the element too
-    const padding = 30; // px
+    // Calculate distance from pointer to nearest edge
+    // This creates a more responsive effect as the pointer gets closer to any edge
+    const distToLeft = x;
+    const distToRight = 1 - x;
+    const distToTop = y;
+    const distToBottom = 1 - y;
+    const minDistToEdge = Math.min(distToLeft, distToRight, distToTop, distToBottom);
+    
+    // Calculate proximity scale (1 when mouse is at the edge, 0 when far away)
+    // The 0.35 value controls how far from the edge the effect starts
+    const proximityScale = Math.max(0, Math.min(1, 1 - (minDistToEdge / 0.35)));
+    
+    // Check if mouse is within proximity range or completely outside the element
+    const padding = 40; // px - how far outside the element we still detect
     const isInProximity = 
       e.clientX >= rect.left - padding &&
       e.clientX <= rect.right + padding &&
       e.clientY >= rect.top - padding &&
       e.clientY <= rect.bottom + padding;
     
-    setGlowing(isInProximity);
+    if (isInProximity) {
+      // Smoothly interpolate to the target glowIntensity for more natural effect
+      animationFrameRef.current = requestAnimationFrame(() => {
+        setGlowIntensity(current => {
+          return current + (proximityScale - current) * 0.2; // Smooth transition to target value
+        });
+      });
+      setGlowing(true);
+    } else if (glowing) {
+      // Fade out when mouse leaves proximity
+      animationFrameRef.current = requestAnimationFrame(() => {
+        setGlowIntensity(current => {
+          const newValue = current * 0.8; // Fade out
+          if (newValue < 0.01) {
+            setGlowing(false);
+            return 0;
+          }
+          return newValue;
+        });
+      });
+    }
   };
 
   useEffect(() => {
     window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [glowing]);
   
-  // Calculate the gradient position based on mouse position
-  const gradientPosition = {
-    background: glowing 
-      ? `radial-gradient(circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%, rgba(220, 38, 38, 0.6) 0%, rgba(127, 29, 29, 0.0) 70%)`
-      : 'none'
+  // Determine which edge is closest to the mouse position for the neon trace effect
+  const getClosestEdge = () => {
+    const { x, y } = mousePosition;
+    const distToLeft = x;
+    const distToRight = 1 - x;
+    const distToTop = y;
+    const distToBottom = 1 - y;
+    
+    const minDist = Math.min(distToLeft, distToRight, distToTop, distToBottom);
+    
+    if (minDist === distToLeft) return 'left';
+    if (minDist === distToRight) return 'right';
+    if (minDist === distToTop) return 'top';
+    return 'bottom';
+  };
+  
+  // Calculate the cyberpunk glow effect along the edges
+  const closestEdge = getClosestEdge();
+  const neonColor = 'rgba(232, 30, 54, 1)'; // Vibrant red neon color
+  const neonColorTransparent = 'rgba(232, 30, 54, 0)';
+
+  // Create CSS variables for animation and glow effect
+  const intensity = glowIntensity; 
+  const glowSpread = Math.max(1, Math.floor(intensity * 7)); // Spread increases with intensity
+  const glowBlur = Math.max(3, Math.floor(intensity * 12)); // Blur increases with intensity
+
+  // Dynamic CSS for the animated border effect
+  const borderStyle = {
+    '--glow-intensity': intensity,
+    '--glow-color': neonColor,
+    '--glow-color-transparent': neonColorTransparent,
+    '--border-animation-pos': `${(mousePosition.x * 100)}% ${(mousePosition.y * 100)}%`, 
   };
 
   return (
     <div
       ref={itemRef}
-      className="absolute mx-4 h-40 overflow-hidden rounded-lg cursor-pointer select-none"
+      className="absolute mx-4 h-40 overflow-visible cursor-pointer select-none"
       style={{
         ...style,
         zIndex: glowing ? 10 : 1, // Ensure the hovered item appears above others
       }}
       {...props}
     >
-      {/* Card background with borders */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#1c0b0f] to-black rounded-lg overflow-hidden" />
+      {/* Cyberpunk border animation styles */}
+      <style jsx="true">{`
+        @keyframes borderPulse {
+          0% { opacity: 0.7; }
+          50% { opacity: 1; }
+          100% { opacity: 0.7; }
+        }
+        
+        @keyframes neonFlicker {
+          0% { opacity: 1; }
+          80% { opacity: 1; }
+          83% { opacity: 0.8; }
+          86% { opacity: 1; }
+          90% { opacity: 1; }
+          93% { opacity: 0.6; }
+          96% { opacity: 1; }
+          100% { opacity: 1; }
+        }
+        
+        @keyframes neonFlow {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+      `}</style>
+      
+      {/* Card background */}
+      <div 
+        className="absolute inset-0 bg-gradient-to-b from-[#1c0b0f] to-black rounded-lg overflow-hidden"
+        style={{
+          boxShadow: "0 5px 15px rgba(0, 0, 0, 0.3)",
+          transform: glowing ? 'translateY(-2px)' : 'none',
+          transition: 'transform 0.2s ease-out',
+        }}
+      />
+      
+      {/* Neon border container - actual neon effect happens here */}
+      <div 
+        className="absolute inset-0 rounded-lg overflow-hidden pointer-events-none"
+        style={{
+          ...borderStyle,
+          filter: `drop-shadow(0 0 ${glowBlur}px var(--glow-color))`,
+          transition: 'filter 0.2s ease-out',
+          opacity: intensity,
+        }}
+      >
+        {/* Top border with circuit pattern */}
+        <div 
+          className="absolute top-0 left-0 right-0 h-[2px] z-20"
+          style={{
+            background: `linear-gradient(90deg, var(--glow-color-transparent) 0%, 
+                                        var(--glow-color) 20%, var(--glow-color) 80%, 
+                                        var(--glow-color-transparent) 100%)`,
+            opacity: closestEdge === 'top' ? 1 : 0.5 * intensity,
+            backgroundSize: '200% 100%',
+            animation: 'neonFlow 3s ease infinite',
+          }}
+        ></div>
+
+        {/* Right border with circuit pattern */}
+        <div 
+          className="absolute top-0 bottom-0 right-0 w-[2px] z-20"
+          style={{
+            background: `linear-gradient(180deg, var(--glow-color-transparent) 0%, 
+                                        var(--glow-color) 20%, var(--glow-color) 80%, 
+                                        var(--glow-color-transparent) 100%)`,
+            opacity: closestEdge === 'right' ? 1 : 0.5 * intensity,
+            backgroundSize: '100% 200%',
+            animation: 'neonFlow 3s ease infinite',
+            animationDelay: '0.1s',
+          }}
+        ></div>
+        
+        {/* Bottom border with circuit pattern */}
+        <div 
+          className="absolute bottom-0 left-0 right-0 h-[2px] z-20"
+          style={{
+            background: `linear-gradient(90deg, var(--glow-color-transparent) 0%, 
+                                        var(--glow-color) 20%, var(--glow-color) 80%, 
+                                        var(--glow-color-transparent) 100%)`,
+            opacity: closestEdge === 'bottom' ? 1 : 0.5 * intensity,
+            backgroundSize: '200% 100%',
+            animation: 'neonFlow 3s ease infinite',
+            animationDelay: '0.2s',
+          }}
+        ></div>
+        
+        {/* Left border with circuit pattern */}
+        <div 
+          className="absolute top-0 bottom-0 left-0 w-[2px] z-20"
+          style={{
+            background: `linear-gradient(180deg, var(--glow-color-transparent) 0%, 
+                                        var(--glow-color) 20%, var(--glow-color) 80%, 
+                                        var(--glow-color-transparent) 100%)`,
+            opacity: closestEdge === 'left' ? 1 : 0.5 * intensity,
+            backgroundSize: '100% 200%',
+            animation: 'neonFlow 3s ease infinite',
+            animationDelay: '0.3s',
+          }}
+        ></div>
+        
+        {/* Corner accents - top left */}
+        <div 
+          className="absolute top-0 left-0 w-3 h-3 z-20"
+          style={{
+            borderTop: `2px solid ${neonColor}`,
+            borderLeft: `2px solid ${neonColor}`,
+            borderRadius: '2px 0 0 0',
+            opacity: (closestEdge === 'top' || closestEdge === 'left') ? 1 : 0.7 * intensity,
+            animation: 'borderPulse 2s infinite',
+          }}
+        ></div>
+        
+        {/* Corner accents - top right */}
+        <div 
+          className="absolute top-0 right-0 w-3 h-3 z-20"
+          style={{
+            borderTop: `2px solid ${neonColor}`,
+            borderRight: `2px solid ${neonColor}`,
+            borderRadius: '0 2px 0 0',
+            opacity: (closestEdge === 'top' || closestEdge === 'right') ? 1 : 0.7 * intensity,
+            animation: 'borderPulse 2s infinite',
+            animationDelay: '0.5s',
+          }}
+        ></div>
+        
+        {/* Corner accents - bottom right */}
+        <div 
+          className="absolute bottom-0 right-0 w-3 h-3 z-20"
+          style={{
+            borderBottom: `2px solid ${neonColor}`,
+            borderRight: `2px solid ${neonColor}`,
+            borderRadius: '0 0 2px 0',
+            opacity: (closestEdge === 'bottom' || closestEdge === 'right') ? 1 : 0.7 * intensity,
+            animation: 'borderPulse 2s infinite',
+            animationDelay: '1s',
+          }}
+        ></div>
+        
+        {/* Corner accents - bottom left */}
+        <div 
+          className="absolute bottom-0 left-0 w-3 h-3 z-20"
+          style={{
+            borderBottom: `2px solid ${neonColor}`,
+            borderLeft: `2px solid ${neonColor}`,
+            borderRadius: '0 0 0 2px',
+            opacity: (closestEdge === 'bottom' || closestEdge === 'left') ? 1 : 0.7 * intensity,
+            animation: 'borderPulse 2s infinite',
+            animationDelay: '1.5s',
+          }}
+        ></div>
+      </div>
       
       {/* Content */}
       <div className="relative z-10 h-full flex flex-col justify-center items-center p-4">
@@ -340,7 +557,6 @@ const CategoryItem = ({ category, style, ...props }) => {
           className="text-[#d64356] text-sm mt-1 flex items-center border border-red-900/40 px-3 py-1 rounded-full"
           style={{
             background: "rgba(127, 29, 29, 0.2)",
-            boxShadow: glowing ? "0 0 10px rgba(220, 38, 38, 0.2)" : "none",
             transition: "all 0.3s ease"
           }}
         >
@@ -364,89 +580,12 @@ const CategoryItem = ({ category, style, ...props }) => {
       
       {/* Noise texture overlay */}
       <div 
-        className="absolute inset-0 opacity-10 mix-blend-overlay pointer-events-none"
+        className="absolute inset-0 opacity-10 mix-blend-overlay pointer-events-none rounded-lg"
         style={{
           backgroundImage: "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxwYXRoIGQ9Ik0wIDBoMzAwdjMwMEgweiIgZmlsdGVyPSJ1cmwoI2EpIiBvcGFjaXR5PSIuMDUiLz48L3N2Zz4=')",
           backgroundSize: "cover"
         }}
       />
-      
-      {/* Cyberpunk corner accents - these are placed at each corner */}
-      <div className="absolute top-0 left-0 w-4 h-4 pointer-events-none" style={{ opacity: glowing ? 1 : 0.3, transition: 'opacity 0.3s ease' }}>
-        <div className="absolute top-0 left-0 w-3 h-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 8px #dc2626, 0 0 4px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
-        <div className="absolute top-0 left-0 h-3 w-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 8px #dc2626, 0 0 4px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
-      </div>
-      
-      <div className="absolute top-0 right-0 w-4 h-4 pointer-events-none" style={{ opacity: glowing ? 1 : 0.3, transition: 'opacity 0.3s ease' }}>
-        <div className="absolute top-0 right-0 w-3 h-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 8px #dc2626, 0 0 4px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
-        <div className="absolute top-0 right-0 h-3 w-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 8px #dc2626, 0 0 4px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
-      </div>
-      
-      <div className="absolute bottom-0 left-0 w-4 h-4 pointer-events-none" style={{ opacity: glowing ? 1 : 0.3, transition: 'opacity 0.3s ease' }}>
-        <div className="absolute bottom-0 left-0 w-3 h-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 8px #dc2626, 0 0 4px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
-        <div className="absolute bottom-0 left-0 h-3 w-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 8px #dc2626, 0 0 4px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
-      </div>
-      
-      <div className="absolute bottom-0 right-0 w-4 h-4 pointer-events-none" style={{ opacity: glowing ? 1 : 0.3, transition: 'opacity 0.3s ease' }}>
-        <div className="absolute bottom-0 right-0 w-3 h-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 8px #dc2626, 0 0 4px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
-        <div className="absolute bottom-0 right-0 h-3 w-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 8px #dc2626, 0 0 4px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
-      </div>
-      
-      {/* Cyberpunk edge lighting effect */}
-      <div 
-        className="absolute inset-0 rounded-lg pointer-events-none" 
-        style={{
-          background: 'none',
-          borderRadius: '0.5rem',
-          border: glowing ? '1px solid rgba(220, 38, 38, 0.5)' : '1px solid rgba(96, 17, 26, 0.2)',
-          boxShadow: glowing 
-            ? '0 0 15px rgba(220, 38, 38, 0.4), inset 0 0 8px rgba(220, 38, 38, 0.2)' 
-            : 'none',
-          transition: 'all 0.3s ease-out',
-          opacity: 1
-        }}
-      />
-      
-      {/* Cyberpunk glitch effect (subtle) */}
-      <div 
-        className="absolute inset-0 rounded-lg overflow-hidden pointer-events-none"
-        style={{
-          opacity: glowing ? 0.05 : 0,
-          transition: 'opacity 0.3s ease',
-          backgroundColor: 'transparent'
-        }}
-      >
-        <div className="absolute inset-0 animate-pulse" style={{
-          backgroundImage: 'linear-gradient(to bottom, transparent, rgba(220, 38, 38, 0.2), transparent)',
-          backgroundSize: '100% 10px',
-          backgroundRepeat: 'repeat',
-          mixBlendMode: 'overlay',
-          animation: 'scanline 6s linear infinite'
-        }}></div>
-      </div>
-      
-      {/* Edge accent - horizontal scattered segments */}
-      <div className="absolute top-[10px] inset-x-0 flex justify-between px-1 pointer-events-none" style={{ opacity: glowing ? 1 : 0.3, transition: 'opacity 0.3s ease' }}>
-        <div className="w-[7px] h-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 5px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
-        <div className="w-[15px] h-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 5px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
-        <div className="w-[5px] h-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 5px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
-        <div className="w-[12px] h-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 5px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
-      </div>
-      
-      <div className="absolute bottom-[10px] inset-x-0 flex justify-between px-1 pointer-events-none" style={{ opacity: glowing ? 1 : 0.3, transition: 'opacity 0.3s ease' }}>
-        <div className="w-[12px] h-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 5px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
-        <div className="w-[5px] h-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 5px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
-        <div className="w-[15px] h-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 5px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
-        <div className="w-[7px] h-[2px] bg-red-600" style={{ boxShadow: glowing ? '0 0 5px #dc2626' : 'none', transition: 'box-shadow 0.3s ease' }}></div>
-      </div>
-      
-      {/* Keyline animation */}
-      <style jsx="true">{`
-        @keyframes scanline {
-          0% { transform: translateY(-100%); }
-          100% { transform: translateY(100%); }
-        }
-      `}</style>
     </div>
   );
 };
