@@ -7,7 +7,7 @@
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { categories } from '../../utils/mockData';
+import { categories, additionalCategories } from '../../utils/mockData';
 import { getOptimizedAnimationSettings } from '../../utils/animationHelpers';
 
 // Constants for layout - moved to global scope for reuse
@@ -15,7 +15,7 @@ const CARD_WIDTH = 224; // 56px * 4 (actual width)
 const CARD_MARGIN = 32;  // 16px on each side (mx-4)
 const CARD_TOTAL_WIDTH = CARD_WIDTH + CARD_MARGIN; // Total width including margins
 
-const CategoryRows = () => {
+const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null, title = "دسته‌بندی‌ها", subtitle = "مجموعه‌ای از محصولات منحصر به فرد در دسته‌بندی‌های مختلف" }) => {
   const containerRef = useRef(null);
   const beltRef = useRef(null);
   const [categoryItems, setCategoryItems] = useState([]);
@@ -27,6 +27,9 @@ const CategoryRows = () => {
   
   // Track the next ID for new items
   const nextIdRef = useRef(1);
+  
+  // Determine which categories to use
+  const categoriesData = propCategories || (direction === "rtl" ? categories : additionalCategories);
   
   // Control animation speed based on device performance
   const defaultSpeed = getOptimizedAnimationSettings(
@@ -53,7 +56,7 @@ const CategoryRows = () => {
     
     lastTimestampRef.current = timestamp;
     
-    // Move each item to the left by speed * deltaTime
+    // Move each item based on direction
     setCategoryItems(prevItems => {
       // Safety check - if we somehow lost all items, refill
       if (prevItems.length === 0) {
@@ -62,10 +65,10 @@ const CategoryRows = () => {
         
         const initialItems = [];
         for (let i = 0; i < itemsNeeded; i++) {
-          const categoryIndex = i % categories.length;
+          const categoryIndex = i % categoriesData.length;
           initialItems.push({
             id: nextIdRef.current++,
-            category: categories[categoryIndex],
+            category: categoriesData[categoryIndex],
             positionX: i * CARD_TOTAL_WIDTH
           });
         }
@@ -75,41 +78,67 @@ const CategoryRows = () => {
       }
       
       const moveAmount = speed * deltaTime / 16; // normalize to ~60fps
+      const moveDirection = direction === "rtl" ? -1 : 1; // Negative = right to left, Positive = left to right
       
-      // Move all items to the left
+      // Move all items according to direction
       const movedItems = prevItems.map(item => ({
         ...item,
-        positionX: item.positionX - moveAmount
+        positionX: item.positionX + (moveAmount * moveDirection)
       }));
       
-      // Check if we need to add a new item at the right or remove from the left
+      // Check if we need to add a new item or remove old ones
       if (!containerRef.current) return movedItems;
       
       const containerWidth = containerRef.current.offsetWidth;
       
-      // If rightmost item has moved in enough, add a new item
-      const rightmostItem = movedItems.reduce(
-        (max, item) => item.positionX > max.positionX ? item : max, 
-        { positionX: -Infinity }
-      );
+      // Find relevant edge items based on direction
+      let edgeItem, removeCondition, newItemPosition;
+      
+      if (direction === "rtl") {
+        // Right to left scrolling (default)
+        // Find the rightmost item
+        edgeItem = movedItems.reduce(
+          (max, item) => item.positionX > max.positionX ? item : max, 
+          { positionX: -Infinity }
+        );
+        
+        // Add new item at the right if needed
+        removeCondition = item => item.positionX > -CARD_TOTAL_WIDTH;
+        newItemPosition = edgeItem.positionX + CARD_TOTAL_WIDTH;
+      } else {
+        // Left to right scrolling (opposite direction)
+        // Find the leftmost item
+        edgeItem = movedItems.reduce(
+          (min, item) => item.positionX < min.positionX ? item : min, 
+          { positionX: Infinity }
+        );
+        
+        // Add new item at the left if needed
+        removeCondition = item => item.positionX < containerWidth + CARD_TOTAL_WIDTH;
+        newItemPosition = edgeItem.positionX - CARD_TOTAL_WIDTH;
+      }
       
       const newItems = [...movedItems];
       
-      // If the rightmost item has moved in and there's room, add a new item
-      if (rightmostItem.positionX < containerWidth + CARD_MARGIN) {
-        // Determine the category index
-        const categoryIndex = nextIdRef.current % categories.length;
+      // If the edge item has moved in enough, add a new item at the appropriate end
+      const needNewItem = direction === "rtl" 
+        ? edgeItem.positionX < containerWidth + CARD_MARGIN
+        : edgeItem.positionX > -CARD_MARGIN;
         
-        // Add a new item at the right end
+      if (needNewItem) {
+        // Determine the category index
+        const categoryIndex = nextIdRef.current % categoriesData.length;
+        
+        // Add a new item
         newItems.push({
           id: nextIdRef.current++,
-          category: categories[categoryIndex],
-          positionX: rightmostItem.positionX + CARD_TOTAL_WIDTH
+          category: categoriesData[categoryIndex],
+          positionX: newItemPosition
         });
       }
       
-      // Remove items that have moved completely off the left edge
-      const filteredItems = newItems.filter(item => item.positionX > -CARD_TOTAL_WIDTH);
+      // Remove items that have moved completely off the visible area
+      const filteredItems = newItems.filter(removeCondition);
       
       // Update our ref to the current state for recovering after tab switches
       itemsStateRef.current = filteredItems;
@@ -118,7 +147,7 @@ const CategoryRows = () => {
     });
     
     animationRef.current = requestAnimationFrame(animate);
-  }, [speed]);
+  }, [speed, direction, categoriesData]);
   
   // Initialize category items - this will run on mount and when tab visibility changes
   const fillBelt = useCallback(() => {
@@ -136,17 +165,17 @@ const CategoryRows = () => {
     // Otherwise create fresh items
     const initialItems = [];
     for (let i = 0; i < itemsNeeded; i++) {
-      const categoryIndex = i % categories.length;
+      const categoryIndex = i % categoriesData.length;
       initialItems.push({
         id: nextIdRef.current++,
-        category: categories[categoryIndex],
+        category: categoriesData[categoryIndex],
         positionX: i * CARD_TOTAL_WIDTH
       });
     }
     
     setCategoryItems(initialItems);
     itemsStateRef.current = initialItems;
-  }, [categoryItems, CARD_TOTAL_WIDTH]);
+  }, [categoryItems, categoriesData]);
   
   // Start and manage the animation
   useEffect(() => {
@@ -224,7 +253,10 @@ const CategoryRows = () => {
       
       // When mouse is on the right side, scroll slightly faster
       // When on the left, scroll slightly slower
-      const speedFactor = 1 + (mouseXRelative - 0.5) * 0.3;
+      // Invert the effect for RTL direction
+      const speedFactor = direction === "rtl"
+        ? 1 + (mouseXRelative - 0.5) * 0.3 // RTL: faster on right 
+        : 1 - (mouseXRelative - 0.5) * 0.3; // LTR: faster on left
       
       // Smoothly interpolate current speed
       setSpeed(currentSpeed => {
@@ -236,16 +268,16 @@ const CategoryRows = () => {
 
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [defaultSpeed]);
+  }, [defaultSpeed, direction]);
 
   return (
     <div className="py-8 sm:py-12 md:py-16 w-full relative overflow-hidden">
       <div className="container mx-auto px-4 mb-8">
         <h2 className="text-2xl md:text-3xl font-bold text-gray-100 mb-2">
-          دسته‌بندی‌ها
+          {title}
         </h2>
         <p className="text-gray-400">
-          مجموعه‌ای از محصولات منحصر به فرد در دسته‌بندی‌های مختلف
+          {subtitle}
         </p>
       </div>
       

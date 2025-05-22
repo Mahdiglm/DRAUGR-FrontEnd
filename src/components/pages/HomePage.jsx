@@ -5,7 +5,7 @@ import { useOutletContext, Link } from 'react-router-dom';
 import ProductList from '../product/ProductList';
 import FeaturedProductSlider from '../product/FeaturedProductSlider';
 import CategoryRows from '../shared/CategoryRows';
-import { products } from '../../utils/mockData';
+import { products, categories, additionalCategories } from '../../utils/mockData';
 import { safeBlur, safeFilterTransition, isLowPerformanceDevice, getOptimizedAnimationSettings } from '../../utils/animationHelpers';
 // Try with relative path to asset folder
 import heroBackground from '../../assets/Background-Hero.jpg';
@@ -670,7 +670,21 @@ const HomePage = () => {
         >
           {/* Content container */}
           <div className="relative z-10 container mx-auto px-4">
-            <CategoryRows />
+            {/* First row - right to left (default) */}
+            <CategoryRows 
+              direction="rtl" 
+              title="دسته‌بندی‌های محصولات" 
+              subtitle="مجموعه‌ای از محصولات منحصر به فرد در دسته‌بندی‌های مختلف"
+              categoryItems={categories}
+            />
+            
+            {/* Second row - left to right */}
+            <CategoryRows 
+              direction="ltr" 
+              title="محصولات ویژه" 
+              subtitle="اکتشاف دنیای جدیدی از محصولات خاص و منحصر به فرد"
+              categoryItems={additionalCategories}
+            />
           </div>
         </motion.section>
       </motion.div>

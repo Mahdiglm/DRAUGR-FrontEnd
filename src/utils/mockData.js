@@ -145,4 +145,13 @@ export const categories = [
   { id: 4, name: "اقلام جادویی", slug: "magic" },
   { id: 5, name: "اکسسوری", slug: "accessories" },
   { id: 6, name: "کتاب‌های نایاب", slug: "rare_books" }
+];
+
+export const additionalCategories = [
+  { id: 7, name: "ابزار شکار", slug: "hunting_gear" },
+  { id: 8, name: "طلسم‌ها", slug: "charms" },
+  { id: 9, name: "گیاهان نادر", slug: "rare_herbs" },
+  { id: 10, name: "سنگ‌های جادویی", slug: "magic_stones" },
+  { id: 11, name: "نوشته‌های باستانی", slug: "ancient_scrolls" },
+  { id: 12, name: "عناصر ماورایی", slug: "occult_items" }
 ]; 
