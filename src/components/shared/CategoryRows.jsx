@@ -372,6 +372,17 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
     }
   };
   
+  // Handle mouse enter
+  const handleMouseEnter = () => {
+    // Reset any existing state from other items
+    setIsNear(false);
+  };
+  
+  // Handle mouse leave
+  const handleMouseLeave = () => {
+    setIsNear(false);
+  };
+  
   // Calculate the relative position along an edge (0 to 1)
   const getPositionAlongEdge = (edge, x, y, width, height) => {
     switch (edge) {
@@ -382,12 +393,6 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
       default: return 0;
     }
   };
-  
-  // Effect for mouse movement
-  useEffect(() => {
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
   
   // Generate the glowing border effect
   const renderBorderEffect = () => {
@@ -493,6 +498,9 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
       style={{
         ...style,
       }}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       {...props}
     >
       {/* Cyberpunk cyber-trace animation styles */}
@@ -527,24 +535,6 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
       
       {/* Render the proximity-based border effect */}
       {renderBorderEffect()}
-      
-      {/* Interactive circuit node at cursor position when near edge */}
-      {isNear && proximityData.distance < 20 && (
-        <div
-          className="absolute pointer-events-none"
-          style={{
-            width: '6px',
-            height: '6px',
-            borderRadius: '50%',
-            backgroundColor: '#ff0066',
-            left: `${mousePos.x - 3}px`,
-            top: `${mousePos.y - 3}px`,
-            boxShadow: `0 0 8px #ff0066`,
-            opacity: proximityData.intensity,
-            animation: 'neonPulse 1.5s ease-in-out infinite',
-          }}
-        />
-      )}
       
       {/* Content */}
       <div className="relative z-5 h-full flex flex-col justify-center items-center p-4">
