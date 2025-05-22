@@ -5,35 +5,86 @@
  * interactive proximity-based hover effects.
  */
 
-import React, { useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useRef, useEffect, useState } from 'react';
+import { motion, useAnimationControls } from 'framer-motion';
 import { categories } from '../../utils/mockData';
 import { getOptimizedAnimationSettings } from '../../utils/animationHelpers';
 
 const CategoryRows = () => {
   const scrollRef = useRef(null);
-  
-  // Clone categories to create an "infinite" effect
-  const extendedCategories = [...categories, ...categories, ...categories];
+  const containerRef = useRef(null);
+  const [itemWidth, setItemWidth] = useState(0);
+  const [containerWidth, setContainerWidth] = useState(0);
+  const controls = useAnimationControls();
   
   // Control animation speed based on device performance
   const scrollSpeed = getOptimizedAnimationSettings(
-    { duration: 60 }, // Default settings for high-performance devices
-    { duration: 80 }  // Optimized settings for low-performance devices
+    { duration: 30 }, // Default settings for high-performance devices
+    { duration: 40 }  // Optimized settings for low-performance devices
   );
+
+  // Clone categories multiple times to ensure we have enough for a seamless scroll
+  const multipleCategories = [...categories, ...categories, ...categories, ...categories];
+
+  useEffect(() => {
+    const updateWidths = () => {
+      if (!containerRef.current || !scrollRef.current) return;
+      
+      // Get the container width
+      const containerRect = containerRef.current.getBoundingClientRect();
+      setContainerWidth(containerRect.width);
+      
+      // Get the width of a single category item (add margin too)
+      const items = scrollRef.current.querySelectorAll('.category-item');
+      if (items.length > 0) {
+        const itemRect = items[0].getBoundingClientRect();
+        const computedStyle = window.getComputedStyle(items[0]);
+        const marginLeft = parseInt(computedStyle.marginLeft, 10);
+        const marginRight = parseInt(computedStyle.marginRight, 10);
+        setItemWidth(itemRect.width + marginLeft + marginRight);
+      }
+    };
+
+    updateWidths();
+    window.addEventListener('resize', updateWidths);
+    
+    return () => window.removeEventListener('resize', updateWidths);
+  }, []);
+
+  useEffect(() => {
+    if (itemWidth === 0 || containerWidth === 0) return;
+    
+    // Calculate total width of all items
+    const totalWidth = itemWidth * categories.length;
+    
+    // Start animation - animate from 0 to -totalWidth
+    const startAnimation = async () => {
+      await controls.start({
+        x: -totalWidth,
+        transition: {
+          duration: scrollSpeed.duration,
+          ease: "linear",
+          repeat: Infinity,
+          repeatType: "loop"
+        }
+      });
+    };
+    
+    startAnimation();
+  }, [itemWidth, containerWidth, controls, scrollSpeed.duration]);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
-      if (!scrollRef.current) return;
+      if (!containerRef.current) return;
       
       // Slightly adjust scroll speed based on mouse position
-      const container = scrollRef.current;
+      const container = containerRef.current;
       const { left, width } = container.getBoundingClientRect();
       const mouseXRelative = (e.clientX - left) / width;
       
       // When mouse is on the right side, scroll slightly faster
       // When on the left, scroll slightly slower
-      const speedFactor = 1 + (mouseXRelative - 0.5) * 0.2;
+      const speedFactor = 1 + (mouseXRelative - 0.5) * 0.3;
       
       // Update animation playback rate
       const scrollAnimations = container.getAnimations();
@@ -58,28 +109,25 @@ const CategoryRows = () => {
       </div>
       
       <div 
-        ref={scrollRef}
+        ref={containerRef}
         className="relative w-full overflow-hidden"
         style={{ maskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)' }}
       >
-        <motion.div
-          className="flex"
-          initial={{ x: 0 }}
-          animate={{ x: `-${100 / 3}%` }}
-          transition={{
-            duration: scrollSpeed.duration,
-            ease: "linear",
-            repeat: Infinity,
-            repeatType: "loop"
-          }}
-        >
-          {extendedCategories.map((category, index) => (
-            <CategoryItem 
-              key={`${category.id}-${index}`} 
-              category={category} 
-            />
-          ))}
-        </motion.div>
+        <div className="relative overflow-hidden">
+          {/* First row */}
+          <motion.div
+            ref={scrollRef}
+            className="flex"
+            animate={controls}
+          >
+            {multipleCategories.map((category, index) => (
+              <CategoryItem 
+                key={`${category.id}-${index}`} 
+                category={category} 
+              />
+            ))}
+          </motion.div>
+        </div>
       </div>
     </div>
   );
@@ -129,7 +177,7 @@ const CategoryItem = ({ category }) => {
   return (
     <motion.div
       ref={itemRef}
-      className="relative flex-shrink-0 mx-4 w-56 h-40 overflow-hidden rounded-xl cursor-pointer"
+      className="category-item relative flex-shrink-0 mx-4 w-56 h-40 overflow-hidden rounded-xl cursor-pointer"
       whileHover={{ y: -5 }}
       transition={{ duration: 0.2 }}
     >
