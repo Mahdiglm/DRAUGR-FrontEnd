@@ -1,50 +1,157 @@
 /**
  * CategoryRows Component
  * 
- * Creates a horizontally scrolling category section with items that have
- * interactive proximity-based hover effects.
+ * Creates a horizontally scrolling category section with dynamically generated items
+ * and interactive proximity-based hover effects.
  */
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { categories } from '../../utils/mockData';
 import { getOptimizedAnimationSettings } from '../../utils/animationHelpers';
 
 const CategoryRows = () => {
   const containerRef = useRef(null);
-  const [scrollSpeed, setScrollSpeed] = useState(20); // seconds to complete one scroll cycle
+  const beltRef = useRef(null);
+  const [categoryItems, setCategoryItems] = useState([]);
+  const [speed, setSpeed] = useState(1); // pixels per frame
+  const animationRef = useRef(null);
+  const lastTimestampRef = useRef(0);
+  
+  // Track the next ID for new items
+  const nextIdRef = useRef(1);
   
   // Control animation speed based on device performance
-  const defaultScrollSpeed = getOptimizedAnimationSettings(
-    { duration: 20 }, // Default settings for high-performance devices
-    { duration: 30 }  // Optimized settings for low-performance devices
-  ).duration;
+  const defaultSpeed = getOptimizedAnimationSettings(
+    { speed: 1 },     // Default settings for high-performance devices
+    { speed: 0.75 }   // Optimized settings for low-performance devices
+  ).speed;
   
-  // Clone categories multiple times to ensure we have enough for a long sequence
-  const extendedCategories = [];
-  // Create enough copies to ensure we have more than enough items for the screen width
-  for (let i = 0; i < 10; i++) {
-    extendedCategories.push(...categories);
-  }
-
+  // Initialize category items
+  useEffect(() => {
+    // Fill the belt with initial items
+    const fillBelt = () => {
+      if (!containerRef.current) return;
+      
+      // Calculate how many items we need to fill the container width plus buffer
+      const containerWidth = containerRef.current.offsetWidth;
+      const cardWidth = 56 + 32; // 56px card width + 32px margins
+      const itemsNeeded = Math.ceil(containerWidth / cardWidth) + 4; // +4 for buffer
+      
+      const initialItems = [];
+      for (let i = 0; i < itemsNeeded; i++) {
+        const categoryIndex = i % categories.length;
+        initialItems.push({
+          id: nextIdRef.current++,
+          category: categories[categoryIndex],
+          positionX: i * cardWidth
+        });
+      }
+      
+      setCategoryItems(initialItems);
+    };
+    
+    fillBelt();
+    
+    // Set up resize handler
+    window.addEventListener('resize', fillBelt);
+    return () => window.removeEventListener('resize', fillBelt);
+  }, []);
+  
+  // Create animation frame handler
+  const animate = useCallback((timestamp) => {
+    if (!lastTimestampRef.current) {
+      lastTimestampRef.current = timestamp;
+    }
+    
+    // Calculate delta time in milliseconds
+    const deltaTime = timestamp - lastTimestampRef.current;
+    lastTimestampRef.current = timestamp;
+    
+    // Move each item to the left by speed * deltaTime
+    setCategoryItems(prevItems => {
+      const moveAmount = speed * deltaTime / 16; // normalize to ~60fps
+      
+      // Move all items to the left
+      const movedItems = prevItems.map(item => ({
+        ...item,
+        positionX: item.positionX - moveAmount
+      }));
+      
+      // Check if we need to add a new item at the right or remove from the left
+      if (!containerRef.current) return movedItems;
+      
+      const containerWidth = containerRef.current.offsetWidth;
+      const cardWidth = 56 + 32; // 56px card width + 32px margins
+      
+      // If rightmost item has moved in enough, add a new item
+      const rightmostItem = movedItems.reduce(
+        (max, item) => item.positionX > max.positionX ? item : max, 
+        { positionX: -Infinity }
+      );
+      
+      const newItems = [...movedItems];
+      
+      // If the rightmost item has moved in and there's room, add a new item
+      if (rightmostItem.positionX < containerWidth + cardWidth) {
+        // Determine the category index
+        const categoryIndex = nextIdRef.current % categories.length;
+        
+        // Add a new item at the right end
+        newItems.push({
+          id: nextIdRef.current++,
+          category: categories[categoryIndex],
+          positionX: rightmostItem.positionX + cardWidth
+        });
+      }
+      
+      // Remove items that have moved completely off the left edge
+      return newItems.filter(item => item.positionX > -cardWidth);
+    });
+    
+    animationRef.current = requestAnimationFrame(animate);
+  }, [speed]);
+  
+  // Start and manage the animation
+  useEffect(() => {
+    setSpeed(defaultSpeed);
+    
+    // Start animation
+    animationRef.current = requestAnimationFrame(animate);
+    
+    // Clean up animation
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [animate, defaultSpeed]);
+  
+  // Handle mouse movement to adjust speed
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (!containerRef.current) return;
       
-      // Adjust scroll speed based on mouse position
+      // Adjust speed based on mouse position
       const container = containerRef.current;
       const { left, width } = container.getBoundingClientRect();
       const mouseXRelative = (e.clientX - left) / width;
       
       // When mouse is on the right side, scroll slightly faster
       // When on the left, scroll slightly slower
-      const speedFactor = 1 + (mouseXRelative - 0.5) * 0.4;
-      setScrollSpeed(defaultScrollSpeed / speedFactor);
+      const speedFactor = 1 + (mouseXRelative - 0.5) * 0.3;
+      
+      // Smoothly interpolate current speed
+      setSpeed(currentSpeed => {
+        const targetSpeed = defaultSpeed * speedFactor;
+        // Smooth interpolation
+        return currentSpeed + (targetSpeed - currentSpeed) * 0.05;
+      });
     };
 
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [defaultScrollSpeed]);
+  }, [defaultSpeed]);
 
   return (
     <div className="py-8 sm:py-12 md:py-16 w-full relative overflow-hidden">
@@ -65,77 +172,29 @@ const CategoryRows = () => {
           WebkitMaskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)'
         }}
       >
-        {/* First row - moving left */}
-        <div className="flex relative whitespace-nowrap infinite-scroll-container">
-          <div 
-            className="flex infinite-scroll-animation"
-            style={{
-              animationDuration: `${scrollSpeed}s`,
-              animationTimingFunction: 'linear',
-              animationIterationCount: 'infinite',
-              animationName: 'scrollLeft',
-              animationPlayState: 'running',
-              willChange: 'transform'
-            }}
-          >
-            {extendedCategories.map((category, index) => (
-              <CategoryItem 
-                key={`${category.id}-${index}`} 
-                category={category} 
-              />
-            ))}
-          </div>
-          
-          {/* This is a duplicate set that will seamlessly connect when the first set ends */}
-          <div 
-            className="flex infinite-scroll-animation"
-            style={{
-              animationDuration: `${scrollSpeed}s`,
-              animationTimingFunction: 'linear',
-              animationIterationCount: 'infinite',
-              animationName: 'scrollLeft',
-              animationPlayState: 'running',
-              animationDelay: `-${scrollSpeed / 2}s`,
-              willChange: 'transform'
-            }}
-          >
-            {extendedCategories.map((category, index) => (
-              <CategoryItem 
-                key={`${category.id}-${index}-duplicate`} 
-                category={category} 
-              />
-            ))}
-          </div>
+        <div 
+          ref={beltRef}
+          className="relative h-48"
+        >
+          {categoryItems.map(item => (
+            <CategoryItem 
+              key={item.id} 
+              category={item.category}
+              style={{
+                position: 'absolute',
+                left: 0,
+                transform: `translateX(${item.positionX}px)`,
+                transition: 'none' // Ensure no transitions that could cause jumps
+              }}
+            />
+          ))}
         </div>
-        
-        {/* Create the CSS animation */}
-        <style jsx="true">{`
-          @keyframes scrollLeft {
-            0% {
-              transform: translateX(0);
-            }
-            100% {
-              transform: translateX(-100%);
-            }
-          }
-          
-          .infinite-scroll-container {
-            display: flex;
-            width: 100%;
-            overflow: visible;
-          }
-          
-          .infinite-scroll-animation {
-            display: flex;
-            flex-shrink: 0;
-          }
-        `}</style>
       </div>
     </div>
   );
 };
 
-const CategoryItem = ({ category, ...props }) => {
+const CategoryItem = ({ category, style, ...props }) => {
   const itemRef = useRef(null);
   const [glowing, setGlowing] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -179,9 +238,10 @@ const CategoryItem = ({ category, ...props }) => {
   return (
     <motion.div
       ref={itemRef}
-      className="relative flex-shrink-0 mx-4 w-56 h-40 overflow-hidden rounded-xl cursor-pointer"
+      className="absolute flex-shrink-0 mx-4 w-56 h-40 overflow-hidden rounded-xl cursor-pointer"
       whileHover={{ y: -5 }}
       transition={{ duration: 0.2 }}
+      style={style}
       {...props}
     >
       {/* Background card */}
