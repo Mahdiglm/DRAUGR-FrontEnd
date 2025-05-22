@@ -140,7 +140,7 @@ const CategoryRows = () => {
       
       {/* 2D Elliptical loop categories */}
       <div className="flex justify-center items-center">
-        <div className="relative w-full h-[300px] md:h-[400px] max-w-[1000px] mx-auto overflow-hidden">
+        <div className="relative w-full h-[300px] md:h-[400px] max-w-[1200px] mx-auto overflow-hidden">
           <CircularCategoryLoop 
             categories={enhancedCategories.filter(cat => 
               cat.name.includes(searchTerm) || 
@@ -176,8 +176,12 @@ const CircularCategoryLoop = ({ categories, isLowPerformance }) => {
   const [isMobile, setIsMobile] = useState(false);
   
   // Calculate appropriate radii based on container size 
-  const radiusX = Math.min(dimensions.width * 0.4, isMobile ? 200 : 300); // Smaller radius on mobile
-  const radiusY = Math.min(dimensions.height * 0.35, isMobile ? 100 : 120); // Smaller height on mobile
+  // Extended horizontal radius for desktop to make items travel further to edges
+  const radiusX = isMobile 
+    ? Math.min(dimensions.width * 0.4, 200) 
+    : Math.min(dimensions.width * 0.45, 450); // Increased from 300 to 450 for desktop
+  
+  const radiusY = Math.min(dimensions.height * 0.35, isMobile ? 100 : 120);
   const duration = isLowPerformance ? 30 : 25; // Seconds for a full rotation
   
   // Responsive item count - 5 for mobile, 8 for desktop
