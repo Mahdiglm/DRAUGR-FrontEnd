@@ -264,19 +264,20 @@ const CategoryRows = () => {
 // Vertical scrolling menu component for sides
 const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = false, parentRef, fullHeight = false }) => {
   const containerRef = useRef(null);
-  const time = useTime();
+  // Use a higher resolution time for smoother animation
+  const time = useTime({ resolution: 16 }); // 60fps
   const [containerHeight, setContainerHeight] = useState(0);
   const [parentHeight, setParentHeight] = useState(0);
   
   // Triple the items to create a seamless loop with more content
-  const duplicatedItems = [...items, ...items, ...items, ...items];
+  const duplicatedItems = [...items, ...items, ...items, ...items, ...items];
   
   // Calculate item height based on content
   const itemHeight = 40; // Estimated height for each item with extra padding
   const totalContentHeight = duplicatedItems.length * itemHeight;
   
   // Get animation duration based on content length - slower for more dramatic effect
-  const duration = duplicatedItems.length * 2.5; // 2.5 seconds per item for slower movement
+  const duration = duplicatedItems.length * 3; // 3 seconds per item for smoother movement
   
   // Update container and parent height on mount
   useEffect(() => {
@@ -298,32 +299,36 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = 
     return () => window.removeEventListener('resize', updateSizes);
   }, [parentRef]);
   
-  // Calculate animation position based on time
+  // Calculate animation position based on time with smoother easing
   const y = useTransform(
     time,
     (time) => {
+      // Use a smoother motion calculation
       const progress = (time % (duration * 1000)) / (duration * 1000);
+      
+      // Apply slight easing for smoother motion
+      const easedProgress = easeInOutCubic(progress);
       
       // For upward movement
       if (direction === 'up') {
         if (startFromEdge) {
           // Start from the very bottom of the parent container
-          const position = parentHeight - (totalContentHeight * progress);
-          return `${position}px`;
+          const position = parentHeight - (totalContentHeight * easedProgress);
+          return position;
         } else {
-          const position = containerHeight + totalContentHeight * progress * -1;
-          return `${position}px`;
+          const position = containerHeight + totalContentHeight * easedProgress * -1;
+          return position;
         }
       } 
       // For downward movement
       else {
         if (startFromEdge) {
           // Start from the very top of the parent container (negative position)
-          const position = -totalContentHeight + (totalContentHeight * progress);
-          return `${position}px`;
+          const position = -totalContentHeight + (totalContentHeight * easedProgress);
+          return position;
         } else {
-          const position = -totalContentHeight + totalContentHeight * progress;
-          return `${position}px`;
+          const position = -totalContentHeight + totalContentHeight * easedProgress;
+          return position;
         }
       }
     }
@@ -340,7 +345,10 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = 
   }, Array(columns).fill().map(() => []));
   
   return (
-    <div className={`relative ${fullHeight ? 'h-full min-h-[80vh]' : 'h-full'}`} ref={containerRef}>
+    <div 
+      className={`relative ${fullHeight ? 'h-full min-h-[80vh]' : 'h-full'}`} 
+      ref={containerRef}
+    >
       {/* Grid container for columns */}
       <div className="grid grid-cols-2 gap-x-4 h-full">
         {columnItems.map((column, colIndex) => (
@@ -348,9 +356,20 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = 
             <motion.div 
               className="absolute w-full"
               style={{ y }}
+              // Performance optimizations
+              initial={false}
+              transition={{ type: "tween" }}
             >
               {column.map((item, index) => (
-                <div key={`${item.id}-${index}`} className="mb-3">
+                <motion.div 
+                  key={`${item.id}-${index}`} 
+                  className="mb-3 will-change-transform"
+                  style={{ 
+                    // Hardware acceleration for smoother scrolling
+                    transform: "translateZ(0)",
+                    backfaceVisibility: "hidden"
+                  }}
+                >
                   <Link 
                     to={`/shop?${item.category ? 'subcategory' : 'tag'}=${item.slug}`} 
                     className="block py-2 px-3 rounded-md hover:bg-gray-800/50 transition-colors duration-300
@@ -364,7 +383,7 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = 
                       <span className="text-sm">{item.name}</span>
                     </div>
                   </Link>
-                </div>
+                </motion.div>
               ))}
             </motion.div>
           </div>
@@ -373,6 +392,9 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = 
     </div>
   );
 };
+
+// Cubic easing function for smoother animation
+const easeInOutCubic = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
 // 2D Circular Category Loop Animation
 const CircularCategoryLoop = ({ categories, isLowPerformance }) => {
