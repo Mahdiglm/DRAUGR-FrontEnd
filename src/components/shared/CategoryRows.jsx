@@ -178,7 +178,7 @@ const CircularCategoryLoop = ({ categories, isLowPerformance }) => {
   const radiusX = Math.min(dimensions.width * 0.4, 300); // Horizontal radius
   const radiusY = Math.min(dimensions.height * 0.35, 120); // Vertical radius
   const duration = isLowPerformance ? 30 : 25; // Seconds for a full rotation
-  const itemsCount = 16; // Number of items to display along the path
+  const itemsCount = 8; // Number of items to display along the path - reduced from 16 to prevent crowding
   
   // Update dimensions on mount and on resize
   useEffect(() => {
@@ -199,8 +199,9 @@ const CircularCategoryLoop = ({ categories, isLowPerformance }) => {
     };
   }, []);
   
-  // Duplicate categories to ensure enough items
-  const duplicatedCategories = [...categories, ...categories, ...categories, ...categories].slice(0, itemsCount);
+  // Duplicate categories to ensure enough items 
+  // We only need to duplicate once since itemsCount is now lower
+  const duplicatedCategories = [...categories, ...categories].slice(0, itemsCount);
   
   return (
     <div 
