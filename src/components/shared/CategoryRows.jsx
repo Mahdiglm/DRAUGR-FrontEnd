@@ -265,19 +265,21 @@ const CategoryRows = () => {
 const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = false, parentRef, fullHeight = false }) => {
   const containerRef = useRef(null);
   // Use a higher resolution time for smoother animation
-  const time = useTime({ resolution: 16 }); // 60fps
+  const time = useTime({ resolution: 11 }); // ~90fps for extremely smooth animation
   const [containerHeight, setContainerHeight] = useState(0);
   const [parentHeight, setParentHeight] = useState(0);
   
-  // Triple the items to create a seamless loop with more content
-  const duplicatedItems = [...items, ...items, ...items, ...items, ...items];
+  // Create a very long duplicated array (6x) to ensure truly seamless infinite loop
+  const duplicatedItems = [...items, ...items, ...items, ...items, ...items, ...items];
   
   // Calculate item height based on content
   const itemHeight = 40; // Estimated height for each item with extra padding
   const totalContentHeight = duplicatedItems.length * itemHeight;
   
-  // Get animation duration based on content length - slower for more dramatic effect
-  const duration = duplicatedItems.length * 3; // 3 seconds per item for smoother movement
+  // Set a fixed time for full cycle regardless of item count to ensure consistent speeds between menus
+  // This ensures both menus have the same cycle speed regardless of item count
+  const BASE_DURATION = 60; // 60 seconds for a full cycle for both menus
+  const duration = BASE_DURATION;
   
   // Update container and parent height on mount
   useEffect(() => {
@@ -303,16 +305,17 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = 
   const y = useTransform(
     time,
     (time) => {
-      // Use a smoother motion calculation
-      const progress = (time % (duration * 1000)) / (duration * 1000);
+      // Use a smoother motion calculation with no jumps
+      const cycleProgress = (time % (duration * 1000)) / (duration * 1000);
       
-      // Apply slight easing for smoother motion
-      const easedProgress = easeInOutCubic(progress);
+      // Apply slight easing for smoother motion - subtle cubic easing
+      const easedProgress = easeInOutCubic(cycleProgress);
       
       // For upward movement
       if (direction === 'up') {
         if (startFromEdge) {
           // Start from the very bottom of the parent container
+          // Adjusted to ensure no sudden jumps at the end of the animation cycle
           const position = parentHeight - (totalContentHeight * easedProgress);
           return position;
         } else {
@@ -324,6 +327,7 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = 
       else {
         if (startFromEdge) {
           // Start from the very top of the parent container (negative position)
+          // Adjusted to ensure no sudden jumps at the end of the animation cycle
           const position = -totalContentHeight + (totalContentHeight * easedProgress);
           return position;
         } else {
@@ -358,7 +362,11 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = 
               style={{ y }}
               // Performance optimizations
               initial={false}
-              transition={{ type: "tween" }}
+              transition={{ 
+                type: "tween", 
+                ease: "linear", // Use linear for continuous scrolling with no acceleration/deceleration
+                duration: 0 // Let the useTransform handle timing
+              }}
             >
               {column.map((item, index) => (
                 <motion.div 
@@ -367,7 +375,8 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = 
                   style={{ 
                     // Hardware acceleration for smoother scrolling
                     transform: "translateZ(0)",
-                    backfaceVisibility: "hidden"
+                    backfaceVisibility: "hidden",
+                    WebkitFontSmoothing: "antialiased"
                   }}
                 >
                   <Link 
@@ -393,7 +402,7 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = 
   );
 };
 
-// Cubic easing function for smoother animation
+// Smooth cubic easing function for animation
 const easeInOutCubic = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
 // 2D Circular Category Loop Animation
