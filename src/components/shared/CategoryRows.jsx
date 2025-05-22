@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence, useAnimationControls, useTime, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { categories } from '../../utils/mockData';
@@ -267,18 +267,24 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = 
   const [containerHeight, setContainerHeight] = useState(0);
   const [parentHeight, setParentHeight] = useState(0);
   
-  // Simple animation approach with useMotionValue and useAnimationFrame
+  // The key to TRULY infinite scrolling is to duplicate the list many times
+  // and then reset the position back once we've moved far enough
   const [scrollY, setScrollY] = useState(0);
   
-  // Prepare items - duplicate many times to ensure there's always content
-  const repeatedItems = Array(10).fill([...items]).flat();
+  // Create a HUGE number of duplicated items to ensure we never run out
+  // The idea is to have enough items for hours of scrolling without repeating
+  const DUPLICATION_FACTOR = 100; // 100x duplication
+  const repeatedItems = useMemo(() => {
+    return Array(DUPLICATION_FACTOR).fill([...items]).flat();
+  }, [items]);
   
   // Calculate item height based on content
   const itemHeight = 40; // Height for each item
-  const totalContentHeight = items.length * itemHeight;
+  // We only need the height of ONE set for the reset calculation
+  const singleSetHeight = items.length * itemHeight;
   
   // Define a constant speed in pixels per second
-  const SCROLL_SPEED = 20; // pixels per second - same for both menus
+  const SCROLL_SPEED = 25; // pixels per second - increased slightly
   
   // Update container and parent height on mount and resize
   useEffect(() => {
@@ -293,22 +299,22 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = 
     };
     
     updateSizes();
-    
     window.addEventListener('resize', updateSizes);
     return () => window.removeEventListener('resize', updateSizes);
   }, [parentRef]);
   
-  // Animation frame-based animation for consistent speed
+  // Improved animation frame-based animation for consistent speed
   useEffect(() => {
     let startTime = null;
     let lastTimestamp = 0;
     let animationFrameId = null;
     
+    // Animation function that calculates position based on elapsed time
     const animate = (timestamp) => {
       if (!startTime) startTime = timestamp;
       
       // Calculate elapsed time since last frame in seconds
-      const deltaTime = (timestamp - lastTimestamp) / 1000;
+      const deltaTime = lastTimestamp === 0 ? 0.016 : (timestamp - lastTimestamp) / 1000;
       lastTimestamp = timestamp;
       
       // Only update after we have a valid delta time
@@ -320,12 +326,14 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = 
         if (direction === 'up') {
           setScrollY(prevY => {
             // Move upward (negative)
-            let newY = prevY - movement;
+            let newY = prevY + movement;
             
             // Reset when we've scrolled a complete set to create seamless loop
-            if (Math.abs(newY) > totalContentHeight) {
-              // Reset but maintain the exact position to avoid jumps
-              return newY + totalContentHeight;
+            // This is the key to true infinite scrolling - we reset after just one set
+            // to avoid ever getting to the end of our duplicated array
+            if (newY > singleSetHeight) {
+              // Reset but maintain the exact offset to avoid visible jumps
+              return newY - singleSetHeight;
             }
             return newY;
           });
@@ -335,9 +343,9 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = 
             let newY = prevY + movement;
             
             // Reset when we've scrolled a complete set
-            if (newY > totalContentHeight) {
-              // Reset but maintain the exact position
-              return newY - totalContentHeight;
+            if (newY > singleSetHeight) {
+              // Reset but maintain the exact offset
+              return newY - singleSetHeight;
             }
             return newY;
           });
@@ -356,28 +364,27 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = 
         cancelAnimationFrame(animationFrameId);
       }
     };
-  }, [direction, totalContentHeight]);
+  }, [direction, singleSetHeight]);
   
-  // Split items into columns
-  const columnItems = repeatedItems.reduce((result, item, index) => {
-    const columnIndex = index % columns;
-    if (!result[columnIndex]) {
-      result[columnIndex] = [];
-    }
-    result[columnIndex].push(item);
-    return result;
-  }, Array(columns).fill().map(() => []));
+  // Split items into columns - with virtually unlimited items
+  const columnItems = useMemo(() => {
+    return repeatedItems.reduce((result, item, index) => {
+      const columnIndex = index % columns;
+      if (!result[columnIndex]) {
+        result[columnIndex] = [];
+      }
+      result[columnIndex].push(item);
+      return result;
+    }, Array(columns).fill().map(() => []));
+  }, [repeatedItems, columns]);
   
-  // Calculate starting position based on whether to start from edge
-  const getInitialPosition = () => {
-    if (direction === 'up' && startFromEdge) {
-      // For upward starting at bottom
-      return parentHeight;
-    } else if (direction === 'down' && startFromEdge) {
-      // For downward starting at top
-      return -totalContentHeight;
+  // Prepare the transform for each direction
+  const getTransformStyle = () => {
+    if (direction === 'up') {
+      return { transform: `translateY(-${scrollY}px)` };
+    } else {
+      return { transform: `translateY(${scrollY}px)` };
     }
-    return 0;
   };
   
   return (
@@ -392,7 +399,7 @@ const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = 
             <div 
               className="absolute w-full will-change-transform"
               style={{ 
-                transform: `translateY(${direction === 'down' ? scrollY : -scrollY}px)`,
+                ...getTransformStyle(),
                 transformStyle: 'preserve-3d'
               }}
             >
