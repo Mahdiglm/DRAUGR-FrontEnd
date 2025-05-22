@@ -241,10 +241,10 @@ const CategoryRows = () => {
   return (
     <div className="py-8 sm:py-12 md:py-16 w-full relative overflow-hidden">
       <div className="container mx-auto px-4 mb-8">
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-100 mb-2">
           دسته‌بندی‌ها
         </h2>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-gray-400">
           مجموعه‌ای از محصولات منحصر به فرد در دسته‌بندی‌های مختلف
         </p>
       </div>
@@ -316,42 +316,80 @@ const CategoryItem = ({ category, style, ...props }) => {
   // Calculate the gradient position based on mouse position
   const gradientPosition = {
     background: glowing 
-      ? `radial-gradient(circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%, rgba(129, 140, 248, 0.8) 0%, rgba(129, 140, 248, 0) 60%)`
+      ? `radial-gradient(circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%, rgba(220, 38, 38, 0.6) 0%, rgba(127, 29, 29, 0.0) 70%)`
       : 'none'
   };
 
   return (
     <div
       ref={itemRef}
-      className="absolute mx-4 h-40 overflow-hidden rounded-xl cursor-pointer"
+      className="absolute mx-4 h-40 overflow-hidden rounded-lg cursor-pointer select-none"
       style={{
         ...style,
-        zIndex: glowing ? 10 : 1 // Ensure the hovered item appears above others
+        zIndex: glowing ? 10 : 1, // Ensure the hovered item appears above others
       }}
       {...props}
     >
-      {/* Background card */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 dark:from-gray-900 dark:to-black rounded-xl" />
+      {/* Card background with borders */}
+      <div 
+        className="absolute inset-0 bg-gradient-to-b from-[#1c0b0f] to-black rounded-lg overflow-hidden"
+        style={{
+          boxShadow: glowing 
+            ? "0 10px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(220, 38, 38, 0.35)" 
+            : "0 5px 15px rgba(0, 0, 0, 0.3), inset 0 0 0 1px #60111a", 
+          transition: "box-shadow 0.3s ease-out",
+        }}
+      />
+      
+      {/* Red accent line top */}
+      <div 
+        className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-red-800 to-transparent" 
+        style={{
+          opacity: glowing ? 0.8 : 0.4,
+          transition: "opacity 0.3s ease-out",
+        }}
+      />
       
       {/* Content */}
       <div className="relative z-10 h-full flex flex-col justify-center items-center p-4">
         <span className="text-xl font-bold text-white mb-2">{category.name}</span>
-        <div className="text-indigo-300 text-sm">مشاهده محصولات</div>
+        <div 
+          className="text-[#d64356] text-sm mt-1 flex items-center border border-red-900/40 px-3 py-1 rounded-full"
+          style={{
+            background: "rgba(127, 29, 29, 0.2)",
+            boxShadow: glowing ? "0 0 10px rgba(220, 38, 38, 0.2)" : "none",
+            transition: "all 0.3s ease"
+          }}
+        >
+          <span className="mr-1">مشاهده محصولات</span>
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            className="h-4 w-4 mr-1" 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke="currentColor"
+          >
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              strokeWidth={2} 
+              d="M14 5l7 7m0 0l-7 7m7-7H3" 
+            />
+          </svg>
+        </div>
       </div>
       
-      {/* Hover effects */}
+      {/* Hover effects - transform container */}
       <div 
-        className="absolute inset-0 rounded-xl transform transition-transform duration-200 ease-out"
+        className="absolute inset-0 rounded-lg transition-transform duration-300 ease-out"
         style={{
           transform: glowing ? 'translateY(-5px)' : 'none'
         }}
-      >
-        {/* Empty div for hover transform effect */}
-      </div>
+      />
       
       {/* Glow effect wrapper */}
       <div 
-        className="absolute inset-0 rounded-xl transition-opacity duration-300"
+        className="absolute inset-0 rounded-lg transition-opacity duration-300"
         style={{
           ...gradientPosition,
           opacity: glowing ? 1 : 0,
@@ -359,12 +397,22 @@ const CategoryItem = ({ category, style, ...props }) => {
         }}
       />
       
-      {/* Border glow */}
+      {/* Border accent when hovered */}
       <div 
-        className="absolute inset-0 rounded-xl pointer-events-none"
+        className="absolute inset-0 rounded-lg pointer-events-none"
         style={{
-          boxShadow: glowing ? '0 0 15px rgba(129, 140, 248, 0.5)' : 'none',
-          transition: 'box-shadow 0.3s ease-out'
+          border: glowing ? "1px solid #dc2626" : "none",
+          opacity: glowing ? 0.6 : 0,
+          transition: "opacity 0.3s ease-out"
+        }}
+      />
+      
+      {/* Noise texture overlay */}
+      <div 
+        className="absolute inset-0 opacity-10 mix-blend-overlay pointer-events-none"
+        style={{
+          backgroundImage: "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxwYXRoIGQ9Ik0wIDBoMzAwdjMwMEgweiIgZmlsdGVyPSJ1cmwoI2EpIiBvcGFjaXR5PSIuMDUiLz48L3N2Zz4=')",
+          backgroundSize: "cover"
         }}
       />
     </div>
