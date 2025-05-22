@@ -33,8 +33,8 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
   
   // Control animation speed based on device performance
   const defaultSpeed = getOptimizedAnimationSettings(
-    { speed: 1 },     // Default settings for high-performance devices
-    { speed: 0.75 }   // Optimized settings for low-performance devices
+    { speed: 0.5 },     // Default settings for high-performance devices
+    { speed: 0.4 }   // Optimized settings for low-performance devices
   ).speed;
   
   // Create animation frame handler - defined first to avoid reference errors

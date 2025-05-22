@@ -670,11 +670,25 @@ const HomePage = () => {
         >
           {/* Content container */}
           <div className="relative z-10 container mx-auto px-4">
+            {/* Section header with enhanced styling */}
+            <div className="mb-4 text-center">
+              <h2 className="text-3xl md:text-4xl font-bold text-white text-shadow-horror mb-2">
+                <span className="relative inline-block">
+                  دسته‌بندی‌های محصولات
+                  <motion.span 
+                    className="absolute -bottom-2 left-0 right-0 h-0.5 bg-draugr-500"
+                    style={{ width: '100%' }}
+                  ></motion.span>
+                </span>
+              </h2>
+              <p className="text-gray-400 max-w-2xl mx-auto mb-2">مجموعه‌ای از محصولات منحصر به فرد در دسته‌بندی‌های مختلف</p>
+            </div>
+            
             {/* First row - right to left (default) */}
             <CategoryRows 
               direction="rtl" 
-              title="دسته‌بندی‌های محصولات" 
-              subtitle="مجموعه‌ای از محصولات منحصر به فرد در دسته‌بندی‌های مختلف"
+              title="" 
+              subtitle=""
               categoryItems={categories}
             />
             
