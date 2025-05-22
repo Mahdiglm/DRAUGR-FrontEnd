@@ -175,18 +175,19 @@ const CategoryRows = () => {
         </motion.div>
       </div>
       
-      {/* Left side subcategories - now directly in the main section */}
+      {/* Left side subcategories - going downward like a dropping chain */}
       <div className="hidden md:block absolute top-0 left-0 bottom-0 w-1/5 z-10">
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
           {/* Top fade effect */}
           <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black to-transparent z-10"></div>
-          <VerticalScrollingMenu 
+          <ChainScrollingMenu 
             items={subcategories} 
-            direction="up" 
+            direction="down" 
             columns={2} 
-            startFromEdge={true} 
             parentRef={sectionRef}
             fullHeight={true}
+            speed={30}
+            side="left"
           />
           {/* Bottom fade effect */}
           <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent z-10"></div>
@@ -226,18 +227,19 @@ const CategoryRows = () => {
         </div>
       </div>
       
-      {/* Right side tags - now directly in the main section */}
+      {/* Right side tags - going upward like a rising chain */}
       <div className="hidden md:block absolute top-0 right-0 bottom-0 w-1/5 z-10">
         <div className="absolute top-0 right-0 w-full h-full overflow-hidden">
           {/* Top fade effect */}
           <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black to-transparent z-10"></div>
-          <VerticalScrollingMenu 
-            items={popularTags} 
-            direction="down" 
+          <ChainScrollingMenu 
+            items={popularTags}
+            direction="up" 
             columns={2} 
-            startFromEdge={true}
             parentRef={sectionRef}
             fullHeight={true}
+            speed={28} // slightly different speed for visual interest
+            side="right"
           />
           {/* Bottom fade effect */}
           <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent z-10"></div>
@@ -261,177 +263,192 @@ const CategoryRows = () => {
   );
 };
 
-// Vertical scrolling menu component with truly infinite scrolling
-const VerticalScrollingMenu = ({ items, direction, columns = 2, startFromEdge = false, parentRef, fullHeight = false }) => {
+// Chain-like scrolling menu component for sides
+const ChainScrollingMenu = ({ items, direction, columns = 2, parentRef, fullHeight = false, speed = 25, side = "left" }) => {
   const containerRef = useRef(null);
+  const [activeItems, setActiveItems] = useState([]);
   const [containerHeight, setContainerHeight] = useState(0);
   const [parentHeight, setParentHeight] = useState(0);
-  const [scrollY, setScrollY] = useState(0);
   
-  // Calculate item height based on content
-  const itemHeight = 40; // Height for each item
-  const itemsPerSet = items.length;
-  const totalSetHeight = itemsPerSet * itemHeight;
+  // Calculate item height
+  const itemHeight = 45; // Height for each item
+  const itemSpacing = 12; // Space between items
+  const gapBetweenSets = 70; // Gap between item sets for chain-like effect
   
-  // Define a constant speed in pixels per second
-  const SCROLL_SPEED = 25; // pixels per second - same for both menus
-  
-  // Update container and parent height on mount and resize
+  // Calculate how many items fit in view plus buffer
   useEffect(() => {
-    const updateSizes = () => {
-      if (containerRef.current) {
-        setContainerHeight(containerRef.current.clientHeight);
-      }
+    if (parentRef?.current) {
+      const height = parentRef.current.offsetHeight;
+      setParentHeight(height);
       
-      if (parentRef && parentRef.current) {
-        setParentHeight(parentRef.current.offsetHeight);
-      }
-    };
-    
-    updateSizes();
-    
-    window.addEventListener('resize', updateSizes);
-    return () => window.removeEventListener('resize', updateSizes);
-  }, [parentRef]);
+      // Determine how many items we need to fill the container plus extras
+      const itemsNeeded = Math.ceil(height / (itemHeight + itemSpacing)) * 3;
+      
+      // Create array of active items with proper sequencing
+      generateItems(itemsNeeded);
+    }
+  }, [parentRef, items]);
   
-  // Animation frame-based animation for consistent speed
+  // Function to generate items with visual keys for animation
+  const generateItems = (count) => {
+    const generatedItems = [];
+    
+    // Generate many more items than needed to ensure enough content
+    for (let i = 0; i < count * 2; i++) {
+      // Pick item from original array based on index
+      const originalItem = items[i % items.length];
+      
+      if (originalItem) {
+        generatedItems.push({
+          ...originalItem,
+          visualKey: `${originalItem.id}-${i}`, // Unique key for React
+          initialPosition: i * (itemHeight + itemSpacing) + (Math.floor(i / items.length) * gapBetweenSets) // Positioning with gaps
+        });
+      }
+    }
+    
+    setActiveItems(generatedItems);
+  };
+  
+  // Position state for animation
+  const [scrollPosition, setScrollPosition] = useState(0);
+  
+  // Animation loop with requestAnimationFrame
   useEffect(() => {
-    let lastTimestamp = 0;
-    let animationFrameId = null;
+    let animationFrameId;
+    let lastTimestamp;
     
     const animate = (timestamp) => {
-      // Initialize lastTimestamp on first run
-      if (lastTimestamp === 0) {
+      if (!lastTimestamp) {
         lastTimestamp = timestamp;
-        animationFrameId = requestAnimationFrame(animate);
-        return;
       }
       
-      // Calculate elapsed time since last frame in seconds
-      const deltaTime = (timestamp - lastTimestamp) / 1000;
+      // Calculate seconds passed since last frame
+      const deltaSec = (timestamp - lastTimestamp) / 1000;
       lastTimestamp = timestamp;
       
-      // Only update after we have a valid delta time
-      if (deltaTime > 0 && deltaTime < 0.1) { // Avoid jumps if tab was inactive
-        // Calculate how much to move based on direction and constant speed
-        let movement = SCROLL_SPEED * deltaTime;
+      // Update position based on direction and speed
+      setScrollPosition((prevPos) => {
+        let newPos = prevPos;
         
-        // Update position based on direction
-        if (direction === 'up') {
-          setScrollY(prevY => {
-            // Move upward (negative)
-            let newY = prevY - movement;
-            return newY;
-          });
+        // Movement based on direction
+        if (direction === "up") {
+          newPos -= speed * deltaSec; // Move up (negative)
         } else {
-          setScrollY(prevY => {
-            // Move downward (positive)
-            let newY = prevY + movement;
-            return newY;
-          });
+          newPos += speed * deltaSec; // Move down (positive)
         }
-      }
+        
+        // Calculate total content height including gaps between sets
+        const oneSetHeight = items.length * (itemHeight + itemSpacing) + gapBetweenSets;
+        
+        // Reset position when a full set has scrolled to create seamless loop
+        // For upward movement
+        if (direction === "up" && Math.abs(newPos) >= oneSetHeight) {
+          return newPos + oneSetHeight;
+        }
+        // For downward movement
+        else if (direction === "down" && newPos >= oneSetHeight) {
+          return newPos - oneSetHeight;
+        }
+        
+        return newPos;
+      });
       
       animationFrameId = requestAnimationFrame(animate);
     };
     
-    // Start the animation
     animationFrameId = requestAnimationFrame(animate);
     
-    // Cleanup
     return () => {
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
       }
     };
-  }, [direction]);
+  }, [direction, speed, items.length]);
   
-  // Generate enough rows to fill the view and then some
-  const visibleRows = Math.ceil(parentHeight / itemHeight) * 3; // Triple the needed amount
-  
-  // Function to render a single item based on index, handling wrapping
-  const renderItem = (index) => {
-    // Normalize the index to wrap around the items array
-    const normalizedIndex = Math.abs(index % itemsPerSet);
-    return items[normalizedIndex];
-  };
-  
-  // Generate visible items for each column
-  const generateVisibleItems = () => {
-    // Calculate current "starting" index based on scroll position
-    const startIdx = Math.floor(Math.abs(scrollY) / itemHeight);
-    
-    const columnItems = Array(columns).fill().map(() => []);
-    
-    // Generate enough rows for each column
-    for (let i = 0; i < visibleRows; i++) {
-      const rowIndex = startIdx + i;
-      
-      // Add appropriate item to each column
-      for (let col = 0; col < columns; col++) {
-        const itemIndex = Math.floor(rowIndex / columns) + col;
-        columnItems[col].push({
-          item: renderItem(itemIndex),
-          // Unique key combining item ID, overall index, and column
-          key: `item-${renderItem(itemIndex).id}-${itemIndex}-${col}`
-        });
-      }
+  // Split active items into columns
+  const columnItems = activeItems.reduce((result, item, index) => {
+    const columnIndex = index % columns;
+    if (!result[columnIndex]) {
+      result[columnIndex] = [];
     }
+    result[columnIndex].push(item);
+    return result;
+  }, Array(columns).fill().map(() => []));
+  
+  // Get transform value based on direction
+  const getItemStyle = (item) => {
+    const basePosition = item.initialPosition;
+    const transformY = direction === "up" ? 
+      basePosition + scrollPosition : // For upward movement
+      basePosition - scrollPosition;  // For downward movement
     
-    return columnItems;
+    return {
+      transform: `translateY(${transformY}px)`,
+      transition: "opacity 0.3s ease",
+    };
   };
-  
-  // Get columns of visible items
-  const columnItems = generateVisibleItems();
-  
-  // Calculate the visual offset for smooth scrolling
-  const visualScrollOffset = scrollY % itemHeight;
   
   return (
     <div 
       className={`relative ${fullHeight ? 'h-full min-h-[80vh]' : 'h-full'}`} 
       ref={containerRef}
-      style={{ overflowY: 'hidden' }}
     >
       {/* Grid container for columns */}
       <div className="grid grid-cols-2 gap-x-4 h-full">
         {columnItems.map((column, colIndex) => (
-          <div key={`col-${colIndex}`} className="relative overflow-hidden h-full">
-            <div 
-              className="absolute w-full will-change-transform"
-              style={{ 
-                transform: `translateY(${direction === 'up' ? -visualScrollOffset : visualScrollOffset}px)`,
-                transformStyle: 'preserve-3d'
-              }}
-            >
-              {column.map(({ item, key }) => (
-                <div 
-                  key={key}
-                  className="mb-3 will-change-transform"
-                  style={{ 
-                    transform: "translateZ(0)",
-                    backfaceVisibility: "hidden",
-                    WebkitFontSmoothing: "antialiased"
-                  }}
+          <div key={colIndex} className="relative h-full overflow-hidden">
+            {column.map((item) => (
+              <div 
+                key={item.visualKey}
+                className="absolute w-full will-change-transform"
+                style={getItemStyle(item)}
+              >
+                <Link 
+                  to={`/shop?${item.category ? 'subcategory' : 'tag'}=${item.slug}`} 
+                  className="block py-2 px-3 rounded-md transition-all duration-300
+                         border border-gray-700/10 bg-gray-800/20 backdrop-blur-sm
+                         hover:border-draugr-500/40 hover:bg-gray-700/40
+                         text-gray-300 hover:text-white group"
                 >
-                  <Link 
-                    to={`/shop?${item.category ? 'subcategory' : 'tag'}=${item.slug}`} 
-                    className="block py-2 px-3 rounded-md hover:bg-gray-800/50 transition-colors duration-300
-                             border border-gray-700/10 hover:border-draugr-500/30 bg-gray-800/20 backdrop-blur-sm
-                             text-gray-300 hover:text-white group"
-                  >
-                    <div className="flex items-center gap-2 rtl:flex-row-reverse">
-                      {item.icon && (
-                        <span className="text-lg opacity-75 group-hover:opacity-100 transition-opacity">{item.icon}</span>
-                      )}
-                      <span className="text-sm">{item.name}</span>
-                    </div>
-                  </Link>
-                </div>
-              ))}
-            </div>
+                  <div className="flex items-center gap-2 rtl:flex-row-reverse">
+                    {item.icon && (
+                      <span className="text-lg opacity-75 group-hover:opacity-100 transition-opacity" 
+                            style={{ 
+                              filter: "drop-shadow(0 0 3px rgba(200,200,255,0.2))" // Glow effect
+                            }}>
+                        {item.icon}
+                      </span>
+                    )}
+                    <span className="text-sm">{item.name}</span>
+                  </div>
+                </Link>
+              </div>
+            ))}
           </div>
         ))}
+        
+        {/* Chain decoration - side links to create chain-like visual */}
+        <div className={`absolute top-0 bottom-0 ${side === 'left' ? 'right-0' : 'left-0'} w-[2px]`}>
+          <div className="absolute top-0 bottom-0 w-full bg-gradient-to-b from-transparent via-draugr-600/20 to-transparent"></div>
+          {/* Chain links - animated based on direction */}
+          {Array.from({ length: 40 }).map((_, i) => {
+            const linkPosition = (i * 40) + (scrollPosition % 40) * (direction === "up" ? -1 : 1);
+            
+            return (
+              <div
+                key={`chain-${i}`}
+                className="absolute w-[6px] h-[3px] bg-draugr-500/30"
+                style={{
+                  top: `${linkPosition}px`,
+                  right: side === 'left' ? '-2px' : 'auto',
+                  left: side === 'right' ? '-2px' : 'auto',
+                  boxShadow: '0 0 3px rgba(156, 49, 99, 0.5)'
+                }}
+              />
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -529,7 +546,7 @@ const EllipticalItem = ({ category, index, totalItems, time, duration, radiusX, 
       
       // Convert to radians (full circle = 2π)
       const angle = itemProgress * 2 * Math.PI;
-      
+  
       // Calculate 2D position on an ellipse
       const x = Math.cos(angle) * radiusX;
       const y = Math.sin(angle) * radiusY;
