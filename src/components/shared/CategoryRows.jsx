@@ -34,6 +34,92 @@ const CategoryRows = () => {
     { speed: 0.75 }   // Optimized settings for low-performance devices
   ).speed;
   
+  // Create animation frame handler - defined first to avoid reference errors
+  const animate = useCallback((timestamp) => {
+    // Skip animation if tab is not visible
+    if (document.hidden) {
+      animationRef.current = requestAnimationFrame(animate);
+      return;
+    }
+    
+    if (!lastTimestampRef.current) {
+      lastTimestampRef.current = timestamp;
+    }
+    
+    // If too much time has passed (e.g., after tab switch), limit delta
+    const maxDelta = 100; // ms - prevents huge jumps after tab switch
+    const rawDelta = timestamp - lastTimestampRef.current;
+    const deltaTime = Math.min(rawDelta, maxDelta);
+    
+    lastTimestampRef.current = timestamp;
+    
+    // Move each item to the left by speed * deltaTime
+    setCategoryItems(prevItems => {
+      // Safety check - if we somehow lost all items, refill
+      if (prevItems.length === 0) {
+        const containerWidth = containerRef.current?.offsetWidth || 1000;
+        const itemsNeeded = Math.ceil(containerWidth / CARD_TOTAL_WIDTH) + 4;
+        
+        const initialItems = [];
+        for (let i = 0; i < itemsNeeded; i++) {
+          const categoryIndex = i % categories.length;
+          initialItems.push({
+            id: nextIdRef.current++,
+            category: categories[categoryIndex],
+            positionX: i * CARD_TOTAL_WIDTH
+          });
+        }
+        
+        itemsStateRef.current = initialItems;
+        return initialItems;
+      }
+      
+      const moveAmount = speed * deltaTime / 16; // normalize to ~60fps
+      
+      // Move all items to the left
+      const movedItems = prevItems.map(item => ({
+        ...item,
+        positionX: item.positionX - moveAmount
+      }));
+      
+      // Check if we need to add a new item at the right or remove from the left
+      if (!containerRef.current) return movedItems;
+      
+      const containerWidth = containerRef.current.offsetWidth;
+      
+      // If rightmost item has moved in enough, add a new item
+      const rightmostItem = movedItems.reduce(
+        (max, item) => item.positionX > max.positionX ? item : max, 
+        { positionX: -Infinity }
+      );
+      
+      const newItems = [...movedItems];
+      
+      // If the rightmost item has moved in and there's room, add a new item
+      if (rightmostItem.positionX < containerWidth + CARD_MARGIN) {
+        // Determine the category index
+        const categoryIndex = nextIdRef.current % categories.length;
+        
+        // Add a new item at the right end
+        newItems.push({
+          id: nextIdRef.current++,
+          category: categories[categoryIndex],
+          positionX: rightmostItem.positionX + CARD_TOTAL_WIDTH
+        });
+      }
+      
+      // Remove items that have moved completely off the left edge
+      const filteredItems = newItems.filter(item => item.positionX > -CARD_TOTAL_WIDTH);
+      
+      // Update our ref to the current state for recovering after tab switches
+      itemsStateRef.current = filteredItems;
+      
+      return filteredItems;
+    });
+    
+    animationRef.current = requestAnimationFrame(animate);
+  }, [speed]);
+  
   // Initialize category items - this will run on mount and when tab visibility changes
   const fillBelt = useCallback(() => {
     if (!containerRef.current) return;
@@ -60,7 +146,22 @@ const CategoryRows = () => {
     
     setCategoryItems(initialItems);
     itemsStateRef.current = initialItems;
-  }, [categoryItems]);
+  }, [categoryItems, CARD_TOTAL_WIDTH]);
+  
+  // Start and manage the animation
+  useEffect(() => {
+    setSpeed(defaultSpeed);
+    
+    // Start animation
+    animationRef.current = requestAnimationFrame(animate);
+    
+    // Clean up animation
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [animate, defaultSpeed]);
   
   // Handle tab visibility changes
   useEffect(() => {
@@ -110,94 +211,6 @@ const CategoryRows = () => {
     window.addEventListener('resize', fillBelt);
     return () => window.removeEventListener('resize', fillBelt);
   }, [fillBelt]);
-  
-  // Create animation frame handler
-  const animate = useCallback((timestamp) => {
-    // Skip animation if tab is not visible
-    if (document.hidden) {
-      animationRef.current = requestAnimationFrame(animate);
-      return;
-    }
-    
-    if (!lastTimestampRef.current) {
-      lastTimestampRef.current = timestamp;
-    }
-    
-    // If too much time has passed (e.g., after tab switch), limit delta
-    const maxDelta = 100; // ms - prevents huge jumps after tab switch
-    const rawDelta = timestamp - lastTimestampRef.current;
-    const deltaTime = Math.min(rawDelta, maxDelta);
-    
-    lastTimestampRef.current = timestamp;
-    
-    // Move each item to the left by speed * deltaTime
-    setCategoryItems(prevItems => {
-      // Safety check - if we somehow lost all items, refill
-      if (prevItems.length === 0) {
-        fillBelt();
-        return itemsStateRef.current; // Use the items we just created
-      }
-      
-      const moveAmount = speed * deltaTime / 16; // normalize to ~60fps
-      
-      // Move all items to the left
-      const movedItems = prevItems.map(item => ({
-        ...item,
-        positionX: item.positionX - moveAmount
-      }));
-      
-      // Check if we need to add a new item at the right or remove from the left
-      if (!containerRef.current) return movedItems;
-      
-      const containerWidth = containerRef.current.offsetWidth;
-      
-      // If rightmost item has moved in enough, add a new item
-      const rightmostItem = movedItems.reduce(
-        (max, item) => item.positionX > max.positionX ? item : max, 
-        { positionX: -Infinity }
-      );
-      
-      const newItems = [...movedItems];
-      
-      // If the rightmost item has moved in and there's room, add a new item
-      if (rightmostItem.positionX < containerWidth + CARD_MARGIN) {
-        // Determine the category index
-        const categoryIndex = nextIdRef.current % categories.length;
-        
-        // Add a new item at the right end
-        newItems.push({
-          id: nextIdRef.current++,
-          category: categories[categoryIndex],
-          positionX: rightmostItem.positionX + CARD_TOTAL_WIDTH
-        });
-      }
-      
-      // Remove items that have moved completely off the left edge
-      const filteredItems = newItems.filter(item => item.positionX > -CARD_TOTAL_WIDTH);
-      
-      // Update our ref to the current state for recovering after tab switches
-      itemsStateRef.current = filteredItems;
-      
-      return filteredItems;
-    });
-    
-    animationRef.current = requestAnimationFrame(animate);
-  }, [speed, fillBelt]);
-  
-  // Start and manage the animation
-  useEffect(() => {
-    setSpeed(defaultSpeed);
-    
-    // Start animation
-    animationRef.current = requestAnimationFrame(animate);
-    
-    // Clean up animation
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, [animate, defaultSpeed]);
   
   // Handle mouse movement to adjust speed
   useEffect(() => {
