@@ -273,7 +273,7 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
   return (
     <div className="py-2 sm:py-3 md:py-4 w-full relative overflow-hidden">
       {(title.trim() || subtitle.trim()) && (
-        <div className="container mx-auto px-4 mb-6">
+        <div className="w-full px-4 mb-6">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-100 mb-2">
             {title}
           </h2>
@@ -285,10 +285,15 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
       
       <div 
         ref={containerRef}
-        className="relative w-full overflow-hidden"
+        className="relative w-screen overflow-hidden"
         style={{ 
           maskImage: 'linear-gradient(to right, black 100%, black 100%)',
-          WebkitMaskImage: 'linear-gradient(to right, black 100%, black 100%)'
+          WebkitMaskImage: 'linear-gradient(to right, black 100%, black 100%)',
+          marginLeft: 'calc(-50vw + 50%)',
+          marginRight: 'calc(-50vw + 50%)',
+          left: '50%',
+          right: '50%',
+          position: 'relative'
         }}
       >
         <div 
