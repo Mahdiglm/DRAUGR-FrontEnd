@@ -271,13 +271,13 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
   }, [defaultSpeed, direction]);
 
   return (
-    <div className="py-2 sm:py-3 md:py-4 w-full min-w-full max-w-none relative overflow-hidden">
+    <div className="py-2 sm:py-3 md:py-4 w-screen min-w-full max-w-none relative overflow-hidden mx-0 px-0">
       {(title.trim() || subtitle.trim()) && (
-        <div className="w-full px-4 mb-6">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-100 mb-2">
+        <div className="w-full mb-6">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-100 mb-2 pl-4">
             {title}
           </h2>
-          <p className="text-gray-400">
+          <p className="text-gray-400 pl-4">
             {subtitle}
           </p>
         </div>
@@ -285,7 +285,7 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
       
       <div 
         ref={containerRef}
-        className="relative w-full overflow-hidden"
+        className="relative w-screen overflow-hidden mx-0 px-0"
         style={{ 
           maskImage: 'linear-gradient(to right, black 100%, black 100%)',
           WebkitMaskImage: 'linear-gradient(to right, black 100%, black 100%)'
@@ -293,7 +293,7 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
       >
         <div 
           ref={beltRef}
-          className="relative h-48"
+          className="relative h-48 w-screen"
         >
           {categoryItems.map(item => (
             <CategoryItem 
