@@ -271,7 +271,21 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
   }, [defaultSpeed, direction]);
 
   return (
-    <div className="py-2 sm:py-3 md:py-4 w-screen min-w-full max-w-none relative overflow-hidden mx-0 px-0">
+    <div className="py-2 sm:py-3 md:py-4 w-screen min-w-full max-w-none relative overflow-hidden mx-0 px-0"
+         style={{
+           width: '100vw',
+           maxWidth: '100vw',
+           marginLeft: '0',
+           marginRight: '0',
+           paddingLeft: '0',
+           paddingRight: '0',
+           position: 'relative',
+           left: '50%',
+           right: '50%',
+           marginLeft: '-50vw',
+           marginRight: '-50vw'
+         }}
+    >
       {(title.trim() || subtitle.trim()) && (
         <div className="w-full mb-6">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-100 mb-2 pl-4">
@@ -288,12 +302,20 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
         className="relative w-screen overflow-hidden mx-0 px-0"
         style={{ 
           maskImage: 'linear-gradient(to right, black 100%, black 100%)',
-          WebkitMaskImage: 'linear-gradient(to right, black 100%, black 100%)'
+          WebkitMaskImage: 'linear-gradient(to right, black 100%, black 100%)',
+          width: '100vw',
+          maxWidth: '100vw',
+          marginRight: '0',
+          paddingRight: '0'
         }}
       >
         <div 
           ref={beltRef}
           className="relative h-48 w-screen"
+          style={{
+            width: '100vw',
+            maxWidth: '100vw'
+          }}
         >
           {categoryItems.map(item => (
             <CategoryItem 
