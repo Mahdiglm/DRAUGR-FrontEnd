@@ -35,6 +35,8 @@ import ProductDetail from './components/product/ProductDetail'
 import AboutPage from './components/pages/AboutPage'
 import Login from './components/auth/Login'
 import SignUp from './components/auth/SignUp'
+import BlogPage from './components/pages/BlogPage';
+import SingleBlogPostPage from './components/pages/SingleBlogPostPage';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -49,6 +51,8 @@ createRoot(document.getElementById('root')).render(
             <Route path="about" element={<AboutPage />} />
             <Route path="login" element={<Login />} />
             <Route path="signup" element={<SignUp />} />
+            <Route path="blog" element={<BlogPage />} />
+            <Route path="blog/:slug" element={<SingleBlogPostPage />} />
           </Route>
         </Routes>
       </HashRouter>
