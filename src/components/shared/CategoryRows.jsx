@@ -378,16 +378,24 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
   const proximityThreshold = 60; // How close the mouse needs to be to activate border effect
   const borderWidth = 2; // Width of the border in pixels
   
-  // Track mouseenter/mouseleave events to keep hover state active
+  // Handle mouse enter/leave for reliable hover state
   useEffect(() => {
-    if (!itemRef.current) return;
-    
     const element = itemRef.current;
+    if (!element) return;
     
-    const handleMouseEnter = (e) => {
+    const handleMouseEnter = () => {
       setIsHovering(true);
-      // Call the position calculation on enter to set initial hover state
-      handleMousePosition(e);
+      // If we're not near yet, set initial proximity
+      if (!isNear) {
+        // Get current mouse position relative to the element
+        const rect = element.getBoundingClientRect();
+        const x = mousePos.x || rect.width / 2; // Default to center if no position
+        const y = mousePos.y || rect.height / 2;
+        
+        // Set near and update proximity
+        setIsNear(true);
+        updateProximity(x, y, rect);
+      }
     };
     
     const handleMouseLeave = () => {
@@ -395,39 +403,19 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
       setIsNear(false);
     };
     
+    // Add event listeners
     element.addEventListener('mouseenter', handleMouseEnter);
     element.addEventListener('mouseleave', handleMouseLeave);
     
     return () => {
+      // Clean up
       element.removeEventListener('mouseenter', handleMouseEnter);
       element.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, []);
+  }, [isNear, mousePos]);
   
-  // Calculate mouse position and proximity data
-  const handleMousePosition = (e) => {
-    if (!itemRef.current) return;
-    
-    const rect = itemRef.current.getBoundingClientRect();
-    
-    // Calculate mouse position relative to item
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    // Update mouse position state
-    setMousePos({ x, y });
-    
-    // Check if we're close to the item (even outside its borders)
-    const isNearItem = 
-      x >= -proximityThreshold && x <= rect.width + proximityThreshold &&
-      y >= -proximityThreshold && y <= rect.height + proximityThreshold;
-    
-    // Only proceed if we're near the item
-    if (!isNearItem) {
-      if (isNear) setIsNear(false); // Reset if we were previously near
-      return;
-    }
-    
+  // Helper function to update proximity data
+  const updateProximity = (x, y, rect) => {
     // Calculate distances to each edge
     const distToLeft = Math.abs(x);
     const distToRight = Math.abs(x - rect.width);
@@ -495,65 +483,104 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
     // Calculate intensity based on proximity (1 when at edge, 0 when beyond threshold)
     const intensity = Math.max(0, 1 - (minDistance / proximityThreshold));
     
-    // Only consider "near" if within threshold
-    const near = minDistance < proximityThreshold;
-    
-    if (near) {
-      setIsNear(true);
-      setProximityData({
-        edge: closestEdge,
-        distance: minDistance,
-        intensity,
-        position: getPositionAlongEdge(closestEdge, x, y, rect.width, rect.height)
-      });
-    } else if (isNear) {
-      setIsNear(false);
-    }
+    // Update proximity data
+    setProximityData({
+      edge: closestEdge,
+      distance: minDistance,
+      intensity,
+      position: getPositionAlongEdge(closestEdge, x, y, rect.width, rect.height)
+    });
   };
   
-  // Track global mouse position to detect proximity even when outside the item
+  // Track mouse movement for precise position updates
   useEffect(() => {
     const handleGlobalMouseMove = (e) => {
-      handleMousePosition(e);
+      if (!itemRef.current) return;
+      
+      const rect = itemRef.current.getBoundingClientRect();
+      
+      // Calculate mouse position relative to item
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      // Update mouse position state
+      setMousePos({ x, y });
+      
+      // Check if we're close to the item (even outside its borders)
+      const isNearItem = 
+        x >= -proximityThreshold && x <= rect.width + proximityThreshold &&
+        y >= -proximityThreshold && y <= rect.height + proximityThreshold;
+      
+      // Only proceed if we're near the item
+      if (!isNearItem) {
+        if (isNear && !isHovering) setIsNear(false); // Reset if we were previously near but not hovering
+        return;
+      }
+      
+      // We're near, update the proximity data
+      setIsNear(true);
+      updateProximity(x, y, rect);
+    };
+    
+    // Request animation frame for smoother updates
+    let animationFrameId = null;
+    
+    const handleMouseMoveWithRAF = (e) => {
+      // Cancel any existing animation frame
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+      
+      // Schedule the update
+      animationFrameId = requestAnimationFrame(() => {
+        handleGlobalMouseMove(e);
+      });
     };
     
     // Add global mouse move listener
-    window.addEventListener('mousemove', handleGlobalMouseMove);
+    window.addEventListener('mousemove', handleMouseMoveWithRAF);
     
     return () => {
-      window.removeEventListener('mousemove', handleGlobalMouseMove);
+      window.removeEventListener('mousemove', handleMouseMoveWithRAF);
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
     };
-  }, []);  // No dependencies needed since handleMousePosition is defined inside component
+  }, [isNear, proximityThreshold, isHovering]);
   
-  // Add animation frame update to ensure hover effects continue even when mouse is still
+  // Use RAF to constantly update hover effects even when mouse isn't moving
   useEffect(() => {
-    if (!isHovering) return;
+    if (!isHovering) return; // Only run animation loop when hovering
     
-    let animationFrameId;
+    let animationFrameId = null;
+    let lastTime = 0;
     
-    const updateHoverEffect = () => {
-      if (isHovering && isNear) {
-        // Small artificial adjustment to ensure state updates
-        const updatedProximityData = {
-          ...proximityData,
-          // Adding a tiny random fluctuation to ensure continuous updates
-          intensity: proximityData.intensity * (0.998 + Math.random() * 0.004)
-        };
+    const animate = (time) => {
+      // Only update every ~100ms to avoid performance issues
+      if (time - lastTime > 100) {
+        lastTime = time;
         
-        setProximityData(updatedProximityData);
+        if (itemRef.current) {
+          const rect = itemRef.current.getBoundingClientRect();
+          // If no recent mouse movement, use latest position or center point
+          const x = mousePos.x !== undefined ? mousePos.x : rect.width / 2;
+          const y = mousePos.y !== undefined ? mousePos.y : rect.height / 2;
+          
+          updateProximity(x, y, rect);
+        }
       }
       
-      animationFrameId = requestAnimationFrame(updateHoverEffect);
+      animationFrameId = requestAnimationFrame(animate);
     };
     
-    animationFrameId = requestAnimationFrame(updateHoverEffect);
+    animationFrameId = requestAnimationFrame(animate);
     
     return () => {
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
       }
     };
-  }, [isHovering, isNear, proximityData]);
+  }, [isHovering, mousePos]);
   
   // Calculate the relative position along an edge (0 to 1)
   const getPositionAlongEdge = (edge, x, y, width, height) => {
@@ -570,15 +597,14 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
     }
   };
   
-  // Render just the border segments that are close to the cursor
+  // Render border segments - now it checks both isNear and isHovering
   const renderBorderSegments = () => {
-    if (!isNear) return null;
+    if (!isNear && !isHovering) return null;
     
     const { edge, intensity, position } = proximityData;
     const glowColor = '#ff0066';
     
     // Calculate the length of the segment to highlight (as percentage of edge)
-    // The segment is shorter when closer to the edge for more precise effect
     const segmentLength = 20 + (1 - intensity) * 50; // Between 20% and 70% of edge
     
     // Position the segment centered on the cursor's closest point
@@ -597,7 +623,7 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
     };
     
     // For corners, we need to handle both connecting edges
-    if (edge.includes('Left') || edge.includes('Right') || edge.includes('Top') || edge.includes('Bottom')) {
+    if (edge && (edge.includes('Left') || edge.includes('Right') || edge.includes('Top') || edge.includes('Bottom'))) {
       return renderCornerSegments(edge, intensity);
     }
     
@@ -795,9 +821,10 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
   
   // Render flowing circuit trace effect
   const renderCircuitTrace = () => {
-    if (!isNear) return null;
+    if (!isNear && !isHovering) return null;
     
     const { edge, intensity, position } = proximityData;
+    if (!edge) return null; // Guard against missing edge
     
     return (
       <svg
