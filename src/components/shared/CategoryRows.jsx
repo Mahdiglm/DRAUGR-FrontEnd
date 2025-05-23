@@ -175,7 +175,7 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
     
     setCategoryItems(initialItems);
     itemsStateRef.current = initialItems;
-  }, [categoriesData]);
+  }, [categoryItems, categoriesData]);
   
   // Start and manage the animation
   useEffect(() => {
@@ -230,27 +230,16 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [animate, fillBelt]);
+  }, [animate, categoryItems, fillBelt]);
   
   useEffect(() => {
     // Initial setup
     fillBelt();
     
     // Set up resize handler
-    const handleResize = () => {
-      // Use a debounce mechanism to avoid excessive calls
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-      setTimeout(() => {
-        fillBelt();
-        animationRef.current = requestAnimationFrame(animate);
-      }, 100);
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [fillBelt, animate]);
+    window.addEventListener('resize', fillBelt);
+    return () => window.removeEventListener('resize', fillBelt);
+  }, [fillBelt]);
   
   // Handle mouse movement to adjust speed
   useEffect(() => {
@@ -269,21 +258,12 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
         ? 1 + (mouseXRelative - 0.5) * 0.3 // RTL: faster on right 
         : 1 - (mouseXRelative - 0.5) * 0.3; // LTR: faster on left
       
-      // Use a ref to store the target speed to avoid excessive renders
-      const targetSpeed = defaultSpeed * speedFactor;
-      
-      // Use RAF for smoother speed adjustment without causing re-renders
-      const updateSpeed = () => {
-        setSpeed(currentSpeed => {
-          const newSpeed = currentSpeed + (targetSpeed - currentSpeed) * 0.05;
-          return Math.abs(newSpeed - targetSpeed) < 0.001 ? targetSpeed : newSpeed;
-        });
-      };
-      
-      // Only update occasionally to avoid too many state updates
-      if (Math.random() < 0.1) {
-        updateSpeed();
-      }
+      // Smoothly interpolate current speed
+      setSpeed(currentSpeed => {
+        const targetSpeed = defaultSpeed * speedFactor;
+        // Smooth interpolation
+        return currentSpeed + (targetSpeed - currentSpeed) * 0.05;
+      });
     };
 
     window.addEventListener('mousemove', handleMouseMove);
@@ -291,7 +271,7 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
   }, [defaultSpeed, direction]);
 
   return (
-    <div className="py-2 sm:py-3 md:py-4 w-full relative overflow-hidden">
+    <div className="py-2 sm:py-3 md:py-4 w-full min-w-full max-w-none relative overflow-hidden">
       {(title.trim() || subtitle.trim()) && (
         <div className="w-full px-4 mb-6">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-100 mb-2">
@@ -308,10 +288,7 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
         className="relative w-full overflow-hidden"
         style={{ 
           maskImage: 'linear-gradient(to right, black 100%, black 100%)',
-          WebkitMaskImage: 'linear-gradient(to right, black 100%, black 100%)',
-          width: '100vw',
-          marginLeft: 'calc(-50vw + 50%)',
-          marginRight: 'calc(-50vw + 50%)'
+          WebkitMaskImage: 'linear-gradient(to right, black 100%, black 100%)'
         }}
       >
         <div 
