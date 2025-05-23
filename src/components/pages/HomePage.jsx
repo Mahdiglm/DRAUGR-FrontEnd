@@ -668,53 +668,261 @@ const HomePage = () => {
           transition={{ duration: 0.8 }}
           viewport={{ once: true, margin: "-100px" }}
         >
-          {/* Content container */}
-          <div className="relative z-10 container mx-auto px-4">
-            {/* Section header with enhanced styling */}
-            <div className="mb-4 text-center">
-              <h2 className="text-3xl md:text-4xl font-bold text-white text-shadow-horror mb-2">
-                <span className="relative inline-block">
-                  دسته‌بندی‌های محصولات
-                  <motion.span 
-                    className="absolute -bottom-2 left-0 right-0 h-0.5 bg-draugr-500"
-                    style={{ width: '100%' }}
-                  ></motion.span>
-                </span>
-              </h2>
-              <p className="text-gray-400 max-w-2xl mx-auto mb-2">مجموعه‌ای از محصولات منحصر به فرد در دسته‌بندی‌های مختلف</p>
+          {/* Dynamic background effect */}
+          <div className="absolute inset-0 z-0">
+            {/* Runes floating in background */}
+            <div className="absolute inset-0 opacity-10">
+              {Array.from({ length: 15 }).map((_, i) => (
+                <motion.div
+                  key={`rune-${i}`}
+                  className="absolute text-red-600 font-norse opacity-40"
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    top: `${Math.random() * 100}%`,
+                    fontSize: `${Math.random() * 2 + 1.5}rem`,
+                    transform: 'translateZ(0)'
+                  }}
+                  animate={{
+                    y: [0, Math.random() * 15 - 7.5],
+                    opacity: [0.2, 0.5, 0.2],
+                    rotate: Math.random() * 20 - 10,
+                  }}
+                  transition={{
+                    repeat: Infinity,
+                    duration: 3 + Math.random() * 5,
+                    ease: "easeInOut",
+                    repeatType: "reverse"
+                  }}
+                >
+                  {['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᚾ'][Math.floor(Math.random() * 10)]}
+                </motion.div>
+              ))}
             </div>
             
-            {/* First row - right to left (default) */}
-            <CategoryRows 
-              direction="rtl" 
-              title="" 
-              subtitle=""
-              categoryItems={categories}
+            {/* Ambient glow effects */}
+            <motion.div 
+              className="absolute inset-0 bg-gradient-radial from-red-900/10 to-transparent"
+              style={{ 
+                backgroundSize: '100% 100%',
+                backgroundPosition: 'center',
+                mixBlendMode: 'overlay'
+              }}
+              animate={{
+                opacity: [0.3, 0.6, 0.3],
+              }}
+              transition={{
+                duration: 8,
+                repeat: Infinity,
+                repeatType: "reverse",
+                ease: "easeInOut",
+              }}
             />
+          </div>
+          
+          {/* Content container */}
+          <div className="relative z-10 container mx-auto px-4">
+            {/* Section header with enhanced 3D styling */}
+            <motion.div 
+              className="mb-8 text-center relative"
+              initial={{ y: 50, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.6, type: "spring", stiffness: 100 }}
+            >
+              {/* Background decorative ornament */}
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-24 -z-10">
+                <svg viewBox="0 0 300 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full opacity-20">
+                  <path d="M20,50 C20,50 50,20 150,20 C250,20 280,50 280,50 C280,50 250,80 150,80 C50,80 20,50 20,50 Z" stroke="#ef2336" strokeWidth="2" />
+                  <path d="M30,50 C30,50 60,30 150,30 C240,30 270,50 270,50 C270,50 240,70 150,70 C60,70 30,50 30,50 Z" stroke="#ef2336" strokeWidth="1" />
+                  <path d="M0,50 L20,50 M280,50 L300,50" stroke="#ef2336" strokeWidth="2" />
+                  <circle cx="150" cy="50" r="5" fill="#ef2336" fillOpacity="0.5" />
+                </svg>
+              </div>
+              
+              <h2 className="text-4xl md:text-5xl font-bold text-white text-shadow-horror mb-4 relative inline-block">
+                <motion.span 
+                  className="relative inline-block perspective"
+                  whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
+                  style={{ 
+                    textShadow: "0 0 10px rgba(239, 35, 60, 0.5), 0 0 20px rgba(239, 35, 60, 0.3)",
+                    perspective: "1000px"
+                  }}
+                >
+                  <motion.span 
+                    className="inline-block"
+                    animate={{
+                      textShadow: [
+                        "0 0 4px rgba(239, 35, 60, 0.5), 0 0 10px rgba(239, 35, 60, 0.3)",
+                        "0 0 8px rgba(239, 35, 60, 0.7), 0 0 15px rgba(239, 35, 60, 0.5)",
+                        "0 0 4px rgba(239, 35, 60, 0.5), 0 0 10px rgba(239, 35, 60, 0.3)"
+                      ]
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    دسته‌بندی‌های محصولات
+                  </motion.span>
+                  
+                  {/* Animated border effect */}
+                  <motion.span 
+                    className="absolute -bottom-2 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-red-600 to-transparent"
+                    animate={{
+                      backgroundPosition: ["200% 0", "-100% 0"],
+                      opacity: [0.7, 1, 0.7]
+                    }}
+                    transition={{
+                      duration: 5,
+                      ease: "easeInOut",
+                      repeat: Infinity
+                    }}
+                    style={{ 
+                      width: '100%',
+                      backgroundSize: "200% 100%"
+                    }}
+                  />
+                </motion.span>
+              </h2>
+              
+              <motion.p 
+                className="text-gray-300 max-w-2xl mx-auto mb-2 text-lg"
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+              >
+                <span className="text-red-400">مجموعه‌ای</span> از محصولات منحصر به فرد در دسته‌بندی‌های مختلف
+              </motion.p>
+              
+              {/* Decorative divider */}
+              <div className="flex items-center justify-center my-6">
+                <div className="h-px w-16 bg-gradient-to-r from-transparent via-red-700 to-transparent"></div>
+                <div className="mx-4 text-red-600 opacity-70">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 22L3 17V7L12 2L21 7V17L12 22Z" stroke="currentColor" strokeWidth="1.5" />
+                    <path d="M12 22V12M12 12L3 7M12 12L21 7" stroke="currentColor" strokeWidth="1.5" />
+                  </svg>
+                </div>
+                <div className="h-px w-16 bg-gradient-to-r from-red-700 via-red-700 to-transparent"></div>
+              </div>
+            </motion.div>
             
-            {/* Second row - left to right (without title) */}
-            <CategoryRows 
-              direction="ltr" 
-              title="" 
-              subtitle=""
-              categoryItems={additionalCategories}
-            />
+            {/* Categories wrapper with 3D perspective */}
+            <div className="perspective-1000 w-full">
+              {/* First row with enhanced effects */}
+              <motion.div
+                initial={{ opacity: 0, rotateX: 10 }}
+                whileInView={{ opacity: 1, rotateX: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                viewport={{ once: true, margin: "-50px" }}
+                className="mb-10 transform-gpu relative"
+              >
+                <CategoryRows 
+                  direction="rtl" 
+                  title="" 
+                  subtitle=""
+                  categoryItems={categories}
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-midnight opacity-40 pointer-events-none z-10"></div>
+              </motion.div>
+              
+              {/* Second row with staggered animation */}
+              <motion.div
+                initial={{ opacity: 0, rotateX: -10 }}
+                whileInView={{ opacity: 1, rotateX: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+                viewport={{ once: true, margin: "-50px" }}
+                className="mb-10 transform-gpu relative"
+              >
+                <CategoryRows 
+                  direction="ltr" 
+                  title="" 
+                  subtitle=""
+                  categoryItems={additionalCategories}
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-midnight via-transparent to-midnight opacity-40 pointer-events-none z-10"></div>
+              </motion.div>
+              
+              {/* Third row with different animation */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.98 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8, delay: 0.6 }}
+                viewport={{ once: true, margin: "-50px" }}
+                className="mb-10 transform-gpu relative"
+              >
+                <CategoryRows 
+                  direction="rtl" 
+                  title="" 
+                  subtitle=""
+                  categoryItems={thirdRowCategories}
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-midnight via-transparent to-midnight opacity-40 pointer-events-none z-10"></div>
+              </motion.div>
+              
+              {/* Fourth row with fade in animation */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.8 }}
+                viewport={{ once: true, margin: "-50px" }}
+                className="transform-gpu"
+              >
+                <CategoryRows 
+                  direction="ltr" 
+                  title="" 
+                  subtitle=""
+                  categoryItems={fourthRowCategories}
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-midnight via-transparent to-transparent opacity-40 pointer-events-none z-10"></div>
+              </motion.div>
+            </div>
             
-            {/* Third row - right to left (without title) */}
-            <CategoryRows 
-              direction="rtl" 
-              title="" 
-              subtitle=""
-              categoryItems={thirdRowCategories}
-            />
-            
-            {/* Fourth row - left to right (without title) */}
-            <CategoryRows 
-              direction="ltr" 
-              title="" 
-              subtitle=""
-              categoryItems={fourthRowCategories}
-            />
+            {/* Bottom decorative element */}
+            <motion.div 
+              className="w-full max-w-4xl mx-auto mt-10 flex justify-center"
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 1, duration: 0.5 }}
+            >
+              <Link to="/shop">
+                <motion.button
+                  className="group relative overflow-hidden text-lg font-medium text-white px-10 py-3"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  {/* Background & border effects */}
+                  <span className="absolute inset-0 bg-gradient-to-br from-red-900/70 to-red-950/90 z-0 rounded-md border border-red-800/50 transform transition-all duration-300 group-hover:shadow-[0_0_15px_rgba(239,35,54,0.5)]"></span>
+                  
+                  {/* Text with icon */}
+                  <span className="relative z-10 flex items-center justify-center space-x-2">
+                    <span>مشاهده تمام دسته‌بندی‌ها</span>
+                    <svg className="w-5 h-5 mr-1" viewBox="0 0 24 24" fill="none">
+                      <path d="M9 6L15 12L9 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </span>
+                  
+                  {/* Hover glow effect */}
+                  <motion.span 
+                    className="absolute inset-0 -z-10"
+                    initial={{ opacity: 0 }}
+                    whileHover={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <span className="absolute inset-0 bg-gradient-to-r from-red-600/0 via-red-600/30 to-red-600/0 blur-md"></span>
+                  </motion.span>
+                  
+                  {/* Corner accents */}
+                  <span className="absolute top-0 left-0 w-2 h-2 border-t border-l border-red-500 opacity-70 group-hover:opacity-100 transition-opacity"></span>
+                  <span className="absolute top-0 right-0 w-2 h-2 border-t border-r border-red-500 opacity-70 group-hover:opacity-100 transition-opacity"></span>
+                  <span className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-red-500 opacity-70 group-hover:opacity-100 transition-opacity"></span>
+                  <span className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-red-500 opacity-70 group-hover:opacity-100 transition-opacity"></span>
+                </motion.button>
+              </Link>
+            </motion.div>
           </div>
         </motion.section>
       </motion.div>
