@@ -287,8 +287,8 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
         ref={containerRef}
         className="relative w-full overflow-hidden"
         style={{ 
-          maskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)',
-          WebkitMaskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)'
+          maskImage: 'linear-gradient(to right, black 100%, black 100%)',
+          WebkitMaskImage: 'linear-gradient(to right, black 100%, black 100%)'
         }}
       >
         <div 
