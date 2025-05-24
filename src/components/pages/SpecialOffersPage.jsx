@@ -2,20 +2,24 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import SpecialOffersBanner from '../shared/SpecialOffersBanner';
 import SpecialOffersMenu from '../shared/SpecialOffersMenu';
+// Import local images
+import darkRitualImage from '../../assets/darksat.png';
+import halloweenPackImage from '../../assets/halovinpack.png';
+import spellPackImage from '../../assets/mahlolha.png';
 
 const SpecialOffersPage = () => {
   // Sample special offers data - this would typically come from an API
   const specialOffers = [
     {
-      id: 'satanic-pack',
-      title: 'پک شیطان‌پرستی',
-      description: 'محصولات ویژه برای علاقه‌مندان به آیین شیطان‌پرستی',
+      id: 'dark-ritual-pack',
+      title: 'پک آیین تاریک',
+      description: 'محصولات ویژه برای علاقه‌مندان به آیین‌های تاریک و اسرارآمیز',
       discount: '20%',
-      image: 'https://via.placeholder.com/400x300?text=Satanic+Pack',
+      image: darkRitualImage,
       category: 'پک‌های ویژه',
       items: [
-        { id: 1, name: 'کتاب انجیل شیطانی', price: 850000, image: 'https://via.placeholder.com/150?text=Satanic+Bible' },
-        { id: 2, name: 'گردنبند بافومت', price: 450000, image: 'https://via.placeholder.com/150?text=Baphomet+Necklace' },
+        { id: 1, name: 'کتاب آیین‌های باستانی', price: 850000, image: 'https://via.placeholder.com/150?text=Ancient+Book' },
+        { id: 2, name: 'گردنبند نمادین', price: 450000, image: 'https://via.placeholder.com/150?text=Symbol+Necklace' },
         { id: 3, name: 'شمع مشکی آیینی', price: 120000, image: 'https://via.placeholder.com/150?text=Ritual+Candle' }
       ]
     },
@@ -24,7 +28,7 @@ const SpecialOffersPage = () => {
       title: 'پک هالووین',
       description: 'همه چیز برای جشن هالووین شما',
       discount: '15%',
-      image: 'https://via.placeholder.com/400x300?text=Halloween+Pack',
+      image: halloweenPackImage,
       category: 'پک‌های ویژه',
       items: [
         { id: 4, name: 'ماسک جک-او-لنترن', price: 350000, image: 'https://via.placeholder.com/150?text=Jack+O+Lantern' },
@@ -37,7 +41,7 @@ const SpecialOffersPage = () => {
       title: 'پک طلسم‌ها',
       description: 'مجموعه کامل برای اجرای طلسم‌های قدرتمند',
       discount: '25%',
-      image: 'https://via.placeholder.com/400x300?text=Spell+Pack',
+      image: spellPackImage,
       category: 'پک‌های ویژه',
       items: [
         { id: 7, name: 'کتاب طلسم‌ها', price: 550000, image: 'https://via.placeholder.com/150?text=Spell+Book' },
