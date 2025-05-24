@@ -37,7 +37,7 @@ const BlogPostCard = ({ title, snippet, author, date, imageUrl, onFlipComplete }
       >
         {/* Front of Card */}
         <div 
-          className="absolute inset-0 w-full h-full flex flex-col"
+          className="absolute inset-0 w-full h-full flex flex-col text-center"
           style={{ 
             backfaceVisibility: "hidden", 
             WebkitBackfaceVisibility: "hidden",
@@ -65,21 +65,21 @@ const BlogPostCard = ({ title, snippet, author, date, imageUrl, onFlipComplete }
           </div>
 
           {/* Content Section */}
-          <div className="p-4 flex-grow flex flex-col">
-            <h3 className="text-xl font-bold mb-2 text-red-100 group-hover:text-red-400 transition-colors duration-300">
+          <div className="p-4 flex-grow flex flex-col items-center">
+            <h3 className="text-xl font-bold mb-2 text-red-100 group-hover:text-red-400 transition-colors duration-300 text-center">
               {title || 'عنوان پست وبلاگ'}
             </h3>
-            <p className="text-sm text-gray-300 mb-3 flex-grow line-clamp-3">
+            <p className="text-sm text-gray-300 mb-3 flex-grow line-clamp-3 text-center">
               {snippet || 'این یک توضیح کوتاه برای پست وبلاگ است. این متن به عنوان یک پیش‌نمایش عمل می‌کند و خواننده را به خواندن ادامه مطلب ترغیب می‌کند.'}
             </p>
             
             {/* Footer Section for Author and Date */}
-            <div className="mt-auto pt-3 border-t border-gray-700 group-hover:border-red-700 transition-colors duration-300">
-              <div className="flex justify-between items-center text-xs text-gray-400 group-hover:text-gray-200 transition-colors duration-300">
-                <span>
+            <div className="mt-auto pt-3 border-t border-gray-700 group-hover:border-red-700 transition-colors duration-300 w-full">
+              <div className="flex justify-center items-center text-xs text-gray-400 group-hover:text-gray-200 transition-colors duration-300">
+                <span className="mx-2">
                   نویسنده: {author || 'ناشناس'}
                 </span>
-                <span>
+                <span className="mx-2">
                   تاریخ: {date || '۱۴۰۳/۰۱/۰۱'}
                 </span>
               </div>
@@ -89,7 +89,7 @@ const BlogPostCard = ({ title, snippet, author, date, imageUrl, onFlipComplete }
 
         {/* Back of Card */}
         <div 
-          className="absolute inset-0 w-full h-full rounded-lg overflow-hidden flex flex-col"
+          className="absolute inset-0 w-full h-full rounded-lg overflow-hidden flex flex-col text-center"
           style={{ 
             backfaceVisibility: "hidden", 
             WebkitBackfaceVisibility: "hidden",
@@ -113,10 +113,10 @@ const BlogPostCard = ({ title, snippet, author, date, imageUrl, onFlipComplete }
               </motion.div>
             </div>
             
-            <h3 className="text-2xl font-bold mb-4 text-red-400">مشاهده مقاله کامل</h3>
-            <p className="text-gray-300 mb-6">برای خواندن متن کامل مقاله "{title}" کلیک کنید</p>
+            <h3 className="text-2xl font-bold mb-4 text-red-400 text-center">مشاهده مقاله کامل</h3>
+            <p className="text-gray-300 mb-6 text-center">برای خواندن متن کامل مقاله "{title}" کلیک کنید</p>
             
-            <div className="border-t border-gray-700 pt-4 w-full">
+            <div className="border-t border-gray-700 pt-4 w-full text-center">
               <p className="text-sm text-gray-400">
                 نوشته شده توسط <span className="text-red-300">{author || 'ناشناس'}</span>
               </p>
