@@ -424,7 +424,7 @@ const NavLink = ({ to, label, isNested = false, navItem }) => {
       </motion.div>
       
       {/* Enhanced dropdown menu with premium minimal design */}
-      {isNested && isHovering && navItem.name === "فروشگاه" && (
+      {isNested && isHovering && (navItem.name === "فروشگاه" || navItem.name === "پیشنهادات ویژه") && (
         <motion.div
           initial={{ opacity: 0, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
@@ -432,7 +432,7 @@ const NavLink = ({ to, label, isNested = false, navItem }) => {
           transition={{ duration: 0.15, ease: "easeOut" }}
           className="absolute top-full right-0 mt-1.5 py-4 bg-black border-[0.5px] border-draugr-800/70 shadow-xl rounded-md z-10 overflow-hidden min-w-fit text-right backdrop-blur-lg"
           style={{ 
-            minWidth: '600px',
+            minWidth: navItem.name === "پیشنهادات ویژه" ? '550px' : '600px',
             maxHeight: '75vh',
             overflowY: 'auto',
             backdropFilter: 'blur(16px)',
@@ -441,15 +441,17 @@ const NavLink = ({ to, label, isNested = false, navItem }) => {
         >
           {/* Premium header with subtle separator */}
           <div className="px-6 pb-3 mb-2 border-b border-draugr-900/50">
-            <h2 className="text-sm text-gray-400 font-normal tracking-wider uppercase">دسته‌بندی‌های محصولات</h2>
+            <h2 className="text-sm text-gray-400 font-normal tracking-wider uppercase">
+              {navItem.name === "فروشگاه" ? "دسته‌بندی‌های محصولات" : "پیشنهادات ویژه فروشگاه"}
+            </h2>
           </div>
           
           {/* Multi-column layout for Shop - more refined */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-4">
             {navItem.subcategories.map((category, idx) => (
               <div key={idx} className="p-3">
-                <h3 className="text-draugr-500 font-medium text-sm pb-1.5 mb-2 flex items-center">
-                  <span className="bg-draugr-600 w-1 h-1 rounded-full mr-2 opacity-70"></span>
+                <h3 className={`${navItem.name === "پیشنهادات ویژه" ? "text-draugr-400" : "text-draugr-500"} font-medium text-sm pb-1.5 mb-2 flex items-center`}>
+                  <span className={`${navItem.name === "پیشنهادات ویژه" ? "bg-draugr-500" : "bg-draugr-600"} w-1 h-1 rounded-full mr-2 opacity-70`}></span>
                   {category.name}
                 </h3>
                 <ul className="space-y-1 border-r border-draugr-900/30 pr-2">
@@ -457,10 +459,18 @@ const NavLink = ({ to, label, isNested = false, navItem }) => {
                     category.items.map((item, itemIdx) => (
                       <li key={itemIdx}>
                         <Link 
-                          to={`/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}/${item.toLowerCase().replace(/\s+/g, '-')}`}
-                          className="block px-3 py-1.5 text-xs text-gray-400 hover:bg-draugr-900/40 hover:text-white transition-all duration-150 rounded-sm group flex items-center"
+                          to={navItem.name === "فروشگاه" 
+                            ? `/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}/${item.toLowerCase().replace(/\s+/g, '-')}`
+                            : `/special-offers/${item.toLowerCase().replace(/\s+/g, '-')}`
+                          }
+                          className={`block px-3 py-1.5 text-xs text-gray-400 hover:bg-draugr-900/40 hover:text-white transition-all duration-150 rounded-sm group flex items-center ${
+                            navItem.name === "پیشنهادات ویژه" ? "hover:bg-draugr-800/30" : ""
+                          }`}
                         >
                           {item}
+                          {navItem.name === "پیشنهادات ویژه" && (
+                            <span className="mr-2 text-[0.6rem] bg-draugr-600 px-1.5 py-0.5 rounded text-white">ویژه</span>
+                          )}
                         </Link>
                       </li>
                     ))
@@ -482,10 +492,10 @@ const NavLink = ({ to, label, isNested = false, navItem }) => {
           {/* View All Products Button - more premium */}
           <div className="mt-3 px-4 pt-2 text-center border-t border-draugr-900/50">
             <Link 
-              to="/shop"
+              to={navItem.name === "فروشگاه" ? "/shop" : "/special-offers"}
               className="inline-block px-5 py-1.5 text-white text-xs font-light tracking-wide uppercase hover:text-draugr-400 transition-all duration-300"
             >
-              مشاهده همه محصولات
+              {navItem.name === "فروشگاه" ? "مشاهده همه محصولات" : "مشاهده همه پیشنهادات ویژه"}
               <span className="inline-block mr-1.5 text-[0.6rem]">⟶</span>
             </Link>
           </div>
