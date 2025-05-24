@@ -552,8 +552,8 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
         )}
       </div>
       
-      {/* Only show subcategories for فروشگاه (Shop) - premium minimal design */}
-      {isNested && isExpanded && navItem.name === "فروشگاه" && (
+      {/* Only show subcategories for فروشگاه (Shop) and پیشنهادات ویژه (Special Offers) - premium minimal design */}
+      {isNested && isExpanded && (navItem.name === "فروشگاه" || navItem.name === "پیشنهادات ویژه") && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
@@ -563,7 +563,9 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
         >
           {/* Header */}
           <div className="px-3 py-2 border-b border-draugr-900/30">
-            <span className="text-xs text-gray-500 uppercase tracking-wide">دسته‌بندی‌ها</span>
+            <span className="text-xs text-gray-500 uppercase tracking-wide">
+              {navItem.name === "فروشگاه" ? "دسته‌بندی‌ها" : "پیشنهادات"}
+            </span>
           </div>
           
           {/* Special accordion style for Shop in mobile view */}
@@ -577,14 +579,14 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
                     toggleCategory(idx);
                   }}
                 >
-                  <span className="text-xs font-medium text-gray-300 flex items-center">
-                    <span className="w-1 h-1 bg-draugr-500/70 rounded-full mr-2"></span>
+                  <span className={`text-xs font-medium ${navItem.name === "پیشنهادات ویژه" ? "text-draugr-300" : "text-gray-300"} flex items-center`}>
+                    <span className={`w-1 h-1 ${navItem.name === "پیشنهادات ویژه" ? "bg-draugr-400/80" : "bg-draugr-500/70"} rounded-full mr-2`}></span>
                     {category.name}
                   </span>
                   {category.items && category.items.length > 0 && (
                     <motion.svg 
                       xmlns="http://www.w3.org/2000/svg" 
-                      className="h-3 w-3 text-draugr-500/70" 
+                      className={`h-3 w-3 ${navItem.name === "پیشنهادات ویژه" ? "text-draugr-400/80" : "text-draugr-500/70"}`} 
                       fill="none" 
                       viewBox="0 0 24 24" 
                       stroke="currentColor"
@@ -607,40 +609,23 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
                     {category.items.map((item, itemIdx) => (
                       <Link 
                         key={itemIdx}
-                        to={`/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}/${item.toLowerCase().replace(/\s+/g, '-')}`}
-                        className="block py-1.5 text-xs text-gray-400 hover:text-white transition-all duration-200 group flex items-center"
+                        to={navItem.name === "فروشگاه"
+                          ? `/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}/${item.toLowerCase().replace(/\s+/g, '-')}`
+                          : `/special-offers/${item.toLowerCase().replace(/\s+/g, '-')}`
+                        }
+                        className="block py-1.5 text-xs text-gray-400 hover:text-white transition-all duration-200 group flex items-center justify-between"
                         onClick={onClick}
                       >
-                        <span className="mr-1">•</span>
-                        <span className="mr-1.5">{item}</span>
+                        <span>{item}</span>
+                        {navItem.name === "پیشنهادات ویژه" && (
+                          <span className="text-[0.6rem] bg-draugr-600 px-1.5 py-0.5 rounded text-white">ویژه</span>
+                        )}
                       </Link>
                     ))}
                   </motion.div>
                 )}
-                
-                {(!category.items || category.items.length === 0) && (
-                  <Link 
-                    to={`/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}`}
-                    className="block py-1.5 px-3 text-xs text-gray-400 hover:text-white transition-all duration-200 rounded-sm ml-4"
-                    onClick={onClick}
-                  >
-                    {category.name}
-                  </Link>
-                )}
               </div>
             ))}
-          </div>
-          
-          {/* View All Products Button for Mobile - minimal */}
-          <div className="px-2 py-2 border-t border-draugr-900/30 text-center">
-            <Link 
-              to="/shop"
-              className="block text-center text-xs text-gray-400 py-1 hover:text-draugr-500 transition-colors uppercase tracking-wide"
-              onClick={onClick}
-            >
-              مشاهده همه محصولات
-              <span className="inline-block mr-1 text-[0.6rem]">⟶</span>
-            </Link>
           </div>
         </motion.div>
       )}
