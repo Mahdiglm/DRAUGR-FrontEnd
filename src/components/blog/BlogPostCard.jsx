@@ -1,12 +1,20 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 
-const BlogPostCard = ({ title, snippet, author, date, imageUrl }) => {
+const BlogPostCard = ({ title, snippet, author, date, imageUrl, onFlipComplete }) => {
   // Add state to track if card is flipped
   const [isFlipped, setIsFlipped] = useState(false);
   
   // Function to toggle card flip
-  const toggleFlip = () => setIsFlipped(!isFlipped);
+  const toggleFlip = () => {
+    setIsFlipped(!isFlipped);
+    
+    // If flipping to back side and we have a callback, execute it after animation time
+    if (!isFlipped && onFlipComplete) {
+      // We'll use this for navigation after the animation
+      setTimeout(onFlipComplete, 600);
+    }
+  };
 
   return (
     <div className="h-full perspective-1000">

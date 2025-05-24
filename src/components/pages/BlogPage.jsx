@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { blogPosts } from '../../utils/mockData';
 import BlogPostCard from '../blog/BlogPostCard';
 
@@ -30,6 +30,16 @@ const itemVariants = {
 };
 
 const BlogPage = () => {
+  const navigate = useNavigate();
+  
+  // Handle navigation after card flip
+  const handleCardClick = (slug) => {
+    // Add a small delay to allow the flip animation to complete
+    setTimeout(() => {
+      navigate(`/blog/${slug}`);
+    }, 800); // Slightly longer than the flip animation duration
+  };
+
   return (
     <motion.div
       initial="hidden"
@@ -55,15 +65,14 @@ const BlogPage = () => {
           >
             {blogPosts.map((post) => (
               <motion.div key={post.id} variants={itemVariants} className="h-full">
-                <div className="h-full" onClick={() => window.location.href = `/blog/${post.slug}`}>
-                  <BlogPostCard
-                    title={post.title}
-                    snippet={post.snippet}
-                    author={post.author}
-                    date={post.date}
-                    imageUrl={post.featuredImageUrl}
-                  />
-                </div>
+                <BlogPostCard
+                  title={post.title}
+                  snippet={post.snippet}
+                  author={post.author}
+                  date={post.date}
+                  imageUrl={post.featuredImageUrl}
+                  onFlipComplete={() => handleCardClick(post.slug)}
+                />
               </motion.div>
             ))}
           </motion.div>
