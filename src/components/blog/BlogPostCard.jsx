@@ -2,8 +2,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 const BlogPostCard = ({ title, snippet, author, date, imageUrl }) => {
-  const placeholderImageUrl = imageUrl || 'https://via.placeholder.com/400x250/1a1a1a/ff0000?text=Blog+Post+Image';
-
+  // Remove the external placeholder service and use a local fallback approach
+  
   return (
     <motion.div
       className="horror-card card-3d rounded-lg overflow-hidden flex flex-col h-full group" // Added group for group-hover utilities
@@ -26,13 +26,23 @@ const BlogPostCard = ({ title, snippet, author, date, imageUrl }) => {
         color: 'var(--draugr-light, #e0e0e0)',
       }}
     >
-      {/* Image Section */}
-      <div className="relative w-full h-48 sm:h-56 overflow-hidden">
-        <img
-          src={placeholderImageUrl}
-          alt={title || 'Blog Post Image'}
-          className="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110" // Scale image on hover
-        />
+      {/* Image Section with fallback */}
+      <div className="relative w-full h-48 sm:h-56 overflow-hidden bg-gradient-to-br from-gray-900 to-red-900 flex items-center justify-center">
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={title || 'Blog Post Image'}
+            className="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110"
+            onError={(e) => {
+              e.target.style.display = 'none';
+              e.target.parentNode.classList.add('fallback-active');
+            }}
+          />
+        ) : (
+          <div className="text-center p-4">
+            <div className="text-red-500 font-bold text-lg">{title || 'عنوان پست وبلاگ'}</div>
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-75 group-hover:opacity-50 transition-opacity duration-300"></div>
       </div>
 
