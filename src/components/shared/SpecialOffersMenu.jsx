@@ -1,278 +1,186 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import ProductCard from '../product/ProductCard';
 
-const SpecialOffersMenu = ({ isOpen, onClose }) => {
+const SpecialOffersMenu = ({ offers }) => {
+  // Group offers by category
+  const categories = [...new Set(offers.map(offer => offer.category))];
+  const [selectedCategory, setSelectedCategory] = useState(categories[0]);
   const [selectedOffer, setSelectedOffer] = useState(null);
   
-  // Sample special offers data - in a real app, this would come from an API
-  const specialOffers = [
-    {
-      id: 1,
-      title: "پیشنهاد هالووین",
-      description: "تخفیف ویژه برای جشن هالووین",
-      discount: "۳۰٪",
-      badge: "محبوب‌ترین",
-      theme: "vampire",
-      items: [
-        {
-          id: 101,
-          name: "ماسک هالووین",
-          description: "ماسک ترسناک برای جشن هالووین",
-          price: 250000,
-          imageUrl: "https://images.unsplash.com/photo-1572043238979-62b2625d2b23?q=80&w=300&auto=format"
-        },
-        {
-          id: 102,
-          name: "لباس خون‌آشام",
-          description: "لباس خون‌آشام با جزئیات واقعی",
-          price: 850000,
-          imageUrl: "https://images.unsplash.com/photo-1613378254203-9230bf868527?q=80&w=300&auto=format"
-        }
-      ]
-    },
-    {
-      id: 2,
-      title: "مجموعه کتاب‌های نایاب",
-      description: "کتاب‌های نایاب و کمیاب با تخفیف ویژه",
-      discount: "۲۰٪",
-      badge: "محدود",
-      theme: "witch",
-      items: [
-        {
-          id: 201,
-          name: "انجیل شیطانی",
-          description: "نسخه کمیاب و اصل انجیل شیطانی",
-          price: 1500000,
-          imageUrl: "https://images.unsplash.com/photo-1601309455875-d4916e027887?q=80&w=300&auto=format"
-        },
-        {
-          id: 202,
-          name: "کتاب جادوگران",
-          description: "کتاب کمیاب درباره جادوگری قرون وسطی",
-          price: 950000,
-          imageUrl: "https://images.unsplash.com/photo-1584474263348-d0d99ef125b5?q=80&w=300&auto=format"
-        }
-      ]
-    },
-    {
-      id: 3,
-      title: "اکسسوری‌های خاص",
-      description: "مجموعه کامل اکسسوری‌های منحصر به فرد",
-      discount: "۱۵٪",
-      badge: "جدید",
-      theme: "werewolf",
-      items: [
-        {
-          id: 301,
-          name: "گردنبند گرگینه",
-          description: "گردنبند دست‌ساز با طرح گرگینه",
-          price: 450000,
-          imageUrl: "https://images.unsplash.com/photo-1617038220319-276d3cfab638?q=80&w=300&auto=format"
-        },
-        {
-          id: 302,
-          name: "چوب بیسبال خونین",
-          description: "چوب بیسبال تزئینی با طرح خون",
-          price: 650000,
-          imageUrl: "https://images.unsplash.com/photo-1531415074968-036ba1b575da?q=80&w=300&auto=format"
-        }
-      ]
-    }
-  ];
+  // Select the first offer from the selected category by default
+  useEffect(() => {
+    const firstOfferInCategory = offers.find(offer => offer.category === selectedCategory);
+    setSelectedOffer(firstOfferInCategory || null);
+  }, [selectedCategory, offers]);
 
-  // Animation variants
-  const menuVariants = {
-    hidden: { opacity: 0, y: -20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { 
-        duration: 0.3,
-        staggerChildren: 0.07
-      }
-    },
-    exit: { 
-      opacity: 0, 
-      y: -20,
-      transition: { 
-        duration: 0.2,
-        staggerChildren: 0.05,
-        staggerDirection: -1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: -10 },
-    visible: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -10 }
-  };
-
-  const handleOfferClick = (offerId) => {
-    if (selectedOffer === offerId) {
-      setSelectedOffer(null);
-    } else {
-      setSelectedOffer(offerId);
-    }
-  };
-
-  // Get selected offer details
-  const selectedOfferDetails = specialOffers.find(offer => offer.id === selectedOffer);
-
-  // Background theme styles based on selected offer
-  const getThemeStyles = (theme) => {
-    switch(theme) {
-      case 'vampire':
-        return 'from-vampire-dark to-vampire-primary';
-      case 'witch':
-        return 'from-witch-dark to-witch-primary';
-      case 'werewolf':
-        return 'from-werewolf-dark to-werewolf-primary';
-      default:
-        return 'from-midnight to-draugr-900';
-    }
-  };
+  // Filter offers by the selected category
+  const filteredOffers = offers.filter(offer => offer.category === selectedCategory);
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 overflow-hidden"
-          onClick={onClose}
-        >
-          {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/80" />
-
-          {/* Menu container - stop propagation to prevent closing when clicking inside */}
-          <div 
-            className="absolute inset-0 overflow-auto flex items-start justify-center pt-20 px-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <motion.div
-              variants={menuVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="bg-gradient-to-b from-midnight to-black rounded-lg shadow-horror border border-draugr-900 w-full max-w-4xl overflow-hidden"
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5, delay: 0.4 }}
+      className="mb-24"
+    >
+      {/* Section Header */}
+      <div className="mb-8 text-center">
+        <h2 className="text-2xl md:text-3xl blood-text mb-2">مشاهده همه پیشنهادات ویژه</h2>
+        <p className="text-gray-400 text-sm md:text-base">دسته‌بندی مورد نظر خود را انتخاب کنید</p>
+      </div>
+      
+      {/* Category Navigation */}
+      <div className="flex overflow-x-auto pb-4 mb-8 scrollbar-hide">
+        <div className="flex space-x-2 rtl:space-x-reverse mx-auto">
+          {categories.map((category, index) => (
+            <motion.button
+              key={category}
+              className={`px-4 py-2 rounded-md text-sm whitespace-nowrap transition-all duration-300 ${
+                selectedCategory === category
+                  ? 'bg-draugr-500 text-white shadow-[0_0_10px_rgba(255,0,0,0.4)]'
+                  : 'bg-black/50 text-gray-300 hover:bg-draugr-900/60 hover:text-white'
+              }`}
+              onClick={() => setSelectedCategory(category)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.1 + (index * 0.05) }}
             >
-              <div className="p-4 border-b border-draugr-900 flex justify-between items-center">
-                <h2 className="text-xl font-bold text-draugr-500">پیشنهادات ویژه</h2>
-                <button 
-                  onClick={onClose}
-                  className="text-gray-400 hover:text-white"
+              {category}
+            </motion.button>
+          ))}
+        </div>
+      </div>
+      
+      {/* Offers Grid and Details */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Side: Offers Grid */}
+        <div className="lg:col-span-1 order-2 lg:order-1">
+          <div className="bg-black/20 rounded-lg p-4 h-full border border-draugr-900/30">
+            <h3 className="text-xl text-white mb-4 flex items-center">
+              <span className="inline-block w-2 h-2 bg-draugr-500 rounded-full mr-2"></span>
+              {selectedCategory}
+            </h3>
+            
+            <div className="space-y-3">
+              {filteredOffers.map((offer) => (
+                <motion.div
+                  key={offer.id}
+                  className={`p-3 rounded-md cursor-pointer transition-all duration-300 ${
+                    selectedOffer?.id === offer.id
+                      ? 'bg-draugr-900/50 border-r-2 border-draugr-500'
+                      : 'bg-black/30 hover:bg-black/50'
+                  }`}
+                  onClick={() => setSelectedOffer(offer)}
+                  whileHover={{ x: 5 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
-                {/* Offers List */}
-                <div className="md:border-l border-draugr-900">
-                  <ul className="divide-y divide-draugr-900">
-                    {specialOffers.map((offer) => (
-                      <motion.li 
-                        key={offer.id}
-                        variants={itemVariants}
-                        className={`${
-                          selectedOffer === offer.id 
-                            ? 'bg-gradient-to-r from-draugr-900/50 to-transparent'
-                            : 'hover:bg-draugr-900/30'
-                        } cursor-pointer transition-all duration-300`}
-                        onClick={() => handleOfferClick(offer.id)}
-                      >
-                        <div className="p-4 flex items-center gap-3">
-                          <div className={`h-12 w-12 rounded-full bg-gradient-to-br ${getThemeStyles(offer.theme)} flex items-center justify-center shadow-lg`}>
-                            <span className="text-white font-bold">{offer.discount}</span>
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-semibold text-white">{offer.title}</h3>
-                              <span className={`text-xs px-2 py-0.5 rounded-full bg-${offer.theme}-primary/70 text-white`}>
-                                {offer.badge}
-                              </span>
-                            </div>
-                            <p className="text-sm text-gray-400">{offer.description}</p>
-                          </div>
-                        </div>
-                      </motion.li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Products Panel */}
-                <div className="col-span-2 bg-black/30">
-                  <AnimatePresence mode="wait">
-                    {selectedOfferDetails ? (
-                      <motion.div
-                        key={selectedOfferDetails.id}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className={`h-full bg-gradient-to-br ${getThemeStyles(selectedOfferDetails.theme)}/10 p-4`}
-                      >
-                        <div className="flex justify-between items-center mb-4">
-                          <h3 className="text-lg font-semibold">محصولات {selectedOfferDetails.title}</h3>
-                          <Link 
-                            to="/shop" 
-                            className={`text-${selectedOfferDetails.theme}-secondary hover:text-${selectedOfferDetails.theme}-accent text-sm flex items-center gap-1`}
-                          >
-                            <span>مشاهده همه</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                            </svg>
-                          </Link>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          {selectedOfferDetails.items.map((product) => (
-                            <div key={product.id} className="h-full">
-                              <ProductCard product={product} isHighlighted={true} inSlider={true} />
-                            </div>
-                          ))}
-                        </div>
-                        
-                        <div className="mt-4 flex justify-center">
-                          <Link 
-                            to="/special-offers" 
-                            className={`px-4 py-2 bg-gradient-to-r from-${selectedOfferDetails.theme}-primary to-${selectedOfferDetails.theme}-secondary text-white rounded-md shadow-md hover:shadow-lg transition-all duration-300`}
-                            onClick={onClose}
-                          >
-                            مشاهده همه پیشنهادات {selectedOfferDetails.title}
-                          </Link>
-                        </div>
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="h-full flex flex-col items-center justify-center p-8 text-center"
-                      >
-                        <div className="text-draugr-500 mb-3">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a4 4 0 00-4-4H8.8a4 4 0 00-3.6 2.3L1 12l4.2 7.7A4 4 0 008.8 22H12a4 4 0 004-4v-1.8A4 4 0 0020 12V9" />
-                          </svg>
-                        </div>
-                        <h3 className="text-lg font-semibold text-white mb-2">یک پیشنهاد را انتخاب کنید</h3>
-                        <p className="text-gray-400 text-sm max-w-md">برای مشاهده محصولات هر پیشنهاد، روی عنوان آن در سمت راست کلیک کنید.</p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </div>
-            </motion.div>
+                  <div className="flex items-center">
+                    <div className="w-16 h-16 rounded overflow-hidden flex-shrink-0 border border-draugr-900/50">
+                      <img 
+                        src={offer.image} 
+                        alt={offer.title} 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="ml-3 flex-grow">
+                      <h4 className="text-white text-sm font-medium">{offer.title}</h4>
+                      <p className="text-gray-400 text-xs mt-1 line-clamp-1">{offer.description}</p>
+                      <div className="mt-1 text-draugr-400 text-xs font-bold">تخفیف {offer.discount}</div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        </div>
+        
+        {/* Right Side: Selected Offer Details */}
+        <div className="lg:col-span-2 order-1 lg:order-2 mb-6 lg:mb-0">
+          <AnimatePresence mode="wait">
+            {selectedOffer && (
+              <motion.div
+                key={selectedOffer.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4 }}
+                className="bg-black/20 rounded-lg overflow-hidden border border-draugr-900/30 h-full"
+              >
+                {/* Header */}
+                <div className="relative h-48 md:h-60 overflow-hidden">
+                  <img 
+                    src={selectedOffer.image} 
+                    alt={selectedOffer.title} 
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-80"></div>
+                  
+                  <div className="absolute bottom-0 left-0 right-0 p-5">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-2xl md:text-3xl text-white font-bold">{selectedOffer.title}</h2>
+                      <div className="bg-draugr-500 text-white px-3 py-1 rounded-sm text-sm font-bold shadow-lg">
+                        تخفیف {selectedOffer.discount}
+                      </div>
+                    </div>
+                    <p className="text-gray-300 mt-2 text-sm md:text-base">{selectedOffer.description}</p>
+                  </div>
+                </div>
+                
+                {/* Products in this offer */}
+                <div className="p-5">
+                  <h3 className="text-xl text-white mb-4">محصولات این پیشنهاد</h3>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {selectedOffer.items.map((item) => (
+                      <motion.div
+                        key={item.id}
+                        className="bg-black/30 rounded-md overflow-hidden border border-draugr-900/30 group"
+                        whileHover={{ y: -5, scale: 1.02 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <div className="h-32 overflow-hidden">
+                          <img 
+                            src={item.image} 
+                            alt={item.name} 
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          />
+                        </div>
+                        <div className="p-3">
+                          <h4 className="text-white text-sm font-medium group-hover:text-draugr-300 transition-colors">{item.name}</h4>
+                          <div className="flex justify-between items-center mt-2">
+                            <div className="text-gray-400 text-xs line-through">{(item.price * 1.2).toLocaleString()} تومان</div>
+                            <div className="text-draugr-400 text-sm font-bold">{item.price.toLocaleString()} تومان</div>
+                          </div>
+                        </div>
+                        <Link 
+                          to={`/product/${item.id}`} 
+                          className="block text-center py-2 bg-black/50 text-xs text-white hover:bg-draugr-900/50 transition-colors"
+                        >
+                          مشاهده محصول
+                        </Link>
+                      </motion.div>
+                    ))}
+                  </div>
+                  
+                  {/* CTA button */}
+                  <div className="mt-8 text-center">
+                    <Link 
+                      to={`/special-offers/${selectedOffer.id}`}
+                      className="inline-block bg-gradient-to-r from-draugr-700 to-draugr-500 text-white px-6 py-3 rounded text-sm transition-all duration-300 hover:from-draugr-600 hover:to-draugr-400 hover:shadow-[0_0_15px_rgba(255,0,0,0.5)]"
+                    >
+                      خرید این پیشنهاد ویژه
+                    </Link>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    </motion.div>
   );
 };
 
