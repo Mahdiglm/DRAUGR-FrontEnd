@@ -60,11 +60,16 @@ const BlogPage = () => {
 
         {blogPosts && blogPosts.length > 0 ? (
           <motion.div 
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
             variants={containerVariants}
           >
             {blogPosts.map((post) => (
-              <motion.div key={post.id} variants={itemVariants} className="h-full">
+              <motion.div 
+                key={post.id} 
+                variants={itemVariants} 
+                className="h-full w-full transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                style={{ minHeight: "440px" }}
+              >
                 <BlogPostCard
                   title={post.title}
                   snippet={post.snippet}

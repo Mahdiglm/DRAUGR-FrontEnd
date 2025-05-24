@@ -17,9 +17,9 @@ const BlogPostCard = ({ title, snippet, author, date, imageUrl, onFlipComplete }
   };
 
   return (
-    <div className="h-full perspective-1000">
+    <div className="perspective-1000 h-full w-full">
       <motion.div
-        className="horror-card card-3d rounded-lg overflow-hidden flex flex-col h-full group relative w-full"
+        className="horror-card card-3d rounded-lg overflow-hidden flex flex-col h-full w-full group relative border border-red-900/50"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -30,15 +30,19 @@ const BlogPostCard = ({ title, snippet, author, date, imageUrl, onFlipComplete }
           backgroundColor: 'var(--draugr-dark, #121212)',
           borderColor: 'var(--draugr-primary, #ff0000)', 
           color: 'var(--draugr-light, #e0e0e0)',
+          boxShadow: "0 10px 20px rgba(0,0,0,0.5), 0 6px 6px rgba(255,0,0,0.1)",
+          minHeight: "440px", // Ensure minimum height
+          display: "block" // Ensure the card is displayed as a block
         }}
         onClick={toggleFlip}
       >
         {/* Front of Card */}
         <div 
-          className="absolute inset-0 backface-hidden w-full h-full"
+          className="absolute inset-0 w-full h-full flex flex-col"
           style={{ 
             backfaceVisibility: "hidden", 
-            WebkitBackfaceVisibility: "hidden"
+            WebkitBackfaceVisibility: "hidden",
+            zIndex: 1 // Ensure this is above other elements
           }}
         >
           {/* Image Section with fallback */}
@@ -54,7 +58,7 @@ const BlogPostCard = ({ title, snippet, author, date, imageUrl, onFlipComplete }
                 }}
               />
             ) : (
-              <div className="text-center p-4">
+              <div className="text-center p-4 w-full">
                 <div className="text-red-500 font-bold text-lg">{title || 'عنوان پست وبلاگ'}</div>
               </div>
             )}
@@ -86,13 +90,14 @@ const BlogPostCard = ({ title, snippet, author, date, imageUrl, onFlipComplete }
 
         {/* Back of Card */}
         <div 
-          className="absolute inset-0 backface-hidden w-full h-full rounded-lg overflow-hidden flex flex-col"
+          className="absolute inset-0 w-full h-full rounded-lg overflow-hidden flex flex-col"
           style={{ 
             backfaceVisibility: "hidden", 
             WebkitBackfaceVisibility: "hidden",
             transform: "rotateY(180deg)",
             backgroundColor: 'var(--draugr-dark, #121212)',
             backgroundImage: 'radial-gradient(circle at center, rgba(255,0,0,0.2) 0%, rgba(0,0,0,0) 70%)',
+            zIndex: 0 // Ensure this is behind when not flipped
           }}
         >
           <div className="p-6 flex flex-col justify-center items-center h-full text-center">
