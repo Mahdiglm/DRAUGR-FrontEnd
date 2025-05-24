@@ -15,6 +15,12 @@ import product13 from '../assets/Product_13.jpg';
 import product14 from '../assets/Product_14.jpg';
 import product15 from '../assets/Product_15.jpg';
 
+// Blog placeholder images (using null to trigger the fallback)
+const blogPlaceholderJangal = null;
+const blogPlaceholderEmarat = null;
+const blogPlaceholderMoumiaei = null;
+const blogPlaceholderDarya = null;
+
 export const products = [
   {
     id: 1,
@@ -181,7 +187,7 @@ export const blogPosts = [
     slug: "razhaye-nahofte-dar-jangal-tarik",
     author: "نویسنده مرموز",
     date: "۱۴ مرداد ۱۴۰۳", // Persian date
-    featuredImageUrl: "https://via.placeholder.com/800x400/1a0000/ff0000?text=Jangal+Tarik",
+    featuredImageUrl: blogPlaceholderJangal,
     snippet: "سفری به اعماق جنگلی که هرگز نور خورشید را به خود ندیده است. موجودات عجیب و داستان‌های فراموش شده در انتظار شما هستند. آیا جرات ورود دارید؟",
     content: `
       <p><strong>مقدمه:</strong> جنگل تاریک، مکانی است که نامش با لرز بر زبان‌ها جاری می‌شود. محلی که درختان کهنسال آن سایه‌هایی عمیق و دائمی بر زمین افکنده‌اند و نور خورشید به ندرت جرات نفوذ به آن را پیدا می‌کند. این مقاله به بررسی افسانه‌ها و حقایق پیرامون این مکان اسرارآمیز می‌پردازد.</p>
@@ -209,7 +215,7 @@ export const blogPosts = [
     slug: "emarat-taskhir-shode-balaye-tape",
     author: "شاهد عینی",
     date: "۲۲ شهریور ۱۴۰۳", // Persian date
-    featuredImageUrl: "https://via.placeholder.com/800x400/101010/cc0000?text=Emarat+Taskhir+Shode",
+    featuredImageUrl: blogPlaceholderEmarat,
     snippet: "داستان عمارتی قدیمی که بر فراز تپه‌ای قرار دارد و گفته می‌شود توسط ارواح ساکنان قبلی‌اش تسخیر شده است. صداهای عجیب، اشیاء متحرک و سایه‌های وهم‌آور تنها بخشی از اتفاقات این خانه هستند.",
     content: `
       <p>عمارت ویکتوریایی که بر بلندای تپه سایه‌افکن قرار گرفته، دهه‌هاست که خالی از سکنه است، اما نه کاملاً آرام. مردم محلی از شنیدن صداهای عجیب در شب، از ناله‌های غم‌انگیز گرفته تا خنده‌های شیطانی، حکایت می‌کنند. <em>هیچکس جرات نزدیک شدن به آن را پس از غروب آفتاب ندارد.</em></p>
@@ -236,7 +242,7 @@ export const blogPosts = [
     slug: "nefrin-moumiaei-gomshode",
     author: "باستان شناس ماجراجو",
     date: "۰۵ آبان ۱۴۰۳", // Persian date
-    featuredImageUrl: "https://via.placeholder.com/800x400/2b1d0e/ffc107?text=Nefrin+Moumiaei",
+    featuredImageUrl: blogPlaceholderMoumiaei,
     snippet: "کشف یک مقبره باستانی و نفرینی که گریبان‌گیر تمام کسانی می‌شود که آرامش مومیایی را برهم زنند. آیا این تنها یک افسانه است یا قدرتی تاریک در کار است؟",
     content: `
       <p>در اعماق شنزارهای سوزان مصر، مقبره‌ای فراموش شده کشف شد که گفته می‌شود متعلق به یک فرعون گمنام اما قدرتمند است. بر روی ورودی مقبره، هشداری به خط هیروگلیف حک شده بود: <em>"مرگ بال‌های سیاهش را بر هر آنکس که خواب ابدی پادشاه را برآشوبد، خواهد گسترد."</em></p>
@@ -263,7 +269,7 @@ export const blogPosts = [
     slug: "mojodat-amaq-darya",
     author: "اقیانوس شناس کنجکاو",
     date: "۱۸ دی ۱۴۰۳", // Persian date
-    featuredImageUrl: "https://via.placeholder.com/800x400/000033/00ccff?text=Amaq+Darya",
+    featuredImageUrl: blogPlaceholderDarya,
     snippet: "گفته می‌شود اعماق ناشناخته اقیانوس‌ها، پناهگاه موجوداتی غول‌پیکر و ترسناک است که از دید انسان پنهان مانده‌اند. نگاهی به داستان‌های کراکن، لویاتان و دیگر هیولاهای دریایی.",
     content: `
       <p>بیش از هشتاد درصد اقیانوس‌های جهان هنوز کاوش نشده باقی مانده‌اند. در این تاریکی بی‌پایان، چه موجوداتی ممکن است پنهان شده باشند؟ افسانه‌های ملوانان قدیمی پر از داستان‌هایی درباره هیولاهای دریایی است که کشتی‌ها را به کام خود می‌کشیدند.</p>
