@@ -17,6 +17,11 @@ const SpecialOffersMenu = ({ offers }) => {
   // Filter offers by the selected category
   const filteredOffers = offers.filter(offer => offer.category === selectedCategory);
 
+  // Format price with comma separators and add Toman
+  const formatPrice = (price) => {
+    return `${price.toLocaleString()} تومان`;
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -143,7 +148,7 @@ const SpecialOffersMenu = ({ offers }) => {
                       >
                         <div className="h-32 overflow-hidden">
                           <img 
-                            src={item.image} 
+                            src={item.imageUrl} 
                             alt={item.name} 
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                           />
@@ -151,8 +156,8 @@ const SpecialOffersMenu = ({ offers }) => {
                         <div className="p-3">
                           <h4 className="text-white text-sm font-medium group-hover:text-draugr-300 transition-colors">{item.name}</h4>
                           <div className="flex justify-between items-center mt-2">
-                            <div className="text-gray-400 text-xs line-through">{(item.price * 1.2).toLocaleString()} تومان</div>
-                            <div className="text-draugr-400 text-sm font-bold">{item.price.toLocaleString()} تومان</div>
+                            <div className="text-gray-400 text-xs line-through">{formatPrice(item.price * 1.2)}</div>
+                            <div className="text-draugr-400 text-sm font-bold">{formatPrice(item.price)}</div>
                           </div>
                         </div>
                         <Link 
