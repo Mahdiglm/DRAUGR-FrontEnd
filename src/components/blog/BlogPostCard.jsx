@@ -5,14 +5,13 @@ const BlogPostCard = ({ title, snippet, author, date, imageUrl, onFlipComplete }
   // Add state to track if card is flipped
   const [isFlipped, setIsFlipped] = useState(false);
   
-  // Function to toggle card flip
+  // Function to toggle card flip - made much faster
   const toggleFlip = () => {
     setIsFlipped(!isFlipped);
     
-    // If flipping to back side and we have a callback, execute it after animation time
-    if (!isFlipped && onFlipComplete) {
-      // We'll use this for navigation after the animation
-      setTimeout(onFlipComplete, 600);
+    // Execute the callback immediately for faster navigation
+    if (onFlipComplete) {
+      onFlipComplete();
     }
   };
 
@@ -25,7 +24,7 @@ const BlogPostCard = ({ title, snippet, author, date, imageUrl, onFlipComplete }
         transition={{ duration: 0.5 }}
         style={{
           transformStyle: "preserve-3d",
-          transition: "transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+          transition: "transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)", // Faster animation (0.3s instead of 0.6s)
           transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
           backgroundColor: 'var(--draugr-dark, #121212)',
           borderColor: 'var(--draugr-primary, #ff0000)', 
@@ -105,7 +104,7 @@ const BlogPostCard = ({ title, snippet, author, date, imageUrl, onFlipComplete }
               <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.3, duration: 0.4 }}
+                transition={{ delay: 0.1, duration: 0.2 }} // Faster animation
                 className="w-16 h-16 rounded-full bg-red-800 bg-opacity-30 flex items-center justify-center mx-auto mb-4"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">

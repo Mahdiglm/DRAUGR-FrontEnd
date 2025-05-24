@@ -32,12 +32,10 @@ const itemVariants = {
 const BlogPage = () => {
   const navigate = useNavigate();
   
-  // Handle navigation after card flip
+  // Handle navigation after card flip - made much faster
   const handleCardClick = (slug) => {
-    // Add a small delay to allow the flip animation to complete
-    setTimeout(() => {
-      navigate(`/blog/${slug}`);
-    }, 800); // Slightly longer than the flip animation duration
+    // Navigate immediately - the flip animation will happen in the card component
+    navigate(`/blog/${slug}`);
   };
 
   return (
