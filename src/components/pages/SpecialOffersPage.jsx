@@ -6,6 +6,8 @@ import SpecialOffersMenu from '../shared/SpecialOffersMenu';
 import darkRitualImage from '../../assets/darksat.png';
 import halloweenPackImage from '../../assets/halovinpack.png';
 import spellPackImage from '../../assets/mahlolha.png';
+// Import products data
+import { products } from '../../utils/mockData';
 
 const SpecialOffersPage = () => {
   // Sample special offers data - this would typically come from an API
@@ -18,9 +20,9 @@ const SpecialOffersPage = () => {
       image: darkRitualImage,
       category: 'پک‌های ویژه',
       items: [
-        { id: 1, name: 'کتاب آیین‌های باستانی', price: 850000, image: 'https://via.placeholder.com/150?text=Ancient+Book' },
-        { id: 2, name: 'گردنبند نمادین', price: 450000, image: 'https://via.placeholder.com/150?text=Symbol+Necklace' },
-        { id: 3, name: 'شمع مشکی آیینی', price: 120000, image: 'https://via.placeholder.com/150?text=Ritual+Candle' }
+        products.find(p => p.id === 4), // طومار باستانی
+        products.find(p => p.id === 12), // کتاب نفرین‌ها
+        products.find(p => p.id === 8) // ویجا بورد نفرین شده
       ]
     },
     {
@@ -31,9 +33,9 @@ const SpecialOffersPage = () => {
       image: halloweenPackImage,
       category: 'پک‌های ویژه',
       items: [
-        { id: 4, name: 'ماسک جک-او-لنترن', price: 350000, image: 'https://via.placeholder.com/150?text=Jack+O+Lantern' },
-        { id: 5, name: 'لباس اسکلتی', price: 750000, image: 'https://via.placeholder.com/150?text=Skeleton+Costume' },
-        { id: 6, name: 'دکوراسیون خفاش', price: 180000, image: 'https://via.placeholder.com/150?text=Bat+Decoration' }
+        products.find(p => p.id === 10), // زیرسیگاری جمجمه
+        products.find(p => p.id === 13), // چوب بیسبال خون‌آلود
+        products.find(p => p.id === 15) // کامیک هارور
       ]
     },
     {
@@ -44,9 +46,9 @@ const SpecialOffersPage = () => {
       image: spellPackImage,
       category: 'پک‌های ویژه',
       items: [
-        { id: 7, name: 'کتاب طلسم‌ها', price: 550000, image: 'https://via.placeholder.com/150?text=Spell+Book' },
-        { id: 8, name: 'کریستال‌های جادویی', price: 380000, image: 'https://via.placeholder.com/150?text=Magic+Crystals' },
-        { id: 9, name: 'گیاهان خشک آیینی', price: 220000, image: 'https://via.placeholder.com/150?text=Ritual+Herbs' }
+        products.find(p => p.id === 3), // معجون شفا
+        products.find(p => p.id === 4), // طومار باستانی
+        products.find(p => p.id === 5) // گردنبند مقدس
       ]
     },
     {
@@ -57,9 +59,9 @@ const SpecialOffersPage = () => {
       image: 'https://via.placeholder.com/400x300?text=Gothic+Pack',
       category: 'پک‌های ویژه',
       items: [
-        { id: 10, name: 'لباس گاتیک', price: 950000, image: 'https://via.placeholder.com/150?text=Gothic+Outfit' },
-        { id: 11, name: 'زیورآلات نقره‌ای', price: 480000, image: 'https://via.placeholder.com/150?text=Silver+Jewelry' },
-        { id: 12, name: 'کفش پلتفرم', price: 850000, image: 'https://via.placeholder.com/150?text=Platform+Boots' }
+        products.find(p => p.id === 14), // وست چرمی
+        products.find(p => p.id === 6), // دستبند محافظ
+        products.find(p => p.id === 5) // گردنبند مقدس
       ]
     },
     {
@@ -70,9 +72,9 @@ const SpecialOffersPage = () => {
       image: 'https://via.placeholder.com/400x300?text=Winter+Sale',
       category: 'تخفیف‌های فصلی',
       items: [
-        { id: 13, name: 'کت چرم گاتیک', price: 1250000, image: 'https://via.placeholder.com/150?text=Leather+Coat' },
-        { id: 14, name: 'پالتو بلند مشکی', price: 1850000, image: 'https://via.placeholder.com/150?text=Long+Black+Coat' },
-        { id: 15, name: 'دستکش چرم', price: 350000, image: 'https://via.placeholder.com/150?text=Leather+Gloves' }
+        products.find(p => p.id === 2), // کلاه‌خود نوردیک
+        products.find(p => p.id === 14), // وست چرمی
+        products.find(p => p.id === 11) // ماگ استخوانی
       ]
     },
     {
@@ -83,9 +85,9 @@ const SpecialOffersPage = () => {
       image: 'https://via.placeholder.com/400x300?text=Yalda+Sale',
       category: 'تخفیف‌های فصلی',
       items: [
-        { id: 16, name: 'شمع‌های قرمز', price: 220000, image: 'https://via.placeholder.com/150?text=Red+Candles' },
-        { id: 17, name: 'کتاب حافظ', price: 450000, image: 'https://via.placeholder.com/150?text=Hafez+Book' },
-        { id: 18, name: 'ماگ سرامیکی', price: 280000, image: 'https://via.placeholder.com/150?text=Ceramic+Mug' }
+        products.find(p => p.id === 7), // فندک اژدها
+        products.find(p => p.id === 11), // ماگ استخوانی
+        products.find(p => p.id === 15) // کامیک هارور
       ]
     },
     {
@@ -96,9 +98,9 @@ const SpecialOffersPage = () => {
       image: 'https://via.placeholder.com/400x300?text=Halloween+Sale',
       category: 'تخفیف‌های فصلی',
       items: [
-        { id: 19, name: 'دکوراسیون هالووین', price: 480000, image: 'https://via.placeholder.com/150?text=Halloween+Decor' },
-        { id: 20, name: 'لباس جادوگر', price: 680000, image: 'https://via.placeholder.com/150?text=Witch+Costume' },
-        { id: 21, name: 'لوازم گریم', price: 320000, image: 'https://via.placeholder.com/150?text=Makeup+Kit' }
+        products.find(p => p.id === 8), // ویجا بورد نفرین شده
+        products.find(p => p.id === 12), // کتاب نفرین‌ها
+        products.find(p => p.id === 9) // پیک گیتار استخوانی
       ]
     },
     {
@@ -109,9 +111,9 @@ const SpecialOffersPage = () => {
       image: 'https://via.placeholder.com/400x300?text=Exclusive+Collection',
       category: 'محصولات محدود',
       items: [
-        { id: 22, name: 'تیشرت محدود دراوگر', price: 580000, image: 'https://via.placeholder.com/150?text=Limited+Tshirt' },
-        { id: 23, name: 'پوستر امضا شده', price: 780000, image: 'https://via.placeholder.com/150?text=Signed+Poster' },
-        { id: 24, name: 'مجسمه کلکسیونی', price: 1280000, image: 'https://via.placeholder.com/150?text=Collectible+Statue' }
+        products.find(p => p.id === 1), // شمشیر DRAUGR
+        products.find(p => p.id === 2), // کلاه‌خود نوردیک
+        products.find(p => p.id === 12) // کتاب نفرین‌ها
       ]
     },
     {
@@ -122,9 +124,9 @@ const SpecialOffersPage = () => {
       image: 'https://via.placeholder.com/400x300?text=Rare+Items',
       category: 'محصولات محدود',
       items: [
-        { id: 25, name: 'کتاب باستانی', price: 1850000, image: 'https://via.placeholder.com/150?text=Ancient+Book' },
-        { id: 26, name: 'سنگ‌های کمیاب', price: 920000, image: 'https://via.placeholder.com/150?text=Rare+Stones' },
-        { id: 27, name: 'نسخه خطی قدیمی', price: 2500000, image: 'https://via.placeholder.com/150?text=Old+Manuscript' }
+        products.find(p => p.id === 4), // طومار باستانی
+        products.find(p => p.id === 8), // ویجا بورد نفرین شده
+        products.find(p => p.id === 12) // کتاب نفرین‌ها
       ]
     },
     {
@@ -135,9 +137,9 @@ const SpecialOffersPage = () => {
       image: 'https://via.placeholder.com/400x300?text=Draugr+Exclusive',
       category: 'محصولات محدود',
       items: [
-        { id: 28, name: 'لوگوی طلایی دراوگر', price: 1250000, image: 'https://via.placeholder.com/150?text=Golden+Logo' },
-        { id: 29, name: 'جعبه هدیه مخصوص', price: 780000, image: 'https://via.placeholder.com/150?text=Special+Gift+Box' },
-        { id: 30, name: 'کارت عضویت VIP', price: 3500000, image: 'https://via.placeholder.com/150?text=VIP+Membership' }
+        products.find(p => p.id === 1), // شمشیر DRAUGR
+        products.find(p => p.id === 3), // معجون شفا
+        products.find(p => p.id === 5) // گردنبند مقدس
       ]
     }
   ];
