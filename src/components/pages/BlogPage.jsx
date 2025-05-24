@@ -51,11 +51,11 @@ const BlogPage = () => {
         {blogPosts && blogPosts.length > 0 ? (
           <motion.div 
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
-            variants={containerVariants} // Apply container variants here as well for staggered children
+            variants={containerVariants}
           >
             {blogPosts.map((post) => (
               <motion.div key={post.id} variants={itemVariants} className="h-full">
-                <Link to={`/blog/${post.slug}`} className="block h-full focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 rounded-lg">
+                <div className="h-full" onClick={() => window.location.href = `/blog/${post.slug}`}>
                   <BlogPostCard
                     title={post.title}
                     snippet={post.snippet}
@@ -63,7 +63,7 @@ const BlogPage = () => {
                     date={post.date}
                     imageUrl={post.featuredImageUrl}
                   />
-                </Link>
+                </div>
               </motion.div>
             ))}
           </motion.div>
