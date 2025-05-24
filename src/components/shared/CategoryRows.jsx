@@ -366,7 +366,6 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
   const itemRef = useRef(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isNear, setIsNear] = useState(false);
-  const [isHovering, setIsHovering] = useState(false); // Add new state to track hover independently
   const [proximityData, setProximityData] = useState({
     edge: null,
     distance: 100,
@@ -377,46 +376,6 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
   // Settings
   const proximityThreshold = 60; // How close the mouse needs to be to activate border effect
   const borderWidth = 2; // Width of the border in pixels
-  
-  // Handle hover enter/leave to maintain animations even when mouse isn't moving
-  useEffect(() => {
-    if (!itemRef.current) return;
-    
-    const handleMouseEnter = () => {
-      setIsHovering(true);
-      
-      // If we don't have proximity data yet, set some default values
-      if (!isNear) {
-        const rect = itemRef.current.getBoundingClientRect();
-        const middleX = rect.width / 2;
-        const middleY = rect.height / 2;
-        
-        // Set default edge and position based on center of item
-        setIsNear(true);
-        setProximityData(prev => ({
-          ...prev,
-          edge: 'top',
-          distance: 0,
-          intensity: 1,
-          position: 0.5,
-        }));
-      }
-    };
-    
-    const handleMouseLeave = () => {
-      setIsHovering(false);
-      if (isNear) setIsNear(false);
-    };
-    
-    const item = itemRef.current;
-    item.addEventListener('mouseenter', handleMouseEnter);
-    item.addEventListener('mouseleave', handleMouseLeave);
-    
-    return () => {
-      item.removeEventListener('mouseenter', handleMouseEnter);
-      item.removeEventListener('mouseleave', handleMouseLeave);
-    };
-  }, [isNear]);
   
   // Track global mouse position to detect proximity even when outside the item
   useEffect(() => {
@@ -437,92 +396,92 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
         x >= -proximityThreshold && x <= rect.width + proximityThreshold &&
         y >= -proximityThreshold && y <= rect.height + proximityThreshold;
       
-      // Handle mouse entering proximity
-      if (isNearItem) {
-        // Calculate distances to each edge
-        const distToLeft = Math.abs(x);
-        const distToRight = Math.abs(x - rect.width);
-        const distToTop = Math.abs(y);
-        const distToBottom = Math.abs(y - rect.height);
+      // Only proceed if we're near the item
+      if (!isNearItem) {
+        if (isNear) setIsNear(false); // Reset if we were previously near
+        return;
+      }
+      
+      // Calculate distances to each edge
+      const distToLeft = Math.abs(x);
+      const distToRight = Math.abs(x - rect.width);
+      const distToTop = Math.abs(y);
+      const distToBottom = Math.abs(y - rect.height);
+      
+      // Find closest edge and its distance
+      let closestEdge;
+      let minDistance;
+      
+      // Check if we're inside the item
+      const isInside = x >= 0 && x <= rect.width && y >= 0 && y <= rect.height;
+      
+      if (isInside) {
+        // When inside, check distance to each edge
+        const edges = [
+          { edge: 'left', dist: distToLeft },
+          { edge: 'right', dist: distToRight },
+          { edge: 'top', dist: distToTop },
+          { edge: 'bottom', dist: distToBottom }
+        ];
         
-        // Find closest edge and its distance
-        let closestEdge;
-        let minDistance;
-        
-        // Check if we're inside the item
-        const isInside = x >= 0 && x <= rect.width && y >= 0 && y <= rect.height;
-        
-        if (isInside) {
-          setIsHovering(true); // Ensure hovering state is true when mouse is inside
-          
-          // When inside, check distance to each edge
-          const edges = [
-            { edge: 'left', dist: distToLeft },
-            { edge: 'right', dist: distToRight },
-            { edge: 'top', dist: distToTop },
-            { edge: 'bottom', dist: distToBottom }
-          ];
-          
-          // Sort by distance
-          edges.sort((a, b) => a.dist - b.dist);
-          closestEdge = edges[0].edge;
-          minDistance = edges[0].dist;
+        // Sort by distance
+        edges.sort((a, b) => a.dist - b.dist);
+        closestEdge = edges[0].edge;
+        minDistance = edges[0].dist;
+      } else {
+        // When outside, calculate distance to closest point on border
+        // Determine which quadrant we're in
+        if (x < 0 && y < 0) {
+          // Top-left corner
+          closestEdge = 'topLeft';
+          minDistance = Math.sqrt(distToLeft * distToLeft + distToTop * distToTop);
+        } else if (x > rect.width && y < 0) {
+          // Top-right corner
+          closestEdge = 'topRight';
+          minDistance = Math.sqrt(distToRight * distToRight + distToTop * distToTop);
+        } else if (x < 0 && y > rect.height) {
+          // Bottom-left corner
+          closestEdge = 'bottomLeft';
+          minDistance = Math.sqrt(distToLeft * distToLeft + distToBottom * distToBottom);
+        } else if (x > rect.width && y > rect.height) {
+          // Bottom-right corner
+          closestEdge = 'bottomRight';
+          minDistance = Math.sqrt(distToRight * distToRight + distToBottom * distToBottom);
+        } else if (x < 0) {
+          // Left edge
+          closestEdge = 'left';
+          minDistance = distToLeft;
+        } else if (x > rect.width) {
+          // Right edge
+          closestEdge = 'right';
+          minDistance = distToRight;
+        } else if (y < 0) {
+          // Top edge
+          closestEdge = 'top';
+          minDistance = distToTop;
         } else {
-          // When outside, calculate distance to closest point on border
-          // Determine which quadrant we're in
-          if (x < 0 && y < 0) {
-            // Top-left corner
-            closestEdge = 'topLeft';
-            minDistance = Math.sqrt(distToLeft * distToLeft + distToTop * distToTop);
-          } else if (x > rect.width && y < 0) {
-            // Top-right corner
-            closestEdge = 'topRight';
-            minDistance = Math.sqrt(distToRight * distToRight + distToTop * distToTop);
-          } else if (x < 0 && y > rect.height) {
-            // Bottom-left corner
-            closestEdge = 'bottomLeft';
-            minDistance = Math.sqrt(distToLeft * distToLeft + distToBottom * distToBottom);
-          } else if (x > rect.width && y > rect.height) {
-            // Bottom-right corner
-            closestEdge = 'bottomRight';
-            minDistance = Math.sqrt(distToRight * distToRight + distToBottom * distToBottom);
-          } else if (x < 0) {
-            // Left edge
-            closestEdge = 'left';
-            minDistance = distToLeft;
-          } else if (x > rect.width) {
-            // Right edge
-            closestEdge = 'right';
-            minDistance = distToRight;
-          } else if (y < 0) {
-            // Top edge
-            closestEdge = 'top';
-            minDistance = distToTop;
-          } else {
-            // Bottom edge
-            closestEdge = 'bottom';
-            minDistance = distToBottom;
-          }
+          // Bottom edge
+          closestEdge = 'bottom';
+          minDistance = distToBottom;
         }
-        
-        // Calculate intensity based on proximity (1 when at edge, 0 when beyond threshold)
-        const intensity = Math.max(0, 1 - (minDistance / proximityThreshold));
-        
-        // Only consider "near" if within threshold
-        const near = minDistance < proximityThreshold;
-        
-        if (near) {
-          setIsNear(true);
-          setProximityData({
-            edge: closestEdge,
-            distance: minDistance,
-            intensity,
-            position: getPositionAlongEdge(closestEdge, x, y, rect.width, rect.height)
-          });
-        }
-      } else if (!isHovering) {
-        // Only reset isNear if we're not hovering - this prevents flicker when mouse stops moving
-        if (isNear) setIsNear(false);
+      }
+      
+      // Calculate intensity based on proximity (1 when at edge, 0 when beyond threshold)
+      const intensity = Math.max(0, 1 - (minDistance / proximityThreshold));
+      
+      // Only consider "near" if within threshold
+      const near = minDistance < proximityThreshold;
+      
+      if (near) {
+        setIsNear(true);
+        setProximityData({
+          edge: closestEdge,
+          distance: minDistance,
+          intensity,
+          position: getPositionAlongEdge(closestEdge, x, y, rect.width, rect.height)
+        });
+      } else if (isNear) {
+        setIsNear(false);
       }
     };
     
@@ -532,7 +491,7 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
     return () => {
       window.removeEventListener('mousemove', handleGlobalMouseMove);
     };
-  }, [isNear, proximityThreshold, isHovering]); // Add isHovering to dependencies
+  }, [isNear, proximityThreshold]);
   
   // Calculate the relative position along an edge (0 to 1)
   const getPositionAlongEdge = (edge, x, y, width, height) => {
@@ -551,8 +510,7 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
   
   // Render just the border segments that are close to the cursor
   const renderBorderSegments = () => {
-    // Use isHovering OR isNear to determine whether to show border
-    if (!isNear && !isHovering) return null;
+    if (!isNear) return null;
     
     const { edge, intensity, position } = proximityData;
     const glowColor = '#ff0066';
@@ -775,7 +733,7 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
   
   // Render flowing circuit trace effect
   const renderCircuitTrace = () => {
-    if (!isNear && !isHovering) return null;
+    if (!isNear) return null;
     
     const { edge, intensity, position } = proximityData;
     
