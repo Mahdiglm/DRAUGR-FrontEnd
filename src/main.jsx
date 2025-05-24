@@ -55,6 +55,7 @@ createRoot(document.getElementById('root')).render(
             <Route path="blog" element={<BlogPage />} />
             <Route path="blog/:slug" element={<SingleBlogPostPage />} />
             <Route path="special-offers" element={<SpecialOffersPage />} />
+            <Route path="special-offers/:id" element={<SpecialOffersPage />} />
           </Route>
         </Routes>
       </HashRouter>
