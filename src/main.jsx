@@ -37,6 +37,7 @@ import Login from './components/auth/Login'
 import SignUp from './components/auth/SignUp'
 import BlogPage from './components/pages/BlogPage';
 import SingleBlogPostPage from './components/pages/SingleBlogPostPage';
+import SpecialOffersPage from './components/pages/SpecialOffersPage';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -53,6 +54,7 @@ createRoot(document.getElementById('root')).render(
             <Route path="signup" element={<SignUp />} />
             <Route path="blog" element={<BlogPage />} />
             <Route path="blog/:slug" element={<SingleBlogPostPage />} />
+            <Route path="special-offers" element={<SpecialOffersPage />} />
           </Route>
         </Routes>
       </HashRouter>
