@@ -35,28 +35,26 @@ const SpecialOffersMenu = ({ offers }) => {
         <p className="text-gray-400 text-sm md:text-base">دسته‌بندی مورد نظر خود را انتخاب کنید</p>
       </div>
       
-      {/* Category Navigation */}
-      <div className="flex overflow-x-auto pb-4 mb-8 scrollbar-hide">
-        <div className="flex space-x-2 rtl:space-x-reverse mx-auto">
-          {categories.map((category, index) => (
-            <motion.button
-              key={category}
-              className={`px-4 py-2 rounded-md text-sm whitespace-nowrap transition-all duration-300 ${
-                selectedCategory === category
-                  ? 'bg-draugr-500 text-white shadow-[0_0_10px_rgba(255,0,0,0.4)]'
-                  : 'bg-black/50 text-gray-300 hover:bg-draugr-900/60 hover:text-white'
-              }`}
-              onClick={() => setSelectedCategory(category)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.1 + (index * 0.05) }}
-            >
-              {category}
-            </motion.button>
-          ))}
-        </div>
+      {/* Category Navigation - Redesigned */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 mb-10">
+        {categories.map((category, index) => (
+          <motion.button
+            key={category}
+            className={`py-3 rounded-lg text-sm transition-all duration-300 border ${
+              selectedCategory === category
+                ? 'bg-draugr-500 text-white border-draugr-400 shadow-[0_0_10px_rgba(255,0,0,0.4)]'
+                : 'bg-black/50 text-gray-300 border-gray-800 hover:bg-draugr-900/60 hover:text-white'
+            }`}
+            onClick={() => setSelectedCategory(category)}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 + (index * 0.05) }}
+          >
+            {category}
+          </motion.button>
+        ))}
       </div>
       
       {/* Offers Grid and Details */}
