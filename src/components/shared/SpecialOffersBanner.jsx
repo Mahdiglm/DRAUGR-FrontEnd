@@ -68,24 +68,7 @@ const SpecialOffersBanner = ({ offers }) => {
               <p className="text-sm text-gray-400 mb-4 leading-relaxed line-clamp-2">
                 {offer.description}
               </p>
-              
-              {/* Items preview */}
-              <div className="flex">
-                {offer.items.slice(0, 4).map((item, idx) => (
-                  <div key={item.id} className="relative w-8 h-8 bg-black/60 border border-gray-700/50 overflow-hidden" style={{ borderRadius: '1px' }}>
-                    <img 
-                      src={item.image} 
-                      alt={item.name} 
-                      className="w-full h-full object-cover filter brightness-90"
-                    />
-                  </div>
-                ))}
-                {offer.items.length > 4 && (
-                  <div className="w-8 h-8 bg-black/60 border border-gray-700/50 flex items-center justify-center text-xs text-gray-400">
-                    +{offer.items.length - 4}
-                  </div>
-                )}
-              </div>
+            
               
               {/* CTA button */}
               <Link 
