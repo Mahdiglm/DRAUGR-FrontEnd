@@ -72,7 +72,7 @@ const SpecialOffersMenu = ({ offers }) => {
             onMouseEnter={() => {setIsHovering(true); playHoverSound()}}
             onMouseLeave={() => setIsHovering(false)}
           >
-            پیشنهادات ویژه درائوگر
+            پیشنهادات ویژه دراگر
           </motion.h2>
           
           {/* Decorative Elements */}
@@ -179,56 +179,72 @@ const SpecialOffersMenu = ({ offers }) => {
                 {filteredOffers.map((offer) => (
                   <motion.div
                     key={offer.id}
-                    className={`relative rounded-lg cursor-pointer transition-all duration-300 overflow-hidden group ${
+                    className={`relative cursor-pointer transition-all duration-300 overflow-hidden group bg-black/70 border ${
                       selectedOffer?.id === offer.id
-                        ? 'ring-1 ring-red-900'
-                        : ''
+                        ? 'border-red-800/60 shadow-[0_0_15px_rgba(255,0,0,0.2)]'
+                        : 'border-gray-800/40'
                     }`}
                     onClick={() => setSelectedOffer(offer)}
-                    whileHover={{ scale: 1.02 }}
+                    whileHover={{ y: -2 }}
                     whileTap={{ scale: 0.98 }}
                     onMouseEnter={playHoverSound}
+                    style={{ borderRadius: '1px' }}
                   >
+                    {/* Subtle texture overlay */}
+                    <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
+                      <div className="w-full h-full" style={{
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10,10 L20,20 M20,10 L10,20 M30,30 L40,40 M40,30 L30,40' stroke='%23ff0000' stroke-width='0.5' fill='none'/%3E%3C/svg%3E")`
+                      }}></div>
+                    </div>
+
                     <div className="flex flex-col">
-                      <div className="relative w-full h-32 overflow-hidden">
-                        {/* Dark overlay with vignette */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-60 z-10 group-hover:opacity-40 transition-opacity duration-300"></div>
+                      <div className="relative w-full h-28 overflow-hidden">
+                        {/* Dark gradient overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10"></div>
                         
                         <img 
                           src={offer.image} 
                           alt={offer.title} 
-                          className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 filter brightness-75 group-hover:brightness-90"
+                          className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105 filter brightness-70 contrast-110"
                         />
                         
-                        {/* "DRAUGR's Pick" badge for featured items */}
+                        {/* Featured badge */}
                         {offer.featured && (
                           <div className="absolute top-2 right-2 z-20">
-                            <motion.div 
-                              className="bg-black/80 border border-red-900/80 rounded-sm text-xs text-red-500 font-bold py-1 px-2 flex items-center"
-                              animate={{ 
-                                boxShadow: ["0 0 5px rgba(220,38,38,0.3)", "0 0 10px rgba(220,38,38,0.5)", "0 0 5px rgba(220,38,38,0.3)"]
-                              }}
-                              transition={{ duration: 2, repeat: Infinity }}
-                            >
+                            <div className="bg-black/90 border border-red-900/60 text-xs text-red-400 font-medium py-1 px-2 flex items-center">
                               <svg className="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="none">
-                                <path d="M12 2L15 9L22 9L16 14L18 21L12 17L6 21L8 14L2 9L9 9L12 2Z" fill="currentColor" />
+                                <path d="M12 2L15 5L12 8L9 5L12 2Z" fill="currentColor" />
                               </svg>
-                              انتخاب درائوگر
-                            </motion.div>
+                              انتخاب
+                            </div>
                           </div>
                         )}
-                      </div>
-                      <div className="p-3 bg-black/80 relative border-t border-red-900/30">
-                        {selectedOffer?.id === offer.id && (
-                          <div className="absolute -top-2 right-4 w-4 h-4 bg-red-900 rotate-45 transform"></div>
-                        )}
-                        <h4 className="text-white text-sm font-medium group-hover:text-red-400 transition-colors">{offer.title}</h4>
-                        <p className="text-gray-400 text-xs mt-1 line-clamp-2 group-hover:text-gray-300 transition-colors">{offer.description}</p>
-                        <div className="mt-2 inline-block px-2 py-1 rounded text-xs font-bold bg-red-900/20 text-red-500 border border-red-900/30">
-                          تخفیف {offer.discount}
+                        
+                        {/* Discount badge */}
+                        <div className="absolute bottom-2 left-2 z-20 bg-black/90 border border-red-900/50 text-xs text-red-400 px-2 py-1">
+                          {offer.discount}
                         </div>
                       </div>
+                      
+                      <div className="p-3 relative">
+                        {/* Selection indicator */}
+                        {selectedOffer?.id === offer.id && (
+                          <div className="absolute top-0 right-3 w-2 h-2 bg-red-600 transform rotate-45 -translate-y-1"></div>
+                        )}
+                        
+                        <h4 className="text-white text-sm font-medium mb-1 group-hover:text-red-300 transition-colors">
+                          {offer.title}
+                        </h4>
+                        <p className="text-gray-500 text-xs leading-relaxed line-clamp-2 group-hover:text-gray-400 transition-colors">
+                          {offer.description}
+                        </p>
+                      </div>
                     </div>
+                    
+                    {/* Hover glow effect */}
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" style={{
+                      boxShadow: 'inset 0 0 15px rgba(255, 0, 0, 0.05)'
+                    }}></div>
                   </motion.div>
                 ))}
               </div>
@@ -341,64 +357,63 @@ const SpecialOffersMenu = ({ offers }) => {
                       {selectedOffer.items.map((item) => (
                         <motion.div
                           key={item.id}
-                          className="relative bg-black/70 rounded-md overflow-hidden group"
-                          whileHover={{ 
-                            y: -5, 
-                            boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.7), 0 0 10px rgba(220,38,38,0.5)"
-                          }}
+                          className="relative bg-black/80 border border-gray-800/40 overflow-hidden group"
+                          whileHover={{ y: -3 }}
                           transition={{ duration: 0.3 }}
                           onMouseEnter={playHoverSound}
+                          style={{ borderRadius: '1px' }}
                         >
-                          {/* Cursed Item Frame */}
-                          <div className="absolute inset-0 pointer-events-none">
-                            <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-red-900/70"></div>
-                            <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-red-900/70"></div>
-                            <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-red-900/70"></div>
-                            <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-red-900/70"></div>
+                          {/* Subtle claw mark texture */}
+                          <div className="absolute inset-0 opacity-[0.02] pointer-events-none">
+                            <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                              <path d="M10,10 L90,90 M20,10 L90,80 M30,10 L90,70" stroke="#ff0000" strokeWidth="0.5" fill="none" />
+                            </svg>
                           </div>
                           
-                          <div className="relative h-40 overflow-hidden">
-                            {/* Spooky image treatment */}
-                            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/70 z-10 opacity-80 group-hover:opacity-60 transition-opacity duration-300"></div>
+                          <div className="relative h-36 overflow-hidden">
+                            {/* Dark gradient overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/30 to-black/70 z-10"></div>
                             
-                            <motion.img 
+                            <img 
                               src={item.imageUrl} 
                               alt={item.name} 
-                              className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 filter saturate-50 group-hover:saturate-100 contrast-125"
-                              whileHover={{ filter: "contrast(1.4) brightness(1.1)" }}
+                              className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105 filter brightness-75 contrast-110"
                             />
                             
-                            {/* Flickering Glow Effect on Hover */}
-                            <motion.div 
-                              className="absolute inset-0 bg-red-900/5 opacity-0 group-hover:opacity-100 z-10 pointer-events-none"
-                              animate={{ opacity: [0, 0.1, 0] }}
-                              transition={{ duration: 2, repeat: Infinity }}
-                            ></motion.div>
+                            {/* Subtle grain texture */}
+                            <div className="absolute inset-0 opacity-15 mix-blend-overlay z-10" style={{
+                              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
+                            }}></div>
                           </div>
                           
                           <div className="p-4 relative">
-                            <h4 className="text-white text-sm font-medium group-hover:text-red-400 transition-colors">
+                            <h4 className="text-white text-sm font-medium mb-3 group-hover:text-red-300 transition-colors">
                               {item.name}
                             </h4>
-                            <div className="flex justify-between items-center mt-3">
-                              <div className="text-gray-500 text-xs line-through">
+                            
+                            <div className="flex justify-between items-center mb-3">
+                              <div className="text-gray-600 text-xs line-through">
                                 {formatPrice(item.price * 1.2)}
                               </div>
-                              <div className="text-red-500 text-sm font-bold">
+                              <div className="text-red-400 text-sm font-semibold">
                                 {formatPrice(item.price)}
                               </div>
                             </div>
                             
                             <Link 
                               to={`/product/${item.id}`} 
-                              className="block text-center py-2 px-4 mt-3 text-xs text-white relative overflow-hidden group-hover:text-red-200 transition-colors border border-red-900/30 bg-black/50"
+                              className="block text-center py-2 px-4 text-xs text-gray-300 relative overflow-hidden group border border-gray-700/50 bg-black/40 hover:text-red-300 hover:border-red-900/40 transition-all duration-300"
+                              style={{ borderRadius: '1px' }}
                             >
                               <span className="relative z-10">مشاهده محصول</span>
-                              <motion.span 
-                                className="absolute inset-0 bg-red-900/20 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300"
-                              ></motion.span>
+                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-900/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500"></div>
                             </Link>
                           </div>
+                          
+                          {/* Hover glow effect */}
+                          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" style={{
+                            boxShadow: 'inset 0 0 15px rgba(255, 0, 0, 0.08), 0 0 10px rgba(255, 0, 0, 0.05)'
+                          }}></div>
                         </motion.div>
                       ))}
                     </div>
@@ -445,4 +460,4 @@ const SpecialOffersMenu = ({ offers }) => {
   );
 };
 
-export default SpecialOffersMenu; 
+export default SpecialOffersMenu;

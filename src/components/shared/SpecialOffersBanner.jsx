@@ -14,60 +14,94 @@ const SpecialOffersBanner = ({ offers }) => {
         {offers.map((offer, index) => (
           <motion.div
             key={offer.id}
-            className="relative overflow-hidden group w-full lg:w-1/3 rounded-lg card-3d horror-card"
+            className="relative group w-full lg:w-1/3 bg-black/90 backdrop-blur-sm border border-gray-800/50 overflow-hidden"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 + (index * 0.1) }}
-            whileHover={{ scale: 1.02 }}
+            style={{
+              borderRadius: '2px',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.05)'
+            }}
           >
-            {/* Background image with overlay */}
-            <div className="relative aspect-[4/3] w-full">
+            {/* Subtle rune pattern overlay */}
+            <div className="absolute inset-0 opacity-[0.02] pointer-events-none">
+              <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
+                <defs>
+                  <pattern id={`runes-${offer.id}`} x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <path d="M5 5L15 15M15 5L5 15M10 2L10 18M2 10L18 10" stroke="currentColor" strokeWidth="0.5" fill="none" />
+                  </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill={`url(#runes-${offer.id})`} className="text-red-500" />
+              </svg>
+            </div>
+
+            {/* Main image container */}
+            <div className="relative aspect-[4/3] w-full overflow-hidden">
               <img 
                 src={offer.image} 
                 alt={offer.title} 
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105 filter brightness-75 contrast-110"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent opacity-70"></div>
+              
+              {/* Dark gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent"></div>
+              
+              {/* Subtle grain texture */}
+              <div className="absolute inset-0 opacity-20 mix-blend-overlay" style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
+              }}></div>
               
               {/* Discount badge */}
-              <div className="absolute top-4 left-4 bg-draugr-500 text-white px-3 py-1 rounded-sm text-sm font-bold shadow-lg">
-                تخفیف {offer.discount}
-              </div>
-              
-              {/* Content */}
-              <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
-                <h3 className="text-xl md:text-2xl font-bold mb-2 group-hover:text-draugr-300 transition-colors">
-                  {offer.title}
-                </h3>
-                <p className="text-sm text-gray-300 mb-4 line-clamp-2">
-                  {offer.description}
-                </p>
-                
-                {/* Items preview */}
-                <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide">
-                  {offer.items.map((item) => (
-                    <div key={item.id} className="flex-shrink-0 w-12 h-12 bg-black/50 rounded overflow-hidden border border-draugr-900">
-                      <img 
-                        src={item.image} 
-                        alt={item.name} 
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  ))}
-                </div>
-                
-                {/* CTA button */}
-                <Link 
-                  to={`/special-offers/${offer.id}`}
-                  className="inline-block bg-gradient-to-r from-draugr-700 to-draugr-500 text-white px-5 py-2 rounded text-sm transition-all duration-300 hover:from-draugr-600 hover:to-draugr-400 hover:shadow-[0_0_15px_rgba(255,0,0,0.5)]"
-                >
-                  مشاهده پیشنهاد
-                </Link>
+              <div className="absolute top-3 left-3 bg-black/80 border border-red-900/60 text-red-400 px-3 py-1 text-xs font-medium tracking-wide">
+                {offer.discount} تخفیف
               </div>
             </div>
+
+            {/* Content section */}
+            <div className="p-5 relative">
+              {/* Title */}
+              <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-red-300 transition-colors duration-300">
+                {offer.title}
+              </h3>
+              
+              {/* Description */}
+              <p className="text-sm text-gray-400 mb-4 leading-relaxed line-clamp-2">
+                {offer.description}
+              </p>
+              
+              {/* Items preview */}
+              <div className="flex">
+                {offer.items.slice(0, 4).map((item, idx) => (
+                  <div key={item.id} className="relative w-8 h-8 bg-black/60 border border-gray-700/50 overflow-hidden" style={{ borderRadius: '1px' }}>
+                    <img 
+                      src={item.image} 
+                      alt={item.name} 
+                      className="w-full h-full object-cover filter brightness-90"
+                    />
+                  </div>
+                ))}
+                {offer.items.length > 4 && (
+                  <div className="w-8 h-8 bg-black/60 border border-gray-700/50 flex items-center justify-center text-xs text-gray-400">
+                    +{offer.items.length - 4}
+                  </div>
+                )}
+              </div>
+              
+              {/* CTA button */}
+              <Link 
+                to={`/special-offers/${offer.id}`}
+                className="inline-block w-full text-center py-2.5 bg-black/60 border border-red-900/40 text-red-400 text-sm font-medium transition-all duration-300 hover:bg-red-950/30 hover:border-red-800/60 hover:text-red-300 relative overflow-hidden group"
+                style={{ borderRadius: '1px' }}
+              >
+                <span className="relative z-10">مشاهده پیشنهاد</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-900/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+              </Link>
+            </div>
             
-            {/* Animated border effect */}
-            <div className="absolute inset-0 border border-draugr-500/0 group-hover:border-draugr-500/50 transition-all duration-500 rounded-lg pointer-events-none"></div>
+            {/* Hover glow effect */}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{
+              boxShadow: 'inset 0 0 20px rgba(255, 0, 0, 0.1), 0 0 20px rgba(255, 0, 0, 0.1)'
+            }}></div>
           </motion.div>
         ))}
       </motion.div>
@@ -75,4 +109,4 @@ const SpecialOffersBanner = ({ offers }) => {
   );
 };
 
-export default SpecialOffersBanner; 
+export default SpecialOffersBanner;
