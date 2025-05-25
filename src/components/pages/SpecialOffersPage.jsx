@@ -6,6 +6,10 @@ import SpecialOffersMenu from '../shared/SpecialOffersMenu';
 import darkRitualImage from '../../assets/darksat.png';
 import halloweenPackImage from '../../assets/halovinpack.png';
 import spellPackImage from '../../assets/mahlolha.png';
+import skullImage from '../../assets/skull.jpg';
+import backgroundHero from '../../assets/Background-Hero.jpg';
+import backgroundMain from '../../assets/BackGround-Main.jpg';
+import backgroundProduct from '../../assets/BackGround-Product.jpg';
 // Import products data
 import { products } from '../../utils/mockData';
 
@@ -56,7 +60,7 @@ const SpecialOffersPage = () => {
       title: 'پک گاتیک',
       description: 'استایل گاتیک برای علاقه‌مندان به سبک تاریک',
       discount: '18%',
-      image: 'https://via.placeholder.com/400x300?text=Gothic+Pack',
+      image: skullImage,
       category: 'پک‌های ویژه',
       items: [
         products.find(p => p.id === 14), // وست چرمی
@@ -69,7 +73,7 @@ const SpecialOffersPage = () => {
       title: 'تخفیف زمستانی',
       description: 'تخفیف‌های ویژه فصل سرما',
       discount: '30%',
-      image: 'https://via.placeholder.com/400x300?text=Winter+Sale',
+      image: backgroundHero,
       category: 'تخفیف‌های فصلی',
       items: [
         products.find(p => p.id === 2), // کلاه‌خود نوردیک
@@ -82,7 +86,7 @@ const SpecialOffersPage = () => {
       title: 'حراج شب یلدا',
       description: 'تخفیف‌های ویژه شب یلدا',
       discount: '22%',
-      image: 'https://via.placeholder.com/400x300?text=Yalda+Sale',
+      image: backgroundMain,
       category: 'تخفیف‌های فصلی',
       items: [
         products.find(p => p.id === 7), // فندک اژدها
@@ -95,7 +99,7 @@ const SpecialOffersPage = () => {
       title: 'فروش ویژه هالووین',
       description: 'تخفیف‌های استثنایی به مناسبت هالووین',
       discount: '40%',
-      image: 'https://via.placeholder.com/400x300?text=Halloween+Sale',
+      image: halloweenPackImage,
       category: 'تخفیف‌های فصلی',
       items: [
         products.find(p => p.id === 8), // ویجا بورد نفرین شده
@@ -108,7 +112,7 @@ const SpecialOffersPage = () => {
       title: 'کالکشن مخصوص',
       description: 'محصولات انحصاری با تعداد محدود',
       discount: '10%',
-      image: 'https://via.placeholder.com/400x300?text=Exclusive+Collection',
+      image: backgroundProduct,
       category: 'محصولات محدود',
       items: [
         products.find(p => p.id === 1), // شمشیر DRAUGR
@@ -121,7 +125,7 @@ const SpecialOffersPage = () => {
       title: 'آیتم‌های کمیاب',
       description: 'محصولات نایاب که به سختی پیدا می‌شوند',
       discount: '5%',
-      image: 'https://via.placeholder.com/400x300?text=Rare+Items',
+      image: darkRitualImage,
       category: 'محصولات محدود',
       items: [
         products.find(p => p.id === 4), // طومار باستانی
@@ -134,7 +138,7 @@ const SpecialOffersPage = () => {
       title: 'انحصاری دراوگر',
       description: 'محصولاتی که فقط در فروشگاه ما پیدا می‌شوند',
       discount: '15%',
-      image: 'https://via.placeholder.com/400x300?text=Draugr+Exclusive',
+      image: spellPackImage,
       category: 'محصولات محدود',
       items: [
         products.find(p => p.id === 1), // شمشیر DRAUGR
@@ -178,4 +182,4 @@ const SpecialOffersPage = () => {
   );
 };
 
-export default SpecialOffersPage; 
+export default SpecialOffersPage;

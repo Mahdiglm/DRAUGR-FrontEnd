@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
@@ -7,7 +7,6 @@ const SpecialOffersMenu = ({ offers }) => {
   const [selectedCategory, setSelectedCategory] = useState(categories[0]);
   const [selectedOffer, setSelectedOffer] = useState(null);
   const [isHovering, setIsHovering] = useState(false);
-  const audioRef = useRef(null);
   
   // Blood drip SVG
   const BloodDrip = ({ className }) => (
@@ -19,14 +18,6 @@ const SpecialOffersMenu = ({ offers }) => {
     </svg>
   );
   
-  // Play subtle sound effect on hover
-  const playHoverSound = () => {
-    if (audioRef.current) {
-      audioRef.current.volume = 0.2;
-      audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(e => console.log("Audio play prevented:", e));
-    }
-  };
   
   // Select the first offer from the selected category by default
   useEffect(() => {
@@ -55,8 +46,6 @@ const SpecialOffersMenu = ({ offers }) => {
         <div className="absolute inset-0 bg-[url('/images/fog-texture-2.png')] opacity-20 animate-fog-drift-reverse"></div>
       </div>
       
-      {/* Hidden Audio Element */}
-      <audio ref={audioRef} preload="auto" src="/sounds/eerie-hover.mp3"></audio>
       
       {/* Section Header with Ritual Elements */}
       <div className="relative mb-12 text-center">
@@ -69,7 +58,7 @@ const SpecialOffersMenu = ({ offers }) => {
                 "0 0 4px rgba(255,0,0,0.6), 0 0 7px rgba(255,0,0,0.3), 0 0 14px rgba(255,0,0,0.2)"
             }}
             transition={{ duration: 1.5, repeat: Infinity, repeatType: "reverse" }}
-            onMouseEnter={() => {setIsHovering(true); playHoverSound()}}
+            onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}
           >
             پیشنهادات ویژه دراگر
@@ -118,7 +107,6 @@ const SpecialOffersMenu = ({ offers }) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.1 + (index * 0.05) }}
-              onMouseEnter={playHoverSound}
             >
               {/* Background Effects */}
               <div className={`absolute inset-0 transition-opacity duration-300 ${
@@ -187,7 +175,6 @@ const SpecialOffersMenu = ({ offers }) => {
                     onClick={() => setSelectedOffer(offer)}
                     whileHover={{ y: -2 }}
                     whileTap={{ scale: 0.98 }}
-                    onMouseEnter={playHoverSound}
                     style={{ borderRadius: '1px' }}
                   >
                     {/* Subtle texture overlay */}
@@ -360,7 +347,6 @@ const SpecialOffersMenu = ({ offers }) => {
                           className="relative bg-black/80 border border-gray-800/40 overflow-hidden group"
                           whileHover={{ y: -3 }}
                           transition={{ duration: 0.3 }}
-                          onMouseEnter={playHoverSound}
                           style={{ borderRadius: '1px' }}
                         >
                           {/* Subtle claw mark texture */}
@@ -423,7 +409,6 @@ const SpecialOffersMenu = ({ offers }) => {
                       <Link 
                         to={`/special-offers/${selectedOffer.id}`}
                         className="relative inline-block overflow-hidden group"
-                        onMouseEnter={playHoverSound}
                       >
                         {/* Button with Pulse Effect */}
                         <span className="relative z-10 inline-block bg-gradient-to-br from-red-800 to-red-950 text-white px-8 py-3 rounded border border-red-900/50">
