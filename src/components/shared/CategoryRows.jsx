@@ -275,8 +275,6 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
          style={{
            width: '100vw',
            maxWidth: '100vw',
-           marginLeft: '0',
-           marginRight: '0',
            paddingLeft: '0',
            paddingRight: '0',
            position: 'relative',
@@ -953,4 +951,4 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
   );
 };
 
-export default CategoryRows; 
+export default CategoryRows;
