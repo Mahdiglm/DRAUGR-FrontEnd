@@ -156,7 +156,7 @@ const Header = ({ cartItems, onCartClick }) => {
       initial={{ opacity: 0, y: -50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`bg-black text-white py-3 sticky top-0 z-50 w-full transition-all duration-300 ${
+      className={`bg-black text-white py-4 sm:py-3.5 md:py-3 sticky top-0 z-50 w-full transition-all duration-300 ${
         isScrolled ? 'shadow-[0_0_15px_rgba(255,0,0,0.3)]' : ''
       }`}
     >
