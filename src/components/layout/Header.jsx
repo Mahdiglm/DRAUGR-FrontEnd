@@ -8,6 +8,7 @@ const Header = ({ cartItems, onCartClick }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [typedText, setTypedText] = useState("");
   const [isTyping, setIsTyping] = useState(true);
+  const [expandedCategory, setExpandedCategory] = useState(null);
   const brandName = "DRAUGR";
   const navigate = useNavigate();
   const location = useLocation();
@@ -17,11 +18,13 @@ const Header = ({ cartItems, onCartClick }) => {
     {
       name: "خانه",
       path: "/",
+      icon: "🏠",
       subcategories: []
     },
     {
       name: "فروشگاه",
       path: "/shop",
+      icon: "🛍️",
       subcategories: [
         {
           name: "اکسسوری",
@@ -40,6 +43,7 @@ const Header = ({ cartItems, onCartClick }) => {
     {
       name: "پیشنهادات ویژه",
       path: "/special-offers",
+      icon: "⭐",
       subcategories: [
         {
           name: "پک‌های ویژه",
@@ -58,16 +62,19 @@ const Header = ({ cartItems, onCartClick }) => {
     {
       name: "پیگیری سفارش",
       path: "/order-tracking",
+      icon: "📦",
       subcategories: []
     },
     {
       name: "درباره ما",
       path: "/about",
+      icon: "ℹ️",
       subcategories: []
     },
     {
       name: "بلاگ / مقالات",
       path: "/blog",
+      icon: "📖",
       subcategories: []
     }
   ];
@@ -76,24 +83,27 @@ const Header = ({ cartItems, onCartClick }) => {
   useEffect(() => {
     if (isMobileMenuOpen) {
       setIsMobileMenuOpen(false);
-      document.body.classList.remove('menu-open');
+      document.body.style.overflow = 'auto';
     }
   }, [location.pathname]);
 
   const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-    if (!isMobileMenuOpen) {
-      document.body.classList.add('menu-open');
+    const newState = !isMobileMenuOpen;
+    setIsMobileMenuOpen(newState);
+    setExpandedCategory(null); // Reset expanded categories
+    
+    // Prevent body scroll when menu is open
+    if (newState) {
+      document.body.style.overflow = 'hidden';
     } else {
-      document.body.classList.remove('menu-open');
+      document.body.style.overflow = 'auto';
     }
   };
 
   // Cleanup on unmount
   useEffect(() => {
-    // Ensure menu-open class is removed on unmount
     return () => {
-      document.body.classList.remove('menu-open');
+      document.body.style.overflow = 'auto';
     };
   }, []);
 
@@ -106,14 +116,12 @@ const Header = ({ cartItems, onCartClick }) => {
         }, 200);
         return () => clearTimeout(timeout);
       } else {
-        // Wait and then clear the text to restart
         const timeout = setTimeout(() => {
           setIsTyping(false);
         }, 3000);
         return () => clearTimeout(timeout);
       }
     } else {
-      // Reset after a delay
       const timeout = setTimeout(() => {
         setTypedText("");
         setIsTyping(true);
@@ -122,39 +130,51 @@ const Header = ({ cartItems, onCartClick }) => {
     }
   }, [typedText, isTyping]);
 
-  // Add scroll effect
+  // Add scroll effect with reduced header height when scrolled
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
-      setIsScrolled(scrollPosition > 50);
+      setIsScrolled(scrollPosition > 20);
     };
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const handleCategoryToggle = (categoryName) => {
+    setExpandedCategory(expandedCategory === categoryName ? null : categoryName);
+  };
+
+  const navigateToPage = (path) => {
+    navigate(path);
+    toggleMobileMenu();
+  };
+
   return (
     <motion.header 
-      initial={{ opacity: 0, y: -50 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className={`bg-black text-white py-4 sticky top-0 z-50 w-full transition-all duration-300 ${
-        isScrolled ? 'shadow-[0_0_15px_rgba(255,0,0,0.3)]' : ''
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ 
+        opacity: 1, 
+        y: 0,
+        height: isScrolled ? '60px' : '70px'
+      }}
+      transition={{ duration: 0.3 }}
+      className={`bg-black/95 backdrop-blur-md text-white sticky top-0 z-50 w-full transition-all duration-300 border-b border-draugr-900/30 ${
+        isScrolled ? 'shadow-[0_0_20px_rgba(255,0,0,0.2)]' : ''
       }`}
     >
-      <div className="w-full max-w-7xl mx-auto px-4 flex justify-between items-center">
+      <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 h-full flex justify-between items-center">
+        {/* Logo - More compact for mobile */}
         <motion.div 
-          whileHover={{ scale: 1.05 }}
-          className="text-xl md:text-2xl font-bold flex items-center relative w-44 md:w-56 cursor-pointer"
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.98 }}
+          className="flex items-center cursor-pointer"
           onClick={() => navigate('/')}
         >
-          {/* Fixed width container for the logo text to prevent layout shifts */}
-          <div className="absolute left-0 top-0 h-full flex items-center">
-            <div className="flex items-center gap-4">
-              <div className="blood-text animate-pulse-slow">{typedText || '\u00A0'}</div>
-              <div className="h-6 w-0.5 bg-draugr-500 animate-pulse"></div>
-              <div>فروشگاه</div>
-            </div>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="blood-text text-lg sm:text-xl font-bold">{typedText || '\u00A0'}</div>
+            <div className="h-4 sm:h-5 w-0.5 bg-draugr-500 animate-pulse"></div>
+            <div className="text-sm sm:text-base font-medium">فروشگاه</div>
           </div>
         </motion.div>
         
@@ -171,169 +191,234 @@ const Header = ({ cartItems, onCartClick }) => {
           ))}
         </nav>
         
-        {/* Header right section: completely restructured for better spacing */}
-        <div className="flex items-center">
-          {/* Login button - With extra margin for clear separation */}
-          <motion.div 
-            whileHover={{ scale: 1.1 }}
-            initial={{ scale: 1 }}
-            animate={{ scale: 1 }}
-            transition={{ 
-              scale: { duration: 0.3, ease: "easeOut" } 
-            }}
+        {/* Header Actions - Optimized spacing and sizing */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Profile Button - Touch optimized */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="relative cursor-pointer"
+            className="relative p-1 rounded-full transition-all duration-200"
             onClick={() => navigate('/login')}
           >
             <img 
               src={pfpIcon} 
               alt="Profile" 
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-draugr-600 transition-all duration-300"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border-2 border-draugr-600/50"
             />
-          </motion.div>
+          </motion.button>
 
-          {/* Spacer div to force distance */}
-          <div className="w-3 sm:w-3 md:w-6"></div>
-
-          <motion.div 
-            whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
-            initial={{ scale: 1, rotate: 0 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ 
-              rotate: { duration: 0.5 },
-              scale: { duration: 0.3, ease: "easeOut" } 
-            }}
-            whileTap={{ scale: 0.95 }}
-            className="relative cursor-pointer"
+          {/* Cart Button - Touch optimized with better visual feedback */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95, rotate: [0, -5, 5, 0] }}
+            className="relative p-2 rounded-full hover:bg-draugr-900/30 transition-all duration-200"
             onClick={onCartClick}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              className="h-5 w-5 sm:h-6 sm:w-6 text-white" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
             {cartItems.length > 0 && (
               <motion.span 
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="absolute -top-2 -right-2 bg-draugr-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                className="absolute -top-1 -right-1 bg-draugr-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium"
               >
-                {cartItems.length}
+                {cartItems.length > 99 ? '99+' : cartItems.length}
               </motion.span>
             )}
-          </motion.div>
+          </motion.button>
           
-          {/* Another spacer div */}
-          <div className="w-2 sm:w-4 md:w-4"></div>
-          
-          {/* Mobile Menu Button - Smaller for phones */}
+          {/* Mobile Menu Button - Larger and more accessible */}
           <motion.button 
-            className="md:hidden text-white"
+            className="md:hidden p-2 rounded-lg hover:bg-draugr-900/30 transition-all duration-200"
             onClick={toggleMobileMenu}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            aria-label="Toggle menu"
           >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="h-4 w-4 sm:h-5 sm:w-5" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
+            <motion.div
+              animate={isMobileMenuOpen ? "open" : "closed"}
+              className="w-6 h-6 flex flex-col justify-center items-center"
             >
-              {isMobileMenuOpen ? (
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M6 18L18 6M6 6l12 12" 
-                />
-              ) : (
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M4 6h16M4 12h16M4 18h16" 
-                />
-              )}
-            </svg>
+              <motion.span
+                variants={{
+                  closed: { rotate: 0, y: 0 },
+                  open: { rotate: 45, y: 6 }
+                }}
+                className="w-5 h-0.5 bg-white block transition-all duration-300 origin-center"
+              />
+              <motion.span
+                variants={{
+                  closed: { opacity: 1 },
+                  open: { opacity: 0 }
+                }}
+                className="w-5 h-0.5 bg-white block mt-1.5 transition-all duration-300"
+              />
+              <motion.span
+                variants={{
+                  closed: { rotate: 0, y: 0 },
+                  open: { rotate: -45, y: -6 }
+                }}
+                className="w-5 h-0.5 bg-white block mt-1.5 transition-all duration-300 origin-center"
+              />
+            </motion.div>
           </motion.button>
         </div>
       </div>
       
-      {/* Mobile Menu with separate overlay */}
+      {/* Enhanced Mobile Menu - Full screen overlay for better UX */}
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <>
-            {/* Background overlay with subtle blur effect */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-50 md:hidden"
+          >
+            {/* Background with modern gradient */}
             <motion.div 
-              className="fixed inset-0 z-40 bg-black/60"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.4 }}
-              onClick={toggleMobileMenu}
-              style={{ 
-                cursor: 'pointer',
-                backdropFilter: 'blur(6px)',
-                WebkitBackdropFilter: 'blur(6px)',
-                MozBackdropFilter: 'blur(6px)'
-              }}
+              className="absolute inset-0 bg-gradient-to-br from-black via-draugr-950 to-black"
             />
-
-            {/* Menu content - Reduced width for better small screen support */}
+            
+            {/* Menu Content */}
             <motion.div
-              initial={{ opacity: 0, x: '100%' }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: '100%' }}
-              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="md:hidden fixed top-0 right-0 h-screen w-2/3 sm:w-3/5 bg-gradient-to-b from-black to-draugr-950 shadow-[-10px_0px_30px_rgba(0,0,0,0.5)] z-50 overflow-y-auto"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+              className="relative h-full flex flex-col"
             >
-              <div className="w-full h-full flex flex-col">
-                {/* Menu Header with Close Button */}
-                <div className="p-3 flex justify-between items-center border-b border-draugr-800">
-                  <span className="blood-text text-lg font-bold">{brandName}</span>
-                  <motion.button
-                    whileHover={{ scale: 1.1, rotate: 90 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={toggleMobileMenu}
-                    className="text-white p-1 rounded-full hover:bg-draugr-900"
-                  >
-                    <svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      className="h-5 w-5" 
-                      fill="none" 
-                      viewBox="0 0 24 24" 
-                      stroke="currentColor"
-                    >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth={2} 
-                        d="M6 18L18 6M6 6l12 12" 
-                      />
-                    </svg>
-                  </motion.button>
+              {/* Header */}
+              <div className="flex justify-between items-center p-4 border-b border-draugr-900/30">
+                <div className="flex items-center gap-2">
+                  <span className="blood-text text-xl font-bold">{brandName}</span>
+                  <span className="text-sm text-gray-400">منو</span>
                 </div>
-                
-                {/* Mobile Navigation Links - Reduced text size and spacing */}
-                <div className="py-3 px-3 overflow-y-auto flex-1">
-                  <div className="flex flex-col space-y-0.5">
-                    {navigationItems.map((item, index) => (
-                      <MobileNavLink 
-                        key={index}
-                        to={item.path} 
-                        label={item.name} 
-                        isNested={item.name === "فروشگاه" && item.subcategories.length > 0}
-                        navItem={item}
-                        onClick={toggleMobileMenu}
-                      />
-                    ))}
-                  </div>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={toggleMobileMenu}
+                  className="p-2 rounded-full hover:bg-draugr-900/30 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </motion.button>
+              </div>
+              
+              {/* Navigation */}
+              <div className="flex-1 overflow-y-auto py-4">
+                <div className="px-4 space-y-2">
+                  {navigationItems.map((item, index) => (
+                    <MobileNavItem
+                      key={index}
+                      item={item}
+                      isExpanded={expandedCategory === item.name}
+                      onToggle={() => handleCategoryToggle(item.name)}
+                      onNavigate={navigateToPage}
+                      delay={index * 0.1}
+                    />
+                  ))}
+                </div>
+              </div>
+              
+              {/* Footer */}
+              <div className="p-4 border-t border-draugr-900/30">
+                <div className="text-center text-xs text-gray-500">
+                  © 2024 DRAUGR Shop - تمامی حقوق محفوظ است
                 </div>
               </div>
             </motion.div>
-          </>
+          </motion.div>
         )}
       </AnimatePresence>
     </motion.header>
+  );
+};
+
+// Enhanced Mobile Navigation Item Component
+const MobileNavItem = ({ item, isExpanded, onToggle, onNavigate, delay }) => {
+  const hasSubcategories = item.subcategories && item.subcategories.length > 0;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.3, delay }}
+      className="border border-draugr-900/30 rounded-xl overflow-hidden bg-black/20 backdrop-blur-sm"
+    >
+      {/* Main Item */}
+      <motion.div
+        className="flex items-center justify-between p-4 cursor-pointer hover:bg-draugr-900/20 transition-all duration-200"
+        onClick={() => hasSubcategories ? onToggle() : onNavigate(item.path)}
+        whileTap={{ scale: 0.98 }}
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-xl">{item.icon}</span>
+          <span className="text-white font-medium">{item.name}</span>
+        </div>
+        
+        {hasSubcategories && (
+          <motion.div
+            animate={{ rotate: isExpanded ? 180 : 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <svg className="w-5 h-5 text-draugr-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </motion.div>
+        )}
+      </motion.div>
+      
+      {/* Subcategories */}
+      <AnimatePresence>
+        {hasSubcategories && isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="border-t border-draugr-900/30 bg-black/10"
+          >
+            <div className="p-3 space-y-1">
+              {item.subcategories.map((category, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2, delay: idx * 0.05 }}
+                  className="p-3 rounded-lg hover:bg-draugr-900/30 transition-colors cursor-pointer"
+                  onClick={() => onNavigate(`${item.path}/${category.name.toLowerCase().replace(/\s+/g, '-')}`)}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-300 font-medium">{category.name}</span>
+                    <svg className="w-4 h-4 text-draugr-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                  
+                  {category.items && category.items.length > 0 && (
+                    <div className="mt-2 text-xs text-gray-500">
+                      {category.items.slice(0, 2).join(', ')}
+                      {category.items.length > 2 && ` و ${category.items.length - 2} مورد دیگر`}
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };
 
@@ -498,134 +583,6 @@ const NavLink = ({ to, label, isNested = false, navItem }) => {
               {navItem.name === "فروشگاه" ? "مشاهده همه محصولات" : "مشاهده همه پیشنهادات ویژه"}
               <span className="inline-block mr-1.5 text-[0.6rem]">⟶</span>
             </Link>
-          </div>
-        </motion.div>
-      )}
-    </div>
-  );
-};
-
-// Updated MobileNavLink component for mobile navigation - more minimal
-const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [activeCategory, setActiveCategory] = useState(-1);
-  const navigate = useNavigate();
-  
-  const toggleExpanded = () => {
-    setIsExpanded(!isExpanded);
-  };
-
-  const toggleCategory = (index) => {
-    setActiveCategory(activeCategory === index ? -1 : index);
-  };
-  
-  const handleClick = () => {
-    if (!isNested) {
-      navigate(to);
-      if (onClick) onClick();
-    } else {
-      // Both navigate and toggle expand for Shop
-      navigate(to);
-      toggleExpanded();
-    }
-  };
-  
-  return (
-    <div className="border-b border-draugr-900/30 last:border-b-0">
-      <div 
-        className="flex justify-between items-center py-2.5 px-2 text-white hover:bg-black/40 transition-all duration-200 rounded-sm cursor-pointer"
-        onClick={handleClick}
-      >
-        <span className="text-sm font-medium tracking-wide">{label}</span>
-        {isNested && (
-          <motion.svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            className="h-3.5 w-3.5 text-draugr-500/80" 
-            fill="none" 
-            viewBox="0 0 24 24" 
-            stroke="currentColor"
-            animate={{ rotate: isExpanded ? 180 : 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
-          </motion.svg>
-        )}
-      </div>
-      
-      {/* Only show subcategories for فروشگاه (Shop) and پیشنهادات ویژه (Special Offers) - premium minimal design */}
-      {isNested && isExpanded && (navItem.name === "فروشگاه" || navItem.name === "پیشنهادات ویژه") && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.25 }}
-          className="bg-black/30 mx-2 my-2 overflow-hidden rounded-md border-[0.5px] border-draugr-900/50"
-        >
-          {/* Header */}
-          <div className="px-3 py-2 border-b border-draugr-900/30">
-            <span className="text-xs text-gray-500 uppercase tracking-wide">
-              {navItem.name === "فروشگاه" ? "دسته‌بندی‌ها" : "پیشنهادات"}
-            </span>
-          </div>
-          
-          {/* Special accordion style for Shop in mobile view */}
-          <div className="space-y-0.5 p-1.5">
-            {navItem.subcategories.map((category, idx) => (
-              <div key={idx} className="overflow-hidden">
-                <div 
-                  className="flex justify-between items-center py-2 px-2 text-white cursor-pointer hover:bg-black/40 transition-colors rounded-sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleCategory(idx);
-                  }}
-                >
-                  <span className={`text-xs font-medium ${navItem.name === "پیشنهادات ویژه" ? "text-draugr-300" : "text-gray-300"} flex items-center`}>
-                    <span className={`w-1 h-1 ${navItem.name === "پیشنهادات ویژه" ? "bg-draugr-400/80" : "bg-draugr-500/70"} rounded-full mr-2`}></span>
-                    {category.name}
-                  </span>
-                  {category.items && category.items.length > 0 && (
-                    <motion.svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      className={`h-3 w-3 ${navItem.name === "پیشنهادات ویژه" ? "text-draugr-400/80" : "text-draugr-500/70"}`} 
-                      fill="none" 
-                      viewBox="0 0 24 24" 
-                      stroke="currentColor"
-                      animate={{ rotate: activeCategory === idx ? 180 : 0 }}
-                      transition={{ duration: 0.25 }}
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
-                    </motion.svg>
-                  )}
-                </div>
-                  
-                {category.items && category.items.length > 0 && activeCategory === idx && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="py-1 pl-4 pr-3"
-                  >
-                    {category.items.map((item, itemIdx) => (
-                      <Link 
-                        key={itemIdx}
-                        to={navItem.name === "فروشگاه"
-                          ? `/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}/${item.toLowerCase().replace(/\s+/g, '-')}`
-                          : `/special-offers/${item.toLowerCase().replace(/\s+/g, '-')}`
-                        }
-                        className="block py-1.5 text-xs text-gray-400 hover:text-white transition-all duration-200 group flex items-center justify-between"
-                        onClick={onClick}
-                      >
-                        <span>{item}</span>
-                        {navItem.name === "پیشنهادات ویژه" && (
-                          <span className="text-[0.6rem] bg-draugr-600 px-1.5 py-0.5 rounded text-white">ویژه</span>
-                        )}
-                      </Link>
-                    ))}
-                  </motion.div>
-                )}
-              </div>
-            ))}
           </div>
         </motion.div>
       )}
