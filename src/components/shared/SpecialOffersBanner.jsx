@@ -4,9 +4,9 @@ import { Link } from 'react-router-dom';
 
 const SpecialOffersBanner = ({ offers }) => {
   return (
-    <div className="mb-16">
+    <div className="mb-16 flex justify-center">
       <motion.div 
-        className="flex flex-col lg:flex-row gap-6 w-full"
+        className="flex flex-col lg:flex-row gap-6 w-full max-w-5xl"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.7, delay: 0.3 }}

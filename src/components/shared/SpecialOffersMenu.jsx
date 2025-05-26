@@ -91,7 +91,7 @@ const SpecialOffersMenu = ({ offers }) => {
       </div>
       
       {/* Category Navigation - Ritual Tablets */}
-      <div className="relative mx-auto max-w-5xl mb-12 px-4">
+      <div className="relative mx-auto max-w-5xl mb-12 px-4 flex flex-col items-center justify-center">
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           {categories.map((category, index) => (
             <motion.button
