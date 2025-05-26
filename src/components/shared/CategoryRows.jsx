@@ -39,8 +39,8 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
   
   // Control animation speed based on device performance
   const defaultSpeed = getOptimizedAnimationSettings(
-    { speed: 0.5 },     // Default settings for high-performance devices
-    { speed: 0.3 }      // Reduced speed for low-performance devices
+    { speed: 0.8 },     // Default settings for high-performance devices
+    { speed: 0.5 }      // Reduced speed for low-performance devices
   ).speed;
 
   // Check for mobile device on component mount
@@ -420,11 +420,11 @@ const CategoryItem = ({
   category, 
   style, 
   cardWidth, 
-  isMobile, 
-  mobileHighlight,
-  mobileHighlightEdge,
-  mobileHighlightIntensity,
-  mobileHighlightPosition,
+  isMobile = false, 
+  mobileHighlight = false,
+  mobileHighlightEdge = 'top',
+  mobileHighlightIntensity = 0.5,
+  mobileHighlightPosition = 0.5,
   ...props 
 }) => {
   const itemRef = useRef(null);
@@ -571,7 +571,7 @@ const CategoryItem = ({
     return () => {
       window.removeEventListener('mousemove', handleGlobalMouseMove);
     };
-  }, [isNear, proximityThreshold, isMobile, mobileHighlight, mobileHighlightEdge, mobileHighlightIntensity, mobileHighlightPosition]);
+  }, [isNear, proximityThreshold, isMobile]);
   
   // Calculate the relative position along an edge (0 to 1)
   const getPositionAlongEdge = (edge, x, y, width, height) => {
