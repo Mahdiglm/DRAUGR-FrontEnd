@@ -91,7 +91,7 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
             category: categoriesData[categoryIndex],
             positionX: i * CARD_TOTAL_WIDTH,
             // For mobile, initialize random highlight state
-            mobileHighlight: isMobileDevice ? (Math.random() < 0.2) : false,
+            mobileHighlight: isMobileDevice ? (Math.random() < 0.3) : false,
             mobileHighlightEdge: ['top', 'right', 'bottom', 'left'][Math.floor(Math.random() * 4)],
             mobileHighlightIntensity: Math.random() * 0.7 + 0.3,
             mobileHighlightPosition: Math.random()
@@ -110,7 +110,7 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
         // For mobile devices, occasionally update random highlight state
         let updatedItem = { ...item };
         
-        if (isMobileDevice && Math.random() < 0.005) {
+        if (isMobileDevice && Math.random() < 0.01) {
           // Randomly update mobile highlight states
           updatedItem.mobileHighlight = Math.random() < 0.3;
           updatedItem.mobileHighlightEdge = ['top', 'right', 'bottom', 'left'][Math.floor(Math.random() * 4)];
@@ -173,7 +173,7 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
           category: categoriesData[categoryIndex],
           positionX: newItemPosition,
           // For mobile, initialize random highlight state
-          mobileHighlight: isMobileDevice ? (Math.random() < 0.2) : false,
+          mobileHighlight: isMobileDevice ? (Math.random() < 0.3) : false,
           mobileHighlightEdge: ['top', 'right', 'bottom', 'left'][Math.floor(Math.random() * 4)],
           mobileHighlightIntensity: Math.random() * 0.7 + 0.3,
           mobileHighlightPosition: Math.random()
@@ -214,7 +214,7 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
         category: categoriesData[categoryIndex],
         positionX: i * CARD_TOTAL_WIDTH,
         // For mobile, initialize random highlight state
-        mobileHighlight: isMobileDevice ? (Math.random() < 0.2) : false,
+        mobileHighlight: isMobileDevice ? (Math.random() < 0.3) : false,
         mobileHighlightEdge: ['top', 'right', 'bottom', 'left'][Math.floor(Math.random() * 4)],
         mobileHighlightIntensity: Math.random() * 0.7 + 0.3,
         mobileHighlightPosition: Math.random()
@@ -441,10 +441,10 @@ const CategoryItem = ({
   const proximityThreshold = 60; // How close the mouse needs to be to activate border effect
   const borderWidth = 2; // Width of the border in pixels
   
-  // Track global mouse position to detect proximity only on non-mobile devices
+  // Separate effect for mobile devices
   useEffect(() => {
     if (isMobile) {
-      // For mobile, we'll use the pre-calculated random values
+      // For mobile, use the pre-calculated random values
       if (mobileHighlight) {
         setIsNear(true);
         setProximityData({
@@ -456,7 +456,13 @@ const CategoryItem = ({
       } else {
         setIsNear(false);
       }
-      return; // Skip the rest for mobile
+    }
+  }, [isMobile, mobileHighlight, mobileHighlightEdge, mobileHighlightIntensity, mobileHighlightPosition]);
+  
+  // Track global mouse position to detect proximity only on non-mobile devices
+  useEffect(() => {
+    if (isMobile) {
+      return; // Skip mouse tracking for mobile
     }
     
     const handleGlobalMouseMove = (e) => {
