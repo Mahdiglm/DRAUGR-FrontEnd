@@ -8,6 +8,7 @@ const DevTools = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [logs, setLogs] = useState([]);
   const logsRef = useRef([]);
+  const updateScheduledRef = useRef(false);
   
   // Early return after hooks
   if (!isDev) return null;
@@ -18,24 +19,35 @@ const DevTools = () => {
     const originalConsoleError = console.error;
     const originalConsoleWarn = console.warn;
 
+    const scheduleUpdate = () => {
+      if (!updateScheduledRef.current) {
+        updateScheduledRef.current = true;
+        // Use setTimeout to batch updates
+        setTimeout(() => {
+          setLogs([...logsRef.current]);
+          updateScheduledRef.current = false;
+        }, 0);
+      }
+    };
+
     console.log = (...args) => {
       const newLog = { type: 'log', content: args.map(arg => JSON.stringify(arg)).join(' '), time: new Date() };
       logsRef.current = [...logsRef.current, newLog];
-      setLogs(logsRef.current);
+      scheduleUpdate();
       originalConsoleLog(...args);
     };
 
     console.error = (...args) => {
       const newLog = { type: 'error', content: args.map(arg => JSON.stringify(arg)).join(' '), time: new Date() };
       logsRef.current = [...logsRef.current, newLog];
-      setLogs(logsRef.current);
+      scheduleUpdate();
       originalConsoleError(...args);
     };
 
     console.warn = (...args) => {
       const newLog = { type: 'warn', content: args.map(arg => JSON.stringify(arg)).join(' '), time: new Date() };
       logsRef.current = [...logsRef.current, newLog];
-      setLogs(logsRef.current);
+      scheduleUpdate();
       originalConsoleWarn(...args);
     };
 
