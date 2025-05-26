@@ -9,45 +9,109 @@ const DevTools = () => {
   const [logs, setLogs] = useState([]);
   const logsRef = useRef([]);
   const updateScheduledRef = useRef(false);
+  const consoleOverridesInitialized = useRef(false);
+  const isTabVisibleRef = useRef(true);
   
   // Early return after hooks
   if (!isDev) return null;
 
+  // Track tab visibility to avoid updates when tab is not visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      isTabVisibleRef.current = !document.hidden;
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
   // Add console log override to capture logs
   useEffect(() => {
+    // Prevent duplicate initialization
+    if (consoleOverridesInitialized.current) return;
+    consoleOverridesInitialized.current = true;
+    
     const originalConsoleLog = console.log;
     const originalConsoleError = console.error;
     const originalConsoleWarn = console.warn;
 
     const scheduleUpdate = () => {
-      if (!updateScheduledRef.current) {
-        updateScheduledRef.current = true;
-        // Use setTimeout to batch updates
-        setTimeout(() => {
+      // Skip updates when tab is not visible or update already scheduled
+      if (!isTabVisibleRef.current || updateScheduledRef.current) return;
+      
+      updateScheduledRef.current = true;
+      // Use setTimeout to batch updates
+      setTimeout(() => {
+        if (isTabVisibleRef.current) { // Double-check tab is still visible
           setLogs([...logsRef.current]);
-          updateScheduledRef.current = false;
-        }, 0);
-      }
+        }
+        updateScheduledRef.current = false;
+      }, 0);
     };
 
     console.log = (...args) => {
-      const newLog = { type: 'log', content: args.map(arg => JSON.stringify(arg)).join(' '), time: new Date() };
-      logsRef.current = [...logsRef.current, newLog];
-      scheduleUpdate();
+      try {
+        // Skip state updates if args include circular references or complex objects
+        const newLog = { 
+          type: 'log', 
+          content: args.map(arg => {
+            try {
+              return typeof arg === 'object' ? JSON.stringify(arg) : String(arg);
+            } catch (e) {
+              return '[Complex Object]';
+            }
+          }).join(' '), 
+          time: new Date() 
+        };
+        logsRef.current = [...logsRef.current, newLog];
+        scheduleUpdate();
+      } catch (e) {
+        // Fail silently to avoid breaking the app
+      }
       originalConsoleLog(...args);
     };
 
     console.error = (...args) => {
-      const newLog = { type: 'error', content: args.map(arg => JSON.stringify(arg)).join(' '), time: new Date() };
-      logsRef.current = [...logsRef.current, newLog];
-      scheduleUpdate();
+      try {
+        const newLog = { 
+          type: 'error', 
+          content: args.map(arg => {
+            try {
+              return typeof arg === 'object' ? JSON.stringify(arg) : String(arg);
+            } catch (e) {
+              return '[Complex Object]';
+            }
+          }).join(' '),
+          time: new Date() 
+        };
+        logsRef.current = [...logsRef.current, newLog];
+        scheduleUpdate();
+      } catch (e) {
+        // Fail silently
+      }
       originalConsoleError(...args);
     };
 
     console.warn = (...args) => {
-      const newLog = { type: 'warn', content: args.map(arg => JSON.stringify(arg)).join(' '), time: new Date() };
-      logsRef.current = [...logsRef.current, newLog];
-      scheduleUpdate();
+      try {
+        const newLog = { 
+          type: 'warn', 
+          content: args.map(arg => {
+            try {
+              return typeof arg === 'object' ? JSON.stringify(arg) : String(arg);
+            } catch (e) {
+              return '[Complex Object]';
+            }
+          }).join(' '),
+          time: new Date() 
+        };
+        logsRef.current = [...logsRef.current, newLog];
+        scheduleUpdate();
+      } catch (e) {
+        // Fail silently
+      }
       originalConsoleWarn(...args);
     };
 
@@ -55,6 +119,7 @@ const DevTools = () => {
       console.log = originalConsoleLog;
       console.error = originalConsoleError;
       console.warn = originalConsoleWarn;
+      consoleOverridesInitialized.current = false;
     };
   }, []);
 
