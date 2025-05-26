@@ -102,13 +102,16 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
         const containerWidth = containerRef.current?.offsetWidth || 1000;
         const itemsNeeded = Math.ceil(containerWidth / cardTotalWidth) + 4;
         
+        // Calculate offset to ensure consistent spacing
+        const startOffset = isMobileDevice ? -MOBILE_CARD_MARGIN : -CARD_MARGIN;
+        
         const initialItems = [];
         for (let i = 0; i < itemsNeeded; i++) {
           const categoryIndex = i % categoriesData.length;
           initialItems.push({
             id: nextIdRef.current++,
             category: categoriesData[categoryIndex],
-            positionX: i * cardTotalWidth,
+            positionX: startOffset + (i * cardTotalWidth),
             // For mobile, initialize random highlight state
             mobileHighlight: isMobileDevice ? (Math.random() < 0.3) : false,
             mobileHighlightEdge: ['top', 'right', 'bottom', 'left'][Math.floor(Math.random() * 4)],
@@ -186,7 +189,7 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
         // Determine the category index
         const categoryIndex = nextIdRef.current % categoriesData.length;
         
-        // Add a new item
+        // Add a new item, exactly cardTotalWidth away from the edge item
         newItems.push({
           id: nextIdRef.current++,
           category: categoriesData[categoryIndex],
@@ -229,12 +232,17 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
     
     // Otherwise create fresh items
     const initialItems = [];
+    
+    // Calculate offset to ensure consistent spacing
+    // Start with negative offset to align cards correctly from the beginning
+    const startOffset = isMobileDevice ? -MOBILE_CARD_MARGIN : -CARD_MARGIN;
+    
     for (let i = 0; i < itemsNeeded; i++) {
       const categoryIndex = i % categoriesData.length;
       initialItems.push({
         id: nextIdRef.current++,
         category: categoriesData[categoryIndex],
-        positionX: i * cardTotalWidth,
+        positionX: startOffset + (i * cardTotalWidth),
         // For mobile, initialize random highlight state
         mobileHighlight: isMobileDevice ? (Math.random() < 0.3) : false,
         mobileHighlightEdge: ['top', 'right', 'bottom', 'left'][Math.floor(Math.random() * 4)],
