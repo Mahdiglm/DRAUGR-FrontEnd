@@ -263,3 +263,189 @@ body.theme-werewolf::-webkit-scrollbar-thumb:hover {
     scroll-behavior: smooth;
   }
 }
+
+/* Mobile-Specific Enhancements for SpecialOffers Page */
+@layer utilities {
+  /* Hide scrollbars for mobile horizontal scrolling */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Mobile touch optimizations */
+  .touch-optimized {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  
+  /* Line clamp utilities for mobile text */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+  
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  
+  /* Mobile-specific button styles */
+  .mobile-btn {
+    min-height: 44px; /* iOS recommended touch target */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Mobile card optimizations */
+  .mobile-card {
+    transform: translateZ(0); /* Enable hardware acceleration */
+    backface-visibility: hidden;
+    will-change: transform;
+  }
+  
+  /* Smooth transitions for mobile */
+  .mobile-transition {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  /* Mobile-specific animations */
+  @keyframes mobile-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes mobile-slide-in {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  .mobile-fade-in {
+    animation: mobile-fade-in 0.3s ease-out;
+  }
+  
+  .mobile-slide-in {
+    animation: mobile-slide-in 0.4s ease-out;
+  }
+}
+
+/* Mobile-First Media Queries */
+@media (max-width: 767px) {
+  /* Override any unwanted desktop styles on mobile */
+  .desktop-only {
+    display: none !important;
+  }
+  
+  /* Compact spacing for mobile */
+  .mobile-compact {
+    padding: 0.75rem;
+  }
+  
+  /* Mobile-specific grid adjustments */
+  .mobile-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  /* Touch-friendly hover replacements */
+  .mobile-touch:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
+  
+  /* Mobile typography optimizations */
+  .mobile-text-sm {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  
+  .mobile-text-xs {
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+  
+  /* Mobile container with safe areas */
+  .mobile-container {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Enhanced mobile interactions */
+@media (max-width: 767px) and (hover: none) {
+  /* Remove hover states on devices that don't support hover */
+  .hover-disabled {
+    transform: none !important;
+  }
+  
+  /* Use active states instead of hover for touch devices */
+  .touch-active:active {
+    background-color: rgba(239, 68, 68, 0.1);
+    transform: scale(0.98);
+  }
+}
+
+/* Performance optimizations for mobile */
+@media (max-width: 767px) {
+  /* Reduce motion for better mobile performance */
+  .mobile-reduce-motion {
+    animation-duration: 0.2s !important;
+    transition-duration: 0.2s !important;
+  }
+  
+  /* Optimize animations for mobile */
+  .mobile-optimized {
+    transform: translateZ(0);
+    will-change: transform;
+    backface-visibility: hidden;
+  }
+}
+
+/* Dark mode optimizations for mobile */
+@media (max-width: 767px) and (prefers-color-scheme: dark) {
+  .mobile-dark-mode {
+    background-color: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(10px);
+  }
+}
+
+/* Mobile-specific horror theme adjustments */
+@media (max-width: 767px) {
+  .mobile-horror-card {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(107, 114, 128, 0.3);
+    border-radius: 1rem;
+  }
+  
+  .mobile-horror-glow {
+    box-shadow: 0 4px 14px 0 rgba(239, 68, 68, 0.15);
+  }
+  
+  .mobile-horror-text {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  }
+}

@@ -1,9 +1,92 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
 const SpecialOffersBanner = ({ offers }) => {
-  return (
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Mobile-specific horizontal scrolling banner
+  const MobileBanner = () => (
+    <div className="mb-8">
+      <div className="px-4 mb-4">
+        <h3 className="text-lg font-bold text-white mb-1">پیشنهادات ویژه</h3>
+        <p className="text-gray-400 text-sm">بهترین تخفیف‌ها را از دست ندهید</p>
+      </div>
+      
+      <div className="overflow-x-auto scrollbar-hide">
+        <div className="flex gap-4 px-4 pb-2" style={{ width: 'max-content' }}>
+          {offers.map((offer, index) => (
+            <motion.div
+              key={offer.id}
+              className="relative w-72 bg-black/40 backdrop-blur-sm rounded-2xl overflow-hidden border border-gray-700/30"
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.4, delay: index * 0.1 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {/* Compact image header */}
+              <div className="relative h-32 overflow-hidden">
+                <img 
+                  src={offer.image} 
+                  alt={offer.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                
+                {/* Compact discount badge */}
+                <div className="absolute top-2 right-2 bg-red-600 text-white px-2.5 py-1 rounded-lg text-xs font-bold">
+                  {offer.discount}
+                </div>
+                
+                {/* Title overlay */}
+                <div className="absolute bottom-2 left-3 right-3">
+                  <h4 className="text-white text-sm font-semibold line-clamp-1 mb-1">
+                    {offer.title}
+                  </h4>
+                  <p className="text-gray-300 text-xs line-clamp-1">
+                    {offer.description}
+                  </p>
+                </div>
+              </div>
+              
+              {/* Compact action area */}
+              <div className="p-3">
+                <Link 
+                  to={`/special-offers/${offer.id}`}
+                  className="block w-full bg-red-600/20 border border-red-600/40 text-red-400 text-center py-2 rounded-lg text-xs font-semibold hover:bg-red-600/30 transition-colors"
+                >
+                  مشاهده پیشنهاد
+                </Link>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+      
+      {/* Scroll indicator */}
+      <div className="flex justify-center mt-3">
+        <div className="flex gap-1">
+          {offers.map((_, index) => (
+            <div key={index} className="w-1.5 h-1.5 bg-gray-600 rounded-full" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  // Desktop version (unchanged)
+  const DesktopBanner = () => (
     <div className="mb-20 flex justify-center">
       <motion.div 
         className="flex flex-col lg:flex-row gap-6 lg:gap-8 w-full max-w-6xl"
@@ -135,6 +218,20 @@ const SpecialOffersBanner = ({ offers }) => {
         ))}
       </motion.div>
     </div>
+  );
+
+  return (
+    <>
+      {/* Mobile Layout */}
+      <div className="md:hidden">
+        <MobileBanner />
+      </div>
+      
+      {/* Desktop Layout */}
+      <div className="hidden md:block">
+        <DesktopBanner />
+      </div>
+    </>
   );
 };
 
