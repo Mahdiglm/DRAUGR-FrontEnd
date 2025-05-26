@@ -356,7 +356,7 @@ const Header = ({ cartItems, onCartClick }) => {
               </div>
               
               {/* Bottom action section - New section for quick actions */}
-              <div className="border-t border-draugr-800 p-4 shrink-0">
+              <div className="p-4 shrink-0">
                 <div className="flex justify-between items-center">
                   <Link 
                     to="/login" 
