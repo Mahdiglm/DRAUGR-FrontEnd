@@ -12,14 +12,18 @@ import { getOptimizedAnimationSettings } from '../../utils/animationHelpers';
 
 // Constants for layout - moved to global scope for reuse
 const CARD_WIDTH = 224; // 56px * 4 (actual width)
-const CARD_MARGIN = 32;  // 16px on each side (mx-4)
+const CARD_MARGIN = 0;  // No margin - we'll handle spacing with absolute positioning
 const CARD_TOTAL_WIDTH = CARD_WIDTH + CARD_MARGIN; // Total width including margins
 
 // Mobile constants (smaller sizes)
 const MOBILE_CARD_WIDTH = 160; // Smaller width for mobile
-const MOBILE_CARD_MARGIN = 8; // Even smaller margin for mobile
+const MOBILE_CARD_MARGIN = 0; // No margin - we'll handle spacing with absolute positioning
 const MOBILE_CARD_TOTAL_WIDTH = MOBILE_CARD_WIDTH + MOBILE_CARD_MARGIN;
 const MOBILE_ROW_HEIGHT = 120; // Smaller height for mobile rows
+
+// Consistent spacing between cards
+const CARD_SPACING = 32; // Fixed spacing between cards for desktop
+const MOBILE_CARD_SPACING = 8; // Fixed spacing between cards for mobile
 
 // Mobile detection helper
 const isMobile = () => {
@@ -65,8 +69,9 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
     return {
       cardWidth: isMobileDevice ? MOBILE_CARD_WIDTH : CARD_WIDTH,
       cardMargin: isMobileDevice ? MOBILE_CARD_MARGIN : CARD_MARGIN,
-      cardTotalWidth: isMobileDevice ? MOBILE_CARD_TOTAL_WIDTH : CARD_TOTAL_WIDTH,
-      rowHeight: isMobileDevice ? MOBILE_ROW_HEIGHT : 192 // 48px * 4
+      cardTotalWidth: isMobileDevice ? MOBILE_CARD_WIDTH + MOBILE_CARD_SPACING : CARD_WIDTH + CARD_SPACING,
+      rowHeight: isMobileDevice ? MOBILE_ROW_HEIGHT : 192, // 48px * 4
+      cardSpacing: isMobileDevice ? MOBILE_CARD_SPACING : CARD_SPACING
     };
   }, [isMobileDevice]);
   
@@ -93,17 +98,15 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
     const performanceMultiplier = isMobileDevice ? 0.7 : 1;
     
     // Get the appropriate card dimensions
-    const { cardTotalWidth } = getCardDimensions();
+    const { cardWidth, cardSpacing } = getCardDimensions();
+    const exactTotalWidth = cardWidth + cardSpacing;
     
     // Move each item based on direction
     setCategoryItems(prevItems => {
       // Safety check - if we somehow lost all items, refill
       if (prevItems.length === 0) {
         const containerWidth = containerRef.current?.offsetWidth || 1000;
-        const itemsNeeded = Math.ceil(containerWidth / cardTotalWidth) + 4;
-        
-        // Calculate offset to ensure consistent spacing
-        const startOffset = isMobileDevice ? -MOBILE_CARD_MARGIN : -CARD_MARGIN;
+        const itemsNeeded = Math.ceil(containerWidth / exactTotalWidth) + 4;
         
         const initialItems = [];
         for (let i = 0; i < itemsNeeded; i++) {
@@ -111,7 +114,7 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
           initialItems.push({
             id: nextIdRef.current++,
             category: categoriesData[categoryIndex],
-            positionX: startOffset + (i * cardTotalWidth),
+            positionX: i * exactTotalWidth,
             // For mobile, initialize random highlight state
             mobileHighlight: isMobileDevice ? (Math.random() < 0.3) : false,
             mobileHighlightEdge: ['top', 'right', 'bottom', 'left'][Math.floor(Math.random() * 4)],
@@ -163,8 +166,8 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
         );
         
         // Add new item at the right if needed
-        removeCondition = item => item.positionX > -cardTotalWidth;
-        newItemPosition = edgeItem.positionX + cardTotalWidth;
+        removeCondition = item => item.positionX > -exactTotalWidth;
+        newItemPosition = edgeItem.positionX + exactTotalWidth;
       } else {
         // Left to right scrolling (opposite direction)
         // Find the leftmost item
@@ -174,22 +177,22 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
         );
         
         // Add new item at the left if needed
-        removeCondition = item => item.positionX < containerWidth + cardTotalWidth;
-        newItemPosition = edgeItem.positionX - cardTotalWidth;
+        removeCondition = item => item.positionX < containerWidth + exactTotalWidth;
+        newItemPosition = edgeItem.positionX - exactTotalWidth;
       }
       
       const newItems = [...movedItems];
       
       // If the edge item has moved in enough, add a new item at the appropriate end
       const needNewItem = direction === "rtl" 
-        ? edgeItem.positionX < containerWidth + (cardTotalWidth/2)
-        : edgeItem.positionX > -(cardTotalWidth/2);
+        ? edgeItem.positionX < containerWidth + (exactTotalWidth/2)
+        : edgeItem.positionX > -(exactTotalWidth/2);
         
       if (needNewItem) {
         // Determine the category index
         const categoryIndex = nextIdRef.current % categoriesData.length;
         
-        // Add a new item, exactly cardTotalWidth away from the edge item
+        // Add a new item, exactly exactTotalWidth away from the edge item
         newItems.push({
           id: nextIdRef.current++,
           category: categoriesData[categoryIndex],
@@ -219,11 +222,12 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
     if (!containerRef.current) return;
     
     // Get the appropriate card dimensions
-    const { cardTotalWidth } = getCardDimensions();
+    const { cardWidth, cardSpacing } = getCardDimensions();
+    const exactTotalWidth = cardWidth + cardSpacing;
     
     // Calculate how many items we need to fill the container width plus buffer
     const containerWidth = containerRef.current.offsetWidth;
-    const itemsNeeded = Math.ceil(containerWidth / cardTotalWidth) + 4; // +4 for buffer
+    const itemsNeeded = Math.ceil(containerWidth / exactTotalWidth) + 4; // +4 for buffer
     
     // If we already have items, maintain their current positions
     if (categoryItems.length > 0 && wasVisibleRef.current) {
@@ -233,16 +237,12 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
     // Otherwise create fresh items
     const initialItems = [];
     
-    // Calculate offset to ensure consistent spacing
-    // Start with negative offset to align cards correctly from the beginning
-    const startOffset = isMobileDevice ? -MOBILE_CARD_MARGIN : -CARD_MARGIN;
-    
     for (let i = 0; i < itemsNeeded; i++) {
       const categoryIndex = i % categoriesData.length;
       initialItems.push({
         id: nextIdRef.current++,
         category: categoriesData[categoryIndex],
-        positionX: startOffset + (i * cardTotalWidth),
+        positionX: i * exactTotalWidth,
         // For mobile, initialize random highlight state
         mobileHighlight: isMobileDevice ? (Math.random() < 0.3) : false,
         mobileHighlightEdge: ['top', 'right', 'bottom', 'left'][Math.floor(Math.random() * 4)],
@@ -1024,7 +1024,7 @@ const CategoryItem = ({
   return (
     <div
       ref={itemRef}
-      className={`absolute ${isMobile ? 'mx-1' : 'mx-4'} overflow-visible cursor-pointer select-none`}
+      className="absolute overflow-visible cursor-pointer select-none"
       style={{
         ...style,
       }}
