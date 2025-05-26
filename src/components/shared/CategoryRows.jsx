@@ -15,6 +15,12 @@ const CARD_WIDTH = 224; // 56px * 4 (actual width)
 const CARD_MARGIN = 32;  // 16px on each side (mx-4)
 const CARD_TOTAL_WIDTH = CARD_WIDTH + CARD_MARGIN; // Total width including margins
 
+// Mobile constants (smaller sizes)
+const MOBILE_CARD_WIDTH = 160; // Smaller width for mobile
+const MOBILE_CARD_MARGIN = 16; // Smaller margin for mobile
+const MOBILE_CARD_TOTAL_WIDTH = MOBILE_CARD_WIDTH + MOBILE_CARD_MARGIN;
+const MOBILE_ROW_HEIGHT = 120; // Smaller height for mobile rows
+
 // Mobile detection helper
 const isMobile = () => {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
@@ -54,6 +60,16 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
     return () => window.removeEventListener('resize', handleResize);
   }, []);
   
+  // Get the appropriate card dimensions based on device
+  const getCardDimensions = useCallback(() => {
+    return {
+      cardWidth: isMobileDevice ? MOBILE_CARD_WIDTH : CARD_WIDTH,
+      cardMargin: isMobileDevice ? MOBILE_CARD_MARGIN : CARD_MARGIN,
+      cardTotalWidth: isMobileDevice ? MOBILE_CARD_TOTAL_WIDTH : CARD_TOTAL_WIDTH,
+      rowHeight: isMobileDevice ? MOBILE_ROW_HEIGHT : 192 // 48px * 4
+    };
+  }, [isMobileDevice]);
+  
   // Create animation frame handler - defined first to avoid reference errors
   const animate = useCallback((timestamp) => {
     // Skip animation if tab is not visible
@@ -76,12 +92,15 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
     // Reduce animation work on mobile devices
     const performanceMultiplier = isMobileDevice ? 0.7 : 1;
     
+    // Get the appropriate card dimensions
+    const { cardTotalWidth } = getCardDimensions();
+    
     // Move each item based on direction
     setCategoryItems(prevItems => {
       // Safety check - if we somehow lost all items, refill
       if (prevItems.length === 0) {
         const containerWidth = containerRef.current?.offsetWidth || 1000;
-        const itemsNeeded = Math.ceil(containerWidth / CARD_TOTAL_WIDTH) + 4;
+        const itemsNeeded = Math.ceil(containerWidth / cardTotalWidth) + 4;
         
         const initialItems = [];
         for (let i = 0; i < itemsNeeded; i++) {
@@ -89,7 +108,7 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
           initialItems.push({
             id: nextIdRef.current++,
             category: categoriesData[categoryIndex],
-            positionX: i * CARD_TOTAL_WIDTH,
+            positionX: i * cardTotalWidth,
             // For mobile, initialize random highlight state
             mobileHighlight: isMobileDevice ? (Math.random() < 0.3) : false,
             mobileHighlightEdge: ['top', 'right', 'bottom', 'left'][Math.floor(Math.random() * 4)],
@@ -141,8 +160,8 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
         );
         
         // Add new item at the right if needed
-        removeCondition = item => item.positionX > -CARD_TOTAL_WIDTH;
-        newItemPosition = edgeItem.positionX + CARD_TOTAL_WIDTH;
+        removeCondition = item => item.positionX > -cardTotalWidth;
+        newItemPosition = edgeItem.positionX + cardTotalWidth;
       } else {
         // Left to right scrolling (opposite direction)
         // Find the leftmost item
@@ -152,16 +171,16 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
         );
         
         // Add new item at the left if needed
-        removeCondition = item => item.positionX < containerWidth + CARD_TOTAL_WIDTH;
-        newItemPosition = edgeItem.positionX - CARD_TOTAL_WIDTH;
+        removeCondition = item => item.positionX < containerWidth + cardTotalWidth;
+        newItemPosition = edgeItem.positionX - cardTotalWidth;
       }
       
       const newItems = [...movedItems];
       
       // If the edge item has moved in enough, add a new item at the appropriate end
       const needNewItem = direction === "rtl" 
-        ? edgeItem.positionX < containerWidth + CARD_MARGIN
-        : edgeItem.positionX > -CARD_MARGIN;
+        ? edgeItem.positionX < containerWidth + (cardTotalWidth/2)
+        : edgeItem.positionX > -(cardTotalWidth/2);
         
       if (needNewItem) {
         // Determine the category index
@@ -190,15 +209,18 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
     });
     
     animationRef.current = requestAnimationFrame(animate);
-  }, [speed, direction, categoriesData, isMobileDevice]);
+  }, [speed, direction, categoriesData, isMobileDevice, getCardDimensions]);
   
   // Initialize category items - this will run on mount and when tab visibility changes
   const fillBelt = useCallback(() => {
     if (!containerRef.current) return;
     
+    // Get the appropriate card dimensions
+    const { cardTotalWidth } = getCardDimensions();
+    
     // Calculate how many items we need to fill the container width plus buffer
     const containerWidth = containerRef.current.offsetWidth;
-    const itemsNeeded = Math.ceil(containerWidth / CARD_TOTAL_WIDTH) + 4; // +4 for buffer
+    const itemsNeeded = Math.ceil(containerWidth / cardTotalWidth) + 4; // +4 for buffer
     
     // If we already have items, maintain their current positions
     if (categoryItems.length > 0 && wasVisibleRef.current) {
@@ -212,7 +234,7 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
       initialItems.push({
         id: nextIdRef.current++,
         category: categoriesData[categoryIndex],
-        positionX: i * CARD_TOTAL_WIDTH,
+        positionX: i * cardTotalWidth,
         // For mobile, initialize random highlight state
         mobileHighlight: isMobileDevice ? (Math.random() < 0.3) : false,
         mobileHighlightEdge: ['top', 'right', 'bottom', 'left'][Math.floor(Math.random() * 4)],
@@ -223,7 +245,7 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
     
     setCategoryItems(initialItems);
     itemsStateRef.current = initialItems;
-  }, [categoryItems, categoriesData, isMobileDevice]);
+  }, [categoryItems, categoriesData, isMobileDevice, getCardDimensions]);
   
   // Start and manage the animation
   useEffect(() => {
@@ -320,9 +342,12 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, [defaultSpeed, direction, isMobileDevice]);
+  
+  // Get current card dimensions
+  const { cardWidth, rowHeight } = getCardDimensions();
 
   return (
-    <div className="py-2 sm:py-3 md:py-4 w-screen min-w-full max-w-none relative overflow-hidden mx-0 px-0"
+    <div className={`py-2 sm:py-3 md:py-4 w-screen min-w-full max-w-none relative overflow-hidden mx-0 px-0 ${isMobileDevice ? 'category-row-mobile' : ''}`}
          style={{
            width: '100vw',
            maxWidth: '100vw',
@@ -336,11 +361,11 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
          }}
     >
       {(title.trim() || subtitle.trim()) && (
-        <div className="w-full mb-6">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-100 mb-2 pl-4">
+        <div className="w-full mb-3 md:mb-6">
+          <h2 className={`${isMobileDevice ? 'text-xl' : 'text-2xl md:text-3xl'} font-bold text-gray-100 mb-1 md:mb-2 pl-4`}>
             {title}
           </h2>
-          <p className="text-gray-400 pl-4">
+          <p className={`text-gray-400 pl-4 ${isMobileDevice ? 'text-xs' : 'text-sm'}`}>
             {subtitle}
           </p>
         </div>
@@ -360,10 +385,11 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
       >
         <div 
           ref={beltRef}
-          className="relative h-48 w-screen"
+          className="relative w-screen"
           style={{
             width: '100vw',
-            maxWidth: '100vw'
+            maxWidth: '100vw',
+            height: `${rowHeight}px`
           }}
         >
           {categoryItems.map(item => (
@@ -374,9 +400,10 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
                 position: 'absolute',
                 left: 0,
                 transform: `translateX(${item.positionX}px)`,
-                width: `${CARD_WIDTH}px`
+                width: `${cardWidth}px`,
+                height: `${rowHeight}px`
               }}
-              cardWidth={CARD_WIDTH}
+              cardWidth={cardWidth}
               isMobile={isMobileDevice}
               mobileHighlight={item.mobileHighlight}
               mobileHighlightEdge={item.mobileHighlightEdge}
@@ -829,14 +856,14 @@ const CategoryItem = ({
     return (
       <svg
         className="absolute inset-0 w-full h-full pointer-events-none z-10"
-        viewBox={`0 0 ${cardWidth} 160`}
+        viewBox={`0 0 ${cardWidth} ${isMobile ? '120' : '160'}`}
         xmlns="http://www.w3.org/2000/svg"
       >
         {/* Circuit lines vary based on which edge is active */}
         {edge === 'top' && (
           <path
             d={simplifiedForMobile 
-              ? `M${position * cardWidth},${borderWidth} v6` 
+              ? `M${position * cardWidth},${borderWidth} v3` 
               : `M${position * cardWidth},${borderWidth} v6 h${intensity * 15}`}
             stroke="#ff0066"
             strokeWidth="1"
@@ -853,7 +880,7 @@ const CategoryItem = ({
         {edge === 'right' && (
           <path
             d={simplifiedForMobile 
-              ? `M${cardWidth - borderWidth},${position * 160} h-6` 
+              ? `M${cardWidth - borderWidth},${position * (isMobile ? 120 : 160)} h-3` 
               : `M${cardWidth - borderWidth},${position * 160} h-6 v${intensity * 15}`}
             stroke="#ff0066"
             strokeWidth="1"
@@ -870,7 +897,7 @@ const CategoryItem = ({
         {edge === 'bottom' && (
           <path
             d={simplifiedForMobile 
-              ? `M${(1-position) * cardWidth},${160 - borderWidth} v-6` 
+              ? `M${(1-position) * cardWidth},${(isMobile ? 120 : 160) - borderWidth} v-3` 
               : `M${(1-position) * cardWidth},${160 - borderWidth} v-6 h-${intensity * 15}`}
             stroke="#ff0066"
             strokeWidth="1"
@@ -887,7 +914,7 @@ const CategoryItem = ({
         {edge === 'left' && (
           <path
             d={simplifiedForMobile 
-              ? `M${borderWidth},${(1-position) * 160} h6` 
+              ? `M${borderWidth},${(1-position) * (isMobile ? 120 : 160)} h3` 
               : `M${borderWidth},${(1-position) * 160} h6 v-${intensity * 15}`}
             stroke="#ff0066"
             strokeWidth="1"
@@ -966,15 +993,15 @@ const CategoryItem = ({
         {simplifiedForMobile && (edge === 'topLeft' || edge === 'topRight' || edge === 'bottomLeft' || edge === 'bottomRight') && (
           <path
             d={
-              edge === 'topLeft' ? `M${borderWidth + 1},${borderWidth + 1} l4,4` :
-              edge === 'topRight' ? `M${cardWidth - borderWidth - 1},${borderWidth + 1} l-4,4` :
-              edge === 'bottomLeft' ? `M${borderWidth + 1},${160 - borderWidth - 1} l4,-4` :
-              `M${cardWidth - borderWidth - 1},${160 - borderWidth - 1} l-4,-4`
+              edge === 'topLeft' ? `M${borderWidth + 1},${borderWidth + 1} l2,2` :
+              edge === 'topRight' ? `M${cardWidth - borderWidth - 1},${borderWidth + 1} l-2,2` :
+              edge === 'bottomLeft' ? `M${borderWidth + 1},${(isMobile ? 120 : 160) - borderWidth - 1} l2,-2` :
+              `M${cardWidth - borderWidth - 1},${(isMobile ? 120 : 160) - borderWidth - 1} l-2,-2`
             }
             stroke="#ff0066"
             strokeWidth="1"
             fill="none"
-            strokeDasharray="3,2"
+            strokeDasharray="2,2"
             style={{
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
@@ -989,7 +1016,7 @@ const CategoryItem = ({
   return (
     <div
       ref={itemRef}
-      className="absolute mx-4 h-40 overflow-visible cursor-pointer select-none"
+      className="absolute mx-4 overflow-visible cursor-pointer select-none"
       style={{
         ...style,
       }}
@@ -1033,9 +1060,9 @@ const CategoryItem = ({
       
       {/* Content */}
       <div className="relative z-5 h-full flex flex-col justify-center items-center p-4">
-        <span className="text-xl font-bold text-white mb-2">{category.name}</span>
+        <span className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-white mb-1 md:mb-2`}>{category.name}</span>
         <div 
-          className="text-[#d64356] text-sm mt-1 flex items-center border border-red-900/40 px-3 py-1 rounded-full"
+          className={`text-[#d64356] ${isMobile ? 'text-xs' : 'text-sm'} mt-1 flex items-center border border-red-900/40 px-2 py-1 md:px-3 md:py-1 rounded-full`}
           style={{
             background: "rgba(127, 29, 29, 0.2)",
             transition: "all 0.3s ease"
@@ -1044,7 +1071,7 @@ const CategoryItem = ({
           <span className="mr-1">مشاهده محصولات</span>
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
-            className="h-4 w-4 mr-1" 
+            className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} mr-1`}
             fill="none" 
             viewBox="0 0 24 24" 
             stroke="currentColor"
