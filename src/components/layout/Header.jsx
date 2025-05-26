@@ -156,11 +156,11 @@ const Header = ({ cartItems, onCartClick }) => {
       initial={{ opacity: 0, y: -50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`bg-black text-white py-4 sm:py-3.5 md:py-3 sticky top-0 z-50 w-full transition-all duration-300 ${
+      className={`bg-black text-white py-5 sm:py-4 md:py-3 sticky top-0 z-50 w-full transition-all duration-300 ${
         isScrolled ? 'shadow-[0_0_15px_rgba(255,0,0,0.3)]' : ''
       }`}
     >
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-4 flex justify-between items-center">
+      <div className="w-full max-w-7xl mx-auto px-5 sm:px-5 md:px-4 flex justify-between items-center">
         <motion.div 
           whileHover={{ scale: 1.05 }}
           className="text-lg sm:text-xl md:text-2xl font-bold flex items-center relative w-36 sm:w-44 md:w-56 cursor-pointer"
@@ -211,7 +211,7 @@ const Header = ({ cartItems, onCartClick }) => {
           </motion.div>
 
           {/* Spacer div with adjusted spacing for mobile */}
-          <div className="w-3 sm:w-3 md:w-6"></div>
+          <div className="w-4 sm:w-4 md:w-4"></div>
 
           <motion.div 
             whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
@@ -240,7 +240,7 @@ const Header = ({ cartItems, onCartClick }) => {
           </motion.div>
           
           {/* Another spacer div */}
-          <div className="w-3 sm:w-3 md:w-4"></div>
+          <div className="w-4 sm:w-4 md:w-4"></div>
           
           {/* Mobile Menu Button - Improved for better tap targets */}
           <motion.button 
@@ -352,33 +352,6 @@ const Header = ({ cartItems, onCartClick }) => {
                       />
                     ))}
                   </div>
-                </div>
-              </div>
-              
-              {/* Bottom action section - New section for quick actions */}
-              <div className="p-4 shrink-0">
-                <div className="flex justify-between items-center">
-                  <Link 
-                    to="/login" 
-                    className="flex items-center text-sm text-gray-300 hover:text-white"
-                    onClick={toggleMobileMenu}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    ورود / ثبت نام
-                  </Link>
-                  
-                  <Link 
-                    to="/cart" 
-                    className="flex items-center text-sm text-gray-300 hover:text-white"
-                    onClick={toggleMobileMenu}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                    </svg>
-                    سبد خرید {cartItems.length > 0 && `(${cartItems.length})`}
-                  </Link>
                 </div>
               </div>
             </motion.div>
