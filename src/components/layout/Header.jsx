@@ -156,21 +156,21 @@ const Header = ({ cartItems, onCartClick }) => {
       initial={{ opacity: 0, y: -50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`bg-black text-white py-5 sm:py-4 md:py-3 sticky top-0 z-50 w-full transition-all duration-300 ${
+      className={`bg-black text-white py-6 sm:py-5 md:py-3 sticky top-0 z-50 w-full transition-all duration-300 ${
         isScrolled ? 'shadow-[0_0_15px_rgba(255,0,0,0.3)]' : ''
       }`}
     >
-      <div className="w-full max-w-7xl mx-auto px-5 sm:px-5 md:px-4 flex justify-between items-center">
+      <div className="w-full max-w-7xl mx-auto px-6 sm:px-5 md:px-4 flex justify-between items-center">
         <motion.div 
           whileHover={{ scale: 1.05 }}
-          className="text-lg sm:text-xl md:text-2xl font-bold flex items-center relative w-36 sm:w-44 md:w-56 cursor-pointer"
+          className="text-xl sm:text-xl md:text-2xl font-bold flex items-center relative w-36 sm:w-44 md:w-56 cursor-pointer"
           onClick={() => navigate('/')}
         >
           {/* Fixed width container for the logo text to prevent layout shifts */}
           <div className="absolute left-0 top-0 h-full flex items-center">
-            <div className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
               <div className="blood-text animate-pulse-slow">{typedText || '\u00A0'}</div>
-              <div className="h-4 sm:h-5 md:h-6 w-0.5 bg-draugr-500 animate-pulse"></div>
+              <div className="h-5 sm:h-5 md:h-6 w-0.5 bg-draugr-500 animate-pulse"></div>
               <div>فروشگاه</div>
             </div>
           </div>
@@ -206,12 +206,12 @@ const Header = ({ cartItems, onCartClick }) => {
             <img 
               src={pfpIcon} 
               alt="Profile" 
-              className="w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full object-cover border-2 border-draugr-600 transition-all duration-300"
+              className="w-9 h-9 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full object-cover border-2 border-draugr-600 transition-all duration-300"
             />
           </motion.div>
 
           {/* Spacer div with adjusted spacing for mobile */}
-          <div className="w-4 sm:w-4 md:w-4"></div>
+          <div className="w-6 sm:w-5 md:w-4"></div>
 
           <motion.div 
             whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
@@ -225,14 +225,14 @@ const Header = ({ cartItems, onCartClick }) => {
             className="relative cursor-pointer"
             onClick={onCartClick}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 sm:h-6 sm:w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
             {cartItems.length > 0 && (
               <motion.span 
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="absolute -top-2 -right-2 bg-draugr-500 text-white rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center text-[0.6rem] sm:text-xs"
+                className="absolute -top-2 -right-2 bg-draugr-500 text-white rounded-full w-5 h-5 sm:w-5 sm:h-5 flex items-center justify-center text-xs sm:text-xs"
               >
                 {cartItems.length}
               </motion.span>
@@ -240,11 +240,11 @@ const Header = ({ cartItems, onCartClick }) => {
           </motion.div>
           
           {/* Another spacer div */}
-          <div className="w-4 sm:w-4 md:w-4"></div>
+          <div className="w-6 sm:w-5 md:w-4"></div>
           
           {/* Mobile Menu Button - Improved for better tap targets */}
           <motion.button 
-            className="md:hidden flex items-center justify-center text-white bg-black/40 rounded-md p-1.5 border border-draugr-900/40"
+            className="md:hidden flex items-center justify-center text-white bg-black/40 rounded-md p-2 border border-draugr-900/40"
             onClick={toggleMobileMenu}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -252,7 +252,7 @@ const Header = ({ cartItems, onCartClick }) => {
           >
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              className="h-4 w-4 sm:h-5 sm:w-5" 
+              className="h-6 w-6 sm:h-5 sm:w-5" 
               fill="none" 
               viewBox="0 0 24 24" 
               stroke="currentColor"
@@ -307,22 +307,22 @@ const Header = ({ cartItems, onCartClick }) => {
               className="md:hidden fixed top-0 right-0 h-screen w-[85%] xs:w-[75%] sm:w-[60%] bg-gradient-to-b from-black to-draugr-950 shadow-[-10px_0px_30px_rgba(0,0,0,0.5)] z-50 overflow-hidden flex flex-col"
             >
               {/* Menu Header with improved UX */}
-              <div className="p-3 sm:p-4 flex justify-between items-center border-b border-draugr-800 shrink-0">
+              <div className="p-4 sm:p-4 flex justify-between items-center border-b border-draugr-800 shrink-0">
                 <div className="flex items-center">
-                  <span className="blood-text text-base sm:text-lg font-bold">{brandName}</span>
-                  <div className="h-4 sm:h-5 w-0.5 mx-2 bg-draugr-800"></div>
-                  <span className="text-sm sm:text-base text-gray-400">منو</span>
+                  <span className="blood-text text-lg sm:text-lg font-bold">{brandName}</span>
+                  <div className="h-5 sm:h-5 w-0.5 mx-3 bg-draugr-800"></div>
+                  <span className="text-base sm:text-base text-gray-400">منو</span>
                 </div>
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={toggleMobileMenu}
-                  className="text-white p-1.5 rounded-full hover:bg-draugr-900 focus:outline-none focus:ring-1 focus:ring-draugr-500"
+                  className="text-white p-2 rounded-full hover:bg-draugr-900 focus:outline-none focus:ring-1 focus:ring-draugr-500"
                   aria-label="Close menu"
                 >
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
-                    className="h-5 w-5" 
+                    className="h-6 w-6 sm:h-5 sm:w-5" 
                     fill="none" 
                     viewBox="0 0 24 24" 
                     stroke="currentColor"
@@ -339,8 +339,8 @@ const Header = ({ cartItems, onCartClick }) => {
               
               {/* Mobile Navigation Links with improved scrolling and touch targets */}
               <div className="flex-1 overflow-y-auto overscroll-contain scrollbar-thin scrollbar-track-draugr-950 scrollbar-thumb-draugr-800">
-                <div className="py-2 px-3 overflow-y-auto">
-                  <div className="flex flex-col">
+                <div className="py-3 px-4 overflow-y-auto">
+                  <div className="flex flex-col space-y-2">
                     {navigationItems.map((item, index) => (
                       <MobileNavLink 
                         key={index}
@@ -557,22 +557,22 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
   };
   
   return (
-    <div className="mb-1">
+    <div className="mb-2">
       <div 
-        className={`flex justify-between items-center py-3 px-3 text-white transition-all duration-200 rounded-md cursor-pointer ${isExpanded ? 'bg-draugr-900/40 mb-1' : 'hover:bg-black/40'}`}
+        className={`flex justify-between items-center py-4 px-4 text-white transition-all duration-200 rounded-md cursor-pointer ${isExpanded ? 'bg-draugr-900/40 mb-1' : 'hover:bg-black/40'}`}
         onClick={handleClick}
       >
-        <span className="text-sm font-medium tracking-wide">{label}</span>
+        <span className="text-base font-medium tracking-wide">{label}</span>
         {isNested && navItem.subcategories && navItem.subcategories.length > 0 && (
           <motion.button
             onClick={toggleExpanded}
-            className="p-1.5 rounded-full hover:bg-black/40 focus:outline-none focus:ring-1 focus:ring-draugr-500"
+            className="p-2 rounded-full hover:bg-black/40 focus:outline-none focus:ring-1 focus:ring-draugr-500"
             animate={{ rotate: isExpanded ? 180 : 0 }}
             transition={{ duration: 0.3 }}
           >
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              className="h-3.5 w-3.5 text-draugr-500/80" 
+              className="h-5 w-5 text-draugr-500/80" 
               fill="none" 
               viewBox="0 0 24 24" 
               stroke="currentColor"
@@ -593,21 +593,21 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
           className="mx-2 mb-2 overflow-hidden rounded-md border-[0.5px] border-draugr-900/50 bg-gradient-to-b from-black/40 to-draugr-950/30"
         >
           {/* Mobile categories - improved touch targets */}
-          <div className="space-y-1 p-1.5">
+          <div className="space-y-2 p-2">
             {navItem.subcategories.map((category, idx) => (
               <div key={idx} className="overflow-hidden rounded-md">
                 <div 
-                  className={`flex justify-between items-center py-2.5 px-3 cursor-pointer transition-colors rounded-md ${activeCategory === idx ? 'bg-black/60' : 'hover:bg-black/40'}`}
+                  className={`flex justify-between items-center py-3 px-4 cursor-pointer transition-colors rounded-md ${activeCategory === idx ? 'bg-black/60' : 'hover:bg-black/40'}`}
                   onClick={(e) => toggleCategory(idx, e)}
                 >
-                  <span className={`text-xs font-medium ${activeCategory === idx ? 'text-draugr-400' : 'text-gray-300'} flex items-center`}>
-                    <span className={`w-1.5 h-1.5 ${activeCategory === idx ? 'bg-draugr-500' : 'bg-draugr-800'} rounded-full mr-2`}></span>
+                  <span className={`text-sm font-medium ${activeCategory === idx ? 'text-draugr-400' : 'text-gray-300'} flex items-center`}>
+                    <span className={`w-2 h-2 ${activeCategory === idx ? 'bg-draugr-500' : 'bg-draugr-800'} rounded-full mr-2`}></span>
                     {category.name}
                   </span>
                   {category.items && category.items.length > 0 && (
                     <motion.svg 
                       xmlns="http://www.w3.org/2000/svg" 
-                      className={`h-3 w-3 ${activeCategory === idx ? 'text-draugr-500' : 'text-gray-500'}`} 
+                      className={`h-4 w-4 ${activeCategory === idx ? 'text-draugr-500' : 'text-gray-500'}`} 
                       fill="none" 
                       viewBox="0 0 24 24" 
                       stroke="currentColor"
@@ -634,12 +634,12 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
                           ? `/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}/${item.toLowerCase().replace(/\s+/g, '-')}`
                           : `/special-offers/${item.toLowerCase().replace(/\s+/g, '-')}`
                         }
-                        className="block py-2.5 px-2 text-xs text-gray-400 hover:text-white hover:bg-black/20 rounded-md transition-all duration-200 flex items-center justify-between"
+                        className="block py-3 px-3 text-sm text-gray-400 hover:text-white hover:bg-black/20 rounded-md transition-all duration-200 flex items-center justify-between"
                         onClick={onClick}
                       >
                         <span>{item}</span>
                         {navItem.name === "پیشنهادات ویژه" && (
-                          <span className="text-[0.6rem] bg-draugr-600 px-1.5 py-0.5 rounded text-white">ویژه</span>
+                          <span className="text-xs bg-draugr-600 px-2 py-1 rounded text-white">ویژه</span>
                         )}
                       </Link>
                     ))}
@@ -650,10 +650,10 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
           </div>
           
           {/* Quick access button to all category items */}
-          <div className="m-1 mt-0 border-t border-draugr-900/30">
+          <div className="m-2 mt-0 border-t border-draugr-900/30">
             <Link 
               to={to}
-              className="block py-2.5 px-3 text-xs text-center text-draugr-400 hover:text-white hover:bg-black/40 rounded-md transition-all duration-200"
+              className="block py-3.5 px-4 text-sm text-center text-draugr-400 hover:text-white hover:bg-black/40 rounded-md transition-all duration-200"
               onClick={onClick}
             >
               مشاهده همه {navItem.name === "فروشگاه" ? "محصولات" : "پیشنهادات"}
