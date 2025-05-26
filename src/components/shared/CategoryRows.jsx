@@ -15,11 +15,17 @@ const CARD_WIDTH = 224; // 56px * 4 (actual width)
 const CARD_MARGIN = 32;  // 16px on each side (mx-4)
 const CARD_TOTAL_WIDTH = CARD_WIDTH + CARD_MARGIN; // Total width including margins
 
+// Mobile detection helper
+const isMobile = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+};
+
 const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null, title = "دسته‌بندی‌ها", subtitle = "مجموعه‌ای از محصولات منحصر به فرد در دسته‌بندی‌های مختلف" }) => {
   const containerRef = useRef(null);
   const beltRef = useRef(null);
   const [categoryItems, setCategoryItems] = useState([]);
   const [speed, setSpeed] = useState(1); // pixels per frame
+  const [isMobileDevice, setIsMobileDevice] = useState(false);
   const animationRef = useRef(null);
   const lastTimestampRef = useRef(0);
   const wasVisibleRef = useRef(true);
@@ -34,8 +40,19 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
   // Control animation speed based on device performance
   const defaultSpeed = getOptimizedAnimationSettings(
     { speed: 0.5 },     // Default settings for high-performance devices
-    { speed: 0.4 }   // Optimized settings for low-performance devices
+    { speed: 0.3 }      // Reduced speed for low-performance devices
   ).speed;
+
+  // Check for mobile device on component mount
+  useEffect(() => {
+    setIsMobileDevice(isMobile());
+    const handleResize = () => {
+      setIsMobileDevice(isMobile());
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   // Create animation frame handler - defined first to avoid reference errors
   const animate = useCallback((timestamp) => {
@@ -56,6 +73,9 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
     
     lastTimestampRef.current = timestamp;
     
+    // Reduce animation work on mobile devices
+    const performanceMultiplier = isMobileDevice ? 0.7 : 1;
+    
     // Move each item based on direction
     setCategoryItems(prevItems => {
       // Safety check - if we somehow lost all items, refill
@@ -69,7 +89,12 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
           initialItems.push({
             id: nextIdRef.current++,
             category: categoriesData[categoryIndex],
-            positionX: i * CARD_TOTAL_WIDTH
+            positionX: i * CARD_TOTAL_WIDTH,
+            // For mobile, initialize random highlight state
+            mobileHighlight: isMobileDevice ? (Math.random() < 0.2) : false,
+            mobileHighlightEdge: ['top', 'right', 'bottom', 'left'][Math.floor(Math.random() * 4)],
+            mobileHighlightIntensity: Math.random() * 0.7 + 0.3,
+            mobileHighlightPosition: Math.random()
           });
         }
         
@@ -77,14 +102,27 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
         return initialItems;
       }
       
-      const moveAmount = speed * deltaTime / 16; // normalize to ~60fps
+      const moveAmount = speed * deltaTime / 16 * performanceMultiplier; // normalize to ~60fps and apply performance factor
       const moveDirection = direction === "rtl" ? -1 : 1; // Negative = right to left, Positive = left to right
       
       // Move all items according to direction
-      const movedItems = prevItems.map(item => ({
-        ...item,
-        positionX: item.positionX + (moveAmount * moveDirection)
-      }));
+      const movedItems = prevItems.map(item => {
+        // For mobile devices, occasionally update random highlight state
+        let updatedItem = { ...item };
+        
+        if (isMobileDevice && Math.random() < 0.005) {
+          // Randomly update mobile highlight states
+          updatedItem.mobileHighlight = Math.random() < 0.3;
+          updatedItem.mobileHighlightEdge = ['top', 'right', 'bottom', 'left'][Math.floor(Math.random() * 4)];
+          updatedItem.mobileHighlightIntensity = Math.random() * 0.7 + 0.3;
+          updatedItem.mobileHighlightPosition = Math.random();
+        }
+        
+        return {
+          ...updatedItem,
+          positionX: item.positionX + (moveAmount * moveDirection)
+        };
+      });
       
       // Check if we need to add a new item or remove old ones
       if (!containerRef.current) return movedItems;
@@ -133,7 +171,12 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
         newItems.push({
           id: nextIdRef.current++,
           category: categoriesData[categoryIndex],
-          positionX: newItemPosition
+          positionX: newItemPosition,
+          // For mobile, initialize random highlight state
+          mobileHighlight: isMobileDevice ? (Math.random() < 0.2) : false,
+          mobileHighlightEdge: ['top', 'right', 'bottom', 'left'][Math.floor(Math.random() * 4)],
+          mobileHighlightIntensity: Math.random() * 0.7 + 0.3,
+          mobileHighlightPosition: Math.random()
         });
       }
       
@@ -147,7 +190,7 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
     });
     
     animationRef.current = requestAnimationFrame(animate);
-  }, [speed, direction, categoriesData]);
+  }, [speed, direction, categoriesData, isMobileDevice]);
   
   // Initialize category items - this will run on mount and when tab visibility changes
   const fillBelt = useCallback(() => {
@@ -169,17 +212,23 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
       initialItems.push({
         id: nextIdRef.current++,
         category: categoriesData[categoryIndex],
-        positionX: i * CARD_TOTAL_WIDTH
+        positionX: i * CARD_TOTAL_WIDTH,
+        // For mobile, initialize random highlight state
+        mobileHighlight: isMobileDevice ? (Math.random() < 0.2) : false,
+        mobileHighlightEdge: ['top', 'right', 'bottom', 'left'][Math.floor(Math.random() * 4)],
+        mobileHighlightIntensity: Math.random() * 0.7 + 0.3,
+        mobileHighlightPosition: Math.random()
       });
     }
     
     setCategoryItems(initialItems);
     itemsStateRef.current = initialItems;
-  }, [categoryItems, categoriesData]);
+  }, [categoryItems, categoriesData, isMobileDevice]);
   
   // Start and manage the animation
   useEffect(() => {
-    setSpeed(defaultSpeed);
+    // Use slower speed on mobile
+    setSpeed(isMobileDevice ? defaultSpeed * 0.8 : defaultSpeed);
     
     // Start animation
     animationRef.current = requestAnimationFrame(animate);
@@ -190,7 +239,7 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [animate, defaultSpeed]);
+  }, [animate, defaultSpeed, isMobileDevice]);
   
   // Handle tab visibility changes
   useEffect(() => {
@@ -241,8 +290,10 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
     return () => window.removeEventListener('resize', fillBelt);
   }, [fillBelt]);
   
-  // Handle mouse movement to adjust speed
+  // Handle mouse movement to adjust speed - only for desktop
   useEffect(() => {
+    if (isMobileDevice) return; // Skip for mobile devices
+    
     const handleMouseMove = (e) => {
       if (!containerRef.current) return;
       
@@ -268,7 +319,7 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
 
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [defaultSpeed, direction]);
+  }, [defaultSpeed, direction, isMobileDevice]);
 
   return (
     <div className="py-2 sm:py-3 md:py-4 w-screen min-w-full max-w-none relative overflow-hidden mx-0 px-0"
@@ -326,6 +377,11 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
                 width: `${CARD_WIDTH}px`
               }}
               cardWidth={CARD_WIDTH}
+              isMobile={isMobileDevice}
+              mobileHighlight={item.mobileHighlight}
+              mobileHighlightEdge={item.mobileHighlightEdge}
+              mobileHighlightIntensity={item.mobileHighlightIntensity}
+              mobileHighlightPosition={item.mobileHighlightPosition}
             />
           ))}
         </div>
@@ -360,7 +416,17 @@ const generateCircuitPath = (startX, startY, endX, endY) => {
   }
 };
 
-const CategoryItem = ({ category, style, cardWidth, ...props }) => {
+const CategoryItem = ({ 
+  category, 
+  style, 
+  cardWidth, 
+  isMobile, 
+  mobileHighlight,
+  mobileHighlightEdge,
+  mobileHighlightIntensity,
+  mobileHighlightPosition,
+  ...props 
+}) => {
   const itemRef = useRef(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isNear, setIsNear] = useState(false);
@@ -375,8 +441,24 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
   const proximityThreshold = 60; // How close the mouse needs to be to activate border effect
   const borderWidth = 2; // Width of the border in pixels
   
-  // Track global mouse position to detect proximity even when outside the item
+  // Track global mouse position to detect proximity only on non-mobile devices
   useEffect(() => {
+    if (isMobile) {
+      // For mobile, we'll use the pre-calculated random values
+      if (mobileHighlight) {
+        setIsNear(true);
+        setProximityData({
+          edge: mobileHighlightEdge,
+          distance: 10, // Close distance to ensure visibility
+          intensity: mobileHighlightIntensity,
+          position: mobileHighlightPosition
+        });
+      } else {
+        setIsNear(false);
+      }
+      return; // Skip the rest for mobile
+    }
+    
     const handleGlobalMouseMove = (e) => {
       if (!itemRef.current) return;
       
@@ -489,7 +571,7 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
     return () => {
       window.removeEventListener('mousemove', handleGlobalMouseMove);
     };
-  }, [isNear, proximityThreshold]);
+  }, [isNear, proximityThreshold, isMobile, mobileHighlight, mobileHighlightEdge, mobileHighlightIntensity, mobileHighlightPosition]);
   
   // Calculate the relative position along an edge (0 to 1)
   const getPositionAlongEdge = (edge, x, y, width, height) => {
@@ -735,6 +817,9 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
     
     const { edge, intensity, position } = proximityData;
     
+    // Use simpler paths for mobile (less intensive)
+    const simplifiedForMobile = isMobile;
+    
     return (
       <svg
         className="absolute inset-0 w-full h-full pointer-events-none z-10"
@@ -744,11 +829,13 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
         {/* Circuit lines vary based on which edge is active */}
         {edge === 'top' && (
           <path
-            d={`M${position * cardWidth},${borderWidth} v6 h${intensity * 15}`}
+            d={simplifiedForMobile 
+              ? `M${position * cardWidth},${borderWidth} v6` 
+              : `M${position * cardWidth},${borderWidth} v6 h${intensity * 15}`}
             stroke="#ff0066"
             strokeWidth="1"
             fill="none"
-            strokeDasharray="4,3"
+            strokeDasharray={simplifiedForMobile ? "3,3" : "4,3"}
             style={{
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
@@ -759,11 +846,13 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
         
         {edge === 'right' && (
           <path
-            d={`M${cardWidth - borderWidth},${position * 160} h-6 v${intensity * 15}`}
+            d={simplifiedForMobile 
+              ? `M${cardWidth - borderWidth},${position * 160} h-6` 
+              : `M${cardWidth - borderWidth},${position * 160} h-6 v${intensity * 15}`}
             stroke="#ff0066"
             strokeWidth="1"
             fill="none"
-            strokeDasharray="4,3"
+            strokeDasharray={simplifiedForMobile ? "3,3" : "4,3"}
             style={{
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
@@ -774,11 +863,13 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
         
         {edge === 'bottom' && (
           <path
-            d={`M${(1-position) * cardWidth},${160 - borderWidth} v-6 h-${intensity * 15}`}
+            d={simplifiedForMobile 
+              ? `M${(1-position) * cardWidth},${160 - borderWidth} v-6` 
+              : `M${(1-position) * cardWidth},${160 - borderWidth} v-6 h-${intensity * 15}`}
             stroke="#ff0066"
             strokeWidth="1"
             fill="none"
-            strokeDasharray="4,3"
+            strokeDasharray={simplifiedForMobile ? "3,3" : "4,3"}
             style={{
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
@@ -789,11 +880,13 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
         
         {edge === 'left' && (
           <path
-            d={`M${borderWidth},${(1-position) * 160} h6 v-${intensity * 15}`}
+            d={simplifiedForMobile 
+              ? `M${borderWidth},${(1-position) * 160} h6` 
+              : `M${borderWidth},${(1-position) * 160} h6 v-${intensity * 15}`}
             stroke="#ff0066"
             strokeWidth="1"
             fill="none" 
-            strokeDasharray="4,3"
+            strokeDasharray={simplifiedForMobile ? "3,3" : "4,3"}
             style={{
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
@@ -802,8 +895,8 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
           />
         )}
         
-        {/* Corner circuit patterns */}
-        {edge === 'topLeft' && (
+        {/* Corner circuit patterns - simplified for mobile */}
+        {!simplifiedForMobile && edge === 'topLeft' && (
           <path
             d={`M${borderWidth + 1},${borderWidth + 1} l4,4 l4,-2 l6,6`}
             stroke="#ff0066"
@@ -818,7 +911,7 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
           />
         )}
         
-        {edge === 'topRight' && (
+        {!simplifiedForMobile && edge === 'topRight' && (
           <path
             d={`M${cardWidth - borderWidth - 1},${borderWidth + 1} l-4,4 l-4,-2 l-6,6`}
             stroke="#ff0066"
@@ -833,7 +926,7 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
           />
         )}
         
-        {edge === 'bottomLeft' && (
+        {!simplifiedForMobile && edge === 'bottomLeft' && (
           <path
             d={`M${borderWidth + 1},${160 - borderWidth - 1} l4,-4 l4,2 l6,-6`}
             stroke="#ff0066"
@@ -848,9 +941,30 @@ const CategoryItem = ({ category, style, cardWidth, ...props }) => {
           />
         )}
         
-        {edge === 'bottomRight' && (
+        {!simplifiedForMobile && edge === 'bottomRight' && (
           <path
             d={`M${cardWidth - borderWidth - 1},${160 - borderWidth - 1} l-4,-4 l-4,2 l-6,-6`}
+            stroke="#ff0066"
+            strokeWidth="1"
+            fill="none"
+            strokeDasharray="3,2"
+            style={{
+              opacity: intensity * 0.7,
+              filter: `drop-shadow(0 0 2px #ff0066)`,
+              animation: 'dashOffset 1.8s linear infinite',
+            }}
+          />
+        )}
+        
+        {/* Simplified corner patterns for mobile */}
+        {simplifiedForMobile && (edge === 'topLeft' || edge === 'topRight' || edge === 'bottomLeft' || edge === 'bottomRight') && (
+          <path
+            d={
+              edge === 'topLeft' ? `M${borderWidth + 1},${borderWidth + 1} l4,4` :
+              edge === 'topRight' ? `M${cardWidth - borderWidth - 1},${borderWidth + 1} l-4,4` :
+              edge === 'bottomLeft' ? `M${borderWidth + 1},${160 - borderWidth - 1} l4,-4` :
+              `M${cardWidth - borderWidth - 1},${160 - borderWidth - 1} l-4,-4`
+            }
             stroke="#ff0066"
             strokeWidth="1"
             fill="none"
