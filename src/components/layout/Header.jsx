@@ -160,7 +160,7 @@ const Header = ({ cartItems, onCartClick }) => {
         isScrolled ? 'shadow-[0_0_15px_rgba(255,0,0,0.3)]' : ''
       }`}
     >
-      <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 flex justify-between items-center">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-4 flex justify-between items-center">
         <motion.div 
           whileHover={{ scale: 1.05 }}
           className="text-lg sm:text-xl md:text-2xl font-bold flex items-center relative w-36 sm:w-44 md:w-56 cursor-pointer"
@@ -211,7 +211,7 @@ const Header = ({ cartItems, onCartClick }) => {
           </motion.div>
 
           {/* Spacer div with adjusted spacing for mobile */}
-          <div className="w-2 sm:w-3 md:w-6"></div>
+          <div className="w-3 sm:w-3 md:w-6"></div>
 
           <motion.div 
             whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
@@ -240,7 +240,7 @@ const Header = ({ cartItems, onCartClick }) => {
           </motion.div>
           
           {/* Another spacer div */}
-          <div className="w-2 sm:w-3 md:w-4"></div>
+          <div className="w-3 sm:w-3 md:w-4"></div>
           
           {/* Mobile Menu Button - Improved for better tap targets */}
           <motion.button 
