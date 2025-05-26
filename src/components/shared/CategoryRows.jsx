@@ -17,7 +17,7 @@ const CARD_TOTAL_WIDTH = CARD_WIDTH + CARD_MARGIN; // Total width including marg
 
 // Mobile constants (smaller sizes)
 const MOBILE_CARD_WIDTH = 160; // Smaller width for mobile
-const MOBILE_CARD_MARGIN = 16; // Smaller margin for mobile
+const MOBILE_CARD_MARGIN = 8; // Even smaller margin for mobile
 const MOBILE_CARD_TOTAL_WIDTH = MOBILE_CARD_WIDTH + MOBILE_CARD_MARGIN;
 const MOBILE_ROW_HEIGHT = 120; // Smaller height for mobile rows
 
@@ -1016,7 +1016,7 @@ const CategoryItem = ({
   return (
     <div
       ref={itemRef}
-      className="absolute mx-4 overflow-visible cursor-pointer select-none"
+      className={`absolute ${isMobile ? 'mx-1' : 'mx-4'} overflow-visible cursor-pointer select-none`}
       style={{
         ...style,
       }}
@@ -1040,7 +1040,7 @@ const CategoryItem = ({
       <div 
         className="absolute inset-0 bg-gradient-to-b from-[#1c0b0f] to-black rounded-lg overflow-hidden"
         style={{
-          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
+          boxShadow: isMobile ? "0 2px 6px rgba(0, 0, 0, 0.3)" : "0 4px 12px rgba(0, 0, 0, 0.3)",
         }}
       />
       
@@ -1059,10 +1059,10 @@ const CategoryItem = ({
       {renderCircuitTrace()}
       
       {/* Content */}
-      <div className="relative z-5 h-full flex flex-col justify-center items-center p-4">
+      <div className={`relative z-5 h-full flex flex-col justify-center items-center ${isMobile ? 'p-2' : 'p-4'}`}>
         <span className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-white mb-1 md:mb-2`}>{category.name}</span>
         <div 
-          className={`text-[#d64356] ${isMobile ? 'text-xs' : 'text-sm'} mt-1 flex items-center border border-red-900/40 px-2 py-1 md:px-3 md:py-1 rounded-full`}
+          className={`text-[#d64356] ${isMobile ? 'text-[10px]' : 'text-sm'} mt-1 flex items-center border border-red-900/40 ${isMobile ? 'px-1.5 py-0.5' : 'px-2 py-1 md:px-3 md:py-1'} rounded-full`}
           style={{
             background: "rgba(127, 29, 29, 0.2)",
             transition: "all 0.3s ease"
@@ -1071,7 +1071,7 @@ const CategoryItem = ({
           <span className="mr-1">مشاهده محصولات</span>
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
-            className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} mr-1`}
+            className={`${isMobile ? 'h-2.5 w-2.5' : 'h-4 w-4'} mr-1`}
             fill="none" 
             viewBox="0 0 24 24" 
             stroke="currentColor"
