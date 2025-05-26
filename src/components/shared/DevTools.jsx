@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 // Only show in development mode
@@ -7,27 +7,35 @@ const isDev = import.meta.env.DEV;
 const DevTools = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [logs, setLogs] = useState([]);
-
+  const logsRef = useRef([]);
+  
+  // Early return after hooks
   if (!isDev) return null;
 
   // Add console log override to capture logs
-  React.useEffect(() => {
+  useEffect(() => {
     const originalConsoleLog = console.log;
     const originalConsoleError = console.error;
     const originalConsoleWarn = console.warn;
 
     console.log = (...args) => {
-      setLogs(prev => [...prev, { type: 'log', content: args.map(arg => JSON.stringify(arg)).join(' '), time: new Date() }]);
+      const newLog = { type: 'log', content: args.map(arg => JSON.stringify(arg)).join(' '), time: new Date() };
+      logsRef.current = [...logsRef.current, newLog];
+      setLogs(logsRef.current);
       originalConsoleLog(...args);
     };
 
     console.error = (...args) => {
-      setLogs(prev => [...prev, { type: 'error', content: args.map(arg => JSON.stringify(arg)).join(' '), time: new Date() }]);
+      const newLog = { type: 'error', content: args.map(arg => JSON.stringify(arg)).join(' '), time: new Date() };
+      logsRef.current = [...logsRef.current, newLog];
+      setLogs(logsRef.current);
       originalConsoleError(...args);
     };
 
     console.warn = (...args) => {
-      setLogs(prev => [...prev, { type: 'warn', content: args.map(arg => JSON.stringify(arg)).join(' '), time: new Date() }]);
+      const newLog = { type: 'warn', content: args.map(arg => JSON.stringify(arg)).join(' '), time: new Date() };
+      logsRef.current = [...logsRef.current, newLog];
+      setLogs(logsRef.current);
       originalConsoleWarn(...args);
     };
 
@@ -87,7 +95,10 @@ const DevTools = () => {
           
           <div className="flex justify-between">
             <button 
-              onClick={() => setLogs([])}
+              onClick={() => {
+                logsRef.current = [];
+                setLogs([]);
+              }}
               className="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded"
             >
               Clear Logs
