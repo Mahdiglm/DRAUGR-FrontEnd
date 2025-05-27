@@ -256,7 +256,7 @@ const CategoryItem = memo(({
     const baseCornerSize = 25;
     const dynamicCornerSize = 15 * visualScale; // Scale size with visualScale
     const cornerSize = Math.min(60, baseCornerSize + dynamicCornerSize); // Cap max size
-    const segmentStyle = { ...baseSegmentStyle, borderRadius: 'inherit' }; // Opacity is already handled in baseSegmentStyle
+    const segmentStyle = { ...baseSegmentStyle }; // NEW: baseSegmentStyle doesn't have borderRadius
     
     switch (corner) {
         case 'topLeft': return <><div style={{ ...segmentStyle, top: 0, left: 0, height: `${borderWidth}px`, width: `${cornerSize}px`, borderTopLeftRadius: '8px' }} /><div style={{ ...segmentStyle, top: 0, left: 0, width: `${borderWidth}px`, height: `${cornerSize}px`, borderTopLeftRadius: '8px' }} /></>;
