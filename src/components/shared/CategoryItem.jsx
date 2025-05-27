@@ -369,8 +369,8 @@ const CategoryItem = memo(({
         transform: `
           ${style.transform || ''} 
           ${isSelected && !isTransitioning ? 'scale(1.1)' : ''}
-          ${isSelected && isTransitioning && animationPhase === 1 ? 'scale(1.2)' : ''}
-          ${isSelected && isTransitioning && animationPhase >= 2 ? 'scale(0) translate(100vw, 0)' : ''}
+          ${isSelected && isTransitioning && animationPhase === 1 ? 'scale(1.15)' : ''}
+          ${isSelected && isTransitioning && animationPhase >= 2 ? 'scale(0.01)' : ''}
         `,
         opacity: isSelected && isTransitioning && animationPhase >= 2 ? 0 : 1,
         transition: `transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease-in-out`,
