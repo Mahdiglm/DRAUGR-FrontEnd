@@ -38,7 +38,7 @@ const SPRING_FACTOR = 0.15;
 const MIN_INTENSITY_FOR_RENDER = 0.01;
 const VELOCITY_SENSITIVITY = 0.005; // How much mouse speed affects intensity boost
 const VELOCITY_BOOST_DECAY = 0.9;  // How quickly the velocity boost fades
-const MAX_VELOCITY_BOOST = 0.5;     // Max additional intensity from velocity
+const MAX_VELOCITY_BOOST = 0.5;     // Max *additional* intensity from velocity (so total can be 1.0 + 0.5 = 1.5)
 
 const CategoryItem = memo(({ 
   category, 
@@ -143,7 +143,6 @@ const CategoryItem = memo(({
       }
       
       const currentAV = animatedValuesRef.current;
-      // Apply velocity boost and then decay it
       let currentVelocityBoost = currentAV.velocityBoost;
       const targetIntensityWithBoost = Math.min(1 + MAX_VELOCITY_BOOST, targetBaseIntensity + currentVelocityBoost);
       currentAV.velocityBoost *= VELOCITY_BOOST_DECAY; // Decay boost
@@ -171,11 +170,10 @@ const CategoryItem = memo(({
       const now = Date.now();
       const prevPos = lastMousePosRef.current;
       const timeDiff = now - prevPos.time;
-      if (timeDiff > 0) { // Avoid division by zero and ensure time has passed
+      if (timeDiff > 1) { // Ensure a small amount of time has passed to avoid extreme speeds
         const distMoved = Math.sqrt((e.clientX - prevPos.x)**2 + (e.clientY - prevPos.y)**2);
-        const speed = distMoved / timeDiff; // pixels per millisecond
+        const speed = distMoved / timeDiff; 
         
-        // Update velocity boost based on speed
         const newBoost = Math.min(MAX_VELOCITY_BOOST, speed * VELOCITY_SENSITIVITY);
         animatedValuesRef.current.velocityBoost = Math.max(animatedValuesRef.current.velocityBoost, newBoost);
       }
@@ -216,22 +214,29 @@ const CategoryItem = memo(({
     if (intensity < MIN_INTENSITY_FOR_RENDER) return null;
     
     const glowColor = '#ff0066';
-    // Make segment length more responsive to intensity, especially boosted intensity
-    const actualIntensity = Math.min(1, intensity); // Clamp for visual calculation
-    const segmentLength = 20 + (1 - actualIntensity) * 50; 
+    // Use raw intensity (can be > 1) for more dramatic scaling of visual elements
+    const visualScale = intensity; 
+    const baseSegmentLength = 20;
+    const dynamicSegmentLength = 50 * (1 - Math.min(1, intensity)); // This part shrinks as intensity goes to 1, and stays 0 if intensity > 1
+    const boostSegmentLength = (intensity > 1) ? (intensity - 1) * 60 : 0; // Extra length for intensity > 1
+
+    const segmentLength = baseSegmentLength + dynamicSegmentLength + boostSegmentLength;
     const halfSegment = segmentLength / 2;
+    
     const startPercent = Math.max(0, position * 100 - halfSegment);
     const endPercent = Math.min(100, position * 100 + halfSegment);
+    
     const segmentStyle = {
       position: 'absolute', backgroundColor: glowColor,
-      boxShadow: `0 0 ${6 * intensity}px ${glowColor}`,
-      filter: `drop-shadow(0 0 ${4 * intensity}px ${glowColor})`,
-      opacity: Math.min(1, intensity), // Cap opacity at 1 for display
+      // boxShadow and filter can also scale with `visualScale`
+      boxShadow: `0 0 ${6 * visualScale}px ${glowColor}, 0 0 ${10 * visualScale}px ${glowColor} inset`,
+      filter: `drop-shadow(0 0 ${4 * visualScale}px ${glowColor})`,
+      opacity: Math.min(1, intensity), // Opacity still capped at 1
       pointerEvents: 'none',
     };
 
     if (edge && (edge.includes('Left') || edge.includes('Right') || edge.includes('Top') || edge.includes('Bottom'))) {
-      return renderCornerSegments(edge, intensity, segmentStyle);
+      return renderCornerSegments(edge, visualScale, segmentStyle); // Pass visualScale
     }
 
     switch (edge) {
@@ -243,10 +248,11 @@ const CategoryItem = memo(({
     }
   };
 
-  const renderCornerSegments = (corner, intensity, baseSegmentStyle) => {
-    const actualIntensity = Math.min(1, intensity); // Clamp for visual calculation
-    const cornerSize = Math.min(40, 30 + actualIntensity * 20);
-    const segmentStyle = { ...baseSegmentStyle, borderRadius: 'inherit' };
+  const renderCornerSegments = (corner, visualScale, baseSegmentStyle) => { // visualScale from arg
+    const baseCornerSize = 25;
+    const dynamicCornerSize = 15 * visualScale; // Scale size with visualScale
+    const cornerSize = Math.min(60, baseCornerSize + dynamicCornerSize); // Cap max size
+    const segmentStyle = { ...baseSegmentStyle, borderRadius: 'inherit' }; // Opacity is already handled in baseSegmentStyle
     
     switch (corner) {
         case 'topLeft': return <><div style={{ ...segmentStyle, top: 0, left: 0, height: `${borderWidth}px`, width: `${cornerSize}px`, borderTopLeftRadius: '8px' }} /><div style={{ ...segmentStyle, top: 0, left: 0, width: `${borderWidth}px`, height: `${cornerSize}px`, borderTopLeftRadius: '8px' }} /></>;
@@ -261,69 +267,75 @@ const CategoryItem = memo(({
     const { intensity, position, edge } = animatedValuesRef.current;
     if (intensity < MIN_INTENSITY_FOR_RENDER) return null;
     const simplifiedForMobile = isMobile;
-    const displayIntensity = Math.min(1, intensity); // Use clamped intensity for visual scaling
+    const visualScale = intensity; // Use raw intensity for scaling SVG elements
+    const opacity = Math.min(1, intensity); // Opacity capped at 1
+
+    const baseExtension = simplifiedForMobile ? 3 : 6;
+    const dynamicExtension = simplifiedForMobile ? 0 : visualScale * 15; // Scale extension with visualScale
+    const traceExtension = baseExtension + ( (visualScale > 1 && !simplifiedForMobile) ? (visualScale -1) * 25 : 0); // Further boost for intensity > 1 on desktop
 
     return (
       <svg
         className="absolute inset-0 w-full h-full pointer-events-none z-10"
-        viewBox={`0 0 ${cardWidth} ${cardHeight}`} // Use cardHeight prop
+        viewBox={`0 0 ${cardWidth} ${cardHeight}`} 
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"
       >
         {edge === 'top' && (
           <path
             d={simplifiedForMobile 
-              ? `M${position * cardWidth},${borderWidth} v3` 
-              : `M${position * cardWidth},${borderWidth} v6 h${displayIntensity * 15}`}
+              ? `M${position * cardWidth},${borderWidth} v${baseExtension}` 
+              : `M${position * cardWidth},${borderWidth} v${baseExtension} h${traceExtension}`}
             stroke="#ff0066" strokeWidth="1" fill="none"
             strokeDasharray={simplifiedForMobile ? "3,3" : "4,3"}
-            style={{ opacity: displayIntensity * 0.7, filter: `drop-shadow(0 0 2px #ff0066)`, animation: 'dashOffset 2s linear infinite', animationPlayState: 'running' }}
+            style={{ opacity: opacity * 0.7, filter: `drop-shadow(0 0 ${2 * visualScale}px #ff0066)`, animation: 'dashOffset 2s linear infinite', animationPlayState: 'running' }}
           />
         )}
         {edge === 'right' && (
           <path
             d={simplifiedForMobile 
-              ? `M${cardWidth - borderWidth},${position * cardHeight} h-3` 
-              : `M${cardWidth - borderWidth},${position * cardHeight} h-6 v${displayIntensity * 15}`}
+              ? `M${cardWidth - borderWidth},${position * cardHeight} h-${baseExtension}` 
+              : `M${cardWidth - borderWidth},${position * cardHeight} h-${baseExtension} v${traceExtension}`}
             stroke="#ff0066" strokeWidth="1" fill="none"
             strokeDasharray={simplifiedForMobile ? "3,3" : "4,3"}
-            style={{ opacity: displayIntensity * 0.7, filter: `drop-shadow(0 0 2px #ff0066)`, animation: 'dashOffset 2s linear infinite', animationPlayState: 'running' }}
+            style={{ opacity: opacity * 0.7, filter: `drop-shadow(0 0 ${2 * visualScale}px #ff0066)`, animation: 'dashOffset 2s linear infinite', animationPlayState: 'running' }}
           />
         )}
         {edge === 'bottom' && (
           <path
             d={simplifiedForMobile 
-              ? `M${(1-position) * cardWidth},${cardHeight - borderWidth} v-3` 
-              : `M${(1-position) * cardWidth},${cardHeight - borderWidth} v-6 h-${displayIntensity * 15}`}
+              ? `M${(1-position) * cardWidth},${cardHeight - borderWidth} v-${baseExtension}` 
+              : `M${(1-position) * cardWidth},${cardHeight - borderWidth} v-${baseExtension} h-${traceExtension}`}
             stroke="#ff0066" strokeWidth="1" fill="none"
             strokeDasharray={simplifiedForMobile ? "3,3" : "4,3"}
-            style={{ opacity: displayIntensity * 0.7, filter: `drop-shadow(0 0 2px #ff0066)`, animation: 'dashOffset 2s linear infinite', animationPlayState: 'running' }}
+            style={{ opacity: opacity * 0.7, filter: `drop-shadow(0 0 ${2 * visualScale}px #ff0066)`, animation: 'dashOffset 2s linear infinite', animationPlayState: 'running' }}
           />
         )}
         {edge === 'left' && (
           <path
             d={simplifiedForMobile 
-              ? `M${borderWidth},${(1-position) * cardHeight} h3` 
-              : `M${borderWidth},${(1-position) * cardHeight} h6 v-${displayIntensity * 15}`}
+              ? `M${borderWidth},${(1-position) * cardHeight} h${baseExtension}` 
+              : `M${borderWidth},${(1-position) * cardHeight} h${baseExtension} v-${traceExtension}`}
             stroke="#ff0066" strokeWidth="1" fill="none" 
             strokeDasharray={simplifiedForMobile ? "3,3" : "4,3"}
-            style={{ opacity: displayIntensity * 0.7, filter: `drop-shadow(0 0 2px #ff0066)`, animation: 'dashOffset 2s linear infinite', animationPlayState: 'running' }}
+            style={{ opacity: opacity * 0.7, filter: `drop-shadow(0 0 ${2 * visualScale}px #ff0066)`, animation: 'dashOffset 2s linear infinite', animationPlayState: 'running' }}
           />
         )}
-        {!simplifiedForMobile && edge === 'topLeft' && <path d={`M${borderWidth + 1},${borderWidth + 1} l4,4 l4,-2 l6,6`} stroke="#ff0066" strokeWidth="1" fill="none" strokeDasharray="3,2" style={{ opacity: displayIntensity * 0.7, filter: `drop-shadow(0 0 2px #ff0066)`, animation: 'dashOffset 1.8s linear infinite'}} />}
-        {!simplifiedForMobile && edge === 'topRight' && <path d={`M${cardWidth - borderWidth - 1},${borderWidth + 1} l-4,4 l-4,-2 l-6,6`} stroke="#ff0066" strokeWidth="1" fill="none" strokeDasharray="3,2" style={{ opacity: displayIntensity * 0.7, filter: `drop-shadow(0 0 2px #ff0066)`, animation: 'dashOffset 1.8s linear infinite'}} />}
-        {!simplifiedForMobile && edge === 'bottomLeft' && <path d={`M${borderWidth + 1},${cardHeight - borderWidth - 1} l4,-4 l4,2 l6,-6`} stroke="#ff0066" strokeWidth="1" fill="none" strokeDasharray="3,2" style={{ opacity: displayIntensity * 0.7, filter: `drop-shadow(0 0 2px #ff0066)`, animation: 'dashOffset 1.8s linear infinite'}} />}
-        {!simplifiedForMobile && edge === 'bottomRight' && <path d={`M${cardWidth - borderWidth - 1},${cardHeight - borderWidth - 1} l-4,-4 l-4,2 l-6,-6`} stroke="#ff0066" strokeWidth="1" fill="none" strokeDasharray="3,2" style={{ opacity: displayIntensity * 0.7, filter: `drop-shadow(0 0 2px #ff0066)`, animation: 'dashOffset 1.8s linear infinite'}} />}
+        {/* Corner traces can also scale with visualScale */} 
+        {!simplifiedForMobile && edge === 'topLeft' && <path d={`M${borderWidth + 1},${borderWidth + 1} l${4*visualScale},${4*visualScale} l${4*visualScale},${-2*visualScale} l${6*visualScale},${6*visualScale}`} stroke="#ff0066" strokeWidth="1" fill="none" strokeDasharray="3,2" style={{ opacity: opacity * 0.7, filter: `drop-shadow(0 0 ${2*visualScale}px #ff0066)`, animation: 'dashOffset 1.8s linear infinite'}} />}
+        {!simplifiedForMobile && edge === 'topRight' && <path d={`M${cardWidth - borderWidth - 1},${borderWidth + 1} l${-4*visualScale},${4*visualScale} l${-4*visualScale},${-2*visualScale} l${-6*visualScale},${6*visualScale}`} stroke="#ff0066" strokeWidth="1" fill="none" strokeDasharray="3,2" style={{ opacity: opacity * 0.7, filter: `drop-shadow(0 0 ${2*visualScale}px #ff0066)`, animation: 'dashOffset 1.8s linear infinite'}} />}
+        {!simplifiedForMobile && edge === 'bottomLeft' && <path d={`M${borderWidth + 1},${cardHeight - borderWidth - 1} l${4*visualScale},${-4*visualScale} l${4*visualScale},${2*visualScale} l${6*visualScale},${-6*visualScale}`} stroke="#ff0066" strokeWidth="1" fill="none" strokeDasharray="3,2" style={{ opacity: opacity * 0.7, filter: `drop-shadow(0 0 ${2*visualScale}px #ff0066)`, animation: 'dashOffset 1.8s linear infinite'}} />}
+        {!simplifiedForMobile && edge === 'bottomRight' && <path d={`M${cardWidth - borderWidth - 1},${cardHeight - borderWidth - 1} l${-4*visualScale},${-4*visualScale} l${-4*visualScale},${2*visualScale} l${-6*visualScale},${-6*visualScale}`} stroke="#ff0066" strokeWidth="1" fill="none" strokeDasharray="3,2" style={{ opacity: opacity * 0.7, filter: `drop-shadow(0 0 ${2*visualScale}px #ff0066)`, animation: 'dashOffset 1.8s linear infinite'}} />}
         {simplifiedForMobile && (edge === 'topLeft' || edge === 'topRight' || edge === 'bottomLeft' || edge === 'bottomRight') && (
           <path
             d={
-              edge === 'topLeft' ? `M${borderWidth + 1},${borderWidth + 1} l2,2` :
-              edge === 'topRight' ? `M${cardWidth - borderWidth - 1},${borderWidth + 1} l-2,2` :
-              edge === 'bottomLeft' ? `M${borderWidth + 1},${cardHeight - borderWidth - 1} l2,-2` :
-              `M${cardWidth - borderWidth - 1},${cardHeight - borderWidth - 1} l-2,-2`
+              edge === 'topLeft' ? `M${borderWidth + 1},${borderWidth + 1} l${2*visualScale},${2*visualScale}` :
+              edge === 'topRight' ? `M${cardWidth - borderWidth - 1},${borderWidth + 1} l${-2*visualScale},${2*visualScale}` :
+              edge === 'bottomLeft' ? `M${borderWidth + 1},${cardHeight - borderWidth - 1} l${2*visualScale},${-2*visualScale}` :
+              `M${cardWidth - borderWidth - 1},${cardHeight - borderWidth - 1} l${-2*visualScale},${-2*visualScale}`
             }
             stroke="#ff0066" strokeWidth="1" fill="none" strokeDasharray="2,2"
-            style={{ opacity: displayIntensity * 0.7, filter: `drop-shadow(0 0 2px #ff0066)`, animation: 'dashOffset 1.8s linear infinite' }}
+            style={{ opacity: opacity * 0.7, filter: `drop-shadow(0 0 2px #ff0066)`, animation: 'dashOffset 1.8s linear infinite' }}
           />
         )}
       </svg>
@@ -341,6 +353,7 @@ const CategoryItem = memo(({
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
+          // Potentially trigger navigation or action here
           console.log(`Category clicked: ${category.name}`);
         }
       }}
