@@ -145,39 +145,39 @@ export const products = [
 ];
 
 export const categories = [
-  { id: 1, name: "سلاح‌ها", slug: "weapons" },
-  { id: 2, name: "زره‌ها", slug: "armor" },
-  { id: 3, name: "معجون‌ها", slug: "potions" },
-  { id: 4, name: "اقلام جادویی", slug: "magic" },
-  { id: 5, name: "اکسسوری", slug: "accessories" },
-  { id: 6, name: "کتاب‌های نایاب", slug: "rare_books" }
+  { id: 1, name: "سلاح‌ها", slug: "weapons", themeColor: "#8B0000" },
+  { id: 2, name: "زره‌ها", slug: "armor", themeColor: "#4A4A4A" },
+  { id: 3, name: "معجون‌ها", slug: "potions", themeColor: "#800080" },
+  { id: 4, name: "اقلام جادویی", slug: "magic", themeColor: "#4B0082" },
+  { id: 5, name: "اکسسوری", slug: "accessories", themeColor: "#8B4513" },
+  { id: 6, name: "کتاب‌های نایاب", slug: "rare_books", themeColor: "#654321" }
 ];
 
 export const additionalCategories = [
-  { id: 7, name: "ابزار شکار", slug: "hunting_gear" },
-  { id: 8, name: "طلسم‌ها", slug: "charms" },
-  { id: 9, name: "گیاهان نادر", slug: "rare_herbs" },
-  { id: 10, name: "سنگ‌های جادویی", slug: "magic_stones" },
-  { id: 11, name: "نوشته‌های باستانی", slug: "ancient_scrolls" },
-  { id: 12, name: "عناصر ماورایی", slug: "occult_items" }
+  { id: 7, name: "ابزار شکار", slug: "hunting_gear", themeColor: "#556B2F" },
+  { id: 8, name: "طلسم‌ها", slug: "charms", themeColor: "#9932CC" },
+  { id: 9, name: "گیاهان نادر", slug: "rare_herbs", themeColor: "#006400" },
+  { id: 10, name: "سنگ‌های جادویی", slug: "magic_stones", themeColor: "#1E90FF" },
+  { id: 11, name: "نوشته‌های باستانی", slug: "ancient_scrolls", themeColor: "#8B4513" },
+  { id: 12, name: "عناصر ماورایی", slug: "occult_items", themeColor: "#2F4F4F" }
 ];
 
 export const thirdRowCategories = [
-  { id: 13, name: "جواهرات افسونگر", slug: "enchanted_jewelry" },
-  { id: 14, name: "ابزارهای نجومی", slug: "astronomical_tools" },
-  { id: 15, name: "نقشه‌های باستانی", slug: "ancient_maps" },
-  { id: 16, name: "جام‌های مقدس", slug: "sacred_chalices" },
-  { id: 17, name: "تندیس‌های کهن", slug: "ancient_statues" },
-  { id: 18, name: "ادویه‌های نادر", slug: "rare_spices" }
+  { id: 13, name: "جواهرات افسونگر", slug: "enchanted_jewelry", themeColor: "#FFD700" },
+  { id: 14, name: "ابزارهای نجومی", slug: "astronomical_tools", themeColor: "#191970" },
+  { id: 15, name: "نقشه‌های باستانی", slug: "ancient_maps", themeColor: "#8B4513" },
+  { id: 16, name: "جام‌های مقدس", slug: "sacred_chalices", themeColor: "#B8860B" },
+  { id: 17, name: "تندیس‌های کهن", slug: "ancient_statues", themeColor: "#708090" },
+  { id: 18, name: "ادویه‌های نادر", slug: "rare_spices", themeColor: "#CD5C5C" }
 ];
 
 export const fourthRowCategories = [
-  { id: 19, name: "نشان‌های قبیله‌ای", slug: "tribal_emblems" },
-  { id: 20, name: "رمزنگاری‌ها", slug: "cryptic_writings" },
-  { id: 21, name: "چوب‌دستی‌های جادویی", slug: "magic_wands" },
-  { id: 22, name: "نقاب‌های آیینی", slug: "ritual_masks" },
-  { id: 23, name: "ابزارهای کیمیاگری", slug: "alchemy_tools" },
-  { id: 24, name: "سازهای موسیقی کهن", slug: "ancient_instruments" }
+  { id: 19, name: "نشان‌های قبیله‌ای", slug: "tribal_emblems", themeColor: "#CD853F" },
+  { id: 20, name: "رمزنگاری‌ها", slug: "cryptic_writings", themeColor: "#2F4F4F" },
+  { id: 21, name: "چوب‌دستی‌های جادویی", slug: "magic_wands", themeColor: "#800080" },
+  { id: 22, name: "نقاب‌های آیینی", slug: "ritual_masks", themeColor: "#A0522D" },
+  { id: 23, name: "ابزارهای کیمیاگری", slug: "alchemy_tools", themeColor: "#DAA520" },
+  { id: 24, name: "سازهای موسیقی کهن", slug: "ancient_instruments", themeColor: "#8B008B" }
 ]; 
 
 export const blogPosts = [
