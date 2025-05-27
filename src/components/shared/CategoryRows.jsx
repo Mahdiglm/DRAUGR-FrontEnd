@@ -28,6 +28,13 @@ const MOBILE_ROW_HEIGHT = 80; // Decreased height for mobile rows (was 100)
 const CARD_SPACING = 32; // Fixed spacing between cards for desktop
 const MOBILE_CARD_SPACING = 8; // Fixed spacing between cards for mobile
 
+// Debug helper function
+const debugLog = (message, obj = {}) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[CategoryRows] ${message}`, obj);
+  }
+};
+
 // Better mobile detection using window.matchMedia
 const useMobileDetection = () => {
   const [isMobile, setIsMobile] = useState(false);
@@ -421,44 +428,87 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
 
   // Enhanced category selection handler
   const handleCategorySelect = useCallback((category, itemElement) => {
-    // Stop animation
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
-      animationRef.current = null;
+    try {
+      debugLog("Category selected", { category: category.slug });
+      
+      // Stop animation
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+        debugLog("Animation stopped for transition");
+      }
+      
+      // Capture element's current position for animation
+      if (itemElement && itemElement.current) {
+        const rect = itemElement.current.getBoundingClientRect();
+        setSelectedItemRect(rect);
+        debugLog("Captured card position", { 
+          x: rect.left, 
+          y: rect.top, 
+          width: rect.width, 
+          height: rect.height 
+        });
+      } else {
+        debugLog("⚠️ Failed to capture card position");
+      }
+      
+      // Set selected category and start transition
+      setSelectedCategory(category);
+      setIsTransitioning(true);
+      setAnimationPhase(1); // Start with phase 1
+      
+      debugLog("Transition initiated");
+    } catch (error) {
+      console.error("Error in handleCategorySelect:", error);
     }
-    
-    // Capture element's current position for animation
-    if (itemElement && itemElement.current) {
-      const rect = itemElement.current.getBoundingClientRect();
-      setSelectedItemRect(rect);
-    }
-    
-    // Set selected category and start transition
-    setSelectedCategory(category);
-    setIsTransitioning(true);
-    setAnimationPhase(1); // Start with phase 1
-    
-    // The actual navigation will be handled by the TransitionOverlay component
-    // once the animation is complete
   }, []);
+  
+  // Safety timeout ref to prevent getting stuck
+  const safetyTimeoutRef = useRef(null);
   
   // Handle transition completion
   const handleTransitionComplete = useCallback(() => {
-    // Navigate to shop page with category slug
-    navigate(`/shop?category=${selectedCategory.slug}`);
-    
-    // Reset animation states after a short delay
-    setTimeout(() => {
+    try {
+      debugLog("Transition complete, navigating to shop page", { 
+        category: selectedCategory?.slug
+      });
+      
+      // Navigate to shop page with category slug
+      navigate(`/shop?category=${selectedCategory.slug}`);
+      
+      // Reset animation states after a short delay
+      setTimeout(() => {
+        try {
+          debugLog("Resetting animation state after navigation");
+          setIsTransitioning(false);
+          setSelectedCategory(null);
+          setAnimationPhase(0);
+          setSelectedItemRect(null);
+          
+          // Restart animation after navigation completes
+          if (!animationRef.current) {
+            debugLog("Restarting continuous animation");
+            animationRef.current = requestAnimationFrame(animate);
+          }
+        } catch (error) {
+          console.error("Error resetting animation state:", error);
+        }
+      }, 100);
+      
+      // Clear any existing safety timeout
+      if (safetyTimeoutRef.current) {
+        clearTimeout(safetyTimeoutRef.current);
+        safetyTimeoutRef.current = null;
+      }
+    } catch (error) {
+      console.error("Error in handleTransitionComplete:", error);
+      
+      // Force reset if there's an error
       setIsTransitioning(false);
       setSelectedCategory(null);
       setAnimationPhase(0);
       setSelectedItemRect(null);
-      
-      // Restart animation after navigation completes
-      if (!animationRef.current) {
-        animationRef.current = requestAnimationFrame(animate);
-      }
-    }, 100);
+    }
   }, [navigate, selectedCategory, animate]);
 
   // Preload flag ref to prevent multiple preloads
@@ -477,6 +527,31 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
       preloadAttemptedRef.current = false;
     }
   }, [isTransitioning, selectedCategory, animationPhase]);
+
+  // Safety timeout to prevent animation from getting stuck indefinitely
+  useEffect(() => {
+    if (isTransitioning && selectedCategory) {
+      debugLog("Setting safety timeout for transition");
+      safetyTimeoutRef.current = setTimeout(() => {
+        if (isTransitioning) {
+          debugLog("⚠️ Safety timeout triggered - transition may be stuck", { 
+            phase: animationPhase,
+            category: selectedCategory.slug
+          });
+          
+          // Force completion of transition
+          handleTransitionComplete();
+        }
+      }, 5000); // 5 second safety timeout
+    }
+
+    return () => {
+      if (safetyTimeoutRef.current) {
+        clearTimeout(safetyTimeoutRef.current);
+        safetyTimeoutRef.current = null;
+      }
+    };
+  }, [isTransitioning, selectedCategory, animationPhase, handleTransitionComplete]);
 
   return (
     <div 
