@@ -204,8 +204,9 @@ const CategoryItem = memo(({
         // Only update state if there's a significant change
         const hasSignificantChange = 
           !isNear || 
+          proximityData.edge !== newProximityData.edge ||
           Math.abs(proximityData.intensity - newProximityData.intensity) > 0.05 ||
-          proximityData.edge !== newProximityData.edge;
+          (proximityData.edge === newProximityData.edge && Math.abs(proximityData.position - newProximityData.position) > 0.01); // Check for position change
           
         if (hasSignificantChange) {
           setIsNear(true);
@@ -252,7 +253,7 @@ const CategoryItem = memo(({
         animationFrameIdRef.current = null; // Clear the ref
       }
     };
-  }, [isNear, proximityThreshold, isMobile, proximityData.edge, proximityData.intensity]);
+  }, [isNear, proximityThreshold, isMobile, proximityData.edge, proximityData.intensity, proximityData.position]);
   
   // Calculate the relative position along an edge (0 to 1)
   const getPositionAlongEdge = (edge, x, y, width, height) => {
