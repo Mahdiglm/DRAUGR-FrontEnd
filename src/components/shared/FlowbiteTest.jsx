@@ -11,6 +11,345 @@ const FlowbiteTest = () => {
     <div className="p-6 bg-draugr-charcoal rounded-lg shadow-lg max-w-5xl mx-auto my-8">
       <h2 className="text-2xl font-horror text-blood mb-6">تست کامپوننت‌های Flowbite</h2>
       
+      {/* KBD Component */}
+      <div className="col-span-full mb-6">
+        <h3 className="text-xl mb-3 text-draugr-accent-red">کلیدهای صفحه‌کلید (KBD)</h3>
+        
+        <div className="flex flex-wrap gap-2">
+          <span className="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500">Shift</span>
+          <span className="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500">Ctrl</span>
+          <span className="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500">Tab</span>
+          <span className="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500">Caps Lock</span>
+          <span className="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500">Esc</span>
+        </div>
+        
+        <p className="mt-3 text-gray-500 dark:text-gray-400">برای کپی از متن میتوانید از <span className="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500">Ctrl</span> + <span className="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500">C</span> استفاده کنید.</p>
+      </div>
+      
+      {/* Indicators Component */}
+      <div className="col-span-full mb-6">
+        <h3 className="text-xl mb-3 text-draugr-accent-red">نشانگرها (Indicators)</h3>
+        
+        <div className="flex flex-wrap items-center gap-6">
+          <div className="flex items-center">
+            <div className="h-2.5 w-2.5 rounded-full bg-green-500 me-2"></div>
+            <span className="text-gray-500 dark:text-gray-400">آنلاین</span>
+          </div>
+          <div className="flex items-center">
+            <div className="h-2.5 w-2.5 rounded-full bg-red-500 me-2"></div>
+            <span className="text-gray-500 dark:text-gray-400">آفلاین</span>
+          </div>
+          <div className="flex items-center">
+            <div className="h-2.5 w-2.5 rounded-full bg-yellow-300 me-2"></div>
+            <span className="text-gray-500 dark:text-gray-400">در حال انتظار</span>
+          </div>
+          <div className="flex items-center">
+            <div className="h-2.5 w-2.5 rounded-full bg-gray-500 me-2"></div>
+            <span className="text-gray-500 dark:text-gray-400">غیرفعال</span>
+          </div>
+        </div>
+        
+        <div className="flex flex-wrap gap-2 mt-4">
+          <span className="flex items-center text-sm font-medium text-gray-900 dark:text-white">
+            <span className="flex w-2.5 h-2.5 bg-blue-600 rounded-full me-1.5 flex-shrink-0"></span>
+            <span>میانگین وظایف</span>
+          </span>
+          <span className="flex items-center text-sm font-medium text-gray-900 dark:text-white">
+            <span className="flex w-2.5 h-2.5 bg-purple-500 rounded-full me-1.5 flex-shrink-0"></span>
+            <span>وظایف در حال اجرا</span>
+          </span>
+          <span className="flex items-center text-sm font-medium text-gray-900 dark:text-white">
+            <span className="flex w-2.5 h-2.5 bg-indigo-500 rounded-full me-1.5 flex-shrink-0"></span>
+            <span>وظایف تکمیل شده</span>
+          </span>
+        </div>
+      </div>
+      
+      {/* Drawer Component */}
+      <div className="col-span-full mb-6">
+        <h3 className="text-xl mb-3 text-draugr-accent-red">کشو (Drawer)</h3>
+        
+        <div className="text-center">
+          <button className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800" type="button" data-drawer-target="drawer-example" data-drawer-show="drawer-example" aria-controls="drawer-example">
+            نمایش کشو
+          </button>
+        </div>
+        
+        <div id="drawer-example" className="fixed top-0 left-0 z-40 h-screen p-4 overflow-y-auto transition-transform -translate-x-full bg-white w-80 dark:bg-gray-800" tabIndex="-1" aria-labelledby="drawer-label">
+          <h5 id="drawer-label" className="inline-flex items-center mb-4 text-base font-semibold text-gray-500 dark:text-gray-400">
+            <svg className="w-4 h-4 me-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+            </svg>
+            اطلاعات بیشتر
+          </h5>
+          <button type="button" data-drawer-hide="drawer-example" aria-controls="drawer-example" className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 absolute top-2.5 end-2.5 inline-flex items-center justify-center dark:hover:bg-gray-600 dark:hover:text-white">
+            <svg className="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+              <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+            </svg>
+            <span className="sr-only">بستن کشو</span>
+          </button>
+          <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">کشوها بخش هایی از برنامه هستند که اطلاعات اضافی را با کنار هم قرار دادن محتوا ارائه می‌دهند. آنها می‌توانند بخش مهمی از پیمایش برنامه را ارائه دهند.</p>
+          <div className="grid grid-cols-2 gap-4">
+            <a href="#" className="px-4 py-2 text-sm font-medium text-center text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
+              <svg className="w-4 h-4 mx-auto mb-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 12.25V1m0 11.25a2.25 2.25 0 0 0 0 4.5m0-4.5a2.25 2.25 0 0 1 0 4.5M4 19v-2.25m6-13.5V1m0 2.25a2.25 2.25 0 0 0 0 4.5m0-4.5a2.25 2.25 0 0 1 0 4.5M10 19V7.75m6 4.5V1m0 11.25a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5ZM16 19v-2"/>
+              </svg>
+              تنظیمات
+            </a>
+            <a href="#" className="px-4 py-2 text-sm font-medium text-center text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
+              <svg className="w-4 h-4 mx-auto mb-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 16">
+                <path d="m10.036 8.278 9.258-7.79A1.979 1.979 0 0 0 18 0H2A1.987 1.987 0 0 0 .641.541l9.395 7.737Z"/>
+                <path d="M11.241 9.817c-.36.275-.801.425-1.255.427-.428 0-.845-.138-1.187-.395L0 2.6V14a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V2.5l-8.759 7.317Z"/>
+              </svg>
+              پیام‌ها
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      {/* Sidebar Component */}
+      <div className="col-span-full mb-6">
+        <h3 className="text-xl mb-3 text-draugr-accent-red">نوار کناری (Sidebar)</h3>
+        
+        <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+          <aside id="sidebar-example" className="bg-white dark:bg-gray-800" aria-label="Sidebar">
+            <div className="h-full px-3 py-4 overflow-y-auto">
+              <ul className="space-y-2 font-medium">
+                <li>
+                  <a href="#" className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+                    <svg className="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 22 21">
+                      <path d="M16.975 11H10V4.025a1 1 0 0 0-1.066-.998 8.5 8.5 0 1 0 9.039 9.039.999.999 0 0 0-1-1.066h.002Z"/>
+                      <path d="M12.5 0c-.157 0-.311.01-.565.027A1 1 0 0 0 11 1.02V10h8.975a1 1 0 0 0 1-.935c.026-.368.025-.656.025-.814A8.5 8.5 0 0 0 12.5 0Z"/>
+                    </svg>
+                    <span className="ms-3">داشبورد</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+                    <svg className="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 18">
+                      <path d="M6.143 0H1.857A1.857 1.857 0 0 0 0 1.857v4.286C0 7.169.831 8 1.857 8h4.286A1.857 1.857 0 0 0 8 6.143V1.857A1.857 1.857 0 0 0 6.143 0Zm10 0h-4.286A1.857 1.857 0 0 0 10 1.857v4.286C10 7.169 10.831 8 11.857 8h4.286A1.857 1.857 0 0 0 18 6.143V1.857A1.857 1.857 0 0 0 16.143 0Zm-10 10H1.857A1.857 1.857 0 0 0 0 11.857v4.286C0 17.169.831 18 1.857 18h4.286A1.857 1.857 0 0 0 8 16.143v-4.286A1.857 1.857 0 0 0 6.143 10Zm10 0h-4.286A1.857 1.857 0 0 0 10 11.857v4.286c0 1.026.831 1.857 1.857 1.857h4.286A1.857 1.857 0 0 0 18 16.143v-4.286A1.857 1.857 0 0 0 16.143 10Z"/>
+                    </svg>
+                    <span className="flex-1 ms-3 whitespace-nowrap">محصولات</span>
+                    <span className="inline-flex items-center justify-center px-2 ms-3 text-sm font-medium text-gray-800 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300">جدید</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+                    <svg className="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="m17.418 3.623-.018-.008a6.713 6.713 0 0 0-2.4-.569V2h1a1 1 0 1 0 0-2h-2a1 1 0 0 0-1 1v2H9.89A6.977 6.977 0 0 1 12 8v5h-2V8A5 5 0 1 0 0 8v6a1 1 0 0 0 1 1h8v4a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-4h6a1 1 0 0 0 1-1V8a5 5 0 0 0-2.582-4.377ZM6 12H4a1 1 0 0 1 0-2h2a1 1 0 0 1 0 2Z"/>
+                    </svg>
+                    <span className="flex-1 ms-3 whitespace-nowrap">پیام‌ها</span>
+                    <span className="inline-flex items-center justify-center w-3 h-3 p-3 ms-3 text-sm font-medium text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-300">۳</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+                    <svg className="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 18">
+                      <path d="M14 2a3.963 3.963 0 0 0-1.4.267 6.439 6.439 0 0 1-1.331 6.638A4 4 0 1 0 14 2Zm1 9h-1.264A6.957 6.957 0 0 1 15 15v2a2.97 2.97 0 0 1-.184 1H19a1 1 0 0 0 1-1v-1a5.006 5.006 0 0 0-5-5ZM6.5 9a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9ZM8 10H5a5.006 5.006 0 0 0-5 5v2a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-2a5.006 5.006 0 0 0-5-5Z"/>
+                    </svg>
+                    <span className="flex-1 ms-3 whitespace-nowrap">کاربران</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+                    <svg className="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 20">
+                      <path d="M17 5.923A1 1 0 0 0 16 5h-3V4a4 4 0 1 0-8 0v1H2a1 1 0 0 0-1 .923L.086 17.846A2 2 0 0 0 2.08 20h13.84a2 2 0 0 0 1.994-2.153L17 5.923ZM7 4a2 2 0 0 1 4 0v1H7V4Zm5 7a1 1 0 0 1-2 0V9a1 1 0 0 1 2 0v2Z"/>
+                    </svg>
+                    <span className="flex-1 ms-3 whitespace-nowrap">محصولات</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+                    <svg className="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 16">
+                      <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 8h11m0 0L8 4m4 4-4 4m4-11h3a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-3"/>
+                    </svg>
+                    <span className="flex-1 ms-3 whitespace-nowrap">خروج</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </aside>
+        </div>
+      </div>
+      
+      {/* Footer Component */}
+      <div className="col-span-full mb-6">
+        <h3 className="text-xl mb-3 text-draugr-accent-red">پاورقی (Footer)</h3>
+        
+        <footer className="bg-white rounded-lg shadow dark:bg-gray-900 m-1">
+          <div className="w-full max-w-screen-xl mx-auto p-4 md:py-8">
+            <div className="sm:flex sm:items-center sm:justify-between">
+              <a href="#" className="flex items-center mb-4 sm:mb-0 space-x-3 rtl:space-x-reverse">
+                <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">فروشگاه دراگر</span>
+              </a>
+              <ul className="flex flex-wrap items-center mb-6 text-sm font-medium text-gray-500 sm:mb-0 dark:text-gray-400">
+                <li>
+                  <a href="#" className="hover:underline me-4 md:me-6">درباره ما</a>
+                </li>
+                <li>
+                  <a href="#" className="hover:underline me-4 md:me-6">سیاست حفظ حریم خصوصی</a>
+                </li>
+                <li>
+                  <a href="#" className="hover:underline me-4 md:me-6">خرید</a>
+                </li>
+                <li>
+                  <a href="#" className="hover:underline">تماس با ما</a>
+                </li>
+              </ul>
+            </div>
+            <hr className="my-6 border-gray-200 sm:mx-auto dark:border-gray-700 lg:my-8" />
+            <span className="block text-sm text-gray-500 sm:text-center dark:text-gray-400">© ۱۴۰۳ <a href="#" className="hover:underline">فروشگاه دراگر™</a>. تمامی حقوق محفوظ است.</span>
+          </div>
+        </footer>
+      </div>
+      
+      {/* File Input Component */}
+      <div className="col-span-full mb-6">
+        <h3 className="text-xl mb-3 text-draugr-accent-red">ورودی فایل (File Input)</h3>
+        
+        <div className="flex items-center justify-center w-full">
+          <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500">
+            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+              <svg className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+              </svg>
+              <p className="mb-2 text-sm text-gray-500 dark:text-gray-400"><span className="font-semibold">برای آپلود کلیک کنید</span> یا فایل را بکشید و رها کنید</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">SVG, PNG, JPG یا GIF (حداکثر 2MB)</p>
+            </div>
+            <input id="dropzone-file" type="file" className="hidden" />
+          </label>
+        </div>
+        
+        <div className="mt-4">
+          <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white" htmlFor="file_input">آپلود فایل</label>
+          <input className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" id="file_input" type="file" />
+        </div>
+      </div>
+      
+      {/* Range Slider Component */}
+      <div className="col-span-full mb-6">
+        <h3 className="text-xl mb-3 text-draugr-accent-red">کنترل محدوده (Range)</h3>
+        
+        <div>
+          <label htmlFor="default-range" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">محدوده پیش‌فرض</label>
+          <input id="default-range" type="range" defaultValue="50" className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700" />
+        </div>
+        
+        <div className="mt-4">
+          <label htmlFor="steps-range" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">محدوده با مرحله</label>
+          <input id="steps-range" type="range" min="0" max="100" defaultValue="25" step="25" className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700" />
+        </div>
+        
+        <div className="mt-4">
+          <label htmlFor="small-range" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">محدوده کوچک</label>
+          <input id="small-range" type="range" defaultValue="50" className="w-full h-1 mb-6 bg-gray-200 rounded-lg appearance-none cursor-pointer range-sm dark:bg-gray-700" />
+        </div>
+      </div>
+      
+      {/* Stepper Component */}
+      <div className="col-span-full mb-6">
+        <h3 className="text-xl mb-3 text-draugr-accent-red">مراحل (Stepper)</h3>
+        
+        <ol className="flex items-center w-full text-sm font-medium text-center text-gray-500 dark:text-gray-400 sm:text-base">
+          <li className="flex md:w-full items-center text-blue-600 dark:text-blue-500 sm:after:content-[''] after:w-full after:h-1 after:border-b after:border-gray-200 after:border-1 after:hidden sm:after:inline-block after:mx-6 xl:after:mx-10 dark:after:border-gray-700">
+            <span className="flex items-center after:content-['/'] sm:after:hidden after:mx-2 after:text-gray-200 dark:after:text-gray-500">
+              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 me-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/>
+              </svg>
+              اطلاعات <span className="hidden sm:inline-flex sm:ms-2">شخصی</span>
+            </span>
+          </li>
+          <li className="flex md:w-full items-center after:content-[''] after:w-full after:h-1 after:border-b after:border-gray-200 after:border-1 after:hidden sm:after:inline-block after:mx-6 xl:after:mx-10 dark:after:border-gray-700">
+            <span className="flex items-center after:content-['/'] sm:after:hidden after:mx-2 after:text-gray-200 dark:after:text-gray-500">
+              <span className="me-2">۲</span>
+              اطلاعات <span className="hidden sm:inline-flex sm:ms-2">حساب</span>
+            </span>
+          </li>
+          <li className="flex items-center">
+            <span className="me-2">۳</span>
+            تایید
+          </li>
+        </ol>
+      </div>
+      
+      {/* List Group Component */}
+      <div className="col-span-full mb-6">
+        <h3 className="text-xl mb-3 text-draugr-accent-red">گروه لیست (List Group)</h3>
+        
+        <div className="w-full max-w-md p-4 bg-white border border-gray-200 rounded-lg shadow sm:p-8 dark:bg-gray-800 dark:border-gray-700">
+          <div className="flex items-center justify-between mb-4">
+            <h5 className="text-xl font-bold leading-none text-gray-900 dark:text-white">آخرین کاربران</h5>
+            <a href="#" className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-500">
+              مشاهده همه
+            </a>
+          </div>
+          <div className="flow-root">
+            <ul role="list" className="divide-y divide-gray-200 dark:divide-gray-700">
+              <li className="py-3 sm:py-4">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-600 flex items-center justify-center text-gray-500">
+                      <span>ع</span>
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0 ms-4">
+                    <p className="text-sm font-medium text-gray-900 truncate dark:text-white">
+                      علی رضایی
+                    </p>
+                    <p className="text-sm text-gray-500 truncate dark:text-gray-400">
+                      ali.rezaei@example.com
+                    </p>
+                  </div>
+                  <div className="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white">
+                    ۳۲۰,۰۰۰ تومان
+                  </div>
+                </div>
+              </li>
+              <li className="py-3 sm:py-4">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-600 flex items-center justify-center text-gray-500">
+                      <span>س</span>
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0 ms-4">
+                    <p className="text-sm font-medium text-gray-900 truncate dark:text-white">
+                      سارا محمدی
+                    </p>
+                    <p className="text-sm text-gray-500 truncate dark:text-gray-400">
+                      sara@example.com
+                    </p>
+                  </div>
+                  <div className="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white">
+                    ۱۴۵,۰۰۰ تومان
+                  </div>
+                </div>
+              </li>
+              <li className="py-3 sm:py-4">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-600 flex items-center justify-center text-gray-500">
+                      <span>م</span>
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0 ms-4">
+                    <p className="text-sm font-medium text-gray-900 truncate dark:text-white">
+                      محمد کریمی
+                    </p>
+                    <p className="text-sm text-gray-500 truncate dark:text-gray-400">
+                      m.karimi@example.com
+                    </p>
+                  </div>
+                  <div className="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white">
+                    ۶۷,۰۰۰ تومان
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      
       {/* Toast Component */}
       <div className="col-span-full mb-6">
         <h3 className="text-xl mb-3 text-draugr-accent-red">اعلان‌ها (Toast)</h3>
