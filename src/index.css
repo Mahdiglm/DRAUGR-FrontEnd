@@ -142,7 +142,7 @@ button:focus-visible {
 /* Horror-specific styles */
 @layer components {
   .horror-card {
-    @apply bg-midnight border border-draugr-900 shadow-horror transition-all duration-300;
+    @apply bg-draugr-dark-charcoal border border-draugr-900 shadow-horror transition-all duration-300;
   }
   
   .horror-input {
