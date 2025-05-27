@@ -463,6 +463,7 @@ const CategoryItem = ({
   ...props 
 }) => {
   const itemRef = useRef(null);
+  const mouseRef = useRef({ x: 0, y: 0, clientX: 0, clientY: 0 });
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isNear, setIsNear] = useState(false);
   const [proximityData, setProximityData] = useState({
@@ -502,22 +503,16 @@ const CategoryItem = ({
     
     // Keep track of whether an animation frame is already scheduled
     let animationFrameId = null;
-    // Keep track of the latest mouse event
-    let latestMouseEvent = null;
     
     const processMousePosition = () => {
-      // Clear the animation frame ID since we're processing now
-      animationFrameId = null;
+      // If there's no ref, exit
+      if (!itemRef.current) return;
       
-      // If there's no mouse event or no ref, exit
-      if (!latestMouseEvent || !itemRef.current) return;
-      
-      const e = latestMouseEvent;
       const rect = itemRef.current.getBoundingClientRect();
       
-      // Calculate mouse position relative to item
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      // Calculate mouse position relative to item using the stored global mouse coordinates
+      const x = mouseRef.current.clientX - rect.left;
+      const y = mouseRef.current.clientY - rect.top;
       
       // Update mouse position state
       setMousePos({ x, y });
@@ -614,13 +609,17 @@ const CategoryItem = ({
       } else if (isNear) {
         setIsNear(false);
       }
+      
+      // Schedule next animation frame to continuously update hover effect
+      animationFrameId = requestAnimationFrame(processMousePosition);
     };
     
     const handleGlobalMouseMove = (e) => {
-      // Store the latest mouse event
-      latestMouseEvent = e;
+      // Store the latest mouse position globally
+      mouseRef.current.clientX = e.clientX;
+      mouseRef.current.clientY = e.clientY;
       
-      // If an animation frame is not already scheduled, schedule one
+      // Start the animation frame loop if it's not already running
       if (!animationFrameId) {
         animationFrameId = requestAnimationFrame(processMousePosition);
       }
@@ -629,22 +628,12 @@ const CategoryItem = ({
     // Add global mouse move listener
     window.addEventListener('mousemove', handleGlobalMouseMove);
     
-    // Also process the position on mouseenter to avoid requiring movement to start the effect
-    const handleMouseEnter = (e) => {
-      latestMouseEvent = e;
-      processMousePosition();
-    };
-    
-    // Add mouseenter listener to the item
-    if (itemRef.current) {
-      itemRef.current.addEventListener('mouseenter', handleMouseEnter);
-    }
+    // Start the animation frame loop immediately
+    animationFrameId = requestAnimationFrame(processMousePosition);
     
     return () => {
       window.removeEventListener('mousemove', handleGlobalMouseMove);
-      if (itemRef.current) {
-        itemRef.current.removeEventListener('mouseenter', handleMouseEnter);
-      }
+      
       // Cancel any pending animation frame
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
