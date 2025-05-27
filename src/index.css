@@ -3,9 +3,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Import Flowbite's styles after our base */
-@import "flowbite/dist/flowbite.css";
-
 :root {
   font-family: 'Vazirmatn', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

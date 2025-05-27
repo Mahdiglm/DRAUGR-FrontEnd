@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client'
 import { HashRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import './App.css'
-import './flowbite-overrides.css'
 
 // Set default scroll behavior for the entire application
 document.documentElement.style.scrollBehavior = 'smooth';
@@ -25,7 +24,6 @@ if (typeof document !== 'undefined') {
 
 // Components
 import ErrorBoundary from './components/shared/ErrorBoundary'
-import FlowbiteTest from './components/shared/FlowbiteTest'
 
 // Layouts
 import MainLayout from './components/layout/MainLayout'
@@ -59,7 +57,6 @@ createRoot(document.getElementById('root')).render(
             <Route path="blog/:slug" element={<SingleBlogPostPage />} />
             <Route path="special-offers" element={<SpecialOffersPage />} />
             <Route path="special-offers/:id" element={<SpecialOffersPage />} />
-            <Route path="flowbite-test" element={<FlowbiteTest />} />
           </Route>
         </Routes>
       </HashRouter>
