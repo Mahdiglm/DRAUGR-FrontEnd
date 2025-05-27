@@ -34,201 +34,172 @@ const TransitionOverlay = ({
   phase,
   setPhase
 }) => {
-  // Use a proper state machine for animation
   const [transitionState, setTransitionState] = useState(TransitionState.IDLE);
   const [progress, setProgress] = useState(0);
   
-  // Refs for managing animation state
   const hasCompletedRef = useRef(false);
   const animationFrameRef = useRef(null);
   const timeoutRef = useRef(null);
   const startTimeRef = useRef(null);
   const isActivatedRef = useRef(false);
+  const localCategoryRef = useRef(null);
+  const prevSelectedCategoryIdRef = useRef(null);
   
-  // Store category in ref to prevent rerenders
-  const categoryRef = useRef(selectedCategory);
-  
-  // When category changes, update the ref
-  useEffect(() => {
-    categoryRef.current = selectedCategory;
-  }, [selectedCategory]);
-  
-  // Clean up function to ensure we release all resources
   const cleanupAnimation = useCallback(() => {
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
-    
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
   }, []);
   
-  // Transition completion handler
   const completeTransition = useCallback(() => {
     if (hasCompletedRef.current) return;
     
-    debugLog("Animation completing");
+    debugLog("Animation completing in TransitionOverlay");
     setTransitionState(TransitionState.COMPLETING);
     hasCompletedRef.current = true;
     
-    // Cleanup any existing animation frame
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
     
-    // Safety delay before triggering completion callback
     setTimeout(() => {
-      debugLog("Executing completion callback");
+      debugLog("Executing onTransitionComplete from TransitionOverlay");
       try {
         onTransitionComplete && onTransitionComplete();
         setTransitionState(TransitionState.COMPLETED);
       } catch (error) {
-        console.error("Error in completion callback:", error);
+        console.error("Error in onTransitionComplete callback:", error);
         setTransitionState(TransitionState.ERROR);
       }
-    }, 50);
+    }, 70);
   }, [onTransitionComplete]);
   
-  // Set up a stall detector timeout
   const setStallDetector = useCallback((currentState) => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
-    
-    // Timeout duration based on state
-    let timeout = 2000; // default timeout
-    
+    let timeout = 2000; 
     if (currentState === TransitionState.PAGE_TRANSITION) {
-      timeout = 1500; // shorter timeout for final phase
+      timeout = 1500; 
     }
-    
     timeoutRef.current = setTimeout(() => {
-      debugLog(`⚠️ Animation stalled in state ${currentState} - forcing completion`);
+      debugLog(`⚠️ TransitionOverlay: Stall detected in ${currentState}. Forcing completion.`, {category: localCategoryRef.current?.slug});
       completeTransition();
     }, timeout);
   }, [completeTransition]);
   
-  // Animation step function with error boundaries
   const animationStep = useCallback((timestamp) => {
-    try {
-      if (!isActivatedRef.current || hasCompletedRef.current) {
-        return;
-      }
-      
-      if (!startTimeRef.current) {
-        startTimeRef.current = timestamp;
-        setStallDetector(TransitionState.SELECTION_RESPONSE);
-      }
-      
-      const totalDuration = 1600; // slightly longer total duration
-      const elapsed = timestamp - startTimeRef.current;
-      const rawProgress = Math.min(elapsed / totalDuration, 1);
-      
-      // Update progress state
-      setProgress(rawProgress);
-      
-      // Ensure we're using the most current phase for transitions
-      const currentTransitionState = transitionState;
-      
-      // State machine transitions based on progress
-      if (rawProgress < 0.2 && currentTransitionState !== TransitionState.SELECTION_RESPONSE) {
-        debugLog("Transitioning to SELECTION_RESPONSE state");
-        setTransitionState(TransitionState.SELECTION_RESPONSE);
-        setPhase(1);
-        setStallDetector(TransitionState.SELECTION_RESPONSE);
-      } else if (rawProgress >= 0.2 && rawProgress < 0.65 && currentTransitionState !== TransitionState.MORPHING_TRANSITION) {
-        debugLog("Transitioning to MORPHING_TRANSITION state");
-        setTransitionState(TransitionState.MORPHING_TRANSITION);
-        setPhase(2);
-        setStallDetector(TransitionState.MORPHING_TRANSITION);
-      } else if (rawProgress >= 0.65 && currentTransitionState !== TransitionState.PAGE_TRANSITION && !hasCompletedRef.current) {
-        debugLog("Transitioning to PAGE_TRANSITION state");
-        setTransitionState(TransitionState.PAGE_TRANSITION);
-        setPhase(3);
-        setStallDetector(TransitionState.PAGE_TRANSITION);
-      }
-      
-      // Log progress for debugging
-      if (process.env.NODE_ENV === 'development' && rawProgress % 0.1 < 0.01) {
-        debugLog(`Animation progress: ${Math.floor(rawProgress * 100)}%`);
-      }
-      
-      // Check for completion
-      if (rawProgress >= 0.95 && !hasCompletedRef.current) {
-        debugLog("Animation reached completion threshold");
-        completeTransition();
-        return;
-      }
-      
-      // Continue animation if not complete
-      if (!hasCompletedRef.current) {
-        animationFrameRef.current = requestAnimationFrame(animationStep);
-      }
-    } catch (error) {
-      console.error("Error in animation step:", error);
-      setTransitionState(TransitionState.ERROR);
+    if (!isActivatedRef.current || hasCompletedRef.current || !localCategoryRef.current) {
+      return;
+    }
+    
+    if (!startTimeRef.current) {
+      startTimeRef.current = timestamp;
+      setStallDetector(TransitionState.SELECTION_RESPONSE);
+    }
+    
+    const totalDuration = 1600; 
+    const elapsed = timestamp - startTimeRef.current;
+    const rawProgress = Math.min(elapsed / totalDuration, 1);
+    
+    setProgress(rawProgress);
+    
+    const currentFrameTransitionState = transitionState; 
+
+    if (rawProgress < 0.2 && currentFrameTransitionState !== TransitionState.SELECTION_RESPONSE) {
+      setTransitionState(TransitionState.SELECTION_RESPONSE);
+      setPhase(1);
+      setStallDetector(TransitionState.SELECTION_RESPONSE);
+    } else if (rawProgress >= 0.2 && rawProgress < 0.65 && currentFrameTransitionState !== TransitionState.MORPHING_TRANSITION) {
+      setTransitionState(TransitionState.MORPHING_TRANSITION);
+      setPhase(2);
+      setStallDetector(TransitionState.MORPHING_TRANSITION);
+    } else if (rawProgress >= 0.65 && currentFrameTransitionState !== TransitionState.PAGE_TRANSITION && !hasCompletedRef.current) {
+      setTransitionState(TransitionState.PAGE_TRANSITION);
+      setPhase(3);
+      setStallDetector(TransitionState.PAGE_TRANSITION);
+    }
+    
+    if (rawProgress >= 0.95 && !hasCompletedRef.current) {
+      debugLog("TransitionOverlay: Animation reached completion threshold.", {category: localCategoryRef.current?.slug});
       completeTransition();
+      return;
+    }
+    
+    if (!hasCompletedRef.current) {
+      animationFrameRef.current = requestAnimationFrame(animationStep);
     }
   }, [completeTransition, setPhase, setStallDetector, transitionState]);
   
-  // Start/stop animation based on active state
   useEffect(() => {
-    // Avoid restarting if already in the same state
-    if (isActive && !isActivatedRef.current && selectedCategory) {
-      // Start animation
-      debugLog("Starting transition animation", { category: selectedCategory.slug, state: "initializing" });
+    const newCategorySelected = selectedCategory && selectedCategory.id !== prevSelectedCategoryIdRef.current;
+
+    if (isActive && selectedCategory && (!isActivatedRef.current || newCategorySelected)) {
+      debugLog("TransitionOverlay: ACTIVATE / RE-ACTIVATE", { 
+        category: selectedCategory.slug, 
+        wasActive: isActivatedRef.current,
+        newCategorySelected 
+      });
+
+      cleanupAnimation();
+
       isActivatedRef.current = true;
       hasCompletedRef.current = false;
       startTimeRef.current = null;
+      localCategoryRef.current = selectedCategory;
+      prevSelectedCategoryIdRef.current = selectedCategory.id;
       setProgress(0);
       setTransitionState(TransitionState.SELECTION_RESPONSE);
-      setPhase(1);
+      if (typeof setPhase === 'function') setPhase(1);
       
-      // Start the animation loop
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
       animationFrameRef.current = requestAnimationFrame(animationStep);
       
-      // Set global safety timeout (longest possible duration)
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => {
-        debugLog("⚠️ Global safety timeout triggered");
-        completeTransition();
-      }, 3500); // 3.5 seconds max
+        if(isActivatedRef.current && !hasCompletedRef.current){
+          debugLog("⚠️ TransitionOverlay: Global safety timeout triggered.", {category: localCategoryRef.current?.slug});
+          completeTransition();
+        }
+      }, 3500); 
+
     } else if (!isActive && isActivatedRef.current) {
-      // Reset state when deactivated
-      debugLog("Deactivating transition animation");
-      isActivatedRef.current = false;
+      debugLog("TransitionOverlay: DEACTIVATING", { category: localCategoryRef.current?.slug });
       cleanupAnimation();
+      isActivatedRef.current = false;
+      hasCompletedRef.current = true;
+      localCategoryRef.current = null;
       setTransitionState(TransitionState.IDLE);
       setProgress(0);
-      hasCompletedRef.current = true; // Mark as completed to ensure any lingering animation frames don't execute
     }
-    
-    // Always clean up on unmount
+
     return () => {
-      debugLog("Cleaning up animation resources");
+      debugLog("TransitionOverlay: useEffect cleanup firing", { 
+        isActiveProp: isActive, 
+        currentLocalCat: localCategoryRef.current?.slug,
+        isActivated: isActivatedRef.current
+      });
       cleanupAnimation();
-      hasCompletedRef.current = true; // Mark as completed to prevent further execution
+      if (!isActive) {
+          isActivatedRef.current = false;
+          hasCompletedRef.current = true;
+          localCategoryRef.current = null;
+          prevSelectedCategoryIdRef.current = null;
+      }
     };
-  }, [isActive, selectedCategory, animationStep, cleanupAnimation, completeTransition, setPhase]);
-  
-  // If there's no active transition or no category, don't render anything
-  if (!isActive || !selectedCategory || transitionState === TransitionState.IDLE) {
+  }, [isActive, selectedCategory, onTransitionComplete, animationStep, cleanupAnimation, completeTransition, setPhase]);
+
+  if (!isActivatedRef.current || !localCategoryRef.current || transitionState === TransitionState.IDLE) {
     return null;
   }
+  
+  const transitionId = localCategoryRef.current?.slug || 'transition-overlay';
 
-  // Generate a unique ID for this transition to use in keys
-  const transitionId = selectedCategory?.slug || 'unknown';
-
-  // Create particle and mist elements with proper keys
   const mistElements = [];
   for (let i = 0; i < 3; i++) {
     mistElements.push(
@@ -281,8 +252,8 @@ const TransitionOverlay = ({
         }}
         animate={{
           opacity: [0, 0.7 + Math.random() * 0.3, 0],
-          x: `calc(${startX}px + ${randomXOffset}px)`,
-          y: `calc(${startY}px + ${randomYOffset}px)`,
+          x: `calc(${typeof startX === 'number' ? `${startX}px` : startX} + ${randomXOffset}px)`,
+          y: `calc(${typeof startY === 'number' ? `${startY}px` : startY} + ${randomYOffset}px)`,
           scale: [0, scale]
         }}
         transition={{
@@ -317,16 +288,15 @@ const TransitionOverlay = ({
 
   return (
     <AnimatePresence mode="sync">
-      {isActive && (
+      {isActivatedRef.current && localCategoryRef.current && (
         <motion.div 
-          key={`transition-overlay-${transitionId}`}
+          key={transitionId}
           className="fixed inset-0 z-50 overflow-hidden transition-overlay"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
         >
-          {/* Animated background that gets darker with progress */}
           <motion.div 
             className="absolute inset-0 bg-black transition-bg"
             initial={{ opacity: 0 }}
@@ -336,17 +306,14 @@ const TransitionOverlay = ({
             }}
           />
           
-          {/* Animated fog/mist effect for horror theme */}
           <div className="absolute inset-0 pointer-events-none mist-container">
             {mistElements}
           </div>
           
-          {/* Particle effect - blood motes floating in the air */}
           <div className="absolute inset-0 pointer-events-none">
             {particleElements}
           </div>
           
-          {/* Morphing card that transitions from selected category to hero section */}
           {selectedCardRect && (
             <motion.div
               className="absolute rounded-lg overflow-hidden flex flex-col morphing-container"
@@ -379,20 +346,18 @@ const TransitionOverlay = ({
               }}
               transition={{
                 duration: 0.8,
-                ease: [0.16, 1, 0.3, 1], // Custom cubic-bezier for elastic feel
+                ease: [0.16, 1, 0.3, 1],
                 times: [0, 1]
               }}
             >
-              {/* Card background with gradient animation */}
               <motion.div
                 className="absolute inset-0 z-0"
                 initial={{ opacity: 1 }}
                 animate={{ opacity: 1 }}
                 style={{
-                  background: `linear-gradient(to bottom, ${selectedCategory?.themeColor || '#420011'}, #000000)`
+                  background: `linear-gradient(to bottom, ${localCategoryRef.current?.themeColor || '#420011'}, #000000)`
                 }}
               >
-                {/* Animated blood/smoke texture overlay */}
                 <motion.div
                   className="absolute inset-0 pointer-events-none"
                   style={{
@@ -414,7 +379,6 @@ const TransitionOverlay = ({
                 />
               </motion.div>
 
-              {/* Category content area */}
               <div className="relative z-10 flex flex-col justify-center items-center flex-1 p-6">
                 <motion.div 
                   className="relative z-10 w-full max-w-4xl mx-auto text-center"
@@ -425,7 +389,6 @@ const TransitionOverlay = ({
                   }}
                   transition={{ duration: 0.5 }}
                 >
-                  {/* Category title with animated size */}
                   <motion.h1
                     className="font-bold text-white relative z-10 inline-block"
                     initial={{ fontSize: '1.25rem' }}
@@ -436,13 +399,12 @@ const TransitionOverlay = ({
                     }}
                     transition={{ duration: 0.6, ease: "easeOut" }}
                   >
-                    {selectedCategory?.name}
+                    {localCategoryRef.current?.name}
                     
-                    {/* Animated title glow */}
                     <motion.div
                       className="absolute inset-0 -z-10 blur-md"
                       style={{ 
-                        background: selectedCategory?.themeColor || '#420011',
+                        background: localCategoryRef.current?.themeColor || '#420011',
                         opacity: 0 
                       }}
                       animate={{ 
@@ -457,7 +419,6 @@ const TransitionOverlay = ({
                     />
                   </motion.h1>
                   
-                  {/* Subtitle description */}
                   {transitionState !== TransitionState.SELECTION_RESPONSE && (
                     <motion.div
                       className="mt-4 text-gray-200 text-center"
@@ -465,9 +426,8 @@ const TransitionOverlay = ({
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.4, delay: 0.2 }}
                     >
-                      <p className="mb-4">مجموعه منحصر به فرد محصولات {selectedCategory?.name} ما را کشف کنید</p>
+                      <p className="mb-4">مجموعه منحصر به فرد محصولات {localCategoryRef.current?.name} ما را کشف کنید</p>
                       
-                      {/* Loading state in final phase */}
                       {transitionState === TransitionState.PAGE_TRANSITION && (
                         <motion.div
                           initial={{ opacity: 0, y: 20 }}
@@ -479,7 +439,7 @@ const TransitionOverlay = ({
                               <motion.div
                                 className="absolute top-0 left-0 h-full"
                                 style={{ 
-                                  background: `linear-gradient(to right, ${selectedCategory?.themeColor || '#420011'}, #990000)`
+                                  background: `linear-gradient(to right, ${localCategoryRef.current?.themeColor || '#420011'}, #990000)`
                                 }}
                                 initial={{ width: '0%' }}
                                 animate={{ width: '100%' }}
@@ -495,10 +455,8 @@ const TransitionOverlay = ({
                 </motion.div>
               </div>
               
-              {/* Page content elements that fade in during final phase */}
               {transitionState === TransitionState.PAGE_TRANSITION && (
                 <div className="absolute inset-0 flex flex-col items-stretch">
-                  {/* Dark header bar */}
                   <motion.div
                     className="w-full bg-black/80 backdrop-blur-md border-b border-[#2f0000]/30 h-16"
                     initial={{ opacity: 0, y: -20 }}
@@ -507,7 +465,6 @@ const TransitionOverlay = ({
                   />
                   
                   <div className="flex flex-1 overflow-hidden">
-                    {/* Left sidebar */}
                     <motion.div
                       className="w-64 bg-black/40 backdrop-blur-md border-r border-[#2f0000]/20"
                       initial={{ opacity: 0, x: -100 }}
@@ -515,7 +472,6 @@ const TransitionOverlay = ({
                       transition={{ duration: 0.5, delay: 0.3 }}
                     />
                     
-                    {/* Main content area with product grid */}
                     <motion.div
                       className="flex-1 bg-black/20 p-6"
                       initial={{ opacity: 0 }}
@@ -534,7 +490,6 @@ const TransitionOverlay = ({
         </motion.div>
       )}
       
-      {/* CSS for global transition effects */}
       <style jsx="true">{`
         .transition-overlay {
           perspective: 1000px;
