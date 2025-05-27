@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { categories, additionalCategories } from '../../utils/mockData';
 import { getOptimizedAnimationSettings } from '../../utils/animationHelpers';
 import CategoryItem from './CategoryItem'; // Moved to separate component
+import TransitionOverlay from './TransitionOverlay'; // Import new component
 
 // Constants for layout - moved to global scope for reuse
 const CARD_WIDTH = 224; // 56px * 4 (actual width)
@@ -69,6 +70,9 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
   const [categoryItems, setCategoryItems] = useState([]);
   const [speed, setSpeed] = useState(1); // pixels per frame
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [isTransitioning, setIsTransitioning] = useState(false); // Animation state
+  const [selectedItemRect, setSelectedItemRect] = useState(null); // For animation positioning
+  const [animationPhase, setAnimationPhase] = useState(0); // Controls animation phases
   const isMobileDevice = useMobileDetection();
   const animationRef = useRef(null);
   const lastTimestampRef = useRef(0);
@@ -415,33 +419,68 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
     }
   };
 
-  const handleCategorySelect = useCallback((category) => {
+  // Enhanced category selection handler
+  const handleCategorySelect = useCallback((category, itemElement) => {
+    // Stop animation
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
       animationRef.current = null;
     }
+    
+    // Capture element's current position for animation
+    if (itemElement && itemElement.current) {
+      const rect = itemElement.current.getBoundingClientRect();
+      setSelectedItemRect(rect);
+    }
+    
+    // Set selected category and start transition
     setSelectedCategory(category);
+    setIsTransitioning(true);
+    setAnimationPhase(1); // Start with phase 1
+    
+    // The actual navigation will be handled by the TransitionOverlay component
+    // once the animation is complete
+  }, []);
+  
+  // Handle transition completion
+  const handleTransitionComplete = useCallback(() => {
     // Navigate to shop page with category slug
-    // Adding a short delay to allow the scale animation to be visible
+    navigate(`/shop?category=${selectedCategory.slug}`);
+    
+    // Reset animation states (this will happen after navigation)
     setTimeout(() => {
-        navigate(`/shop?category=${category.slug}`);
-    }, 300); // Corresponds to animation duration
-  }, [navigate]);
+      setIsTransitioning(false);
+      setSelectedCategory(null);
+      setAnimationPhase(0);
+      setSelectedItemRect(null);
+    }, 100);
+  }, [navigate, selectedCategory]);
+
+  // Preload shop page data during transition
+  useEffect(() => {
+    if (isTransitioning && selectedCategory && animationPhase >= 2) {
+      // This is where you could prefetch data for the shop page
+      // e.g., fetch(`/api/products?category=${selectedCategory.slug}`)
+      
+      // For now, we'll just simulate preloading with a console log
+      console.log(`Preloading shop data for category: ${selectedCategory.slug}`);
+    }
+  }, [isTransitioning, selectedCategory, animationPhase]);
 
   return (
     <div 
       className={`py-2 sm:py-3 md:py-4 w-screen min-w-full max-w-none relative overflow-hidden mx-0 px-0 ${isMobileDevice ? 'category-row-mobile' : ''}`}
-         style={{
-           width: '100vw',
-           maxWidth: '100vw',
-           paddingLeft: '0',
-           paddingRight: '0',
-           position: 'relative',
-           left: '50%',
-           right: '50%',
-           marginLeft: '-50vw',
-           marginRight: '-50vw'
-         }}
+      style={{
+        width: '100vw',
+        maxWidth: '100vw',
+        paddingLeft: '0',
+        paddingRight: '0',
+        position: 'relative',
+        left: '50%',
+        right: '50%',
+        marginLeft: '-50vw',
+        marginRight: '-50vw'
+      }}
       role="region"
       aria-label="دسته‌بندی محصولات"
       tabIndex="0"
@@ -500,10 +539,22 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
               mobileHighlightPosition={item.mobileHighlightPosition}
               onCategorySelect={handleCategorySelect}
               isSelected={selectedCategory && selectedCategory.id === item.category.id}
+              isTransitioning={isTransitioning}
+              animationPhase={animationPhase}
             />
           ))}
         </div>
       </div>
+      
+      {/* Add the TransitionOverlay for animated page transitions */}
+      <TransitionOverlay
+        isActive={isTransitioning}
+        selectedCategory={selectedCategory}
+        selectedCardRect={selectedItemRect}
+        onTransitionComplete={handleTransitionComplete}
+        phase={animationPhase}
+        setPhase={setAnimationPhase}
+      />
     </div>
   );
 });
