@@ -157,7 +157,7 @@ export default {
     },
   },
   plugins: [
-    // require('flowbite/plugin') // Flowbite plugin will be imported in index.css using @plugin rule
+    require('flowbite/plugin'),
     function({ addUtilities }) {
       const newUtilities = {
         '.scrollbar-hide': {

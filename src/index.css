@@ -1,5 +1,6 @@
-@import "flowbite/src/themes/default";
-@plugin "flowbite/plugin";
+/* Import Flowbite's base styles */
+@import "flowbite/dist/flowbite.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -142,7 +143,7 @@ button:focus-visible {
 /* Horror-specific styles */
 @layer components {
   .horror-card {
-    @apply bg-draugr-dark-charcoal border border-draugr-900 shadow-horror transition-all duration-300;
+    @apply bg-midnight border border-draugr-900 shadow-horror transition-all duration-300;
   }
   
   .horror-input {
