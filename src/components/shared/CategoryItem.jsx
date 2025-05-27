@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, memo, useCallback } from 'react';
-import { motion } from 'framer-motion'; // Added for potential future use, not strictly needed for current changes
+import { motion } from 'framer-motion'; // Ensure motion is imported
 
 /**
  * CategoryItem Component
@@ -43,21 +43,20 @@ const MAX_VELOCITY_BOOST = 0.5;     // Max *additional* intensity from velocity 
 
 const CategoryItem = memo(({ 
   category, 
-  style, 
+  style, // Keep this for direct style application from CategoryRows if any
   cardWidth,
-  cardHeight, // New prop
+  cardHeight,
   isMobile = false, 
   mobileHighlight = false,
   mobileHighlightEdge = 'top',
   mobileHighlightIntensity = 0.5,
   mobileHighlightPosition = 0.5,
-  onCategorySelect, // Added prop
-  isSelected, // Added prop
-  isTransitioning, // New prop for animation
-  visualPhase, // Renamed from animationPhase for clarity, maps from CategoryRows' currentVisualPhase
+  onCategorySelect,         // New: Callback from CategoryRows
+  isSelectedForTransition,  // New: True if this item is selected for the main transition
+  isAnotherItemSelected,    // New: True if another item is selected for the main transition
   ...props 
 }) => {
-  const itemRef = useRef(null);
+  const cardElementRef = useRef(null); // Renamed from itemRef for clarity
   const lastMousePosRef = useRef({ x: 0, y: 0, time: Date.now() });
   const animationFrameIdRef = useRef(null);
   
@@ -72,18 +71,20 @@ const CategoryItem = memo(({
   const [, setForceUpdate] = useState(0);
 
   const proximityThreshold = 60;
-  const borderWidth = 2;
+  const borderWidth = 2; // Keep for border calculations if any
 
   // Callback to handle selection with element reference
   const handleSelectWithRef = useCallback(() => {
-    if (onCategorySelect && !isTransitioning && itemRef.current) {
-      onCategorySelect(itemRef.current);
+    // Always call onCategorySelect if provided. CategoryRows will handle logic 
+    // about whether a transition is already in progress.
+    if (onCategorySelect) {
+      onCategorySelect(category, cardElementRef.current); // Pass the DOM element
     }
-  }, [onCategorySelect, isTransitioning]);
+  }, [category, onCategorySelect]); // cardElementRef is stable
 
   // Mobile-specific effect: Update refs, but DO NOT call setForceUpdate here.
   useEffect(() => {
-    if (isMobile || (isTransitioning && !isSelected)) {
+    if (isMobile) {
       animatedValuesRef.current = {
         intensity: mobileHighlight ? mobileHighlightIntensity : 0,
         position: mobileHighlight ? mobileHighlightPosition : 0.5,
@@ -93,28 +94,31 @@ const CategoryItem = memo(({
       // No setForceUpdate here
     }
     // When isMobile becomes false, the desktop useEffect will handle re-initializing the animation state.
-  }, [isMobile, mobileHighlight, mobileHighlightEdge, mobileHighlightIntensity, mobileHighlightPosition, isTransitioning, isSelected]);
+  }, [isMobile, mobileHighlight, mobileHighlightEdge, mobileHighlightIntensity, mobileHighlightPosition]);
 
   // Main hover animation effect for non-mobile devices
   useEffect(() => {
-    if (isMobile) {
+    // If this card is part of any transition, or on mobile, disable hover effects.
+    if (isMobile || isSelectedForTransition || isAnotherItemSelected) {
       if (animationFrameIdRef.current) {
         cancelAnimationFrame(animationFrameIdRef.current);
         animationFrameIdRef.current = null;
+        // Reset hover animations state when disabled
         animatedValuesRef.current = { intensity: 0, position: 0.5, edge: null, velocityBoost: 0 };
-        setForceUpdate(val => val + 1); // Keep for immediate visual reset when switching to mobile
+        // Potentially force an update if immediate visual reset of hover is needed
+        // setForceUpdate(val => val + 1); 
       }
       return;
     }
 
     const processHoverState = () => {
-      if (!itemRef.current || document.hidden || (isTransitioning && !isSelected)) {
+      if (!cardElementRef.current || document.hidden) {
         animationFrameIdRef.current = requestAnimationFrame(processHoverState);
         return;
       }
 
       const { x: mouseX, y: mouseY } = lastMousePosRef.current;
-      const rect = itemRef.current.getBoundingClientRect();
+      const rect = cardElementRef.current.getBoundingClientRect();
       const relativeX = mouseX - rect.left;
       const relativeY = mouseY - rect.top;
 
@@ -206,7 +210,7 @@ const CategoryItem = memo(({
         animationFrameIdRef.current = null;
       }
     };
-  }, [isMobile, proximityThreshold, cardWidth, cardHeight, isTransitioning, isSelected]); // Added cardWidth, cardHeight
+  }, [isMobile, proximityThreshold, cardWidth, cardHeight]); // Added cardWidth, cardHeight
   
   const getPositionAlongEdge = (edge, x, y, width, height) => {
     // Ensure height is not zero to prevent division by zero
@@ -227,7 +231,7 @@ const CategoryItem = memo(({
 
   const renderBorderSegments = () => {
     const { intensity, position, edge } = animatedValuesRef.current;
-    if (intensity < MIN_INTENSITY_FOR_RENDER || (isTransitioning && !isSelected)) return null;
+    if (intensity < MIN_INTENSITY_FOR_RENDER) return null;
     
     const glowColor = '#ff0066';
     // Use raw intensity (can be > 1) for more dramatic scaling of visual elements
@@ -281,10 +285,7 @@ const CategoryItem = memo(({
 
   const renderCircuitTrace = () => {
     const { intensity, position, edge } = animatedValuesRef.current;
-    const traceIntensityThreshold = 0.2;
-    if (intensity < traceIntensityThreshold || !edge || (isTransitioning && !isSelected)) {
-      return null;
-    }
+    if (intensity < MIN_INTENSITY_FOR_RENDER) return null;
     const simplifiedForMobile = isMobile;
     const visualScale = intensity; // Use raw intensity for scaling SVG elements
     const opacity = Math.min(1, intensity); // Opacity capped at 1
@@ -361,60 +362,89 @@ const CategoryItem = memo(({
     );
   };
 
-  return (
-    <div
-      ref={itemRef}
-      className={`category-item relative rounded-lg overflow-hidden cursor-pointer 
-                  border-2 border-transparent group transition-all duration-300 ease-out`}
-      style={{
-        ...style,
-        width: `${cardWidth}px`, 
-        minWidth: `${cardWidth}px`, // ensure it doesn't shrink
-        height: cardHeight ? `${cardHeight}px` : 'auto',
-        // Perspective for 3D hover (optional, can be intensive)
-        // perspective: '1000px',
-        WebkitTapHighlightColor: 'transparent', // Remove tap highlight on mobile
-        filter: (isTransitioning && !isSelected) ? 'blur(5px) brightness(0.5)' : 'none',
-        transform: (isTransitioning && !isSelected) ? 'scale(0.92)' : 'scale(1)',
-        transition: 'filter 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease-out',
-        opacity: (isTransitioning && !isSelected && visualPhase > 0) ? 0 : 1, // Fade out non-selected items once transition starts
-        pointerEvents: isTransitioning ? 'none' : 'auto', // Disable interactions during transition for all items
-      }}
-      onClick={handleSelectWithRef}
-      onFocus={() => { /* Can add focus effects */ }}
-      onBlur={() => { /* Can remove focus effects */ }}
-      role="button"
-      tabIndex={0} // Make it focusable
-      aria-label={`Select category: ${category.name}`}
-      {...props}
-    >
-      {/* Background Image / Video */}
-      <div
-        className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center p-3 md:p-4 transition-opacity duration-300 ease-in-out"
-        style={{
-          backgroundColor: 'rgba(0,0,0,0.4)', // Slightly darker overlay for better text contrast
-          opacity: (isMobile || animatedValuesRef.current.intensity > 0.1 || isSelected) ? 1 : 0,
-          transition: 'opacity 0.3s ease-in-out' // Smooth transition for opacity
-        }}
-      >
-        <h3 className="text-sm md:text-base font-semibold text-white drop-shadow-md">
-          {category.name}
-        </h3>
-        {category.description && (
-          <p className="text-xs md:text-sm text-gray-300 mt-1 hidden group-hover:block transition-all duration-300 ease-in-out">
-            {category.description}
-          </p>
-        )}
-      </div>
+  // Determine dynamic styles/animations based on transition state
+  let motionProps = {};
+  if (isSelectedForTransition) {
+    motionProps = {
+      animate: { 
+        opacity: 0, 
+        scale: 0.7, 
+        filter: 'blur(0px)', // Ensure no blur if it was previously blurred
+        transition: { duration: 0.1, ease: "easeOut" } 
+      },
+      style: { ...style, pointerEvents: 'none' }, // Add pointerEvents none here
+    };
+  } else if (isAnotherItemSelected) {
+    motionProps = {
+      animate: { 
+        opacity: 0.5, 
+        scale: 0.90, 
+        filter: 'blur(3px) brightness(0.7)', 
+        transition: { duration: 0.3, ease: "easeInOut" } 
+      },
+      style: { ...style, pointerEvents: 'none' }, // Add pointerEvents none here
+    };
+  } else {
+    // Default state or when no transition is active
+    motionProps = {
+      animate: { opacity: 1, scale: 1, filter: 'blur(0px) brightness(1)' }, // Ensure reset to default
+      style: style, // Apply base style from props
+    };
+  }
 
-      {/* Render hover effects only on desktop and if not transitioning (or is the selected one) */}
-      {!isMobile && (!isTransitioning || isSelected) && (
+  return (
+    <motion.div
+      ref={cardElementRef} // Attach ref here
+      className={`relative rounded-lg overflow-hidden cursor-pointer shadow-lg group transform transition-all duration-300 ease-out hover:shadow-draugr-glow focus:outline-none focus:ring-2 focus:ring-draugr-red focus:ring-opacity-75`}
+      style={motionProps.style} // Apply merged style
+      onClick={handleSelectWithRef}
+      onKeyPress={(e) => e.key === 'Enter' && handleSelectWithRef()}
+      tabIndex={0} // Make it focusable
+      aria-label={`Category: ${category.name}`}
+      role="button"
+      // Apply animation variants or direct animate prop
+      initial={{ opacity: 1, scale: 1, filter: 'blur(0px) brightness(1)' }} // Start with default appearance
+      animate={motionProps.animate} // Controlled by transition state
+      whileHover={!isMobile && !isSelectedForTransition && !isAnotherItemSelected ? { scale: 1.05, y: -5 } : {}} // Standard hover if not in transition
+      // Remove old transition related props if they were for motion variants here
+      {...props} // Spread other props like style from CategoryRows
+    >
+      {/* Visual content: Image, Title, etc. */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center transition-transform duration-500 ease-in-out group-hover:scale-110"
+        style={{ backgroundImage: `url(${category.image_url || 'https://via.placeholder.com/300x200/1a0000/4a0000?Text=Draugr+Realm'})` }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+      
+      {/* Conditional rendering for hover effects if not in transition */}
+      {!isMobile && !isSelectedForTransition && !isAnotherItemSelected && (
         <>
           {renderBorderSegments()}
           {renderCircuitTrace()}
         </>
       )}
-    </div>
+      
+      <div className="relative z-10 p-4 flex flex-col justify-end h-full">
+        <h3 
+          className="text-lg md:text-xl font-semibold text-white mb-1 shadow-text"
+          style={{ color: category.themeColor || '#FFC0CB' }}
+        >
+          {category.name}
+        </h3>
+        <p className="text-xs md:text-sm text-gray-300 shadow-text">
+          {category.short_description || "Explore the unknown"}
+        </p>
+      </div>
+      
+      {/* Debugging information - remove for production */}
+      {/* 
+      {(isSelectedForTransition || isAnotherItemSelected) && (
+        <div className="absolute top-0 left-0 bg-yellow-300 text-black p-1 text-xs z-20">
+          {isSelectedForTransition ? "SELECTED FOR TRANSITION" : "ANOTHER SELECTED"}
+        </div>
+      )}
+      */}
+    </motion.div>
   );
 });
 
