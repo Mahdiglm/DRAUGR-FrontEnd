@@ -5,15 +5,15 @@ import { motion } from 'framer-motion';
 const isDev = import.meta.env.DEV;
 
 const DevTools = () => {
+  // Early return before hooks to prevent unnecessary hook calls
+  if (!isDev) return null;
+  
   const [isOpen, setIsOpen] = useState(false);
   const [logs, setLogs] = useState([]);
   const logsRef = useRef([]);
   const updateScheduledRef = useRef(false);
   const consoleOverridesInitialized = useRef(false);
   const isTabVisibleRef = useRef(true);
-  
-  // Early return after hooks
-  if (!isDev) return null;
 
   // Track tab visibility to avoid updates when tab is not visible
   useEffect(() => {
@@ -25,7 +25,7 @@ const DevTools = () => {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, []);
+  }, []); // Empty dependency array is correct here
 
   // Add console log override to capture logs
   useEffect(() => {
@@ -48,7 +48,7 @@ const DevTools = () => {
           setLogs([...logsRef.current]);
         }
         updateScheduledRef.current = false;
-      }, 0);
+      }, 100); // Increased timeout for better batching
     };
 
     console.log = (...args) => {
@@ -65,7 +65,9 @@ const DevTools = () => {
           }).join(' '), 
           time: new Date() 
         };
-        logsRef.current = [...logsRef.current, newLog];
+        
+        // Use function form to avoid dependency on current state
+        logsRef.current = [...logsRef.current.slice(-99), newLog]; // Limit to last 100 logs
         scheduleUpdate();
       } catch (e) {
         // Fail silently to avoid breaking the app
@@ -86,7 +88,7 @@ const DevTools = () => {
           }).join(' '),
           time: new Date() 
         };
-        logsRef.current = [...logsRef.current, newLog];
+        logsRef.current = [...logsRef.current.slice(-99), newLog]; // Limit to last 100 logs
         scheduleUpdate();
       } catch (e) {
         // Fail silently
@@ -107,7 +109,7 @@ const DevTools = () => {
           }).join(' '),
           time: new Date() 
         };
-        logsRef.current = [...logsRef.current, newLog];
+        logsRef.current = [...logsRef.current.slice(-99), newLog]; // Limit to last 100 logs
         scheduleUpdate();
       } catch (e) {
         // Fail silently
@@ -121,7 +123,7 @@ const DevTools = () => {
       console.warn = originalConsoleWarn;
       consoleOverridesInitialized.current = false;
     };
-  }, []);
+  }, []); // Empty dependency array is correct here
 
   return (
     <div className="fixed bottom-4 left-4 z-50">
@@ -156,7 +158,7 @@ const DevTools = () => {
               ) : (
                 logs.map((log, index) => (
                   <div 
-                    key={index} 
+                    key={`log-${index}-${log.time.getTime()}`} 
                     className={`mb-1 ${
                       log.type === 'error' ? 'text-red-400' : 
                       log.type === 'warn' ? 'text-yellow-400' : 'text-gray-300'
