@@ -672,9 +672,9 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
       >
         {/* Left side gradient overlay */}
         <div 
-          className="absolute top-0 left-0 h-full w-[100px] z-10 pointer-events-none"
+          className="absolute top-0 left-0 h-full w-[150px] z-10 pointer-events-none"
           style={{ 
-            background: 'linear-gradient(to right, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%)'
+            background: 'linear-gradient(to right, rgb(0, 0, 0) 0%, rgba(0, 0, 0, 0.95) 40%, rgba(0, 0, 0, 0) 100%)'
           }}
           aria-hidden="true"
         />
@@ -716,9 +716,9 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
         
         {/* Right side gradient overlay */}
         <div 
-          className="absolute top-0 right-0 h-full w-[100px] z-10 pointer-events-none"
+          className="absolute top-0 right-0 h-full w-[150px] z-10 pointer-events-none"
           style={{ 
-            background: 'linear-gradient(to left, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%)'
+            background: 'linear-gradient(to left, rgb(0, 0, 0) 0%, rgba(0, 0, 0, 0.95) 40%, rgba(0, 0, 0, 0) 100%)'
           }}
           aria-hidden="true"
         />
