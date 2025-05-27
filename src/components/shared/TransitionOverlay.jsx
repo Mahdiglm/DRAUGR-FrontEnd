@@ -74,6 +74,12 @@ const TransitionOverlay = ({
     setTransitionState(TransitionState.COMPLETING);
     hasCompletedRef.current = true;
     
+    // Cleanup any existing animation frame
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+    
     // Safety delay before triggering completion callback
     setTimeout(() => {
       debugLog("Executing completion callback");
@@ -163,6 +169,7 @@ const TransitionOverlay = ({
   
   // Start/stop animation based on active state
   useEffect(() => {
+    // Avoid restarting if already in the same state
     if (isActive && !isActivatedRef.current && selectedCategory) {
       // Start animation
       debugLog("Starting transition animation", { category: selectedCategory.slug, state: "initializing" });
@@ -174,9 +181,15 @@ const TransitionOverlay = ({
       setPhase(1);
       
       // Start the animation loop
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
       animationFrameRef.current = requestAnimationFrame(animationStep);
       
       // Set global safety timeout (longest possible duration)
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
       timeoutRef.current = setTimeout(() => {
         debugLog("⚠️ Global safety timeout triggered");
         completeTransition();
@@ -198,10 +211,101 @@ const TransitionOverlay = ({
     return null;
   }
 
+  // Generate a unique ID for this transition to use in keys
+  const transitionId = selectedCategory?.slug || 'unknown';
+
+  // Create particle and mist elements with proper keys
+  const mistElements = [];
+  for (let i = 0; i < 3; i++) {
+    mistElements.push(
+      <motion.div
+        key={`mist-${transitionId}-${i}`}
+        className="absolute inset-0"
+        style={{
+          backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%25\' height=\'100%25\'%3E%3Cdefs%3E%3CradialGradient id=\'a\' cx=\'50%25\' cy=\'50%25\' r=\'50%25\' gradientUnits=\'userSpaceOnUse\'%3E%3Cstop offset=\'0\' stop-color=\'%23330000\' stop-opacity=\'.3\'/%3E%3Cstop offset=\'1\' stop-color=\'%23330000\' stop-opacity=\'0\'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width=\'100%25\' height=\'100%25\' fill=\'url(%23a)\'/%3E%3C/svg%3E")',
+          backgroundSize: 'cover',
+          opacity: 0
+        }}
+        animate={{ 
+          opacity: [0, 0.4, 0],
+          scale: [1, 1.2, 1],
+          rotate: [(i - 1) * 10, (i - 1) * 10 + 5]
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          repeatType: 'reverse',
+          delay: i * 2,
+          ease: 'easeInOut'
+        }}
+      />
+    );
+  }
+
+  const particleElements = [];
+  for (let i = 0; i < 25; i++) {
+    const startX = selectedCardRect ? (selectedCardRect.left + selectedCardRect.width / 2) : '50%';
+    const startY = selectedCardRect ? (selectedCardRect.top + selectedCardRect.height / 2) : '50%';
+    const randomXOffset = (Math.random() - 0.5) * 320;
+    const randomYOffset = (Math.random() - 0.5) * 320 - 50;
+    const scale = Math.random() * 0.5 + 0.3;
+    const width = Math.random() * 6 + 3;
+    const height = Math.random() * 6 + 3;
+    const blur = Math.random() * 2;
+    const duration = 3 + Math.random() * 2;
+    const delay = Math.random() * 0.5;
+    
+    particleElements.push(
+      <motion.div
+        key={`particle-${transitionId}-${i}`}
+        className="absolute rounded-full bg-draugr-500"
+        initial={{
+          opacity: 0,
+          x: startX,
+          y: startY,
+          scale: 0
+        }}
+        animate={{
+          opacity: [0, 0.7 + Math.random() * 0.3, 0],
+          x: `calc(${startX}px + ${randomXOffset}px)`,
+          y: `calc(${startY}px + ${randomYOffset}px)`,
+          scale: [0, scale]
+        }}
+        transition={{
+          duration,
+          delay,
+          ease: "easeOut",
+          repeat: Infinity,
+          repeatType: "loop",
+          repeatDelay: Math.random() * 3
+        }}
+        style={{
+          width: `${width}px`,
+          height: `${height}px`,
+          filter: `blur(${blur}px) drop-shadow(0 0 2px #ff0000)`
+        }}
+      />
+    );
+  }
+
+  const productGridItems = [];
+  for (let i = 0; i < 8; i++) {
+    productGridItems.push(
+      <motion.div
+        key={`grid-item-${transitionId}-${i}`}
+        className="rounded-md bg-black/30 backdrop-blur-sm border border-[#2f0000]/20 h-64"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.4 + (i * 0.05) }}
+      />
+    );
+  }
+
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence mode="sync">
       {isActive && (
         <motion.div 
+          key={`transition-overlay-${transitionId}`}
           className="fixed inset-0 z-50 overflow-hidden transition-overlay"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -220,64 +324,12 @@ const TransitionOverlay = ({
           
           {/* Animated fog/mist effect for horror theme */}
           <div className="absolute inset-0 pointer-events-none mist-container">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <motion.div
-                key={`mist-${i}`}
-                className="absolute inset-0"
-                style={{
-                  backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%25\' height=\'100%25\'%3E%3Cdefs%3E%3CradialGradient id=\'a\' cx=\'50%25\' cy=\'50%25\' r=\'50%25\' gradientUnits=\'userSpaceOnUse\'%3E%3Cstop offset=\'0\' stop-color=\'%23330000\' stop-opacity=\'.3\'/%3E%3Cstop offset=\'1\' stop-color=\'%23330000\' stop-opacity=\'0\'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width=\'100%25\' height=\'100%25\' fill=\'url(%23a)\'/%3E%3C/svg%3E")',
-                  backgroundSize: 'cover',
-                  opacity: 0
-                }}
-                animate={{ 
-                  opacity: [0, 0.4, 0],
-                  scale: [1, 1.2, 1],
-                  rotate: [(i - 1) * 10, (i - 1) * 10 + 5]
-                }}
-                transition={{
-                  duration: 8,
-                  repeat: Infinity,
-                  repeatType: 'reverse',
-                  delay: i * 2,
-                  ease: 'easeInOut'
-                }}
-              />
-            ))}
+            {mistElements}
           </div>
           
           {/* Particle effect - blood motes floating in the air */}
           <div className="absolute inset-0 pointer-events-none">
-            {Array.from({ length: 25 }).map((_, i) => (
-              <motion.div
-                key={`particle-${i}`}
-                className="absolute rounded-full bg-draugr-500"
-                initial={{
-                  opacity: 0,
-                  x: selectedCardRect ? (selectedCardRect.left + selectedCardRect.width / 2) : '50%',
-                  y: selectedCardRect ? (selectedCardRect.top + selectedCardRect.height / 2) : '50%',
-                  scale: 0
-                }}
-                animate={{
-                  opacity: [0, 0.7 + Math.random() * 0.3, 0],
-                  x: `calc(${selectedCardRect ? (selectedCardRect.left + selectedCardRect.width / 2) : '50%'}px + ${(Math.random() - 0.5) * 320}px)`,
-                  y: `calc(${selectedCardRect ? (selectedCardRect.top + selectedCardRect.height / 2) : '50%'}px + ${(Math.random() - 0.5) * 320 - 50}px)`,
-                  scale: [0, Math.random() * 0.5 + 0.3]
-                }}
-                transition={{
-                  duration: 3 + Math.random() * 2,
-                  delay: Math.random() * 0.5,
-                  ease: "easeOut",
-                  repeat: Infinity,
-                  repeatType: "loop",
-                  repeatDelay: Math.random() * 3
-                }}
-                style={{
-                  width: `${Math.random() * 6 + 3}px`,
-                  height: `${Math.random() * 6 + 3}px`,
-                  filter: `blur(${Math.random() * 2}px) drop-shadow(0 0 2px #ff0000)`
-                }}
-              />
-            ))}
+            {particleElements}
           </div>
           
           {/* Morphing card that transitions from selected category to hero section */}
@@ -457,15 +509,7 @@ const TransitionOverlay = ({
                       transition={{ duration: 0.5, delay: 0.4 }}
                     >
                       <div className="grid grid-cols-4 gap-4">
-                        {Array.from({ length: 8 }).map((_, i) => (
-                          <motion.div
-                            key={i}
-                            className="rounded-md bg-black/30 backdrop-blur-sm border border-[#2f0000]/20 h-64"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.4 + (i * 0.05) }}
-                          />
-                        ))}
+                        {productGridItems}
                       </div>
                     </motion.div>
                   </div>
