@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, memo } from 'react';
+import React, { useRef, useEffect, useState, memo, useCallback } from 'react';
 import { throttle } from '../../utils/animationHelpers';
 
 /**
@@ -53,81 +53,37 @@ const CategoryItem = memo(({
     intensity: 0,
     position: 0,
   });
-  const [animationPhase, setAnimationPhase] = useState(0);
-  const lastMousePosRef = useRef({ x: 0, y: 0 });
-  const proximityDataRef = useRef(proximityData);
-  const isNearRef = useRef(isNear);
+  
+  // Store mouse position globally, independent of component state
+  // This helps ensure animations continue even when mouse isn't moving
+  const mousePositionRef = useRef({ x: 0, y: 0 });
   const animationFrameIdRef = useRef(null);
-  const circuitOffsetRef = useRef(0);
   
   // Settings
   const proximityThreshold = 60; // How close the mouse needs to be to activate border effect
   const borderWidth = 2; // Width of the border in pixels
   
-  // Update refs when state changes
-  useEffect(() => {
-    proximityDataRef.current = proximityData;
-    isNearRef.current = isNear;
-  }, [proximityData, isNear]);
-  
-  // Separate effect for mobile devices
-  useEffect(() => {
-    if (isMobile) {
-      // For mobile, use the pre-calculated random values
-      if (mobileHighlight) {
-        setIsNear(true);
-        setProximityData({
-          edge: mobileHighlightEdge,
-          distance: 10, // Close distance to ensure visibility
-          intensity: mobileHighlightIntensity,
-          position: mobileHighlightPosition
-        });
-      } else {
-        setIsNear(false);
-      }
-    }
+  // Calculate proximity and hover states continuously, not just on mouse move
+  const updateProximityState = useCallback(() => {
+    if (!itemRef.current || document.hidden) return;
     
-    // Clean up function to handle component unmounting
-    return () => {
-      if (animationFrameIdRef.current) {
-        cancelAnimationFrame(animationFrameIdRef.current);
-      }
-    };
-  }, [isMobile, mobileHighlight, mobileHighlightEdge, mobileHighlightIntensity, mobileHighlightPosition]);
-  
-  // Calculate the relative position along an edge (0 to 1)
-  const getPositionAlongEdge = (edge, x, y, width, height) => {
-    switch (edge) {
-      case 'top': return x / width;
-      case 'right': return y / height;
-      case 'bottom': return 1 - (x / width); // Reverse direction for consistency
-      case 'left': return 1 - (y / height); // Reverse direction for consistency
-      case 'topLeft': return Math.min(x / width, y / height) * 0.5;
-      case 'topRight': return Math.min(1 - (x / width), y / height) * 0.5;
-      case 'bottomLeft': return Math.min(x / width, 1 - (y / height)) * 0.5;
-      case 'bottomRight': return Math.min(1 - (x / width), 1 - (y / height)) * 0.5;
-      default: return 0;
-    }
-  };
-  
-  // Compute hover state based on mouse position
-  const computeHoverState = useRef((mouseX, mouseY) => {
-    if (!itemRef.current) return null;
-    
+    // Get current mouse position from the ref
+    const { x, y } = mousePositionRef.current;
     const rect = itemRef.current.getBoundingClientRect();
     
     // Calculate mouse position relative to item's current position
-    const relativeX = mouseX - rect.left;
-    const relativeY = mouseY - rect.top;
+    const relativeX = x - rect.left;
+    const relativeY = y - rect.top;
     
     // Check if we're close to the item (even outside its borders)
     const isNearItem = 
       relativeX >= -proximityThreshold && relativeX <= rect.width + proximityThreshold &&
       relativeY >= -proximityThreshold && relativeY <= rect.height + proximityThreshold;
     
-    // Only proceed if we're near the item
+    // Only proceed if we're near the item to avoid unnecessary calculations
     if (!isNearItem) {
-      return { isNear: false };
+      if (isNear) setIsNear(false); // Reset if we were previously near
+      return;
     }
     
     // Calculate distances to each edge
@@ -201,90 +157,112 @@ const CategoryItem = memo(({
     const near = minDistance < proximityThreshold;
     
     if (near) {
-      return {
-        isNear: true,
-        proximityData: {
-          edge: closestEdge,
-          distance: minDistance,
-          intensity,
-          position: getPositionAlongEdge(closestEdge, relativeX, relativeY, rect.width, rect.height)
-        }
+      // Batch state updates to reduce renders
+      const newProximityData = {
+        edge: closestEdge,
+        distance: minDistance,
+        intensity,
+        position: getPositionAlongEdge(closestEdge, relativeX, relativeY, rect.width, rect.height)
       };
+      
+      // Only update state if there's a significant change
+      const hasSignificantChange = 
+        !isNear || 
+        Math.abs(proximityData.intensity - newProximityData.intensity) > 0.05 ||
+        proximityData.edge !== newProximityData.edge;
+        
+      if (hasSignificantChange) {
+        setIsNear(true);
+        setProximityData(newProximityData);
+      }
+    } else if (isNear) {
+      setIsNear(false);
     }
-    
-    return { isNear: false };
-  }).current;
+  }, [isNear, proximityData, proximityThreshold]);
   
-  // Separate mouse tracking from animation rendering
+  // Separate effect for mobile devices
   useEffect(() => {
-    if (isMobile) return; // Skip for mobile
-    
-    // Function to update state based on computed hover state
-    const updateHoverState = () => {
-      const result = computeHoverState(lastMousePosRef.current.x, lastMousePosRef.current.y);
-      
-      if (!result) return;
-      
-      const { isNear: newIsNear, proximityData: newProximityData } = result;
-      
-      if (newIsNear) {
-        // Only update if there's a significant change
-        if (!isNearRef.current || 
-            (proximityDataRef.current.edge !== newProximityData.edge) ||
-            Math.abs(proximityDataRef.current.intensity - newProximityData.intensity) > 0.05) {
-          setIsNear(true);
-          setProximityData(newProximityData);
-        }
-      } else if (isNearRef.current) {
+    if (isMobile) {
+      // For mobile, use the pre-calculated random values
+      if (mobileHighlight) {
+        setIsNear(true);
+        setProximityData({
+          edge: mobileHighlightEdge,
+          distance: 10, // Close distance to ensure visibility
+          intensity: mobileHighlightIntensity,
+          position: mobileHighlightPosition
+        });
+      } else {
         setIsNear(false);
       }
-    };
+    }
     
-    // Throttled mouse move handler
-    const handleMouseMove = throttle((e) => {
-      lastMousePosRef.current = { x: e.clientX, y: e.clientY };
-      updateHoverState();
-    }, 16);
-    
-    // Add global mouse move listener
-    window.addEventListener('mousemove', handleMouseMove);
-    
-    // Initial check on mount
-    updateHoverState();
-    
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-    };
-  }, [isMobile, computeHoverState]);
-  
-  // Separate animation loop to ensure continuous animation
-  useEffect(() => {
-    if (isMobile && !mobileHighlight) return; // Skip animation loop for mobile when not highlighted
-    
-    // Animation loop for continuous effects
-    let animationStartTime = performance.now();
-    const runAnimationLoop = (timestamp) => {
-      // Update animation phase (0-1) for continuous effects
-      const elapsed = timestamp - animationStartTime;
-      const newPhase = (elapsed % 2000) / 2000; // 2 second cycle
-      setAnimationPhase(newPhase);
-      
-      // Update circuit animation offset
-      circuitOffsetRef.current = (circuitOffsetRef.current + 0.5) % 30;
-      
-      // Continue the loop
-      animationFrameIdRef.current = requestAnimationFrame(runAnimationLoop);
-    };
-    
-    // Start animation loop
-    animationFrameIdRef.current = requestAnimationFrame(runAnimationLoop);
-    
+    // Clean up function to handle component unmounting
     return () => {
       if (animationFrameIdRef.current) {
         cancelAnimationFrame(animationFrameIdRef.current);
       }
     };
-  }, [isMobile, mobileHighlight]);
+  }, [isMobile, mobileHighlight, mobileHighlightEdge, mobileHighlightIntensity, mobileHighlightPosition]);
+  
+  // Continuous hover detection and animation independent of mouse movement
+  useEffect(() => {
+    if (isMobile) {
+      return; // Skip mouse tracking for mobile
+    }
+    
+    // Create a continuous animation loop for both hover detection and animation
+    const animateAndDetectHover = () => {
+      // Only run hover detection if the component is mounted and tab is visible
+      if (itemRef.current && !document.hidden) {
+        // Update hover state based on current mouse position
+        updateProximityState();
+      }
+      
+      // Continue the animation loop no matter what
+      // This ensures animations run even when mouse isn't moving
+      animationFrameIdRef.current = requestAnimationFrame(animateAndDetectHover);
+    };
+    
+    // Update global mouse position on mouse move
+    const handleMouseMove = (e) => {
+      mousePositionRef.current = { x: e.clientX, y: e.clientY };
+    };
+    
+    // Use throttled mouse listener to avoid too many events
+    const throttledMouseMove = throttle(handleMouseMove, 16); // ~60fps
+    
+    // Add global mouse move listener
+    window.addEventListener('mousemove', throttledMouseMove);
+    
+    // Start the animation loop
+    animationFrameIdRef.current = requestAnimationFrame(animateAndDetectHover);
+    
+    // Clean up
+    return () => {
+      window.removeEventListener('mousemove', throttledMouseMove);
+      
+      // Cancel animation frame
+      if (animationFrameIdRef.current) {
+        cancelAnimationFrame(animationFrameIdRef.current);
+      }
+    };
+  }, [isMobile, updateProximityState]);
+  
+  // Calculate the relative position along an edge (0 to 1)
+  const getPositionAlongEdge = (edge, x, y, width, height) => {
+    switch (edge) {
+      case 'top': return x / width;
+      case 'right': return y / height;
+      case 'bottom': return 1 - (x / width); // Reverse direction for consistency
+      case 'left': return 1 - (y / height); // Reverse direction for consistency
+      case 'topLeft': return Math.min(x / width, y / height) * 0.5;
+      case 'topRight': return Math.min(1 - (x / width), y / height) * 0.5;
+      case 'bottomLeft': return Math.min(x / width, 1 - (y / height)) * 0.5;
+      case 'bottomRight': return Math.min(1 - (x / width), 1 - (y / height)) * 0.5;
+      default: return 0;
+    }
+  };
   
   // Render just the border segments that are close to the cursor
   const renderBorderSegments = () => {
@@ -518,8 +496,9 @@ const CategoryItem = memo(({
     // Use simpler paths for mobile (less intensive)
     const simplifiedForMobile = isMobile;
     
-    // Use the continuously updated animation offset for continuous animation
-    const dashOffset = circuitOffsetRef.current;
+    // Current time is used for dynamic animation
+    const now = Date.now();
+    const animOffset = Math.sin(now / 1000) * 5;
     
     return (
       <svg
@@ -532,8 +511,8 @@ const CategoryItem = memo(({
         {edge === 'top' && (
           <path
             d={simplifiedForMobile 
-              ? `M${position * cardWidth},${borderWidth} v3` 
-              : `M${position * cardWidth},${borderWidth} v6 h${intensity * 15}`}
+              ? `M${position * cardWidth},${borderWidth} v${3 + animOffset}` 
+              : `M${position * cardWidth},${borderWidth} v${6 + animOffset} h${intensity * 15}`}
             stroke="#ff0066"
             strokeWidth="1"
             fill="none"
@@ -541,7 +520,8 @@ const CategoryItem = memo(({
             style={{
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
-              strokeDashoffset: dashOffset,
+              animation: 'dashOffset 2s linear infinite',
+              animationPlayState: 'running',
             }}
           />
         )}
@@ -549,8 +529,8 @@ const CategoryItem = memo(({
         {edge === 'right' && (
           <path
             d={simplifiedForMobile 
-              ? `M${cardWidth - borderWidth},${position * (isMobile ? 120 : 160)} h-3` 
-              : `M${cardWidth - borderWidth},${position * 160} h-6 v${intensity * 15}`}
+              ? `M${cardWidth - borderWidth},${position * (isMobile ? 120 : 160)} h${-3 - animOffset}` 
+              : `M${cardWidth - borderWidth},${position * 160} h${-6 - animOffset} v${intensity * 15}`}
             stroke="#ff0066"
             strokeWidth="1"
             fill="none"
@@ -558,7 +538,8 @@ const CategoryItem = memo(({
             style={{
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
-              strokeDashoffset: dashOffset,
+              animation: 'dashOffset 2s linear infinite',
+              animationPlayState: 'running',
             }}
           />
         )}
@@ -566,8 +547,8 @@ const CategoryItem = memo(({
         {edge === 'bottom' && (
           <path
             d={simplifiedForMobile 
-              ? `M${(1-position) * cardWidth},${(isMobile ? 120 : 160) - borderWidth} v-3` 
-              : `M${(1-position) * cardWidth},${160 - borderWidth} v-6 h-${intensity * 15}`}
+              ? `M${(1-position) * cardWidth},${(isMobile ? 120 : 160) - borderWidth} v${-3 - animOffset}` 
+              : `M${(1-position) * cardWidth},${160 - borderWidth} v${-6 - animOffset} h${-intensity * 15}`}
             stroke="#ff0066"
             strokeWidth="1"
             fill="none"
@@ -575,7 +556,8 @@ const CategoryItem = memo(({
             style={{
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
-              strokeDashoffset: dashOffset,
+              animation: 'dashOffset 2s linear infinite',
+              animationPlayState: 'running',
             }}
           />
         )}
@@ -583,8 +565,8 @@ const CategoryItem = memo(({
         {edge === 'left' && (
           <path
             d={simplifiedForMobile 
-              ? `M${borderWidth},${(1-position) * (isMobile ? 120 : 160)} h3` 
-              : `M${borderWidth},${(1-position) * 160} h6 v-${intensity * 15}`}
+              ? `M${borderWidth},${(1-position) * (isMobile ? 120 : 160)} h${3 + animOffset}` 
+              : `M${borderWidth},${(1-position) * 160} h${6 + animOffset} v${-intensity * 15}`}
             stroke="#ff0066"
             strokeWidth="1"
             fill="none" 
@@ -592,7 +574,8 @@ const CategoryItem = memo(({
             style={{
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
-              strokeDashoffset: dashOffset,
+              animation: 'dashOffset 2s linear infinite',
+              animationPlayState: 'running',
             }}
           />
         )}
@@ -600,7 +583,7 @@ const CategoryItem = memo(({
         {/* Corner circuit patterns - simplified for mobile */}
         {!simplifiedForMobile && edge === 'topLeft' && (
           <path
-            d={`M${borderWidth + 1},${borderWidth + 1} l4,4 l4,-2 l6,6`}
+            d={`M${borderWidth + 1},${borderWidth + 1} l${4 + animOffset/2},${4 + animOffset/2} l${4},${-2} l${6},${6}`}
             stroke="#ff0066"
             strokeWidth="1" 
             fill="none"
@@ -608,14 +591,15 @@ const CategoryItem = memo(({
             style={{
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
-              strokeDashoffset: dashOffset * 0.9,
+              animation: 'dashOffset 1.8s linear infinite',
+              animationPlayState: 'running',
             }}
           />
         )}
         
         {!simplifiedForMobile && edge === 'topRight' && (
           <path
-            d={`M${cardWidth - borderWidth - 1},${borderWidth + 1} l-4,4 l-4,-2 l-6,6`}
+            d={`M${cardWidth - borderWidth - 1},${borderWidth + 1} l${-4 - animOffset/2},${4 + animOffset/2} l${-4},${-2} l${-6},${6}`}
             stroke="#ff0066"
             strokeWidth="1"
             fill="none"
@@ -623,14 +607,15 @@ const CategoryItem = memo(({
             style={{
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
-              strokeDashoffset: dashOffset * 0.9,
+              animation: 'dashOffset 1.8s linear infinite',
+              animationPlayState: 'running',
             }}
           />
         )}
         
         {!simplifiedForMobile && edge === 'bottomLeft' && (
           <path
-            d={`M${borderWidth + 1},${160 - borderWidth - 1} l4,-4 l4,2 l6,-6`}
+            d={`M${borderWidth + 1},${160 - borderWidth - 1} l${4 + animOffset/2},${-4 - animOffset/2} l${4},${2} l${6},${-6}`}
             stroke="#ff0066"
             strokeWidth="1"
             fill="none"
@@ -638,14 +623,15 @@ const CategoryItem = memo(({
             style={{
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
-              strokeDashoffset: dashOffset * 0.9,
+              animation: 'dashOffset 1.8s linear infinite',
+              animationPlayState: 'running',
             }}
           />
         )}
         
         {!simplifiedForMobile && edge === 'bottomRight' && (
           <path
-            d={`M${cardWidth - borderWidth - 1},${160 - borderWidth - 1} l-4,-4 l-4,2 l-6,-6`}
+            d={`M${cardWidth - borderWidth - 1},${160 - borderWidth - 1} l${-4 - animOffset/2},${-4 - animOffset/2} l${-4},${2} l${-6},${-6}`}
             stroke="#ff0066"
             strokeWidth="1"
             fill="none"
@@ -653,7 +639,8 @@ const CategoryItem = memo(({
             style={{
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
-              strokeDashoffset: dashOffset * 0.9,
+              animation: 'dashOffset 1.8s linear infinite',
+              animationPlayState: 'running',
             }}
           />
         )}
@@ -662,10 +649,10 @@ const CategoryItem = memo(({
         {simplifiedForMobile && (edge === 'topLeft' || edge === 'topRight' || edge === 'bottomLeft' || edge === 'bottomRight') && (
           <path
             d={
-              edge === 'topLeft' ? `M${borderWidth + 1},${borderWidth + 1} l2,2` :
-              edge === 'topRight' ? `M${cardWidth - borderWidth - 1},${borderWidth + 1} l-2,2` :
-              edge === 'bottomLeft' ? `M${borderWidth + 1},${(isMobile ? 120 : 160) - borderWidth - 1} l2,-2` :
-              `M${cardWidth - borderWidth - 1},${(isMobile ? 120 : 160) - borderWidth - 1} l-2,-2`
+              edge === 'topLeft' ? `M${borderWidth + 1},${borderWidth + 1} l${2 + animOffset/3},${2 + animOffset/3}` :
+              edge === 'topRight' ? `M${cardWidth - borderWidth - 1},${borderWidth + 1} l${-2 - animOffset/3},${2 + animOffset/3}` :
+              edge === 'bottomLeft' ? `M${borderWidth + 1},${(isMobile ? 120 : 160) - borderWidth - 1} l${2 + animOffset/3},${-2 - animOffset/3}` :
+              `M${cardWidth - borderWidth - 1},${(isMobile ? 120 : 160) - borderWidth - 1} l${-2 - animOffset/3},${-2 - animOffset/3}`
             }
             stroke="#ff0066"
             strokeWidth="1"
@@ -674,7 +661,8 @@ const CategoryItem = memo(({
             style={{
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
-              strokeDashoffset: dashOffset * 0.9,
+              animation: 'dashOffset 1.8s linear infinite',
+              animationPlayState: 'running',
             }}
           />
         )}
@@ -708,6 +696,11 @@ const CategoryItem = memo(({
           0% { opacity: 0.8; }
           50% { opacity: 1; }
           100% { opacity: 0.8; }
+        }
+        
+        @keyframes dashOffset {
+          from { stroke-dashoffset: 30; }
+          to { stroke-dashoffset: 0; }
         }
       `}</style>
       
