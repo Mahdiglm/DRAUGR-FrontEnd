@@ -429,6 +429,12 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
   // Enhanced category selection handler
   const handleCategorySelect = useCallback((category, itemElement) => {
     try {
+      // Prevent activation if navigation is already in progress
+      if (navigationInProgressRef.current || isTransitioning) {
+        debugLog("Ignoring category selection - navigation or animation already in progress");
+        return;
+      }
+      
       debugLog("Category selected", { category: category.slug });
       
       // Stop animation
@@ -461,14 +467,25 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
     } catch (error) {
       console.error("Error in handleCategorySelect:", error);
     }
-  }, []);
+  }, [isTransitioning]);
   
   // Safety timeout ref to prevent getting stuck
   const safetyTimeoutRef = useRef(null);
   
+  // Preload flag ref to prevent multiple preloads
+  const preloadAttemptedRef = useRef(false);
+  const navigationInProgressRef = useRef(false);
+
   // Handle transition completion
   const handleTransitionComplete = useCallback(() => {
     try {
+      // Prevent multiple calls
+      if (navigationInProgressRef.current) {
+        debugLog("Navigation already in progress, ignoring duplicate call");
+        return;
+      }
+      
+      navigationInProgressRef.current = true;
       debugLog("Transition complete, navigating to shop page", { 
         category: selectedCategory?.slug
       });
@@ -490,6 +507,11 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
             debugLog("Restarting continuous animation");
             animationRef.current = requestAnimationFrame(animate);
           }
+          
+          // Reset navigation flag after a longer delay to prevent immediate reactivation
+          setTimeout(() => {
+            navigationInProgressRef.current = false;
+          }, 500);
         } catch (error) {
           console.error("Error resetting animation state:", error);
         }
@@ -508,11 +530,9 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
       setSelectedCategory(null);
       setAnimationPhase(0);
       setSelectedItemRect(null);
+      navigationInProgressRef.current = false;
     }
   }, [navigate, selectedCategory, animate]);
-
-  // Preload flag ref to prevent multiple preloads
-  const preloadAttemptedRef = useRef(false);
 
   // Preload shop page data during transition
   useEffect(() => {
@@ -530,10 +550,12 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
 
   // Safety timeout to prevent animation from getting stuck indefinitely
   useEffect(() => {
-    if (isTransitioning && selectedCategory) {
+    // Only set the safety timeout if we're transitioning, haven't completed navigation,
+    // and don't already have a timeout set
+    if (isTransitioning && selectedCategory && !navigationInProgressRef.current && !safetyTimeoutRef.current) {
       debugLog("Setting safety timeout for transition");
       safetyTimeoutRef.current = setTimeout(() => {
-        if (isTransitioning) {
+        if (isTransitioning && !navigationInProgressRef.current) {
           debugLog("⚠️ Safety timeout triggered - transition may be stuck", { 
             phase: animationPhase,
             category: selectedCategory.slug
@@ -545,107 +567,21 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
       }, 5000); // 5 second safety timeout
     }
 
+    // Clear timeout if we're no longer transitioning or navigation is in progress
+    if ((!isTransitioning || navigationInProgressRef.current) && safetyTimeoutRef.current) {
+      debugLog("Clearing safety timeout - no longer needed");
+      clearTimeout(safetyTimeoutRef.current);
+      safetyTimeoutRef.current = null;
+    }
+
     return () => {
       if (safetyTimeoutRef.current) {
         clearTimeout(safetyTimeoutRef.current);
         safetyTimeoutRef.current = null;
       }
     };
-  }, [isTransitioning, selectedCategory, animationPhase, handleTransitionComplete]);
+  }, [isTransitioning, selectedCategory, animationPhase, handleTransitionComplete, navigationInProgressRef]);
 
   return (
     <div 
-      className={`py-2 sm:py-3 md:py-4 w-screen min-w-full max-w-none relative overflow-hidden mx-0 px-0 ${isMobileDevice ? 'category-row-mobile' : ''}`}
-      style={{
-        width: '100vw',
-        maxWidth: '100vw',
-        paddingLeft: '0',
-        paddingRight: '0',
-        position: 'relative',
-        left: '50%',
-        right: '50%',
-        marginLeft: '-50vw',
-        marginRight: '-50vw'
-      }}
-      role="region"
-      aria-label="دسته‌بندی محصولات"
-      tabIndex="0"
-      onKeyDown={handleKeyDown}
-    >
-      {(title.trim() || subtitle.trim()) && (
-        <div className="w-full mb-3 md:mb-6">
-          <h2 className={`${isMobileDevice ? 'text-xl' : 'text-2xl md:text-3xl'} font-bold text-gray-100 mb-1 md:mb-2 pl-4`}>
-            {title}
-          </h2>
-          <p className={`text-gray-400 pl-4 ${isMobileDevice ? 'text-xs' : 'text-sm'}`}>
-            {subtitle}
-          </p>
-        </div>
-      )}
-      
-      <div 
-        ref={containerRef}
-        className="relative w-screen overflow-hidden mx-0 px-0"
-        style={{ 
-          maskImage: 'linear-gradient(to right, black 100%, black 100%)',
-          WebkitMaskImage: 'linear-gradient(to right, black 100%, black 100%)',
-          width: '100vw',
-          maxWidth: '100vw',
-          marginRight: '0',
-          paddingRight: '0'
-        }}
-        aria-live="polite"
-      >
-        <div 
-          ref={beltRef}
-          className="relative w-screen"
-          style={{
-            width: '100vw',
-            maxWidth: '100vw',
-            height: `${rowHeight}px`
-          }}
-        >
-          {categoryItems.map(item => (
-            <CategoryItem 
-              key={item.id} 
-              category={item.category}
-              style={{
-                position: 'absolute',
-                left: 0,
-                transform: `translateX(${item.positionX}px)`,
-                width: `${cardWidth}px`,
-                height: `${rowHeight}px`
-              }}
-              cardWidth={cardWidth}
-              cardHeight={rowHeight}
-              isMobile={isMobileDevice}
-              mobileHighlight={item.mobileHighlight}
-              mobileHighlightEdge={item.mobileHighlightEdge}
-              mobileHighlightIntensity={item.mobileHighlightIntensity}
-              mobileHighlightPosition={item.mobileHighlightPosition}
-              onCategorySelect={handleCategorySelect}
-              isSelected={selectedCategory && selectedCategory.id === item.category.id}
-              isTransitioning={isTransitioning}
-              animationPhase={animationPhase}
-            />
-          ))}
-        </div>
-      </div>
-      
-      {/* Add the TransitionOverlay for animated page transitions */}
-      <TransitionOverlay
-        isActive={isTransitioning}
-        selectedCategory={selectedCategory}
-        selectedCardRect={selectedItemRect}
-        onTransitionComplete={handleTransitionComplete}
-        phase={animationPhase}
-        setPhase={setAnimationPhase}
-      />
-    </div>
-  );
-});
-
-// Add display name for debugging
-CategoryRows.displayName = 'CategoryRows';
-
-export default CategoryRows;
+      className={`
