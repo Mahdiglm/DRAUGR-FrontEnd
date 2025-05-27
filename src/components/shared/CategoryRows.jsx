@@ -657,8 +657,12 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
         ref={containerRef}
         className="relative w-screen overflow-hidden mx-0 px-0"
         style={{ 
-          maskImage: 'linear-gradient(to right, black 100%, black 100%)',
-          WebkitMaskImage: 'linear-gradient(to right, black 100%, black 100%)',
+          maskImage: direction === "rtl" 
+            ? 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)'
+            : 'linear-gradient(to left, transparent 0%, black 5%, black 95%, transparent 100%)',
+          WebkitMaskImage: direction === "rtl" 
+            ? 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)'
+            : 'linear-gradient(to left, transparent 0%, black 5%, black 95%, transparent 100%)',
           width: '100vw',
           maxWidth: '100vw',
           marginRight: '0',
@@ -666,6 +670,15 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
         }}
         aria-live="polite"
       >
+        {/* Left side gradient overlay */}
+        <div 
+          className="absolute top-0 left-0 h-full w-[100px] z-10 pointer-events-none"
+          style={{ 
+            background: 'linear-gradient(to right, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%)'
+          }}
+          aria-hidden="true"
+        />
+        
         <div 
           ref={beltRef}
           className="relative w-screen"
@@ -700,6 +713,15 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
             />
           ))}
         </div>
+        
+        {/* Right side gradient overlay */}
+        <div 
+          className="absolute top-0 right-0 h-full w-[100px] z-10 pointer-events-none"
+          style={{ 
+            background: 'linear-gradient(to left, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%)'
+          }}
+          aria-hidden="true"
+        />
       </div>
       
       <TransitionOverlay
