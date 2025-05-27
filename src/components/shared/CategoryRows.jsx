@@ -471,6 +471,12 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
         return;
       }
       
+      // Reset any existing animation state to avoid conflicts
+      if (animationPhase !== 0 || isTransitioning) {
+        debugLog("Resetting existing animation state before new selection");
+        resetAllTransitionStates();
+      }
+      
       // Mark transition as initiated to prevent multiple activations
       transitionInitiatedRef.current = true;
       // Record start time
@@ -510,7 +516,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
       // Reset transition state in case of error
       resetAllTransitionStates();
     }
-  }, [isTransitioning, resetAllTransitionStates]);
+  }, [isTransitioning, resetAllTransitionStates, animationPhase]);
   
   // Safety timeout ref to prevent getting stuck
   const safetyTimeoutRef = useRef(null);
@@ -598,6 +604,12 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
     // and don't already have a timeout set
     if (isTransitioning && selectedCategory && !navigationInProgressRef.current && !safetyTimeoutRef.current) {
       debugLog("Setting safety timeout for transition");
+      
+      // Clear any existing timeout first to prevent duplicates
+      if (safetyTimeoutRef.current) {
+        clearTimeout(safetyTimeoutRef.current);
+      }
+      
       safetyTimeoutRef.current = setTimeout(() => {
         if (isTransitioning && !navigationInProgressRef.current) {
           debugLog("⚠️ Safety timeout triggered - transition may be stuck", { 
@@ -619,7 +631,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
             handleTransitionComplete();
           }, 50);
         }
-      }, 2800); // Shorter timeout to respond faster to stuck animations
+      }, 2400); // Shorter timeout to respond faster to stuck animations
     }
 
     // Clear timeout if we're no longer transitioning or navigation is in progress

@@ -131,22 +131,30 @@ const TransitionOverlay = ({
       // Update progress state
       setProgress(rawProgress);
       
+      // Ensure we're using the most current phase for transitions
+      const currentTransitionState = transitionState;
+      
       // State machine transitions based on progress
-      if (rawProgress < 0.2 && transitionState !== TransitionState.SELECTION_RESPONSE) {
+      if (rawProgress < 0.2 && currentTransitionState !== TransitionState.SELECTION_RESPONSE) {
         debugLog("Transitioning to SELECTION_RESPONSE state");
         setTransitionState(TransitionState.SELECTION_RESPONSE);
         setPhase(1);
         setStallDetector(TransitionState.SELECTION_RESPONSE);
-      } else if (rawProgress >= 0.2 && rawProgress < 0.65 && transitionState !== TransitionState.MORPHING_TRANSITION) {
+      } else if (rawProgress >= 0.2 && rawProgress < 0.65 && currentTransitionState !== TransitionState.MORPHING_TRANSITION) {
         debugLog("Transitioning to MORPHING_TRANSITION state");
         setTransitionState(TransitionState.MORPHING_TRANSITION);
         setPhase(2);
         setStallDetector(TransitionState.MORPHING_TRANSITION);
-      } else if (rawProgress >= 0.65 && transitionState !== TransitionState.PAGE_TRANSITION && !hasCompletedRef.current) {
+      } else if (rawProgress >= 0.65 && currentTransitionState !== TransitionState.PAGE_TRANSITION && !hasCompletedRef.current) {
         debugLog("Transitioning to PAGE_TRANSITION state");
         setTransitionState(TransitionState.PAGE_TRANSITION);
         setPhase(3);
         setStallDetector(TransitionState.PAGE_TRANSITION);
+      }
+      
+      // Log progress for debugging
+      if (process.env.NODE_ENV === 'development' && rawProgress % 0.1 < 0.01) {
+        debugLog(`Animation progress: ${Math.floor(rawProgress * 100)}%`);
       }
       
       // Check for completion
@@ -201,9 +209,15 @@ const TransitionOverlay = ({
       cleanupAnimation();
       setTransitionState(TransitionState.IDLE);
       setProgress(0);
+      hasCompletedRef.current = true; // Mark as completed to ensure any lingering animation frames don't execute
     }
     
-    return cleanupAnimation;
+    // Always clean up on unmount
+    return () => {
+      debugLog("Cleaning up animation resources");
+      cleanupAnimation();
+      hasCompletedRef.current = true; // Mark as completed to prevent further execution
+    };
   }, [isActive, selectedCategory, animationStep, cleanupAnimation, completeTransition, setPhase]);
   
   // If there's no active transition or no category, don't render anything
