@@ -156,43 +156,56 @@ const TransitionOverlay = ({
       prevSelectedCategoryIdRef.current = selectedCategory.id;
       setProgress(0);
       setTransitionState(TransitionState.SELECTION_RESPONSE);
-      if (typeof setPhase === 'function') setPhase(1);
       
+      if (typeof setPhase === 'function') {
+        setPhase(1);
+      }
+      
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
       animationFrameRef.current = requestAnimationFrame(animationStep);
       
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => {
-        if(isActivatedRef.current && !hasCompletedRef.current){
-          debugLog("⚠️ TransitionOverlay: Global safety timeout triggered.", {category: localCategoryRef.current?.slug});
+        if(isActivatedRef.current && localCategoryRef.current?.id === selectedCategory?.id && !hasCompletedRef.current){
+          debugLog("⚠️ TransitionOverlay: Global safety timeout triggered.", {category: localCategoryRef.current?.slug });
           completeTransition();
         }
       }, 3500); 
 
     } else if (!isActive && isActivatedRef.current) {
-      debugLog("TransitionOverlay: DEACTIVATING", { category: localCategoryRef.current?.slug });
+      debugLog("TransitionOverlay: DEACTIVATING (isActive became false)", { category: localCategoryRef.current?.slug });
       cleanupAnimation();
       isActivatedRef.current = false;
       hasCompletedRef.current = true;
       localCategoryRef.current = null;
+      prevSelectedCategoryIdRef.current = null;
       setTransitionState(TransitionState.IDLE);
       setProgress(0);
     }
 
     return () => {
-      debugLog("TransitionOverlay: useEffect cleanup firing", { 
+      debugLog("TransitionOverlay: useEffect CLEANUP FIRING", { 
         isActiveProp: isActive, 
-        currentLocalCat: localCategoryRef.current?.slug,
-        isActivated: isActivatedRef.current
+        currentLocalCatId: localCategoryRef.current?.id,
+        propSelectedCatId: selectedCategory?.id,
+        isActivatedRef: isActivatedRef.current
       });
+
       cleanupAnimation();
-      if (!isActive) {
-          isActivatedRef.current = false;
-          hasCompletedRef.current = true;
-          localCategoryRef.current = null;
-          prevSelectedCategoryIdRef.current = null;
+
+      if (!isActive || !selectedCategory) {
+         debugLog("TransitionOverlay: useEffect cleanup - FULL DEACTIVATION due to !isActive or !selectedCategory", {
+           isActive, selectedCategoryExists: !!selectedCategory
+         });
+        isActivatedRef.current = false;
+        hasCompletedRef.current = true; 
+        localCategoryRef.current = null;
+        prevSelectedCategoryIdRef.current = null; 
       }
     };
-  }, [isActive, selectedCategory, onTransitionComplete, animationStep, cleanupAnimation, completeTransition, setPhase]);
+  }, [isActive, selectedCategory, onTransitionComplete, animationStep, cleanupAnimation, completeTransition]);
 
   if (!isActivatedRef.current || !localCategoryRef.current || transitionState === TransitionState.IDLE) {
     return null;
