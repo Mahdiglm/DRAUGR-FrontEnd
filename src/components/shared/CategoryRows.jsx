@@ -434,6 +434,18 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
   // Add a global timestamp to track when transitions started
   const transitionStartTimeRef = useRef(0);
 
+  // Cleanup function to reset all transition states
+  const resetAllTransitionStates = useCallback(() => {
+    setIsTransitioning(false);
+    setSelectedCategory(null);
+    setAnimationPhase(0);
+    setSelectedItemRect(null);
+    navigationInProgressRef.current = false;
+    transitionInitiatedRef.current = false;
+    
+    // We don't reset the time ref so the debounce still works
+  }, []);
+
   // Enhanced category selection handler
   const handleCategorySelect = useCallback((category, itemElement) => {
     try {
@@ -496,9 +508,9 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
     } catch (error) {
       console.error("Error in handleCategorySelect:", error);
       // Reset transition state in case of error
-      transitionInitiatedRef.current = false;
+      resetAllTransitionStates();
     }
-  }, [isTransitioning]);
+  }, [isTransitioning, resetAllTransitionStates]);
   
   // Safety timeout ref to prevent getting stuck
   const safetyTimeoutRef = useRef(null);
@@ -563,18 +575,6 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
       resetAllTransitionStates();
     }
   }, [navigate, selectedCategory, animate, resetAllTransitionStates]);
-  
-  // Cleanup function to reset all transition states
-  const resetAllTransitionStates = useCallback(() => {
-    setIsTransitioning(false);
-    setSelectedCategory(null);
-    setAnimationPhase(0);
-    setSelectedItemRect(null);
-    navigationInProgressRef.current = false;
-    transitionInitiatedRef.current = false;
-    
-    // We don't reset the time ref so the debounce still works
-  }, []);
 
   // Preload shop page data during transition
   useEffect(() => {
