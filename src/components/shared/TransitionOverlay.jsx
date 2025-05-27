@@ -21,27 +21,42 @@ const TransitionOverlay = ({
   const [progress, setProgress] = useState(0);
   const hasCompletedRef = useRef(false);
   const animationTimeoutRef = useRef(null);
+  const animationRef = useRef(null);
+  // Store selected category in a ref to prevent re-renders
+  const selectedCategoryRef = useRef(selectedCategory);
+  
+  // Update the ref when selectedCategory changes
+  useEffect(() => {
+    selectedCategoryRef.current = selectedCategory;
+  }, [selectedCategory]);
   
   // Reset completion flag when component becomes inactive
   useEffect(() => {
-    if (!isActive) {
+    // Only log if there's a genuine change in state
+    if (!isActive && hasCompletedRef.current) {
       hasCompletedRef.current = false;
       setProgress(0);
       debugLog("Overlay deactivated, state reset");
-    } else if (isActive && selectedCategory) {
+    } else if (isActive && selectedCategory && !hasCompletedRef.current) {
       debugLog("Overlay activated", { category: selectedCategory.slug });
     }
     
     // Safety timeout - force completion after 3 seconds if animation gets stuck
     if (isActive && !hasCompletedRef.current) {
-      debugLog("Setting safety timeout");
-      animationTimeoutRef.current = setTimeout(() => {
-        if (!hasCompletedRef.current) {
-          debugLog("⚠️ Animation safety timeout triggered - animation may be stuck");
-          hasCompletedRef.current = true;
-          onTransitionComplete && onTransitionComplete();
-        }
-      }, 3000);
+      if (!animationTimeoutRef.current) {
+        debugLog("Setting safety timeout");
+        animationTimeoutRef.current = setTimeout(() => {
+          if (isActive && !hasCompletedRef.current) {
+            debugLog("⚠️ Animation safety timeout triggered - animation may be stuck");
+            hasCompletedRef.current = true;
+            onTransitionComplete && onTransitionComplete();
+          }
+        }, 3000);
+      }
+    } else if (!isActive && animationTimeoutRef.current) {
+      // Clear the timeout if component becomes inactive
+      clearTimeout(animationTimeoutRef.current);
+      animationTimeoutRef.current = null;
     }
     
     return () => {
@@ -52,13 +67,12 @@ const TransitionOverlay = ({
     };
   }, [isActive, selectedCategory, onTransitionComplete]);
   
-  // Track animation progress for coordinated effects
+  // Track animation progress for coordinated effects with memoized function
   useEffect(() => {
-    if (!isActive) {
+    if (!isActive || hasCompletedRef.current) {
       return;
     }
     
-    let animationFrame;
     let startTime = null;
     const totalDuration = 1200; // Total animation duration in ms
     
@@ -83,13 +97,14 @@ const TransitionOverlay = ({
         
         // Continue animation until complete
         if (newProgress < 1) {
-          animationFrame = requestAnimationFrame(animateProgress);
+          animationRef.current = requestAnimationFrame(animateProgress);
         } else if (!hasCompletedRef.current) {
           // Animation complete - ensure we only call this once
           debugLog("Animation complete, calling onTransitionComplete");
           hasCompletedRef.current = true;
           
           try {
+            // Use the stored reference to avoid stale closure issues
             onTransitionComplete && onTransitionComplete();
           } catch (error) {
             console.error("Error in onTransitionComplete callback:", error);
@@ -108,15 +123,20 @@ const TransitionOverlay = ({
     };
     
     try {
-      animationFrame = requestAnimationFrame(animateProgress);
+      // Cancel any existing animation frame before starting a new one
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+      animationRef.current = requestAnimationFrame(animateProgress);
     } catch (error) {
       console.error("Failed to start animation:", error);
     }
     
     return () => {
-      if (animationFrame) {
+      if (animationRef.current) {
         try {
-          cancelAnimationFrame(animationFrame);
+          cancelAnimationFrame(animationRef.current);
+          animationRef.current = null;
         } catch (error) {
           console.error("Error canceling animation frame:", error);
         }
