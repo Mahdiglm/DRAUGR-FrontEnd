@@ -1,6 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Debug helper function
+const debugLog = (message, obj = {}) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[TransitionOverlay] ${message}`, obj);
+  }
+};
+
 // TransitionOverlay handles the cinematic animation sequence when transitioning
 // from a category selection to the shop page
 const TransitionOverlay = ({ 
@@ -13,14 +20,37 @@ const TransitionOverlay = ({
 }) => {
   const [progress, setProgress] = useState(0);
   const hasCompletedRef = useRef(false);
+  const animationTimeoutRef = useRef(null);
   
   // Reset completion flag when component becomes inactive
   useEffect(() => {
     if (!isActive) {
       hasCompletedRef.current = false;
       setProgress(0);
+      debugLog("Overlay deactivated, state reset");
+    } else if (isActive && selectedCategory) {
+      debugLog("Overlay activated", { category: selectedCategory.slug });
     }
-  }, [isActive]);
+    
+    // Safety timeout - force completion after 3 seconds if animation gets stuck
+    if (isActive && !hasCompletedRef.current) {
+      debugLog("Setting safety timeout");
+      animationTimeoutRef.current = setTimeout(() => {
+        if (!hasCompletedRef.current) {
+          debugLog("⚠️ Animation safety timeout triggered - animation may be stuck");
+          hasCompletedRef.current = true;
+          onTransitionComplete && onTransitionComplete();
+        }
+      }, 3000);
+    }
+    
+    return () => {
+      if (animationTimeoutRef.current) {
+        clearTimeout(animationTimeoutRef.current);
+        animationTimeoutRef.current = null;
+      }
+    };
+  }, [isActive, selectedCategory, onTransitionComplete]);
   
   // Track animation progress for coordinated effects
   useEffect(() => {
@@ -33,34 +63,64 @@ const TransitionOverlay = ({
     const totalDuration = 1200; // Total animation duration in ms
     
     const animateProgress = (timestamp) => {
-      if (!startTime) startTime = timestamp;
-      const elapsedTime = timestamp - startTime;
-      const newProgress = Math.min(elapsedTime / totalDuration, 1);
-      setProgress(newProgress);
-      
-      // Update animation phase based on progress
-      if (newProgress < 0.25 && phase !== 1) {
-        setPhase(1); // Phase 1: Selection Response
-      } else if (newProgress >= 0.25 && newProgress < 0.7 && phase !== 2) {
-        setPhase(2); // Phase 2: Morphing Transition
-      } else if (newProgress >= 0.7 && phase !== 3) {
-        setPhase(3); // Phase 3: Page Transition
-      }
-      
-      // Continue animation until complete
-      if (newProgress < 1) {
-        animationFrame = requestAnimationFrame(animateProgress);
-      } else if (!hasCompletedRef.current) {
-        // Animation complete - ensure we only call this once
-        hasCompletedRef.current = true;
-        onTransitionComplete && onTransitionComplete();
+      try {
+        if (!startTime) startTime = timestamp;
+        const elapsedTime = timestamp - startTime;
+        const newProgress = Math.min(elapsedTime / totalDuration, 1);
+        setProgress(newProgress);
+        
+        // Update animation phase based on progress
+        if (newProgress < 0.25 && phase !== 1) {
+          setPhase(1); // Phase 1: Selection Response
+          debugLog("Entering Phase 1", { progress: newProgress });
+        } else if (newProgress >= 0.25 && newProgress < 0.7 && phase !== 2) {
+          setPhase(2); // Phase 2: Morphing Transition
+          debugLog("Entering Phase 2", { progress: newProgress });
+        } else if (newProgress >= 0.7 && phase !== 3) {
+          setPhase(3); // Phase 3: Page Transition
+          debugLog("Entering Phase 3", { progress: newProgress });
+        }
+        
+        // Continue animation until complete
+        if (newProgress < 1) {
+          animationFrame = requestAnimationFrame(animateProgress);
+        } else if (!hasCompletedRef.current) {
+          // Animation complete - ensure we only call this once
+          debugLog("Animation complete, calling onTransitionComplete");
+          hasCompletedRef.current = true;
+          
+          try {
+            onTransitionComplete && onTransitionComplete();
+          } catch (error) {
+            console.error("Error in onTransitionComplete callback:", error);
+          }
+        }
+      } catch (error) {
+        console.error("Error in animation frame:", error);
+        
+        // Attempt recovery by completing the transition
+        if (!hasCompletedRef.current) {
+          debugLog("⚠️ Recovering from animation error");
+          hasCompletedRef.current = true;
+          onTransitionComplete && onTransitionComplete();
+        }
       }
     };
     
-    animationFrame = requestAnimationFrame(animateProgress);
+    try {
+      animationFrame = requestAnimationFrame(animateProgress);
+    } catch (error) {
+      console.error("Failed to start animation:", error);
+    }
     
     return () => {
-      if (animationFrame) cancelAnimationFrame(animationFrame);
+      if (animationFrame) {
+        try {
+          cancelAnimationFrame(animationFrame);
+        } catch (error) {
+          console.error("Error canceling animation frame:", error);
+        }
+      }
     };
   }, [isActive, onTransitionComplete, phase, setPhase]);
   
