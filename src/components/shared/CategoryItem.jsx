@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState, memo } from 'react';
+import { throttle } from '../../utils/animationHelpers';
 
 /**
  * CategoryItem Component
@@ -52,12 +53,22 @@ const CategoryItem = memo(({
     intensity: 0,
     position: 0,
   });
+  const [animationPhase, setAnimationPhase] = useState(0);
   const lastMousePosRef = useRef({ x: 0, y: 0 });
+  const proximityDataRef = useRef(proximityData);
+  const isNearRef = useRef(isNear);
   const animationFrameIdRef = useRef(null);
+  const circuitOffsetRef = useRef(0);
   
   // Settings
   const proximityThreshold = 60; // How close the mouse needs to be to activate border effect
   const borderWidth = 2; // Width of the border in pixels
+  
+  // Update refs when state changes
+  useEffect(() => {
+    proximityDataRef.current = proximityData;
+    isNearRef.current = isNear;
+  }, [proximityData, isNear]);
   
   // Separate effect for mobile devices
   useEffect(() => {
@@ -84,167 +95,6 @@ const CategoryItem = memo(({
     };
   }, [isMobile, mobileHighlight, mobileHighlightEdge, mobileHighlightIntensity, mobileHighlightPosition]);
   
-  // Continuous hover detection for non-mobile devices with performance optimizations
-  useEffect(() => {
-    if (isMobile) {
-      return; // Skip mouse tracking for mobile
-    }
-    
-    // Performance-optimized hover detection
-    const processHoverState = () => {
-      if (!itemRef.current || document.hidden) {
-        // Skip processing if component not mounted or tab not visible
-        animationFrameIdRef.current = requestAnimationFrame(processHoverState);
-        return;
-      }
-      
-      const { x, y } = lastMousePosRef.current;
-      const rect = itemRef.current.getBoundingClientRect();
-      
-      // Calculate mouse position relative to item's current position
-      const relativeX = x - rect.left;
-      const relativeY = y - rect.top;
-      
-      // Check if we're close to the item (even outside its borders)
-      const isNearItem = 
-        relativeX >= -proximityThreshold && relativeX <= rect.width + proximityThreshold &&
-        relativeY >= -proximityThreshold && relativeY <= rect.height + proximityThreshold;
-      
-      // Only proceed if we're near the item to avoid unnecessary calculations
-      if (!isNearItem) {
-        if (isNear) setIsNear(false); // Reset if we were previously near
-        animationFrameIdRef.current = requestAnimationFrame(processHoverState);
-        return;
-      }
-      
-      // Calculate distances to each edge
-      const distToLeft = Math.abs(relativeX);
-      const distToRight = Math.abs(relativeX - rect.width);
-      const distToTop = Math.abs(relativeY);
-      const distToBottom = Math.abs(relativeY - rect.height);
-      
-      // Find closest edge and its distance
-      let closestEdge;
-      let minDistance;
-      
-      // Check if we're inside the item
-      const isInside = relativeX >= 0 && relativeX <= rect.width && relativeY >= 0 && relativeY <= rect.height;
-      
-      if (isInside) {
-        // When inside, check distance to each edge
-        const edges = [
-          { edge: 'left', dist: distToLeft },
-          { edge: 'right', dist: distToRight },
-          { edge: 'top', dist: distToTop },
-          { edge: 'bottom', dist: distToBottom }
-        ];
-        
-        // Sort by distance
-        edges.sort((a, b) => a.dist - b.dist);
-        closestEdge = edges[0].edge;
-        minDistance = edges[0].dist;
-      } else {
-        // When outside, calculate distance to closest point on border
-        // Determine which quadrant we're in
-        if (relativeX < 0 && relativeY < 0) {
-          // Top-left corner
-          closestEdge = 'topLeft';
-          minDistance = Math.sqrt(distToLeft * distToLeft + distToTop * distToTop);
-        } else if (relativeX > rect.width && relativeY < 0) {
-          // Top-right corner
-          closestEdge = 'topRight';
-          minDistance = Math.sqrt(distToRight * distToRight + distToTop * distToTop);
-        } else if (relativeX < 0 && relativeY > rect.height) {
-          // Bottom-left corner
-          closestEdge = 'bottomLeft';
-          minDistance = Math.sqrt(distToLeft * distToLeft + distToBottom * distToBottom);
-        } else if (relativeX > rect.width && relativeY > rect.height) {
-          // Bottom-right corner
-          closestEdge = 'bottomRight';
-          minDistance = Math.sqrt(distToRight * distToRight + distToBottom * distToBottom);
-        } else if (relativeX < 0) {
-          // Left edge
-          closestEdge = 'left';
-          minDistance = distToLeft;
-        } else if (relativeX > rect.width) {
-          // Right edge
-          closestEdge = 'right';
-          minDistance = distToRight;
-        } else if (relativeY < 0) {
-          // Top edge
-          closestEdge = 'top';
-          minDistance = distToTop;
-        } else {
-          // Bottom edge
-          closestEdge = 'bottom';
-          minDistance = distToBottom;
-        }
-      }
-      
-      // Calculate intensity based on proximity (1 when at edge, 0 when beyond threshold)
-      const intensity = Math.max(0, 1 - (minDistance / proximityThreshold));
-      
-      // Only consider "near" if within threshold
-      const near = minDistance < proximityThreshold;
-      
-      if (near) {
-        // Batch state updates to reduce renders
-        const newProximityData = {
-          edge: closestEdge,
-          distance: minDistance,
-          intensity,
-          position: getPositionAlongEdge(closestEdge, relativeX, relativeY, rect.width, rect.height)
-        };
-        
-        // Only update state if there's a significant change
-        const hasSignificantChange = 
-          !isNear || 
-          Math.abs(proximityData.intensity - newProximityData.intensity) > 0.05 ||
-          proximityData.edge !== newProximityData.edge;
-          
-        if (hasSignificantChange) {
-          setIsNear(true);
-          setProximityData(newProximityData);
-        }
-      } else if (isNear) {
-        setIsNear(false);
-      }
-      
-      // Continue the animation loop
-      animationFrameIdRef.current = requestAnimationFrame(processHoverState);
-    };
-    
-    // Use throttled mouse tracking to prevent excessive event firing
-    let lastProcessTime = 0;
-    const THROTTLE_MS = 16; // ~60fps
-    
-    const handleGlobalMouseMove = (e) => {
-      // Store the latest mouse position
-      lastMousePosRef.current = { x: e.clientX, y: e.clientY };
-      
-      // Skip processing if we just did it recently (throttle)
-      const now = Date.now();
-      if (now - lastProcessTime < THROTTLE_MS) return;
-      lastProcessTime = now;
-    };
-    
-    // Add global mouse move listener to track mouse position
-    window.addEventListener('mousemove', handleGlobalMouseMove);
-    
-    // Start the continuous animation loop for hover detection
-    animationFrameIdRef.current = requestAnimationFrame(processHoverState);
-    
-    // Clean up
-    return () => {
-      window.removeEventListener('mousemove', handleGlobalMouseMove);
-      
-      // Cancel any pending animation frame
-      if (animationFrameIdRef.current) {
-        cancelAnimationFrame(animationFrameIdRef.current);
-      }
-    };
-  }, [isNear, proximityThreshold, isMobile, proximityData.edge, proximityData.intensity]);
-  
   // Calculate the relative position along an edge (0 to 1)
   const getPositionAlongEdge = (edge, x, y, width, height) => {
     switch (edge) {
@@ -259,6 +109,182 @@ const CategoryItem = memo(({
       default: return 0;
     }
   };
+  
+  // Compute hover state based on mouse position
+  const computeHoverState = useRef((mouseX, mouseY) => {
+    if (!itemRef.current) return null;
+    
+    const rect = itemRef.current.getBoundingClientRect();
+    
+    // Calculate mouse position relative to item's current position
+    const relativeX = mouseX - rect.left;
+    const relativeY = mouseY - rect.top;
+    
+    // Check if we're close to the item (even outside its borders)
+    const isNearItem = 
+      relativeX >= -proximityThreshold && relativeX <= rect.width + proximityThreshold &&
+      relativeY >= -proximityThreshold && relativeY <= rect.height + proximityThreshold;
+    
+    // Only proceed if we're near the item
+    if (!isNearItem) {
+      return { isNear: false };
+    }
+    
+    // Calculate distances to each edge
+    const distToLeft = Math.abs(relativeX);
+    const distToRight = Math.abs(relativeX - rect.width);
+    const distToTop = Math.abs(relativeY);
+    const distToBottom = Math.abs(relativeY - rect.height);
+    
+    // Find closest edge and its distance
+    let closestEdge;
+    let minDistance;
+    
+    // Check if we're inside the item
+    const isInside = relativeX >= 0 && relativeX <= rect.width && relativeY >= 0 && relativeY <= rect.height;
+    
+    if (isInside) {
+      // When inside, check distance to each edge
+      const edges = [
+        { edge: 'left', dist: distToLeft },
+        { edge: 'right', dist: distToRight },
+        { edge: 'top', dist: distToTop },
+        { edge: 'bottom', dist: distToBottom }
+      ];
+      
+      // Sort by distance
+      edges.sort((a, b) => a.dist - b.dist);
+      closestEdge = edges[0].edge;
+      minDistance = edges[0].dist;
+    } else {
+      // When outside, calculate distance to closest point on border
+      // Determine which quadrant we're in
+      if (relativeX < 0 && relativeY < 0) {
+        // Top-left corner
+        closestEdge = 'topLeft';
+        minDistance = Math.sqrt(distToLeft * distToLeft + distToTop * distToTop);
+      } else if (relativeX > rect.width && relativeY < 0) {
+        // Top-right corner
+        closestEdge = 'topRight';
+        minDistance = Math.sqrt(distToRight * distToRight + distToTop * distToTop);
+      } else if (relativeX < 0 && relativeY > rect.height) {
+        // Bottom-left corner
+        closestEdge = 'bottomLeft';
+        minDistance = Math.sqrt(distToLeft * distToLeft + distToBottom * distToBottom);
+      } else if (relativeX > rect.width && relativeY > rect.height) {
+        // Bottom-right corner
+        closestEdge = 'bottomRight';
+        minDistance = Math.sqrt(distToRight * distToRight + distToBottom * distToBottom);
+      } else if (relativeX < 0) {
+        // Left edge
+        closestEdge = 'left';
+        minDistance = distToLeft;
+      } else if (relativeX > rect.width) {
+        // Right edge
+        closestEdge = 'right';
+        minDistance = distToRight;
+      } else if (relativeY < 0) {
+        // Top edge
+        closestEdge = 'top';
+        minDistance = distToTop;
+      } else {
+        // Bottom edge
+        closestEdge = 'bottom';
+        minDistance = distToBottom;
+      }
+    }
+    
+    // Calculate intensity based on proximity (1 when at edge, 0 when beyond threshold)
+    const intensity = Math.max(0, 1 - (minDistance / proximityThreshold));
+    
+    // Only consider "near" if within threshold
+    const near = minDistance < proximityThreshold;
+    
+    if (near) {
+      return {
+        isNear: true,
+        proximityData: {
+          edge: closestEdge,
+          distance: minDistance,
+          intensity,
+          position: getPositionAlongEdge(closestEdge, relativeX, relativeY, rect.width, rect.height)
+        }
+      };
+    }
+    
+    return { isNear: false };
+  }).current;
+  
+  // Separate mouse tracking from animation rendering
+  useEffect(() => {
+    if (isMobile) return; // Skip for mobile
+    
+    // Function to update state based on computed hover state
+    const updateHoverState = () => {
+      const result = computeHoverState(lastMousePosRef.current.x, lastMousePosRef.current.y);
+      
+      if (!result) return;
+      
+      const { isNear: newIsNear, proximityData: newProximityData } = result;
+      
+      if (newIsNear) {
+        // Only update if there's a significant change
+        if (!isNearRef.current || 
+            (proximityDataRef.current.edge !== newProximityData.edge) ||
+            Math.abs(proximityDataRef.current.intensity - newProximityData.intensity) > 0.05) {
+          setIsNear(true);
+          setProximityData(newProximityData);
+        }
+      } else if (isNearRef.current) {
+        setIsNear(false);
+      }
+    };
+    
+    // Throttled mouse move handler
+    const handleMouseMove = throttle((e) => {
+      lastMousePosRef.current = { x: e.clientX, y: e.clientY };
+      updateHoverState();
+    }, 16);
+    
+    // Add global mouse move listener
+    window.addEventListener('mousemove', handleMouseMove);
+    
+    // Initial check on mount
+    updateHoverState();
+    
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, [isMobile, computeHoverState]);
+  
+  // Separate animation loop to ensure continuous animation
+  useEffect(() => {
+    if (isMobile && !mobileHighlight) return; // Skip animation loop for mobile when not highlighted
+    
+    // Animation loop for continuous effects
+    let animationStartTime = performance.now();
+    const runAnimationLoop = (timestamp) => {
+      // Update animation phase (0-1) for continuous effects
+      const elapsed = timestamp - animationStartTime;
+      const newPhase = (elapsed % 2000) / 2000; // 2 second cycle
+      setAnimationPhase(newPhase);
+      
+      // Update circuit animation offset
+      circuitOffsetRef.current = (circuitOffsetRef.current + 0.5) % 30;
+      
+      // Continue the loop
+      animationFrameIdRef.current = requestAnimationFrame(runAnimationLoop);
+    };
+    
+    // Start animation loop
+    animationFrameIdRef.current = requestAnimationFrame(runAnimationLoop);
+    
+    return () => {
+      if (animationFrameIdRef.current) {
+        cancelAnimationFrame(animationFrameIdRef.current);
+      }
+    };
+  }, [isMobile, mobileHighlight]);
   
   // Render just the border segments that are close to the cursor
   const renderBorderSegments = () => {
@@ -492,6 +518,9 @@ const CategoryItem = memo(({
     // Use simpler paths for mobile (less intensive)
     const simplifiedForMobile = isMobile;
     
+    // Use the continuously updated animation offset for continuous animation
+    const dashOffset = circuitOffsetRef.current;
+    
     return (
       <svg
         className="absolute inset-0 w-full h-full pointer-events-none z-10"
@@ -512,8 +541,7 @@ const CategoryItem = memo(({
             style={{
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
-              animation: 'dashOffset 2s linear infinite',
-              animationPlayState: 'running',
+              strokeDashoffset: dashOffset,
             }}
           />
         )}
@@ -530,8 +558,7 @@ const CategoryItem = memo(({
             style={{
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
-              animation: 'dashOffset 2s linear infinite',
-              animationPlayState: 'running',
+              strokeDashoffset: dashOffset,
             }}
           />
         )}
@@ -548,8 +575,7 @@ const CategoryItem = memo(({
             style={{
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
-              animation: 'dashOffset 2s linear infinite',
-              animationPlayState: 'running',
+              strokeDashoffset: dashOffset,
             }}
           />
         )}
@@ -566,8 +592,7 @@ const CategoryItem = memo(({
             style={{
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
-              animation: 'dashOffset 2s linear infinite',
-              animationPlayState: 'running',
+              strokeDashoffset: dashOffset,
             }}
           />
         )}
@@ -583,8 +608,7 @@ const CategoryItem = memo(({
             style={{
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
-              animation: 'dashOffset 1.8s linear infinite',
-              animationPlayState: 'running',
+              strokeDashoffset: dashOffset * 0.9,
             }}
           />
         )}
@@ -599,8 +623,7 @@ const CategoryItem = memo(({
             style={{
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
-              animation: 'dashOffset 1.8s linear infinite',
-              animationPlayState: 'running',
+              strokeDashoffset: dashOffset * 0.9,
             }}
           />
         )}
@@ -615,8 +638,7 @@ const CategoryItem = memo(({
             style={{
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
-              animation: 'dashOffset 1.8s linear infinite',
-              animationPlayState: 'running',
+              strokeDashoffset: dashOffset * 0.9,
             }}
           />
         )}
@@ -631,8 +653,7 @@ const CategoryItem = memo(({
             style={{
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
-              animation: 'dashOffset 1.8s linear infinite',
-              animationPlayState: 'running',
+              strokeDashoffset: dashOffset * 0.9,
             }}
           />
         )}
@@ -653,8 +674,7 @@ const CategoryItem = memo(({
             style={{
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
-              animation: 'dashOffset 1.8s linear infinite',
-              animationPlayState: 'running',
+              strokeDashoffset: dashOffset * 0.9,
             }}
           />
         )}
@@ -688,11 +708,6 @@ const CategoryItem = memo(({
           0% { opacity: 0.8; }
           50% { opacity: 1; }
           100% { opacity: 0.8; }
-        }
-        
-        @keyframes dashOffset {
-          from { stroke-dashoffset: 30; }
-          to { stroke-dashoffset: 0; }
         }
       `}</style>
       
