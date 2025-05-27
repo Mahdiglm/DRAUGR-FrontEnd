@@ -19,7 +19,7 @@ const CARD_TOTAL_WIDTH = CARD_WIDTH + CARD_MARGIN; // Total width including marg
 const MOBILE_CARD_WIDTH = 160; // Smaller width for mobile
 const MOBILE_CARD_MARGIN = 0; // No margin - we'll handle spacing with absolute positioning
 const MOBILE_CARD_TOTAL_WIDTH = MOBILE_CARD_WIDTH + MOBILE_CARD_MARGIN;
-const MOBILE_ROW_HEIGHT = 120; // Smaller height for mobile rows
+const MOBILE_ROW_HEIGHT = 100; // Decreased height for mobile rows (was 120)
 
 // Consistent spacing between cards
 const CARD_SPACING = 32; // Fixed spacing between cards for desktop
@@ -70,7 +70,7 @@ const CategoryRows = ({ direction = "rtl", categoryItems: propCategories = null,
       cardWidth: isMobileDevice ? MOBILE_CARD_WIDTH : CARD_WIDTH,
       cardMargin: isMobileDevice ? MOBILE_CARD_MARGIN : CARD_MARGIN,
       cardTotalWidth: isMobileDevice ? MOBILE_CARD_WIDTH + MOBILE_CARD_SPACING : CARD_WIDTH + CARD_SPACING,
-      rowHeight: isMobileDevice ? MOBILE_ROW_HEIGHT : 192, // 48px * 4
+      rowHeight: isMobileDevice ? MOBILE_ROW_HEIGHT : 160, // Decreased height for desktop (was 192)
       cardSpacing: isMobileDevice ? MOBILE_CARD_SPACING : CARD_SPACING
     };
   }, [isMobileDevice]);
