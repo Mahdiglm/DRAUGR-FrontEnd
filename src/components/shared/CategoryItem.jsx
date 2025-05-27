@@ -369,14 +369,15 @@ const CategoryItem = memo(({
         transform: `
           ${style.transform || ''} 
           ${isSelected && !isTransitioning ? 'scale(1.1)' : ''}
-          ${isSelected && isTransitioning && animationPhase === 1 ? 'scale(1.5)' : ''}
-          ${isSelected && isTransitioning && animationPhase >= 2 ? 'scale(0.1) translate(2000px, 0)' : ''}
+          ${isSelected && isTransitioning && animationPhase === 1 ? 'scale(1.2)' : ''}
+          ${isSelected && isTransitioning && animationPhase >= 2 ? 'scale(0) translate(100vw, 0)' : ''}
         `,
         opacity: isSelected && isTransitioning && animationPhase >= 2 ? 0 : 1,
-        transition: `transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease-in-out`,
+        transition: `transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease-in-out`,
         zIndex: isSelected ? 100 : style.zIndex || 'auto', // Ensure selected card is on top
-        filter: isSelected && isTransitioning && animationPhase === 1 ? 'drop-shadow(0 0 20px rgba(255, 0, 102, 0.7))' : 'none',
+        filter: isSelected && isTransitioning && animationPhase === 1 ? 'drop-shadow(0 0 15px rgba(255, 0, 0, 0.6))' : 'none',
         pointerEvents: isTransitioning ? 'none' : 'auto', // Disable interactions during transition
+        visibility: isSelected && isTransitioning && animationPhase >= 2 ? 'hidden' : 'visible', // Hide completely in later phases
       }}
       role="link"
       tabIndex="0"
@@ -393,7 +394,7 @@ const CategoryItem = memo(({
     {/* Apply blur effect to non-selected cards during Phase 1 */}
     {isTransitioning && !isSelected && animationPhase === 1 && (
       <div 
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm z-10 rounded-lg"
+        className="absolute inset-0 bg-black/60 backdrop-blur-md z-10 rounded-lg"
         style={{
           transition: 'all 0.3s ease-out'
         }}

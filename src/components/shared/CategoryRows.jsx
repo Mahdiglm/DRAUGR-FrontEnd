@@ -431,18 +431,38 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
   const navigationInProgressRef = useRef(false);
   // Add a new ref to track transition state and prevent reactivation
   const transitionInitiatedRef = useRef(false);
+  // Add a global timestamp to track when transitions started
+  const transitionStartTimeRef = useRef(0);
 
   // Enhanced category selection handler
   const handleCategorySelect = useCallback((category, itemElement) => {
     try {
-      // Prevent activation if navigation is already in progress or transition already initiated
-      if (navigationInProgressRef.current || isTransitioning || transitionInitiatedRef.current) {
-        debugLog("Ignoring category selection - navigation or animation already in progress");
+      // Only allow new selection if:
+      // 1. No navigation is in progress
+      // 2. Not already transitioning
+      // 3. No transition initiated
+      // 4. Enough time has passed since last transition (debounce)
+      const now = Date.now();
+      const timeSinceLastTransition = now - transitionStartTimeRef.current;
+      const MIN_TRANSITION_INTERVAL = 2000; // 2 seconds between transitions
+      
+      if (navigationInProgressRef.current || 
+          isTransitioning || 
+          transitionInitiatedRef.current ||
+          (timeSinceLastTransition < MIN_TRANSITION_INTERVAL && transitionStartTimeRef.current > 0)) {
+        debugLog("Ignoring category selection", { 
+          reason: navigationInProgressRef.current ? "navigation in progress" : 
+                 isTransitioning ? "transition in progress" : 
+                 transitionInitiatedRef.current ? "transition already initiated" :
+                 "too soon after last transition"
+        });
         return;
       }
       
       // Mark transition as initiated to prevent multiple activations
       transitionInitiatedRef.current = true;
+      // Record start time
+      transitionStartTimeRef.current = now;
       
       debugLog("Category selected", { category: category.slug });
       
@@ -492,10 +512,17 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
         return;
       }
       
+      // Mark navigation as in progress
       navigationInProgressRef.current = true;
       debugLog("Transition complete, navigating to shop page", { 
         category: selectedCategory?.slug
       });
+      
+      // Clear any safety timeouts
+      if (safetyTimeoutRef.current) {
+        clearTimeout(safetyTimeoutRef.current);
+        safetyTimeoutRef.current = null;
+      }
       
       // Navigate to shop page with category slug
       navigate(`/shop?category=${selectedCategory.slug}`);
@@ -519,36 +546,37 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
           // Reset navigation flag after a longer delay to prevent immediate reactivation
           setTimeout(() => {
             navigationInProgressRef.current = false;
-          }, 500);
+          }, 800); // Slightly longer to ensure full cooldown
         } catch (error) {
           console.error("Error resetting animation state:", error);
           // Reset refs in case of error
-          transitionInitiatedRef.current = false;
-          navigationInProgressRef.current = false;
+          resetAllTransitionStates();
         }
       }, 100);
-      
-      // Clear any existing safety timeout
-      if (safetyTimeoutRef.current) {
-        clearTimeout(safetyTimeoutRef.current);
-        safetyTimeoutRef.current = null;
-      }
     } catch (error) {
       console.error("Error in handleTransitionComplete:", error);
       
       // Force reset if there's an error
-      setIsTransitioning(false);
-      setSelectedCategory(null);
-      setAnimationPhase(0);
-      setSelectedItemRect(null);
-      navigationInProgressRef.current = false;
-      transitionInitiatedRef.current = false;
+      resetAllTransitionStates();
     }
   }, [navigate, selectedCategory, animate]);
+  
+  // Cleanup function to reset all transition states
+  const resetAllTransitionStates = useCallback(() => {
+    setIsTransitioning(false);
+    setSelectedCategory(null);
+    setAnimationPhase(0);
+    setSelectedItemRect(null);
+    navigationInProgressRef.current = false;
+    transitionInitiatedRef.current = false;
+    
+    // We don't reset the time ref so the debounce still works
+  }, []);
 
   // Preload shop page data during transition
   useEffect(() => {
-    if (isTransitioning && selectedCategory && animationPhase >= 2 && !preloadAttemptedRef.current) {
+    // When transitioning to phase 2, preload data
+    if (isTransitioning && selectedCategory && animationPhase === 2 && !preloadAttemptedRef.current) {
       preloadAttemptedRef.current = true;
       debugLog("Preloading shop data", { category: selectedCategory.slug });
       // This is where you could prefetch data for the shop page
@@ -577,7 +605,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
           // Force completion of transition
           handleTransitionComplete();
         }
-      }, 3000); // Keep a longer timeout here as a final fallback
+      }, 4000); // Longer timeout as final fallback
     }
 
     // Clear timeout if we're no longer transitioning or navigation is in progress

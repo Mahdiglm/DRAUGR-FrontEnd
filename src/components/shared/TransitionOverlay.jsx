@@ -1,5 +1,23 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+/**
+ * TransitionOverlay - Complete redesign with finite state machine approach
+ * 
+ * This component handles the cinematic transition animation between category selection
+ * and shop page navigation. Uses a state machine approach for more robust animation control.
+ */
+
+// State machine states for transition animation
+const TransitionState = {
+  IDLE: 'idle',
+  SELECTION_RESPONSE: 'selection_response', // Phase 1
+  MORPHING_TRANSITION: 'morphing_transition', // Phase 2
+  PAGE_TRANSITION: 'page_transition', // Phase 3
+  COMPLETING: 'completing',
+  COMPLETED: 'completed',
+  ERROR: 'error'
+};
 
 // Debug helper function
 const debugLog = (message, obj = {}) => {
@@ -8,8 +26,6 @@ const debugLog = (message, obj = {}) => {
   }
 };
 
-// TransitionOverlay handles the cinematic animation sequence when transitioning
-// from a category selection to the shop page
 const TransitionOverlay = ({ 
   isActive, 
   selectedCategory, 
@@ -18,279 +34,282 @@ const TransitionOverlay = ({
   phase,
   setPhase
 }) => {
+  // Use a proper state machine for animation
+  const [transitionState, setTransitionState] = useState(TransitionState.IDLE);
   const [progress, setProgress] = useState(0);
-  const hasCompletedRef = useRef(false);
-  const animationTimeoutRef = useRef(null);
-  const animationRef = useRef(null);
-  // Store selected category in a ref to prevent re-renders
-  const selectedCategoryRef = useRef(selectedCategory);
-  // Add a ref to track activation to prevent multiple initializations
-  const wasActivatedRef = useRef(false);
   
-  // Update the ref when selectedCategory changes
+  // Refs for managing animation state
+  const hasCompletedRef = useRef(false);
+  const animationFrameRef = useRef(null);
+  const timeoutRef = useRef(null);
+  const startTimeRef = useRef(null);
+  const isActivatedRef = useRef(false);
+  
+  // Store category in ref to prevent rerenders
+  const categoryRef = useRef(selectedCategory);
+  
+  // When category changes, update the ref
   useEffect(() => {
-    selectedCategoryRef.current = selectedCategory;
+    categoryRef.current = selectedCategory;
   }, [selectedCategory]);
   
-  // Reset completion flag when component becomes inactive
-  useEffect(() => {
-    // Only proceed if there's a genuine change in activation state
-    // Prevent multiple activations in quick succession
-    if (isActive && !wasActivatedRef.current) {
-      wasActivatedRef.current = true;
-      hasCompletedRef.current = false;
-      setProgress(0);
-      
-      if (selectedCategory) {
-        debugLog("Overlay activated", { category: selectedCategory.slug });
-      }
-    } else if (!isActive && wasActivatedRef.current) {
-      wasActivatedRef.current = false;
-      hasCompletedRef.current = false;
-      setProgress(0);
-      debugLog("Overlay deactivated, state reset");
-      
-      // Clear any existing animation
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-        animationRef.current = null;
-      }
+  // Clean up function to ensure we release all resources
+  const cleanupAnimation = useCallback(() => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
     }
     
-    // Safety timeout - force completion after 2 seconds if animation gets stuck
-    if (isActive && !hasCompletedRef.current) {
-      if (!animationTimeoutRef.current) {
-        debugLog("Setting safety timeout");
-        // First timeout after 2 seconds
-        animationTimeoutRef.current = setTimeout(() => {
-          if (isActive && !hasCompletedRef.current) {
-            debugLog("⚠️ Animation safety timeout triggered - animation may be stuck");
-            // Force phase 3 to ensure we're close to completion
-            if (phase < 3) {
-              debugLog("Forcing phase 3 for completion");
-              setPhase(3);
-              
-              // Second, more aggressive timeout after phase forcing
-              setTimeout(() => {
-                if (isActive && !hasCompletedRef.current) {
-                  debugLog("⚠️ Final safety timeout - forcing immediate completion");
-                  hasCompletedRef.current = true;
-                  onTransitionComplete && onTransitionComplete();
-                }
-              }, 500);
-            } else {
-              // Already in phase 3, complete immediately
-              hasCompletedRef.current = true;
-              onTransitionComplete && onTransitionComplete();
-            }
-          }
-        }, 2000); // Reduced from 3 seconds to 2 seconds
-      }
-    } else if (!isActive && animationTimeoutRef.current) {
-      // Clear the timeout if component becomes inactive
-      clearTimeout(animationTimeoutRef.current);
-      animationTimeoutRef.current = null;
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
     }
-    
-    return () => {
-      if (animationTimeoutRef.current) {
-        clearTimeout(animationTimeoutRef.current);
-        animationTimeoutRef.current = null;
-      }
-    };
-  }, [isActive, selectedCategory, onTransitionComplete, phase, setPhase]);
+  }, []);
   
-  // Track animation progress for coordinated effects with memoized function
-  useEffect(() => {
-    // Skip animation if it's not active or has already completed
-    if (!isActive || hasCompletedRef.current || !wasActivatedRef.current) {
-      return;
-    }
+  // Transition completion handler
+  const completeTransition = useCallback(() => {
+    if (hasCompletedRef.current) return;
     
-    let startTime = null;
-    const totalDuration = 1200; // Total animation duration in ms
-    let lastProgress = 0;
-    let stuckDetectionCounter = 0;
+    debugLog("Animation completing");
+    setTransitionState(TransitionState.COMPLETING);
+    hasCompletedRef.current = true;
     
-    const animateProgress = (timestamp) => {
+    // Safety delay before triggering completion callback
+    setTimeout(() => {
+      debugLog("Executing completion callback");
       try {
-        if (!startTime) startTime = timestamp;
-        const elapsedTime = timestamp - startTime;
-        const newProgress = Math.min(elapsedTime / totalDuration, 1);
-        
-        // Detect if animation is getting stuck (not progressing)
-        if (Math.abs(newProgress - lastProgress) < 0.001) {
-          stuckDetectionCounter++;
-          
-          // If we detect 60 frames (about 1 second) with no progress and we're in phase 3,
-          // force completion to prevent getting stuck
-          if (stuckDetectionCounter > 60 && phase === 3 && !hasCompletedRef.current) {
-            debugLog("⚠️ Animation progress stalled - forcing completion", {
-              progress: newProgress,
-              phase: phase
-            });
-            hasCompletedRef.current = true;
-            onTransitionComplete && onTransitionComplete();
-            return;
-          }
-        } else {
-          // Reset counter if we're making progress
-          stuckDetectionCounter = 0;
-          lastProgress = newProgress;
-        }
-        
-        setProgress(newProgress);
-        
-        // Update animation phase based on progress
-        if (newProgress < 0.25 && phase !== 1) {
-          setPhase(1); // Phase 1: Selection Response
-          debugLog("Entering Phase 1", { progress: newProgress });
-        } else if (newProgress >= 0.25 && newProgress < 0.7 && phase !== 2) {
-          setPhase(2); // Phase 2: Morphing Transition
-          debugLog("Entering Phase 2", { progress: newProgress });
-        } else if (newProgress >= 0.7 && phase !== 3) {
-          setPhase(3); // Phase 3: Page Transition
-          debugLog("Entering Phase 3", { progress: newProgress });
-        }
-        
-        // Force completion upon reaching end of Phase 3 (0.95+)
-        if (newProgress >= 0.95 && phase === 3 && !hasCompletedRef.current) {
-          debugLog("Animation reached completion threshold, finalizing", { progress: newProgress });
-          hasCompletedRef.current = true;
-          
-          try {
-            // Use the stored reference to avoid stale closure issues
-            onTransitionComplete && onTransitionComplete();
-          } catch (error) {
-            console.error("Error in onTransitionComplete callback:", error);
-          }
-          return;
-        }
-        
-        // Continue animation until complete
-        if (newProgress < 1 && !hasCompletedRef.current) {
-          animationRef.current = requestAnimationFrame(animateProgress);
-        } else if (!hasCompletedRef.current) {
-          // Animation complete - ensure we only call this once
-          debugLog("Animation complete, calling onTransitionComplete");
-          hasCompletedRef.current = true;
-          
-          try {
-            // Use the stored reference to avoid stale closure issues
-            onTransitionComplete && onTransitionComplete();
-          } catch (error) {
-            console.error("Error in onTransitionComplete callback:", error);
-          }
-        }
+        onTransitionComplete && onTransitionComplete();
+        setTransitionState(TransitionState.COMPLETED);
       } catch (error) {
-        console.error("Error in animation frame:", error);
-        
-        // Attempt recovery by completing the transition
-        if (!hasCompletedRef.current) {
-          debugLog("⚠️ Recovering from animation error");
-          hasCompletedRef.current = true;
-          onTransitionComplete && onTransitionComplete();
-        }
+        console.error("Error in completion callback:", error);
+        setTransitionState(TransitionState.ERROR);
       }
-    };
-    
-    try {
-      // Cancel any existing animation frame before starting a new one
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-      animationRef.current = requestAnimationFrame(animateProgress);
-    } catch (error) {
-      console.error("Failed to start animation:", error);
+    }, 50);
+  }, [onTransitionComplete]);
+  
+  // Set up a stall detector timeout
+  const setStallDetector = useCallback((currentState) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
     }
     
-    return () => {
-      if (animationRef.current) {
-        try {
-          cancelAnimationFrame(animationRef.current);
-          animationRef.current = null;
-        } catch (error) {
-          console.error("Error canceling animation frame:", error);
-        }
-      }
-    };
-  }, [isActive, onTransitionComplete, phase, setPhase]);
+    // Timeout duration based on state
+    let timeout = 2000; // default timeout
+    
+    if (currentState === TransitionState.PAGE_TRANSITION) {
+      timeout = 1500; // shorter timeout for final phase
+    }
+    
+    timeoutRef.current = setTimeout(() => {
+      debugLog(`⚠️ Animation stalled in state ${currentState} - forcing completion`);
+      completeTransition();
+    }, timeout);
+  }, [completeTransition]);
   
-  // Early exit if not active
-  if (!isActive || !selectedCategory) return null;
+  // Animation step function with error boundaries
+  const animationStep = useCallback((timestamp) => {
+    try {
+      if (!isActivatedRef.current || hasCompletedRef.current) {
+        return;
+      }
+      
+      if (!startTimeRef.current) {
+        startTimeRef.current = timestamp;
+        setStallDetector(TransitionState.SELECTION_RESPONSE);
+      }
+      
+      const totalDuration = 1600; // slightly longer total duration
+      const elapsed = timestamp - startTimeRef.current;
+      const rawProgress = Math.min(elapsed / totalDuration, 1);
+      
+      // Update progress state
+      setProgress(rawProgress);
+      
+      // State machine transitions based on progress
+      if (rawProgress < 0.2 && transitionState !== TransitionState.SELECTION_RESPONSE) {
+        debugLog("Transitioning to SELECTION_RESPONSE state");
+        setTransitionState(TransitionState.SELECTION_RESPONSE);
+        setPhase(1);
+        setStallDetector(TransitionState.SELECTION_RESPONSE);
+      } else if (rawProgress >= 0.2 && rawProgress < 0.65 && transitionState !== TransitionState.MORPHING_TRANSITION) {
+        debugLog("Transitioning to MORPHING_TRANSITION state");
+        setTransitionState(TransitionState.MORPHING_TRANSITION);
+        setPhase(2);
+        setStallDetector(TransitionState.MORPHING_TRANSITION);
+      } else if (rawProgress >= 0.65 && transitionState !== TransitionState.PAGE_TRANSITION && !hasCompletedRef.current) {
+        debugLog("Transitioning to PAGE_TRANSITION state");
+        setTransitionState(TransitionState.PAGE_TRANSITION);
+        setPhase(3);
+        setStallDetector(TransitionState.PAGE_TRANSITION);
+      }
+      
+      // Check for completion
+      if (rawProgress >= 0.95 && !hasCompletedRef.current) {
+        debugLog("Animation reached completion threshold");
+        completeTransition();
+        return;
+      }
+      
+      // Continue animation if not complete
+      if (!hasCompletedRef.current) {
+        animationFrameRef.current = requestAnimationFrame(animationStep);
+      }
+    } catch (error) {
+      console.error("Error in animation step:", error);
+      setTransitionState(TransitionState.ERROR);
+      completeTransition();
+    }
+  }, [completeTransition, setPhase, setStallDetector, transitionState]);
+  
+  // Start/stop animation based on active state
+  useEffect(() => {
+    if (isActive && !isActivatedRef.current && selectedCategory) {
+      // Start animation
+      debugLog("Starting transition animation", { category: selectedCategory.slug, state: "initializing" });
+      isActivatedRef.current = true;
+      hasCompletedRef.current = false;
+      startTimeRef.current = null;
+      setProgress(0);
+      setTransitionState(TransitionState.SELECTION_RESPONSE);
+      setPhase(1);
+      
+      // Start the animation loop
+      animationFrameRef.current = requestAnimationFrame(animationStep);
+      
+      // Set global safety timeout (longest possible duration)
+      timeoutRef.current = setTimeout(() => {
+        debugLog("⚠️ Global safety timeout triggered");
+        completeTransition();
+      }, 3500); // 3.5 seconds max
+    } else if (!isActive && isActivatedRef.current) {
+      // Reset state when deactivated
+      debugLog("Deactivating transition animation");
+      isActivatedRef.current = false;
+      cleanupAnimation();
+      setTransitionState(TransitionState.IDLE);
+      setProgress(0);
+    }
+    
+    return cleanupAnimation;
+  }, [isActive, selectedCategory, animationStep, cleanupAnimation, completeTransition, setPhase]);
+  
+  // If there's no active transition or no category, don't render anything
+  if (!isActive || !selectedCategory || transitionState === TransitionState.IDLE) {
+    return null;
+  }
 
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {isActive && (
         <motion.div 
-          className="fixed inset-0 z-50 overflow-hidden"
+          className="fixed inset-0 z-50 overflow-hidden transition-overlay"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
         >
-          {/* Background blur/darken effect */}
+          {/* Animated background that gets darker with progress */}
           <motion.div 
-            className="absolute inset-0 bg-black"
+            className="absolute inset-0 bg-black transition-bg"
             initial={{ opacity: 0 }}
             animate={{ 
-              opacity: progress < 0.7 ? progress * 0.8 : 0.8 - ((progress - 0.7) * 0.8 / 0.3)
-            }}
-            style={{
-              backdropFilter: `blur(${progress < 0.7 ? progress * 15 : (15 - ((progress - 0.7) * 15 / 0.3))}px)`
+              opacity: transitionState === TransitionState.PAGE_TRANSITION ? 
+                0.85 : progress * 0.75
             }}
           />
           
-          {/* Particle effects */}
+          {/* Animated fog/mist effect for horror theme */}
+          <div className="absolute inset-0 pointer-events-none mist-container">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <motion.div
+                key={`mist-${i}`}
+                className="absolute inset-0"
+                style={{
+                  backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%25\' height=\'100%25\'%3E%3Cdefs%3E%3CradialGradient id=\'a\' cx=\'50%25\' cy=\'50%25\' r=\'50%25\' gradientUnits=\'userSpaceOnUse\'%3E%3Cstop offset=\'0\' stop-color=\'%23330000\' stop-opacity=\'.3\'/%3E%3Cstop offset=\'1\' stop-color=\'%23330000\' stop-opacity=\'0\'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width=\'100%25\' height=\'100%25\' fill=\'url(%23a)\'/%3E%3C/svg%3E")',
+                  backgroundSize: 'cover',
+                  opacity: 0
+                }}
+                animate={{ 
+                  opacity: [0, 0.4, 0],
+                  scale: [1, 1.2, 1],
+                  rotate: [(i - 1) * 10, (i - 1) * 10 + 5]
+                }}
+                transition={{
+                  duration: 8,
+                  repeat: Infinity,
+                  repeatType: 'reverse',
+                  delay: i * 2,
+                  ease: 'easeInOut'
+                }}
+              />
+            ))}
+          </div>
+          
+          {/* Particle effect - blood motes floating in the air */}
           <div className="absolute inset-0 pointer-events-none">
-            {phase >= 1 && (
-              Array.from({ length: 20 }).map((_, i) => (
-                <motion.div
-                  key={i}
-                  className="absolute rounded-full bg-draugr-500"
-                  initial={{
-                    opacity: 0,
-                    x: selectedCardRect?.left + selectedCardRect?.width / 2 || '50%',
-                    y: selectedCardRect?.top + selectedCardRect?.height / 2 || '50%',
-                    scale: 0
-                  }}
-                  animate={{
-                    opacity: [0, 0.8, 0],
-                    x: `calc(${selectedCardRect?.left + selectedCardRect?.width / 2 || '50%'}px + ${(Math.random() - 0.5) * 200}px)`,
-                    y: `calc(${selectedCardRect?.top + selectedCardRect?.height / 2 || '50%'}px + ${(Math.random() - 0.5) * 200}px)`,
-                    scale: [0, Math.random() * 0.5 + 0.5]
-                  }}
-                  transition={{
-                    duration: 1 + Math.random() * 0.5,
-                    delay: Math.random() * 0.3,
-                    ease: "easeOut"
-                  }}
-                  style={{
-                    width: `${Math.random() * 10 + 5}px`,
-                    height: `${Math.random() * 10 + 5}px`,
-                  }}
-                />
-              ))
-            )}
+            {Array.from({ length: 25 }).map((_, i) => (
+              <motion.div
+                key={`particle-${i}`}
+                className="absolute rounded-full bg-draugr-500"
+                initial={{
+                  opacity: 0,
+                  x: selectedCardRect ? (selectedCardRect.left + selectedCardRect.width / 2) : '50%',
+                  y: selectedCardRect ? (selectedCardRect.top + selectedCardRect.height / 2) : '50%',
+                  scale: 0
+                }}
+                animate={{
+                  opacity: [0, 0.7 + Math.random() * 0.3, 0],
+                  x: `calc(${selectedCardRect ? (selectedCardRect.left + selectedCardRect.width / 2) : '50%'}px + ${(Math.random() - 0.5) * 320}px)`,
+                  y: `calc(${selectedCardRect ? (selectedCardRect.top + selectedCardRect.height / 2) : '50%'}px + ${(Math.random() - 0.5) * 320 - 50}px)`,
+                  scale: [0, Math.random() * 0.5 + 0.3]
+                }}
+                transition={{
+                  duration: 3 + Math.random() * 2,
+                  delay: Math.random() * 0.5,
+                  ease: "easeOut",
+                  repeat: Infinity,
+                  repeatType: "loop",
+                  repeatDelay: Math.random() * 3
+                }}
+                style={{
+                  width: `${Math.random() * 6 + 3}px`,
+                  height: `${Math.random() * 6 + 3}px`,
+                  filter: `blur(${Math.random() * 2}px) drop-shadow(0 0 2px #ff0000)`
+                }}
+              />
+            ))}
           </div>
           
           {/* Morphing card that transitions from selected category to hero section */}
           {selectedCardRect && (
             <motion.div
-              className="absolute rounded-lg overflow-hidden flex flex-col"
+              className="absolute rounded-lg overflow-hidden flex flex-col morphing-container"
               initial={{
                 top: selectedCardRect.top,
                 left: selectedCardRect.left,
                 width: selectedCardRect.width,
                 height: selectedCardRect.height,
                 borderRadius: '0.5rem',
+                boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)'
               }}
               animate={{
-                top: phase < 2 ? selectedCardRect.top : '0px',
-                left: phase < 3 ? [selectedCardRect.left, window.innerWidth / 2 - selectedCardRect.width * 1.5] : '0px',
-                width: phase < 3 ? [selectedCardRect.width, selectedCardRect.width * 3] : '100%',
-                height: phase < 3 ? [selectedCardRect.height, selectedCardRect.height * 1.5] : '100%',
-                borderRadius: phase < 3 ? '0.5rem' : '0rem',
+                top: transitionState === TransitionState.SELECTION_RESPONSE ? 
+                  selectedCardRect.top : '0px',
+                left: transitionState === TransitionState.PAGE_TRANSITION ? 
+                  '0px' : transitionState === TransitionState.MORPHING_TRANSITION ?
+                  window.innerWidth / 2 - selectedCardRect.width * 1.5 : 
+                  selectedCardRect.left,
+                width: transitionState === TransitionState.PAGE_TRANSITION ? 
+                  '100%' : transitionState === TransitionState.MORPHING_TRANSITION ? 
+                  selectedCardRect.width * 3 : selectedCardRect.width,
+                height: transitionState === TransitionState.PAGE_TRANSITION ? 
+                  '100%' : transitionState === TransitionState.MORPHING_TRANSITION ?
+                  selectedCardRect.height * 1.5 : selectedCardRect.height,
+                borderRadius: transitionState === TransitionState.PAGE_TRANSITION ? 
+                  '0rem' : '0.5rem',
+                boxShadow: transitionState === TransitionState.SELECTION_RESPONSE ? 
+                  '0 10px 40px rgba(139, 0, 0, 0.6), 0 0 20px rgba(255, 0, 0, 0.4)' : 
+                  '0 0 0 rgba(0, 0, 0, 0)',
               }}
               transition={{
                 duration: 0.8,
@@ -301,103 +320,184 @@ const TransitionOverlay = ({
               {/* Card background with gradient animation */}
               <motion.div
                 className="absolute inset-0 z-0"
-                initial={{
-                  background: 'linear-gradient(to bottom, #1c0b0f, #000000)'
+                initial={{ opacity: 1 }}
+                animate={{ opacity: 1 }}
+                style={{
+                  background: `linear-gradient(to bottom, ${selectedCategory?.themeColor || '#420011'}, #000000)`
                 }}
-                animate={{
-                  background: [
-                    'linear-gradient(to bottom, #1c0b0f, #000000)',
-                    `linear-gradient(to bottom, ${selectedCategory?.themeColor || '#420011'}, #000000)`
-                  ]
-                }}
-                transition={{ duration: 1, times: [0, 1] }}
-              />
-
-              {/* Category content */}
-              <div className="relative z-10 flex flex-col justify-center items-center flex-1 p-6">
-                <motion.h1
-                  className="font-bold text-white text-center"
-                  initial={{ fontSize: '1.25rem', y: 0 }}
-                  animate={{
-                    fontSize: phase < 2 ? '1.25rem' : phase < 3 ? '2.5rem' : '3rem',
-                    y: phase < 2 ? 0 : phase < 3 ? -20 : -40
+              >
+                {/* Animated blood/smoke texture overlay */}
+                <motion.div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    backgroundImage: "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii4wMSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIiBudW1PY3RhdmVzPSI0IiBzZWVkPSI1MDIiLz48ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIi8+PC9maWx0ZXI+PHBhdGggZD0iTTAgMGgzMDB2MzAwSDB6IiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9Ii4wOCIvPjwvc3ZnPg==')",
+                    backgroundSize: 'cover',
+                    mixBlendMode: 'soft-light',
+                    opacity: 0.2
                   }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
+                  animate={{
+                    opacity: [0.2, 0.25, 0.2],
+                    scale: [1, 1.05, 1],
+                  }}
+                  transition={{
+                    duration: 8,
+                    repeat: Infinity,
+                    repeatType: 'mirror',
+                    ease: 'easeInOut'
+                  }}
+                />
+              </motion.div>
+
+              {/* Category content area */}
+              <div className="relative z-10 flex flex-col justify-center items-center flex-1 p-6">
+                <motion.div 
+                  className="relative z-10 w-full max-w-4xl mx-auto text-center"
+                  initial={{ opacity: 1, y: 0 }}
+                  animate={{ 
+                    opacity: 1, 
+                    y: transitionState === TransitionState.PAGE_TRANSITION ? -40 : 0
+                  }}
+                  transition={{ duration: 0.5 }}
                 >
-                  {selectedCategory?.name}
-                </motion.h1>
-                
-                {phase >= 2 && (
-                  <motion.div
-                    className="mt-4 text-gray-200 text-center w-full max-w-xl"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.2 }}
+                  {/* Category title with animated size */}
+                  <motion.h1
+                    className="font-bold text-white relative z-10 inline-block"
+                    initial={{ fontSize: '1.25rem' }}
+                    animate={{
+                      fontSize: transitionState === TransitionState.SELECTION_RESPONSE ? 
+                        '1.25rem' : transitionState === TransitionState.MORPHING_TRANSITION ? 
+                        '2.5rem' : '3.5rem'
+                    }}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
                   >
-                    <p className="mb-4">مجموعه منحصر به فرد محصولات {selectedCategory?.name} ما را کشف کنید</p>
+                    {selectedCategory?.name}
                     
-                    {phase >= 3 && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.4, delay: 0.2 }}
-                      >
-                        <div className="flex justify-center">
-                          <div className="relative w-64 h-1 bg-gray-700 rounded-full overflow-hidden">
-                            <motion.div
-                              className="absolute top-0 left-0 h-full bg-draugr-500"
-                              initial={{ width: 0 }}
-                              animate={{ width: '100%' }}
-                              transition={{ duration: 0.6, ease: "easeInOut" }}
-                            />
+                    {/* Animated title glow */}
+                    <motion.div
+                      className="absolute inset-0 -z-10 blur-md"
+                      style={{ 
+                        background: selectedCategory?.themeColor || '#420011',
+                        opacity: 0 
+                      }}
+                      animate={{ 
+                        opacity: [0, 0.6, 0],
+                        scale: [1, 1.1, 1]
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                    />
+                  </motion.h1>
+                  
+                  {/* Subtitle description */}
+                  {transitionState !== TransitionState.SELECTION_RESPONSE && (
+                    <motion.div
+                      className="mt-4 text-gray-200 text-center"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: 0.2 }}
+                    >
+                      <p className="mb-4">مجموعه منحصر به فرد محصولات {selectedCategory?.name} ما را کشف کنید</p>
+                      
+                      {/* Loading state in final phase */}
+                      {transitionState === TransitionState.PAGE_TRANSITION && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.4, delay: 0.2 }}
+                        >
+                          <div className="flex justify-center">
+                            <div className="relative w-64 h-1 bg-gray-700 rounded-full overflow-hidden">
+                              <motion.div
+                                className="absolute top-0 left-0 h-full"
+                                style={{ 
+                                  background: `linear-gradient(to right, ${selectedCategory?.themeColor || '#420011'}, #990000)`
+                                }}
+                                initial={{ width: '0%' }}
+                                animate={{ width: '100%' }}
+                                transition={{ duration: 0.6, ease: "easeInOut" }}
+                              />
+                            </div>
                           </div>
-                        </div>
-                        <p className="mt-2 text-gray-400 text-sm">درحال بارگذاری محصولات...</p>
-                      </motion.div>
-                    )}
-                  </motion.div>
-                )}
+                          <p className="mt-2 text-gray-400 text-sm">درحال بارگذاری محصولات...</p>
+                        </motion.div>
+                      )}
+                    </motion.div>
+                  )}
+                </motion.div>
               </div>
               
-              {/* Animated Shop Elements (Phase 3) */}
-              {phase >= 3 && (
-                <>
-                  {/* Filter sidebar sliding in from left */}
+              {/* Page content elements that fade in during final phase */}
+              {transitionState === TransitionState.PAGE_TRANSITION && (
+                <div className="absolute inset-0 flex flex-col items-stretch">
+                  {/* Dark header bar */}
                   <motion.div
-                    className="absolute top-40 left-8 w-64 h-96 bg-black/60 backdrop-blur-lg rounded-lg border border-draugr-900/40 shadow-xl"
-                    initial={{ opacity: 0, x: -100 }}
-                    animate={{ opacity: 0.7, x: 0 }}
+                    className="w-full bg-black/80 backdrop-blur-md border-b border-[#2f0000]/30 h-16"
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 0.9, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.2 }}
                   />
                   
-                  {/* Product grid sliding up from bottom */}
-                  <div className="absolute right-8 left-80 bottom-8 top-40">
-                    <div className="grid grid-cols-4 gap-4 w-full h-full">
-                      {Array.from({ length: 8 }).map((_, i) => (
-                        <motion.div
-                          key={i}
-                          className="rounded-md bg-gray-900/60 shadow-xl"
-                          initial={{ opacity: 0, y: 50 }}
-                          animate={{ opacity: 0.7, y: 0 }}
-                          transition={{ duration: 0.5, delay: 0.2 + (i * 0.05) }}
-                        />
-                      ))}
-                    </div>
+                  <div className="flex flex-1 overflow-hidden">
+                    {/* Left sidebar */}
+                    <motion.div
+                      className="w-64 bg-black/40 backdrop-blur-md border-r border-[#2f0000]/20"
+                      initial={{ opacity: 0, x: -100 }}
+                      animate={{ opacity: 0.9, x: 0 }}
+                      transition={{ duration: 0.5, delay: 0.3 }}
+                    />
+                    
+                    {/* Main content area with product grid */}
+                    <motion.div
+                      className="flex-1 bg-black/20 p-6"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.5, delay: 0.4 }}
+                    >
+                      <div className="grid grid-cols-4 gap-4">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                          <motion.div
+                            key={i}
+                            className="rounded-md bg-black/30 backdrop-blur-sm border border-[#2f0000]/20 h-64"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.4 + (i * 0.05) }}
+                          />
+                        ))}
+                      </div>
+                    </motion.div>
                   </div>
-                  
-                  {/* Search bar dropping down from top */}
-                  <motion.div
-                    className="absolute top-24 right-8 left-80 h-12 bg-black/60 backdrop-blur-lg rounded-lg border border-draugr-900/40 shadow-xl"
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 0.7, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.4 }}
-                  />
-                </>
+                </div>
               )}
             </motion.div>
           )}
         </motion.div>
       )}
+      
+      {/* CSS for global transition effects */}
+      <style jsx="true">{`
+        .transition-overlay {
+          perspective: 1000px;
+          transform-style: preserve-3d;
+        }
+        
+        @keyframes mistAnimation {
+          0% { opacity: 0; transform: translateY(0) scale(1); }
+          50% { opacity: 0.3; transform: translateY(-20px) scale(1.1); }
+          100% { opacity: 0; transform: translateY(-40px) scale(1); }
+        }
+        
+        .mist-container {
+          z-index: 10;
+          overflow: hidden;
+        }
+        
+        .morphing-container {
+          box-shadow: 0 0 30px rgba(255, 0, 0, 0.15);
+        }
+      `}</style>
     </AnimatePresence>
   );
 };
