@@ -674,4 +674,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
   );
 });
 
+// Add display name for debugging
+CategoryRows.displayName = 'CategoryRows';
+
 export default CategoryRows;
