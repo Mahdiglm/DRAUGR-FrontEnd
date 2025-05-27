@@ -365,17 +365,18 @@ const CategoryItem = memo(({
       }`}
       style={{
         ...style,
-        // Apply different transformations based on animation phase
+        // Apply different transformations based on animation phase - use simple transforms that won't fail
         transform: `
           ${style.transform || ''} 
-          ${isSelected && !isTransitioning ? 'scale(1.1)' : 'scale(1)'}
-          ${isSelected && isTransitioning && animationPhase === 1 ? 'scale(1.8)' : ''}
-          ${isSelected && isTransitioning && animationPhase >= 2 ? 'scale(0.01)' : ''}
+          ${isSelected && !isTransitioning ? 'scale(1.1)' : ''}
+          ${isSelected && isTransitioning && animationPhase === 1 ? 'scale(1.5)' : ''}
+          ${isSelected && isTransitioning && animationPhase >= 2 ? 'scale(0.1) translate(2000px, 0)' : ''}
         `,
         opacity: isSelected && isTransitioning && animationPhase >= 2 ? 0 : 1,
-        transition: `transform 0.3s ${isSelected && isTransitioning && animationPhase === 1 ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' : 'ease-out'}, opacity 0.3s ease-in-out`,
+        transition: `transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease-in-out`,
         zIndex: isSelected ? 100 : style.zIndex || 'auto', // Ensure selected card is on top
         filter: isSelected && isTransitioning && animationPhase === 1 ? 'drop-shadow(0 0 20px rgba(255, 0, 102, 0.7))' : 'none',
+        pointerEvents: isTransitioning ? 'none' : 'auto', // Disable interactions during transition
       }}
       role="link"
       tabIndex="0"
