@@ -52,6 +52,8 @@ const CategoryItem = memo(({
   mobileHighlightPosition = 0.5,
   onCategorySelect, // Added prop
   isSelected, // Added prop
+  isTransitioning, // New prop for animation
+  animationPhase, // New prop for animation phase
   ...props 
 }) => {
   const itemRef = useRef(null);
@@ -70,6 +72,13 @@ const CategoryItem = memo(({
 
   const proximityThreshold = 60;
   const borderWidth = 2;
+
+  // Callback to handle selection with element reference
+  const handleSelectWithRef = useCallback(() => {
+    if (onCategorySelect && !isTransitioning) {
+      onCategorySelect(category, itemRef);
+    }
+  }, [category, onCategorySelect, isTransitioning]);
 
   // Mobile-specific effect: Update refs, but DO NOT call setForceUpdate here.
   useEffect(() => {
@@ -351,37 +360,68 @@ const CategoryItem = memo(({
   return (
     <div
       ref={itemRef}
-      className="absolute overflow-visible cursor-pointer select-none"
+      className={`absolute overflow-visible cursor-pointer select-none transition-all ${
+        isSelected && !isTransitioning ? 'z-50' : ''
+      }`}
       style={{
         ...style,
-        transform: `${style.transform || ''} ${isSelected ? 'scale(1.1)' : 'scale(1)'}`, // Apply scale if selected
-        transition: 'transform 0.3s ease-out', // Smooth transition for scaling
-        zIndex: isSelected ? 100 : style.zIndex || 'auto' // Ensure selected card is on top
+        // Apply different transformations based on animation phase
+        transform: `
+          ${style.transform || ''} 
+          ${isSelected && !isTransitioning ? 'scale(1.1)' : 'scale(1)'}
+          ${isSelected && isTransitioning && animationPhase === 1 ? 'scale(1.8)' : ''}
+          ${isSelected && isTransitioning && animationPhase >= 2 ? 'scale(0.01)' : ''}
+        `,
+        opacity: isSelected && isTransitioning && animationPhase >= 2 ? 0 : 1,
+        transition: `transform 0.3s ${isSelected && isTransitioning && animationPhase === 1 ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' : 'ease-out'}, opacity 0.3s ease-in-out`,
+        zIndex: isSelected ? 100 : style.zIndex || 'auto', // Ensure selected card is on top
+        filter: isSelected && isTransitioning && animationPhase === 1 ? 'drop-shadow(0 0 20px rgba(255, 0, 102, 0.7))' : 'none',
       }}
       role="link"
       tabIndex="0"
       aria-label={`دسته‌بندی ${category.name}`}
-      onClick={() => onCategorySelect && onCategorySelect(category)} // Call handler on click
+      onClick={handleSelectWithRef}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          // Potentially trigger navigation or action here
-          console.log(`Category clicked: ${category.name}`);
-          if (onCategorySelect) {
-            onCategorySelect(category);
-          }
+          handleSelectWithRef();
         }
       }}
       {...props}
     >
-      <style jsx="true">{`
+    {/* Apply blur effect to non-selected cards during Phase 1 */}
+    {isTransitioning && !isSelected && animationPhase === 1 && (
+      <div 
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm z-10 rounded-lg"
+        style={{
+          transition: 'all 0.3s ease-out'
+        }}
+      />
+    )}
+
+    <style jsx="true">{`
         @keyframes neonPulse { 0% { opacity: 0.8; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
         @keyframes dashOffset { from { stroke-dashoffset: 30; } to { stroke-dashoffset: 0; } }
+        @keyframes pulseGlow {
+          0% { filter: drop-shadow(0 0 5px rgba(255, 0, 102, 0.5)); }
+          50% { filter: drop-shadow(0 0 15px rgba(255, 0, 102, 0.8)); }
+          100% { filter: drop-shadow(0 0 5px rgba(255, 0, 102, 0.5)); }
+        }
+        
+        .selected-card {
+          animation: pulseGlow 1.5s infinite ease-in-out;
+        }
       `}</style>
       
       <div 
-        className="absolute inset-0 bg-gradient-to-b from-[#1c0b0f] to-black rounded-lg overflow-hidden"
-        style={{ boxShadow: isMobile ? "0 2px 6px rgba(0,0,0,0.3)" : "0 4px 12px rgba(0,0,0,0.3)" }}
+        className={`absolute inset-0 bg-gradient-to-b from-[#1c0b0f] to-black rounded-lg overflow-hidden ${
+          isSelected && isTransitioning && animationPhase === 1 ? 'selected-card' : ''
+        }`}
+        style={{ 
+          boxShadow: isSelected && isTransitioning ? 
+            "0 10px 30px rgba(0,0,0,0.8), 0 0 30px rgba(255,0,102,0.4)" : 
+            isMobile ? "0 2px 6px rgba(0,0,0,0.3)" : "0 4px 12px rgba(0,0,0,0.3)" 
+        }}
       />
       
       <div 
