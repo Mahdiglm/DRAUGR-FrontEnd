@@ -500,9 +500,19 @@ const CategoryItem = ({
       return; // Skip mouse tracking for mobile
     }
     
-    const handleGlobalMouseMove = (e) => {
-      if (!itemRef.current) return;
+    // Keep track of whether an animation frame is already scheduled
+    let animationFrameId = null;
+    // Keep track of the latest mouse event
+    let latestMouseEvent = null;
+    
+    const processMousePosition = () => {
+      // Clear the animation frame ID since we're processing now
+      animationFrameId = null;
       
+      // If there's no mouse event or no ref, exit
+      if (!latestMouseEvent || !itemRef.current) return;
+      
+      const e = latestMouseEvent;
       const rect = itemRef.current.getBoundingClientRect();
       
       // Calculate mouse position relative to item
@@ -606,11 +616,39 @@ const CategoryItem = ({
       }
     };
     
+    const handleGlobalMouseMove = (e) => {
+      // Store the latest mouse event
+      latestMouseEvent = e;
+      
+      // If an animation frame is not already scheduled, schedule one
+      if (!animationFrameId) {
+        animationFrameId = requestAnimationFrame(processMousePosition);
+      }
+    };
+    
     // Add global mouse move listener
     window.addEventListener('mousemove', handleGlobalMouseMove);
     
+    // Also process the position on mouseenter to avoid requiring movement to start the effect
+    const handleMouseEnter = (e) => {
+      latestMouseEvent = e;
+      processMousePosition();
+    };
+    
+    // Add mouseenter listener to the item
+    if (itemRef.current) {
+      itemRef.current.addEventListener('mouseenter', handleMouseEnter);
+    }
+    
     return () => {
       window.removeEventListener('mousemove', handleGlobalMouseMove);
+      if (itemRef.current) {
+        itemRef.current.removeEventListener('mouseenter', handleMouseEnter);
+      }
+      // Cancel any pending animation frame
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
     };
   }, [isNear, proximityThreshold, isMobile]);
   
@@ -881,6 +919,7 @@ const CategoryItem = ({
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
               animation: 'dashOffset 2s linear infinite',
+              animationPlayState: 'running',
             }}
           />
         )}
@@ -898,6 +937,7 @@ const CategoryItem = ({
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
               animation: 'dashOffset 2s linear infinite',
+              animationPlayState: 'running',
             }}
           />
         )}
@@ -915,6 +955,7 @@ const CategoryItem = ({
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
               animation: 'dashOffset 2s linear infinite',
+              animationPlayState: 'running',
             }}
           />
         )}
@@ -932,6 +973,7 @@ const CategoryItem = ({
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
               animation: 'dashOffset 2s linear infinite',
+              animationPlayState: 'running',
             }}
           />
         )}
@@ -948,6 +990,7 @@ const CategoryItem = ({
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
               animation: 'dashOffset 1.8s linear infinite',
+              animationPlayState: 'running',
             }}
           />
         )}
@@ -963,6 +1006,7 @@ const CategoryItem = ({
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
               animation: 'dashOffset 1.8s linear infinite',
+              animationPlayState: 'running',
             }}
           />
         )}
@@ -978,6 +1022,7 @@ const CategoryItem = ({
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
               animation: 'dashOffset 1.8s linear infinite',
+              animationPlayState: 'running',
             }}
           />
         )}
@@ -993,6 +1038,7 @@ const CategoryItem = ({
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
               animation: 'dashOffset 1.8s linear infinite',
+              animationPlayState: 'running',
             }}
           />
         )}
@@ -1014,6 +1060,7 @@ const CategoryItem = ({
               opacity: intensity * 0.7,
               filter: `drop-shadow(0 0 2px #ff0066)`,
               animation: 'dashOffset 1.8s linear infinite',
+              animationPlayState: 'running',
             }}
           />
         )}
