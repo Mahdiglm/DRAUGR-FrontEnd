@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { HashRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import './App.css'
+import './flowbite-overrides.css'
 
 // Set default scroll behavior for the entire application
 document.documentElement.style.scrollBehavior = 'smooth';
@@ -15,6 +16,7 @@ if (typeof window !== 'undefined') {
 // Add this to ensure the body has proper background color
 if (typeof document !== 'undefined') {
   document.body.classList.add('theme-draugr');
+  document.body.classList.add('dark');
   document.body.style.backgroundColor = '#121212';
   // Force apply critical styles directly
   document.body.style.color = 'rgba(255, 255, 255, 0.9)';

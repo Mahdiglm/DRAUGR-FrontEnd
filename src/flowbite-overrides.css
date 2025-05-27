@@ -1,0 +1,109 @@
+/* Flowbite overrides to maintain horror theme */
+
+/* Dark mode preferences */
+.dark, [data-mode="dark"] {
+  --bg-opacity: 1;
+  background-color: #121212;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Buttons */
+.btn-primary, .bg-primary, button[type="submit"], 
+.dark button[type="submit"],
+.dark .btn-primary {
+  background-color: #8B0000 !important;
+  border-color: #660000 !important;
+}
+
+.btn-primary:hover, .bg-primary:hover, button[type="submit"]:hover,
+.dark button[type="submit"]:hover,
+.dark .btn-primary:hover {
+  background-color: #660000 !important;
+  border-color: #330000 !important;
+}
+
+/* Alerts */
+.alert-danger, .bg-red-100, .text-red-700 {
+  background-color: rgba(139, 0, 0, 0.1) !important;
+  color: #ff6666 !important;
+  border-color: rgba(139, 0, 0, 0.2) !important;
+}
+
+/* Cards */
+.card, .bg-white, .dark .bg-gray-800 {
+  background-color: #1a1a1a !important;
+  border-color: #333333 !important;
+}
+
+/* Inputs */
+input[type="text"], input[type="email"], input[type="password"], textarea, select,
+.dark input[type="text"], .dark input[type="email"], .dark input[type="password"], 
+.dark textarea, .dark select {
+  background-color: #1c1c1c !important;
+  border-color: #333333 !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus, 
+textarea:focus, select:focus,
+.dark input[type="text"]:focus, .dark input[type="email"]:focus, 
+.dark input[type="password"]:focus, .dark textarea:focus, .dark select:focus {
+  border-color: #8B0000 !important;
+  box-shadow: 0 0 0 1px #8B0000 !important;
+}
+
+/* Dropdowns */
+.dropdown-menu, .dropdown-content {
+  background-color: #1a1a1a !important;
+  border-color: #333333 !important;
+}
+
+.dropdown-item:hover, .dropdown-content a:hover {
+  background-color: #333333 !important;
+  color: #ff0000 !important;
+}
+
+/* Modals */
+.modal, .modal-content {
+  background-color: #1a1a1a !important;
+  border-color: #333333 !important;
+}
+
+.modal-header, .modal-footer {
+  border-color: #333333 !important;
+}
+
+/* Tables */
+table, .table {
+  background-color: #1a1a1a !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+th, td, .table th, .table td {
+  border-color: #333333 !important;
+}
+
+/* Fix for specific horror theme colors */
+.draugr-red {
+  color: #8B0000 !important;
+}
+
+.bg-draugr-red {
+  background-color: #8B0000 !important;
+}
+
+.text-draugr-accent-red {
+  color: #ff0000 !important;
+}
+
+.bg-midnight {
+  background-color: #121212 !important;
+}
+
+.bg-charcoal {
+  background-color: #1c1c1c !important;
+}
+
+.text-blood {
+  color: #8B0000 !important;
+} 

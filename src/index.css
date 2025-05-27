@@ -1,9 +1,10 @@
-/* Import Flowbite's base styles */
-@import "flowbite/dist/flowbite.css";
-
+/* Base Tailwind directives first */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Import Flowbite's styles after our base */
+@import "flowbite/dist/flowbite.css";
 
 :root {
   font-family: 'Vazirmatn', system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -143,19 +144,19 @@ button:focus-visible {
 /* Horror-specific styles */
 @layer components {
   .horror-card {
-    @apply bg-midnight border border-draugr-900 shadow-horror transition-all duration-300;
+    @apply bg-midnight border border-draugr-900 shadow-horror transition-all duration-300 !important;
   }
   
   .horror-input {
-    @apply bg-charcoal border border-gray-800 text-white focus:border-draugr-500 focus:ring-1 focus:ring-draugr-500 transition-all duration-300;
-}
+    @apply bg-charcoal border border-gray-800 text-white focus:border-draugr-500 focus:ring-1 focus:ring-draugr-500 transition-all duration-300 !important;
+  }
 
   .horror-button {
-    @apply bg-gradient-to-r from-draugr-900 to-draugr-700 text-white hover:from-draugr-800 hover:to-draugr-600 transform hover:scale-105 transition-all duration-300;
+    @apply bg-gradient-to-r from-draugr-900 to-draugr-700 text-white hover:from-draugr-800 hover:to-draugr-600 transform hover:scale-105 transition-all duration-300 !important;
   }
   
   .blood-text {
-    @apply text-draugr-500 font-bold text-shadow-horror;
+    @apply text-draugr-500 font-bold text-shadow-horror !important;
   }
   
   /* 3D card effect */
