@@ -74,7 +74,7 @@ const useMobileDetection = () => {
 const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = null, title = "دسته‌بندی‌ها", subtitle = "مجموعه‌ای از محصولات منحصر به فرد در دسته‌بندی‌های مختلف" }) => {
   const containerRef = useRef(null);
   const beltRef = useRef(null);
-  const [categoryItemsState, setCategoryItemsState] = useState([]); // Renamed to avoid conflict
+  const [categoryItems, setCategoryItems] = useState([]);
   const [speed, setSpeed] = useState(1); // pixels per frame
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [isTransitioning, setIsTransitioning] = useState(false); // Animation state
@@ -103,16 +103,6 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
   const navigatingCategoryRef = useRef(null);
   const isActiveTransitionRef = useRef(false); // Ref to track active transition for scrolling animation
   
-  // New state for managing the transition overlay
-  const [transitionTriggerData, setTransitionTriggerData] = useState({
-    category: null,
-    cardRect: null,
-    isActive: false,
-  });
-  
-  // Ref to control scrolling animation pause
-  const pauseScrollingRef = useRef(false);
-  
   // Get the appropriate card dimensions based on device
   const getCardDimensions = useCallback(() => {
     return {
@@ -126,30 +116,18 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
   
   // Create animation frame handler with performance optimizations
   const animate = useCallback((timestamp) => {
-    // Use pauseScrollingRef to control animation loop
-    if (document.hidden || pauseScrollingRef.current) {
-      if (pauseScrollingRef.current && animationRef.current) {
-        // If scrolling is paused, ensure we cancel the frame
+    if (document.hidden || isActiveTransitionRef.current) { // Use ref here
+      if (isActiveTransitionRef.current && animationRef.current) {
         cancelAnimationFrame(animationRef.current);
         animationRef.current = null;
-        debugLog("Scroll animation PAUSED due to active transition.");
-      } else if (document.hidden && !animationRef.current) {
-        // If tab is hidden and animation not running, try to request a frame for when it becomes visible
+      } else if (document.hidden) {
         animationRef.current = requestAnimationFrame(animate);
       }
       return;
     }
     
-    if (!animationRef.current && !pauseScrollingRef.current && !document.hidden){
-        // If animation isn't scheduled but should be running
-        animationRef.current = requestAnimationFrame(animate);
-        return; // Exit and let the new frame handle it
-    }
-
     if (!lastTimestampRef.current) {
       lastTimestampRef.current = timestamp;
-      animationRef.current = requestAnimationFrame(animate); // Ensure next frame is scheduled
-      return;
     }
     
     // If too much time has passed (e.g., after tab switch), limit delta
@@ -167,7 +145,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
     const exactTotalWidth = cardWidth + cardSpacing;
     
     // Move each item based on direction
-    setCategoryItemsState(prevItems => {
+    setCategoryItems(prevItems => {
       // Safety check - if we somehow lost all items, refill
       if (prevItems.length === 0) {
         const containerWidth = containerRef.current?.offsetWidth || 1000;
@@ -176,10 +154,9 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
         const initialItems = [];
         for (let i = 0; i < itemsNeeded; i++) {
           const categoryIndex = i % categoriesData.length;
-          const category = categoriesData[categoryIndex];
           initialItems.push({
             id: nextIdRef.current++,
-            category: category,
+            category: categoriesData[categoryIndex],
             positionX: i * exactTotalWidth,
             // For mobile, initialize highlight states less frequently
             mobileHighlight: isMobileDevice ? (Math.random() < 0.15) : false,
@@ -193,7 +170,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
         return initialItems;
       }
       
-      const moveAmount = speed * deltaTime / 16 * performanceMultiplier;
+      const moveAmount = speed * deltaTime / 16 * performanceMultiplier; // normalize to ~60fps and apply performance factor
       const moveDirection = direction === "rtl" ? -1 : 1; // Negative = right to left, Positive = left to right
       
       // Bundle updates by calculating all positions at once
@@ -284,12 +261,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
       return filteredItems;
     });
     
-    // Schedule next frame if not paused
-    if (!pauseScrollingRef.current) {
-      animationRef.current = requestAnimationFrame(animate);
-    } else {
-      animationRef.current = null; // Ensure it's cleared if paused
-    }
+    animationRef.current = requestAnimationFrame(animate);
   }, [speed, direction, categoriesData, isMobileDevice, getCardDimensions]);
   
   // Initialize category items
@@ -305,7 +277,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
     const itemsNeeded = Math.ceil(containerWidth / exactTotalWidth) + 4; // +4 for buffer
     
     // If we already have items, maintain their current positions
-    if (categoryItemsState.length > 0 && wasVisibleRef.current) {
+    if (categoryItems.length > 0 && wasVisibleRef.current) {
       return; // Don't refill if there are already items and the tab was visible
     }
     
@@ -314,10 +286,9 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
     
     for (let i = 0; i < itemsNeeded; i++) {
       const categoryIndex = i % categoriesData.length;
-      const category = categoriesData[categoryIndex];
       initialItems.push({
         id: nextIdRef.current++,
-        category: category,
+        category: categoriesData[categoryIndex],
         positionX: i * exactTotalWidth,
         // For mobile, initialize highlight states less frequently
         mobileHighlight: isMobileDevice ? (Math.random() < 0.15) : false, // Reduced from 0.3
@@ -327,14 +298,9 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
       });
     }
     
-    setCategoryItemsState(initialItems);
+    setCategoryItems(initialItems);
     itemsStateRef.current = initialItems;
-
-    // Start animation loop
-    if (!pauseScrollingRef.current) {
-        animationRef.current = requestAnimationFrame(animate);
-    }
-  }, [categoryItemsState, categoriesData, isMobileDevice, getCardDimensions]);
+  }, [categoryItems, categoriesData, isMobileDevice, getCardDimensions]);
   
   // Start and manage the animation
   useEffect(() => {
@@ -373,7 +339,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
           lastTimestampRef.current = 0; // Reset timestamp to avoid huge jumps
           
           // If no items are showing or positions are wrong, refill the belt
-          if (categoryItemsState.length === 0) {
+          if (categoryItems.length === 0) {
             fillBelt();
           }
           
@@ -392,7 +358,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [animate, categoryItemsState, fillBelt, selectedCategory]);
+  }, [animate, categoryItems, fillBelt, selectedCategory]);
   
   useEffect(() => {
     // Initial setup
@@ -455,16 +421,11 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
 
   // Handle keyboard navigation
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      const focusedItem = document.activeElement;
-      if (focusedItem && focusedItem.dataset.categoryId) {
-        const categoryId = focusedItem.dataset.categoryId;
-        const category = categoriesData.find(cat => cat.id.toString() === categoryId);
-        if (category) {
-          const cardEl = focusedItem; // The focused item is the card element
-          handleCategorySelect(category, cardEl);
-        }
-      }
+    // Adjust speed with arrow keys
+    if (e.key === 'ArrowLeft') {
+      setSpeed(currentSpeed => currentSpeed * 0.8);
+    } else if (e.key === 'ArrowRight') {
+      setSpeed(currentSpeed => currentSpeed * 1.2);
     }
   };
 
@@ -486,39 +447,83 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
     debugLog("All transition states reset including isActiveTransitionRef");
   }, []);
 
-  const handleCategorySelect = useCallback((category, cardElement) => {
-    if (!cardElement) {
-      debugLog("Error: Card element not provided for selection.", { category });
-      return;
+  const handleCategorySelect = useCallback((category, itemElement) => {
+    try {
+      const now = Date.now();
+      const timeSinceLastTransition = now - transitionStartTimeRef.current;
+      const MIN_TRANSITION_INTERVAL = 2500; // Increased interval slightly
+
+      if (navigationInProgressRef.current || 
+          (transitionInitiatedRef.current && timeSinceLastTransition < MIN_TRANSITION_INTERVAL) || // More robust check
+          (isTransitioning && timeSinceLastTransition < MIN_TRANSITION_INTERVAL) 
+      ) {
+        debugLog("Ignoring category selection due to active/recent transition or navigation", { 
+          navInProgress: navigationInProgressRef.current,
+          transitionInitiated: transitionInitiatedRef.current,
+          isTrans: isTransitioning,
+          timeSinceLast: timeSinceLastTransition
+        });
+        return;
+      }
+      
+      // If a transition is technically ongoing but the MIN_TRANSITION_INTERVAL has passed,
+      // allow a reset and new selection.
+      if (isTransitioning || animationPhase !== 0) {
+         debugLog("Resetting existing (possibly stale) animation state before new selection");
+         resetAllTransitionStates();
+      }
+      
+      transitionInitiatedRef.current = true;
+      isActiveTransitionRef.current = true; // Set ref here
+      transitionStartTimeRef.current = now;
+      
+      debugLog("Category selected", { category: category.slug });
+      
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+        debugLog("Scrolling animation stopped for transition");
+      }
+      
+      if (itemElement && itemElement.current) {
+        const rect = itemElement.current.getBoundingClientRect();
+        setSelectedItemRect(rect);
+      } else {
+        debugLog("⚠️ Failed to capture card position");
+      }
+      
+      setSelectedCategory(category);
+      navigatingCategoryRef.current = category;
+      setIsTransitioning(true); 
+      setAnimationPhase(1); 
+      
+      debugLog("Transition initiated in CategoryRows");
+    } catch (error) {
+      console.error("Error in handleCategorySelect:", error);
+      resetAllTransitionStates();
     }
-    const rect = cardElement.getBoundingClientRect();
-    debugLog("Category selected, preparing for transition:", { slug: category.slug, rect });
-    
-    // Pause scrolling animation by setting the ref
-    pauseScrollingRef.current = true;
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
-      animationRef.current = null;
-    }
-    
-    setTransitionTriggerData({
-      category: category,
-      cardRect: { // Pass a plain object for cardRect
-        top: rect.top,
-        left: rect.left,
-        width: rect.width,
-        height: rect.height,
-      },
-      isActive: true,
-    });
-  }, []);
+  }, [resetAllTransitionStates, animationPhase, isTransitioning]);
   
   const safetyTimeoutRef = useRef(null);
 
-  const handleTransitionComplete = useCallback(() => {
+  const handleTransitionComplete = useCallback(({ stage, keepAnimationAlive, canceled }) => {
     try {
-      if (navigationInProgressRef.current) {
+      if (navigationInProgressRef.current && !canceled) {
         debugLog("Navigation already in progress, ignoring duplicate call to handleTransitionComplete");
+        return;
+      }
+      
+      // Handle cancellation (user unselected the category)
+      if (canceled) {
+        debugLog("Transition was canceled by user, resetting state");
+        resetAllTransitionStates();
+        
+        // Restart the continuous animation
+        if (!animationRef.current) {
+          debugLog("Restarting continuous animation after cancellation");
+          lastTimestampRef.current = 0;
+          animationRef.current = requestAnimationFrame(animate);
+        }
         return;
       }
       
@@ -618,37 +623,6 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
     };
   }, [isTransitioning, selectedCategory, animationPhase, handleTransitionComplete, resetAllTransitionStates]);
 
-  useEffect(() => {
-    // Update pauseScrollingRef when transitionTriggerData.isActive changes
-    pauseScrollingRef.current = transitionTriggerData.isActive;
-    if (!transitionTriggerData.isActive && !animationRef.current) {
-      // If transition ended and animation isn't running, restart it
-      debugLog("Transition ended, attempting to restart scroll animation.");
-      lastTimestampRef.current = 0; // Reset timestamp to avoid jump
-      animationRef.current = requestAnimationFrame(animate);
-    }
-  }, [transitionTriggerData.isActive]);
-
-  // Memoized CategoryItems for performance
-  const memoizedCategoryItems = React.useMemo(() => {
-    const { cardWidth, rowHeight, cardSpacing } = getCardDimensions();
-    return categoryItemsState.map((item, index) => ( // Use renamed state
-      <CategoryItem
-        key={item.id}
-        category={item.category}
-        cardWidth={cardWidth}
-        rowHeight={rowHeight}
-        cardSpacing={cardSpacing}
-        direction={direction}
-        isMobile={isMobileDevice}
-        onCategorySelect={(category, cardEl) => handleCategorySelect(category, cardEl)} // Pass handler
-        // Determine if this item is the one selected OR if another is selected
-        isSelectedForTransition={transitionTriggerData.isActive && transitionTriggerData.category?.id === item.category.id}
-        isAnotherItemSelected={transitionTriggerData.isActive && transitionTriggerData.category?.id !== item.category.id}
-      />
-    ));
-  }, [categoryItemsState, getCardDimensions, direction, isMobileDevice, handleCategorySelect, transitionTriggerData]); // Added dependencies
-
   return (
     <div 
       className={`py-2 sm:py-3 md:py-4 w-screen min-w-full max-w-none relative overflow-hidden mx-0 px-0 ${isMobileDevice ? 'category-row-mobile' : ''}`}
@@ -701,16 +675,40 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
             height: `${rowHeight}px`
           }}
         >
-          {memoizedCategoryItems}
+          {categoryItems.map(item => (
+            <CategoryItem 
+              key={item.id} 
+              category={item.category}
+              style={{
+                position: 'absolute',
+                left: 0,
+                transform: `translateX(${item.positionX}px)`,
+                width: `${cardWidth}px`,
+                height: `${rowHeight}px`
+              }}
+              cardWidth={cardWidth}
+              cardHeight={rowHeight}
+              isMobile={isMobileDevice}
+              mobileHighlight={item.mobileHighlight}
+              mobileHighlightEdge={item.mobileHighlightEdge}
+              mobileHighlightIntensity={item.mobileHighlightIntensity}
+              mobileHighlightPosition={item.mobileHighlightPosition}
+              onCategorySelect={handleCategorySelect}
+              isSelected={selectedCategory && selectedCategory.id === item.category.id}
+              isTransitioning={isTransitioning}
+              animationPhase={animationPhase}
+            />
+          ))}
         </div>
       </div>
       
       <TransitionOverlay
-        isActive={transitionTriggerData.isActive}
-        selectedCategoryData={transitionTriggerData.isActive ? { category: transitionTriggerData.category, cardRect: transitionTriggerData.cardRect } : null}
-        onTransitionEnd={handleTransitionComplete}
-        // Optionally pass theme color if needed by overlay early on
-        // shopPageThemeColor={transitionTriggerData.category?.themeColor}
+        isActive={isTransitioning}
+        selectedCategory={selectedCategory}
+        selectedCardRect={selectedItemRect}
+        onTransitionComplete={handleTransitionComplete}
+        phase={animationPhase}
+        setPhase={setAnimationPhase}
       />
     </div>
   );
