@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useOutletContext, useLocation } from 'react-router-dom';
+import { useOutletContext, useLocation, useSearchParams } from 'react-router-dom';
 
 import ProductCard from '../product/ProductCard';
 import { products, categories } from '../../utils/mockData';
@@ -235,6 +235,8 @@ const productItemVariants = {
 const ShopPage = () => {
   const { addToCart } = useOutletContext();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const [isEnteringFromTransition, setIsEnteringFromTransition] = useState(false);
   
   // NEW: skeleton loading state
   const [isLoading, setIsLoading] = useState(true);
@@ -453,7 +455,24 @@ const ShopPage = () => {
     }, 500);
     return () => clearTimeout(timer);
   }, [searchTerm]);
-  
+
+  // Detect if we're coming from a category transition
+  useEffect(() => {
+    const category = searchParams.get('category');
+    if (category) {
+      setIsEnteringFromTransition(true);
+      setSelectedCategories(prev => {
+        if (prev.includes(category)) return prev;
+        return [...prev, category];
+      });
+      
+      // Simulate transition completion after animation duration
+      setTimeout(() => {
+        setIsEnteringFromTransition(false);
+      }, 800);
+    }
+  }, [searchParams, selectedCategories]);
+
   return (
     <motion.section
       initial={{ opacity: 0 }}
@@ -545,7 +564,7 @@ const ShopPage = () => {
                   />
                   <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9 14h6" />
                     </svg>
                   </span>
                 </div>
@@ -1120,6 +1139,21 @@ const ShopPage = () => {
                 </motion.button>
               </div>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Entry Animation: Match the TransitionOverlay exit animation */}
+      <AnimatePresence>
+        {isEnteringFromTransition && (
+          <motion.div
+            className="fixed inset-0 z-40 pointer-events-none"
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="absolute inset-0 bg-black" />
           </motion.div>
         )}
       </AnimatePresence>
