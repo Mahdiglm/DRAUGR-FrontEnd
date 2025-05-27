@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // TransitionOverlay handles the cinematic animation sequence when transitioning
@@ -12,11 +12,19 @@ const TransitionOverlay = ({
   setPhase
 }) => {
   const [progress, setProgress] = useState(0);
+  const hasCompletedRef = useRef(false);
+  
+  // Reset completion flag when component becomes inactive
+  useEffect(() => {
+    if (!isActive) {
+      hasCompletedRef.current = false;
+      setProgress(0);
+    }
+  }, [isActive]);
   
   // Track animation progress for coordinated effects
   useEffect(() => {
     if (!isActive) {
-      setProgress(0);
       return;
     }
     
@@ -42,8 +50,9 @@ const TransitionOverlay = ({
       // Continue animation until complete
       if (newProgress < 1) {
         animationFrame = requestAnimationFrame(animateProgress);
-      } else {
-        // Animation complete
+      } else if (!hasCompletedRef.current) {
+        // Animation complete - ensure we only call this once
+        hasCompletedRef.current = true;
         onTransitionComplete && onTransitionComplete();
       }
     };
