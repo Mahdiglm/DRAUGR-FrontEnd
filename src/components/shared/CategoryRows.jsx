@@ -7,6 +7,7 @@
 
 import React, { useRef, useEffect, useState, useCallback, memo } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { categories, additionalCategories } from '../../utils/mockData';
 import { getOptimizedAnimationSettings } from '../../utils/animationHelpers';
 import CategoryItem from './CategoryItem'; // Moved to separate component
@@ -67,11 +68,13 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
   const beltRef = useRef(null);
   const [categoryItems, setCategoryItems] = useState([]);
   const [speed, setSpeed] = useState(1); // pixels per frame
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const isMobileDevice = useMobileDetection();
   const animationRef = useRef(null);
   const lastTimestampRef = useRef(0);
   const wasVisibleRef = useRef(true);
   const itemsStateRef = useRef([]); // Reference to keep track of items state for visibility changes
+  const navigate = useNavigate();
   
   // Track the next ID for new items
   const nextIdRef = useRef(1);
@@ -98,9 +101,14 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
   
   // Create animation frame handler with performance optimizations
   const animate = useCallback((timestamp) => {
-    // Skip animation if tab is not visible
-    if (document.hidden) {
-      animationRef.current = requestAnimationFrame(animate);
+    // Skip animation if tab is not visible or a category is selected
+    if (document.hidden || selectedCategory) {
+      if (selectedCategory && animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      } else if (document.hidden) {
+        animationRef.current = requestAnimationFrame(animate);
+      }
       return;
     }
     
@@ -240,7 +248,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
     });
     
     animationRef.current = requestAnimationFrame(animate);
-  }, [speed, direction, categoriesData, isMobileDevice, getCardDimensions]);
+  }, [speed, direction, categoriesData, isMobileDevice, getCardDimensions, selectedCategory]);
   
   // Initialize category items
   const fillBelt = useCallback(() => {
@@ -285,8 +293,10 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
     // Use slower speed on mobile
     setSpeed(isMobileDevice ? defaultSpeed * 0.8 : defaultSpeed);
     
-    // Start animation
-    animationRef.current = requestAnimationFrame(animate);
+    // Start animation only if no category is selected
+    if (!selectedCategory) {
+      animationRef.current = requestAnimationFrame(animate);
+    }
     
     // Clean up animation
     return () => {
@@ -294,7 +304,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [animate, defaultSpeed, isMobileDevice]);
+  }, [animate, defaultSpeed, isMobileDevice, selectedCategory]);
   
   // Handle tab visibility changes
   useEffect(() => {
@@ -320,7 +330,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
           }
           
           // Restart animation
-          if (!animationRef.current) {
+          if (!animationRef.current && !selectedCategory) {
             animationRef.current = requestAnimationFrame(animate);
           }
         }
@@ -334,7 +344,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [animate, categoryItems, fillBelt]);
+  }, [animate, categoryItems, fillBelt, selectedCategory]);
   
   useEffect(() => {
     // Initial setup
@@ -404,6 +414,19 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
       setSpeed(currentSpeed => currentSpeed * 1.2);
     }
   };
+
+  const handleCategorySelect = useCallback((category) => {
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
+    }
+    setSelectedCategory(category);
+    // Navigate to shop page with category slug
+    // Adding a short delay to allow the scale animation to be visible
+    setTimeout(() => {
+        navigate(`/shop?category=${category.slug}`);
+    }, 300); // Corresponds to animation duration
+  }, [navigate]);
 
   return (
     <div 
@@ -475,6 +498,8 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
               mobileHighlightEdge={item.mobileHighlightEdge}
               mobileHighlightIntensity={item.mobileHighlightIntensity}
               mobileHighlightPosition={item.mobileHighlightPosition}
+              onCategorySelect={handleCategorySelect}
+              isSelected={selectedCategory && selectedCategory.id === item.category.id}
             />
           ))}
         </div>
