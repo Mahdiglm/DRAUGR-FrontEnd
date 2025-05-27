@@ -115,6 +115,29 @@ const TransitionOverlay = ({
   };
 
   /**
+   * Cancel the transition and reset animation
+   */
+  const cancelTransition = () => {
+    debugLog("Transition canceled by user");
+    
+    // Clean up all animation resources
+    cleanupAnimationResources();
+    
+    // Signal the parent that the transition was canceled
+    if (typeof onTransitionComplete === 'function') {
+      onTransitionComplete({ stage: 'canceled', keepAnimationAlive: false, canceled: true });
+    }
+    
+    // Reset internal state
+    setIsOutroActive(false);
+    setCurrentPhase(0);
+    setPhaseProgress(0);
+    hasCompletedRef.current = true;
+    notifiedPageChangeRef.current = true;
+    notifiedAnimationCompleteRef.current = true;
+  };
+
+  /**
    * Complete the transition and notify parent component
    */
   const completeTransition = () => {
@@ -327,6 +350,29 @@ const TransitionOverlay = ({
           }}
           transition={{ duration: 0.4 }}
         />
+        
+        {/* Cancel button - visible until phase 3 completes */}
+        {!isOutroActive && (
+          <motion.button
+            className="fixed top-6 right-6 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 z-50 flex items-center justify-center group transition-all duration-300"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            onClick={cancelTransition}
+            aria-label="Cancel selection"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            
+            {/* Tooltip on hover */}
+            <span className="absolute opacity-0 group-hover:opacity-100 right-full mr-2 whitespace-nowrap bg-black/90 text-white px-2 py-1 rounded text-sm transition-opacity duration-200">
+              لغو انتخاب
+            </span>
+          </motion.button>
+        )}
         
         {/* Atmospheric mist effects */}
         <div className="absolute inset-0 pointer-events-none">
