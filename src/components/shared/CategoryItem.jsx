@@ -50,6 +50,8 @@ const CategoryItem = memo(({
   mobileHighlightEdge = 'top',
   mobileHighlightIntensity = 0.5,
   mobileHighlightPosition = 0.5,
+  onCategorySelect, // Added prop
+  isSelected, // Added prop
   ...props 
 }) => {
   const itemRef = useRef(null);
@@ -350,15 +352,24 @@ const CategoryItem = memo(({
     <div
       ref={itemRef}
       className="absolute overflow-visible cursor-pointer select-none"
-      style={style}
+      style={{
+        ...style,
+        transform: `${style.transform || ''} ${isSelected ? 'scale(1.1)' : 'scale(1)'}`, // Apply scale if selected
+        transition: 'transform 0.3s ease-out', // Smooth transition for scaling
+        zIndex: isSelected ? 100 : style.zIndex || 'auto' // Ensure selected card is on top
+      }}
       role="link"
       tabIndex="0"
       aria-label={`دسته‌بندی ${category.name}`}
+      onClick={() => onCategorySelect && onCategorySelect(category)} // Call handler on click
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           // Potentially trigger navigation or action here
           console.log(`Category clicked: ${category.name}`);
+          if (onCategorySelect) {
+            onCategorySelect(category);
+          }
         }
       }}
       {...props}
