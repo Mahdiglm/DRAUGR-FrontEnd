@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState, memo, useCallback } from 'react';
+import { motion } from 'framer-motion'; // Added for potential future use, not strictly needed for current changes
 
 /**
  * CategoryItem Component
@@ -53,7 +54,7 @@ const CategoryItem = memo(({
   onCategorySelect, // Added prop
   isSelected, // Added prop
   isTransitioning, // New prop for animation
-  animationPhase, // New prop for animation phase
+  visualPhase, // Renamed from animationPhase for clarity, maps from CategoryRows' currentVisualPhase
   ...props 
 }) => {
   const itemRef = useRef(null);
@@ -75,14 +76,14 @@ const CategoryItem = memo(({
 
   // Callback to handle selection with element reference
   const handleSelectWithRef = useCallback(() => {
-    if (onCategorySelect && !isTransitioning) {
-      onCategorySelect(category, itemRef);
+    if (onCategorySelect && !isTransitioning && itemRef.current) {
+      onCategorySelect(itemRef.current);
     }
-  }, [category, onCategorySelect, isTransitioning]);
+  }, [onCategorySelect, isTransitioning]);
 
   // Mobile-specific effect: Update refs, but DO NOT call setForceUpdate here.
   useEffect(() => {
-    if (isMobile) {
+    if (isMobile || (isTransitioning && !isSelected)) {
       animatedValuesRef.current = {
         intensity: mobileHighlight ? mobileHighlightIntensity : 0,
         position: mobileHighlight ? mobileHighlightPosition : 0.5,
@@ -92,7 +93,7 @@ const CategoryItem = memo(({
       // No setForceUpdate here
     }
     // When isMobile becomes false, the desktop useEffect will handle re-initializing the animation state.
-  }, [isMobile, mobileHighlight, mobileHighlightEdge, mobileHighlightIntensity, mobileHighlightPosition]);
+  }, [isMobile, mobileHighlight, mobileHighlightEdge, mobileHighlightIntensity, mobileHighlightPosition, isTransitioning, isSelected]);
 
   // Main hover animation effect for non-mobile devices
   useEffect(() => {
@@ -107,7 +108,7 @@ const CategoryItem = memo(({
     }
 
     const processHoverState = () => {
-      if (!itemRef.current || document.hidden) {
+      if (!itemRef.current || document.hidden || (isTransitioning && !isSelected)) {
         animationFrameIdRef.current = requestAnimationFrame(processHoverState);
         return;
       }
@@ -205,7 +206,7 @@ const CategoryItem = memo(({
         animationFrameIdRef.current = null;
       }
     };
-  }, [isMobile, proximityThreshold, cardWidth, cardHeight]); // Added cardWidth, cardHeight
+  }, [isMobile, proximityThreshold, cardWidth, cardHeight, isTransitioning, isSelected]); // Added cardWidth, cardHeight
   
   const getPositionAlongEdge = (edge, x, y, width, height) => {
     // Ensure height is not zero to prevent division by zero
@@ -226,7 +227,7 @@ const CategoryItem = memo(({
 
   const renderBorderSegments = () => {
     const { intensity, position, edge } = animatedValuesRef.current;
-    if (intensity < MIN_INTENSITY_FOR_RENDER) return null;
+    if (intensity < MIN_INTENSITY_FOR_RENDER || (isTransitioning && !isSelected)) return null;
     
     const glowColor = '#ff0066';
     // Use raw intensity (can be > 1) for more dramatic scaling of visual elements
@@ -280,7 +281,10 @@ const CategoryItem = memo(({
 
   const renderCircuitTrace = () => {
     const { intensity, position, edge } = animatedValuesRef.current;
-    if (intensity < MIN_INTENSITY_FOR_RENDER) return null;
+    const traceIntensityThreshold = 0.2;
+    if (intensity < traceIntensityThreshold || !edge || (isTransitioning && !isSelected)) {
+      return null;
+    }
     const simplifiedForMobile = isMobile;
     const visualScale = intensity; // Use raw intensity for scaling SVG elements
     const opacity = Math.min(1, intensity); // Opacity capped at 1
@@ -360,101 +364,56 @@ const CategoryItem = memo(({
   return (
     <div
       ref={itemRef}
-      className={`absolute overflow-visible cursor-pointer select-none transition-all ${
-        isSelected && !isTransitioning ? 'z-50' : ''
-      }`}
+      className={`category-item relative rounded-lg overflow-hidden cursor-pointer 
+                  border-2 border-transparent group transition-all duration-300 ease-out`}
       style={{
         ...style,
-        // Apply different transformations based on animation phase - use simple transforms that won't fail
-        transform: `
-          ${style.transform || ''} 
-          ${isSelected && !isTransitioning ? 'scale(1.1)' : ''}
-          ${isSelected && isTransitioning && animationPhase === 1 ? 'scale(1.15)' : ''}
-          ${isSelected && isTransitioning && animationPhase >= 2 ? 'scale(0.01)' : ''}
-        `,
-        opacity: isSelected && isTransitioning && animationPhase >= 2 ? 0 : 1,
-        transition: `transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease-in-out`,
-        zIndex: isSelected ? 100 : style.zIndex || 'auto', // Ensure selected card is on top
-        filter: isSelected && isTransitioning && animationPhase === 1 ? 'drop-shadow(0 0 15px rgba(255, 0, 0, 0.6))' : 'none',
-        pointerEvents: isTransitioning ? 'none' : 'auto', // Disable interactions during transition
-        visibility: isSelected && isTransitioning && animationPhase >= 2 ? 'hidden' : 'visible', // Hide completely in later phases
+        width: `${cardWidth}px`, 
+        minWidth: `${cardWidth}px`, // ensure it doesn't shrink
+        height: cardHeight ? `${cardHeight}px` : 'auto',
+        // Perspective for 3D hover (optional, can be intensive)
+        // perspective: '1000px',
+        WebkitTapHighlightColor: 'transparent', // Remove tap highlight on mobile
+        filter: (isTransitioning && !isSelected) ? 'blur(5px) brightness(0.5)' : 'none',
+        transform: (isTransitioning && !isSelected) ? 'scale(0.92)' : 'scale(1)',
+        transition: 'filter 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease-out',
+        opacity: (isTransitioning && !isSelected && visualPhase > 0) ? 0 : 1, // Fade out non-selected items once transition starts
+        pointerEvents: isTransitioning ? 'none' : 'auto', // Disable interactions during transition for all items
       }}
-      role="link"
-      tabIndex="0"
-      aria-label={`دسته‌بندی ${category.name}`}
       onClick={handleSelectWithRef}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          handleSelectWithRef();
-        }
-      }}
+      onFocus={() => { /* Can add focus effects */ }}
+      onBlur={() => { /* Can remove focus effects */ }}
+      role="button"
+      tabIndex={0} // Make it focusable
+      aria-label={`Select category: ${category.name}`}
       {...props}
     >
-    {/* Apply blur effect to non-selected cards during Phase 1 */}
-    {isTransitioning && !isSelected && animationPhase === 1 && (
-      <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-md z-10 rounded-lg"
+      {/* Background Image / Video */}
+      <div
+        className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center p-3 md:p-4 transition-opacity duration-300 ease-in-out"
         style={{
-          transition: 'all 0.3s ease-out'
+          backgroundColor: 'rgba(0,0,0,0.4)', // Slightly darker overlay for better text contrast
+          opacity: (isMobile || animatedValuesRef.current.intensity > 0.1 || isSelected) ? 1 : 0,
+          transition: 'opacity 0.3s ease-in-out' // Smooth transition for opacity
         }}
-      />
-    )}
-
-    <style jsx="true">{`
-        @keyframes neonPulse { 0% { opacity: 0.8; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
-        @keyframes dashOffset { from { stroke-dashoffset: 30; } to { stroke-dashoffset: 0; } }
-        @keyframes pulseGlow {
-          0% { filter: drop-shadow(0 0 5px rgba(255, 0, 102, 0.5)); }
-          50% { filter: drop-shadow(0 0 15px rgba(255, 0, 102, 0.8)); }
-          100% { filter: drop-shadow(0 0 5px rgba(255, 0, 102, 0.5)); }
-        }
-        
-        .selected-card {
-          animation: pulseGlow 1.5s infinite ease-in-out;
-        }
-      `}</style>
-      
-      <div 
-        className={`absolute inset-0 bg-gradient-to-b from-[#1c0b0f] to-black rounded-lg overflow-hidden ${
-          isSelected && isTransitioning && animationPhase === 1 ? 'selected-card' : ''
-        }`}
-        style={{ 
-          boxShadow: isSelected && isTransitioning ? 
-            "0 10px 30px rgba(0,0,0,0.8), 0 0 30px rgba(255,0,102,0.4)" : 
-            isMobile ? "0 2px 6px rgba(0,0,0,0.3)" : "0 4px 12px rgba(0,0,0,0.3)" 
-        }}
-      />
-      
-      <div 
-        className="absolute inset-0 rounded-lg pointer-events-none"
-        style={{ border: '1px solid rgba(100, 20, 30, 0.4)' }}
-      />
-      
-      {renderBorderSegments()}
-      {renderCircuitTrace()}
-      
-      <div className={`relative z-5 h-full flex flex-col justify-center items-center ${isMobile ? 'p-2' : 'p-4'}`}>
-        <span className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-white mb-1 md:mb-2`}>{category.name}</span>
-        <div 
-          className={`text-[#d64356] ${isMobile ? 'text-[10px]' : 'text-sm'} mt-1 flex items-center border border-red-900/40 ${isMobile ? 'px-1.5 py-0.5' : 'px-2 py-1 md:px-3 md:py-1'} rounded-full`}
-          style={{ background: "rgba(127,29,29,0.2)", transition: "all 0.3s ease" }}
-        >
-          <span className="mr-1">مشاهده محصولات</span>
-          <svg xmlns="http://www.w3.org/2000/svg" className={`${isMobile ? 'h-2.5 w-2.5' : 'h-4 w-4'} mr-1`} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-          </svg>
-        </div>
+      >
+        <h3 className="text-sm md:text-base font-semibold text-white drop-shadow-md">
+          {category.name}
+        </h3>
+        {category.description && (
+          <p className="text-xs md:text-sm text-gray-300 mt-1 hidden group-hover:block transition-all duration-300 ease-in-out">
+            {category.description}
+          </p>
+        )}
       </div>
-      
-      <div 
-        className="absolute inset-0 opacity-10 mix-blend-overlay pointer-events-none rounded-lg"
-        style={{ backgroundImage: "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxwYXRoIGQ9Ik0wIDBoMzAwdjMwMEgweiIgZmlsdGVyPSJ1cmwoI2EpIiBvcGFjaXR5PSIuMDUiLz48L3N2Zz4=')", backgroundSize: "cover" }}
-        aria-hidden="true"
-      />
 
-      <div className="absolute inset-0 rounded-lg pointer-events-none opacity-0 focus-within:opacity-100" 
-           style={{ boxShadow: "0 0 0 2px rgba(255,0,102,0.4)", transition: "opacity 0.2s ease" }} />
+      {/* Render hover effects only on desktop and if not transitioning (or is the selected one) */}
+      {!isMobile && (!isTransitioning || isSelected) && (
+        <>
+          {renderBorderSegments()}
+          {renderCircuitTrace()}
+        </>
+      )}
     </div>
   );
 });
