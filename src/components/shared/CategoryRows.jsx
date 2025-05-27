@@ -524,6 +524,9 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
         safetyTimeoutRef.current = null;
       }
       
+      // Force-reset transition state to avoid stuck animations
+      setAnimationPhase(0);
+      
       // Navigate to shop page with category slug
       navigate(`/shop?category=${selectedCategory.slug}`);
       
@@ -559,7 +562,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
       // Force reset if there's an error
       resetAllTransitionStates();
     }
-  }, [navigate, selectedCategory, animate]);
+  }, [navigate, selectedCategory, animate, resetAllTransitionStates]);
   
   // Cleanup function to reset all transition states
   const resetAllTransitionStates = useCallback(() => {
@@ -602,10 +605,21 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
             category: selectedCategory.slug
           });
           
-          // Force completion of transition
-          handleTransitionComplete();
+          // Force completion of transition and cleanup
+          if (animationRef.current) {
+            cancelAnimationFrame(animationRef.current);
+            animationRef.current = null;
+          }
+          
+          // Explicitly reset state before completing
+          setAnimationPhase(3); // Force to final phase
+          
+          // Short delay to allow state update before completion
+          setTimeout(() => {
+            handleTransitionComplete();
+          }, 50);
         }
-      }, 4000); // Longer timeout as final fallback
+      }, 2800); // Shorter timeout to respond faster to stuck animations
     }
 
     // Clear timeout if we're no longer transitioning or navigation is in progress
