@@ -62,8 +62,8 @@ const TransitionOverlay = ({
   const activeAnimationIdRef = useRef(null);
   const categoryRef = useRef(null);
   const hasCompletedRef = useRef(false);
-  const notifiedCompletionRef = useRef(false);
-  const pageChangedRef = useRef(false);
+  const notifiedPageChangeRef = useRef(false);
+  const notifiedAnimationCompleteRef = useRef(false);
   
   // Safety timeout duration (ms)
   const SAFETY_TIMEOUT = 3000;
@@ -93,24 +93,44 @@ const TransitionOverlay = ({
   };
 
   /**
+   * Signal to parent that page can change, but keep animation running
+   */
+  const signalPageChange = () => {
+    if (!notifiedPageChangeRef.current && typeof onTransitionComplete === 'function') {
+      debugLog("Signaling page change - stage 1 of transition");
+      notifiedPageChangeRef.current = true;
+      onTransitionComplete({ stage: 'pageChange', keepAnimationAlive: true });
+    }
+  };
+  
+  /**
+   * Signal final completion when animation is truly done
+   */
+  const signalAnimationComplete = () => {
+    if (!notifiedAnimationCompleteRef.current && typeof onTransitionComplete === 'function') {
+      debugLog("Signaling animation complete - stage 2 of transition");
+      notifiedAnimationCompleteRef.current = true;
+      onTransitionComplete({ stage: 'animationComplete', keepAnimationAlive: false });
+    }
+  };
+
+  /**
    * Complete the transition and notify parent component
    */
   const completeTransition = () => {
     if (hasCompletedRef.current) return;
     
-    debugLog("Animation completed, triggering page change and starting outro");
+    debugLog("Main animation completed, starting outro sequence");
     hasCompletedRef.current = true;
     
-    // First notify parent to change the page BEFORE starting the outro
-    // This ensures the shop page is visible behind the outro animation
-    if (!pageChangedRef.current && typeof onTransitionComplete === 'function') {
-      pageChangedRef.current = true;
-      onTransitionComplete();
-    }
+    // First notify parent to change the page, but tell it to keep our component mounted
+    signalPageChange();
     
-    // AFTER page change, start the outro animation as an overlay effect
-    setIsOutroActive(true);
-    setCurrentPhase(4); // Phase 4 = outro
+    // Start the outro animation (a bit delayed to let page change happen)
+    setTimeout(() => {
+      setIsOutroActive(true);
+      setCurrentPhase(4); // Phase 4 = outro
+    }, 50);
     
     // Set up outro timeout to clean up when animation is truly done
     if (outroTimeoutRef.current) {
@@ -118,9 +138,11 @@ const TransitionOverlay = ({
     }
     
     outroTimeoutRef.current = setTimeout(() => {
-      debugLog("Outro animation completed, cleaning up");
+      debugLog("Outro animation completed, finalizing");
       cleanupAnimationResources();
-    }, PHASE_DURATIONS.OUTRO);
+      // Signal the final completion
+      signalAnimationComplete();
+    }, PHASE_DURATIONS.OUTRO + 100);
   };
 
   /**
@@ -215,8 +237,8 @@ const TransitionOverlay = ({
     
     // Reset state
     hasCompletedRef.current = false;
-    notifiedCompletionRef.current = false;
-    pageChangedRef.current = false;
+    notifiedPageChangeRef.current = false;
+    notifiedAnimationCompleteRef.current = false;
     totalStartTimeRef.current = null;
     phaseStartTimeRef.current = null;
     categoryRef.current = selectedCategory;
@@ -257,8 +279,8 @@ const TransitionOverlay = ({
       activeAnimationIdRef.current = null;
       categoryRef.current = null;
       hasCompletedRef.current = true;
-      notifiedCompletionRef.current = true;
-      pageChangedRef.current = false;
+      notifiedPageChangeRef.current = true;
+      notifiedAnimationCompleteRef.current = true;
       setCurrentPhase(0);
       setPhaseProgress(0);
       setIsOutroActive(false);
