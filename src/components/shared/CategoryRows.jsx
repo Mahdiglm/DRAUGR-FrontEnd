@@ -447,23 +447,34 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
     // Navigate to shop page with category slug
     navigate(`/shop?category=${selectedCategory.slug}`);
     
-    // Reset animation states (this will happen after navigation)
+    // Reset animation states after a short delay
     setTimeout(() => {
       setIsTransitioning(false);
       setSelectedCategory(null);
       setAnimationPhase(0);
       setSelectedItemRect(null);
+      
+      // Restart animation after navigation completes
+      if (!animationRef.current) {
+        animationRef.current = requestAnimationFrame(animate);
+      }
     }, 100);
-  }, [navigate, selectedCategory]);
+  }, [navigate, selectedCategory, animate]);
+
+  // Preload flag ref to prevent multiple preloads
+  const preloadAttemptedRef = useRef(false);
 
   // Preload shop page data during transition
   useEffect(() => {
-    if (isTransitioning && selectedCategory && animationPhase >= 2) {
+    if (isTransitioning && selectedCategory && animationPhase >= 2 && !preloadAttemptedRef.current) {
+      preloadAttemptedRef.current = true;
       // This is where you could prefetch data for the shop page
       // e.g., fetch(`/api/products?category=${selectedCategory.slug}`)
-      
-      // For now, we'll just simulate preloading with a console log
-      console.log(`Preloading shop data for category: ${selectedCategory.slug}`);
+    }
+    
+    // Reset the preload flag when transitioning ends
+    if (!isTransitioning) {
+      preloadAttemptedRef.current = false;
     }
   }, [isTransitioning, selectedCategory, animationPhase]);
 
