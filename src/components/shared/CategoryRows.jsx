@@ -74,32 +74,46 @@ const useMobileDetection = () => {
 const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = null, title = "دسته‌بندی‌ها", subtitle = "مجموعه‌ای از محصولات منحصر به فرد در دسته‌بندی‌های مختلف" }) => {
   const containerRef = useRef(null);
   const beltRef = useRef(null);
-  const [categoryItems, setCategoryItems] = useState([]);
+  const [categoryItemsState, setCategoryItemsState] = useState([]); // Renamed to avoid conflict
   const [speed, setSpeed] = useState(1); // pixels per frame
-  const [selectedCategoryForOverlay, setSelectedCategoryForOverlay] = useState(null); // Renamed
-  const [isOverlayActive, setIsOverlayActive] = useState(false); // Renamed
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [isTransitioning, setIsTransitioning] = useState(false); // Animation state
   const [selectedItemRect, setSelectedItemRect] = useState(null); // For animation positioning
-  const [currentVisualPhase, setCurrentVisualPhase] = useState(0); // Renamed, controlled by TransitionOverlay
+  const [animationPhase, setAnimationPhase] = useState(0); // Controls animation phases
   const isMobileDevice = useMobileDetection();
   const animationRef = useRef(null);
   const lastTimestampRef = useRef(0);
   const wasVisibleRef = useRef(true);
-  const itemsStateRef = useRef([]); 
+  const itemsStateRef = useRef([]); // Reference to keep track of items state for visibility changes
   const navigate = useNavigate();
   
+  // Track the next ID for new items
   const nextIdRef = useRef(1);
   
+  // Determine which categories to use
   const categoriesData = propCategories || (direction === "rtl" ? categories : additionalCategories);
   
+  // Reduce animation speed on low-performance devices
   const defaultSpeed = getOptimizedAnimationSettings(
-    { speed: 0.8 },     
-    { speed: 0.5 }      
+    { speed: 0.8 },     // Default settings for high-performance devices
+    { speed: 0.5 }      // Reduced speed for low-performance devices
   ).speed;
   
+  // Ref to store the category being navigated to, to stabilize handleTransitionComplete
   const navigatingCategoryRef = useRef(null);
-  const isActiveTransitionRef = useRef(false); 
-  const safetyTimeoutRef = useRef(null); // Keep safety timeout for CategoryRows itself
-
+  const isActiveTransitionRef = useRef(false); // Ref to track active transition for scrolling animation
+  
+  // New state for managing the transition overlay
+  const [transitionTriggerData, setTransitionTriggerData] = useState({
+    category: null,
+    cardRect: null,
+    isActive: false,
+  });
+  
+  // Ref to control scrolling animation pause
+  const pauseScrollingRef = useRef(false);
+  
+  // Get the appropriate card dimensions based on device
   const getCardDimensions = useCallback(() => {
     return {
       cardWidth: isMobileDevice ? MOBILE_CARD_WIDTH : CARD_WIDTH,
@@ -110,48 +124,32 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
     };
   }, [isMobileDevice]);
   
-  const resetAllTransitionStates = useCallback(() => {
-    debugLog("Resetting all transition states in CategoryRows");
-    setIsOverlayActive(false);
-    setSelectedCategoryForOverlay(null);
-    setSelectedItemRect(null);
-    setCurrentVisualPhase(0);
-    isActiveTransitionRef.current = false;
-    navigatingCategoryRef.current = null;
-    
-    if (safetyTimeoutRef.current) {
-      clearTimeout(safetyTimeoutRef.current);
-      safetyTimeoutRef.current = null;
-    }
-    
-    // Resume animation if it was paused
-    if (!animationRef.current && containerRef.current) { // Check containerRef to ensure it's mounted
-        debugLog("Resuming scrolling animation after transition reset.");
-        lastTimestampRef.current = 0; // Reset last timestamp to avoid jump
-        animationRef.current = requestAnimationFrame(animate);
-    }
-  }, [/* animate should be stable or added if it changes based on these resets */]);
-
+  // Create animation frame handler with performance optimizations
   const animate = useCallback((timestamp) => {
-    if (document.hidden || isActiveTransitionRef.current) { 
-      if (isActiveTransitionRef.current && animationRef.current) {
-        debugLog("Scrolling animation PAUSED due to active transition.");
+    // Use pauseScrollingRef to control animation loop
+    if (document.hidden || pauseScrollingRef.current) {
+      if (pauseScrollingRef.current && animationRef.current) {
+        // If scrolling is paused, ensure we cancel the frame
         cancelAnimationFrame(animationRef.current);
         animationRef.current = null;
-      } else if (document.hidden) {
-        debugLog("Scrolling animation paused due to document hidden.");
-        animationRef.current = requestAnimationFrame(animate); // Keep trying if hidden
+        debugLog("Scroll animation PAUSED due to active transition.");
+      } else if (document.hidden && !animationRef.current) {
+        // If tab is hidden and animation not running, try to request a frame for when it becomes visible
+        animationRef.current = requestAnimationFrame(animate);
       }
       return;
     }
     
-    if (!beltRef.current || !containerRef.current) { // Ensure refs are valid
+    if (!animationRef.current && !pauseScrollingRef.current && !document.hidden){
+        // If animation isn't scheduled but should be running
         animationRef.current = requestAnimationFrame(animate);
-        return;
+        return; // Exit and let the new frame handle it
     }
-    
+
     if (!lastTimestampRef.current) {
       lastTimestampRef.current = timestamp;
+      animationRef.current = requestAnimationFrame(animate); // Ensure next frame is scheduled
+      return;
     }
     
     // If too much time has passed (e.g., after tab switch), limit delta
@@ -169,7 +167,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
     const exactTotalWidth = cardWidth + cardSpacing;
     
     // Move each item based on direction
-    setCategoryItems(prevItems => {
+    setCategoryItemsState(prevItems => {
       // Safety check - if we somehow lost all items, refill
       if (prevItems.length === 0) {
         const containerWidth = containerRef.current?.offsetWidth || 1000;
@@ -178,9 +176,10 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
         const initialItems = [];
         for (let i = 0; i < itemsNeeded; i++) {
           const categoryIndex = i % categoriesData.length;
+          const category = categoriesData[categoryIndex];
           initialItems.push({
             id: nextIdRef.current++,
-            category: categoriesData[categoryIndex],
+            category: category,
             positionX: i * exactTotalWidth,
             // For mobile, initialize highlight states less frequently
             mobileHighlight: isMobileDevice ? (Math.random() < 0.15) : false,
@@ -194,7 +193,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
         return initialItems;
       }
       
-      const moveAmount = speed * deltaTime / 16 * performanceMultiplier; // normalize to ~60fps and apply performance factor
+      const moveAmount = speed * deltaTime / 16 * performanceMultiplier;
       const moveDirection = direction === "rtl" ? -1 : 1; // Negative = right to left, Positive = left to right
       
       // Bundle updates by calculating all positions at once
@@ -285,7 +284,12 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
       return filteredItems;
     });
     
-    animationRef.current = requestAnimationFrame(animate);
+    // Schedule next frame if not paused
+    if (!pauseScrollingRef.current) {
+      animationRef.current = requestAnimationFrame(animate);
+    } else {
+      animationRef.current = null; // Ensure it's cleared if paused
+    }
   }, [speed, direction, categoriesData, isMobileDevice, getCardDimensions]);
   
   // Initialize category items
@@ -301,7 +305,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
     const itemsNeeded = Math.ceil(containerWidth / exactTotalWidth) + 4; // +4 for buffer
     
     // If we already have items, maintain their current positions
-    if (categoryItems.length > 0 && wasVisibleRef.current) {
+    if (categoryItemsState.length > 0 && wasVisibleRef.current) {
       return; // Don't refill if there are already items and the tab was visible
     }
     
@@ -310,9 +314,10 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
     
     for (let i = 0; i < itemsNeeded; i++) {
       const categoryIndex = i % categoriesData.length;
+      const category = categoriesData[categoryIndex];
       initialItems.push({
         id: nextIdRef.current++,
-        category: categoriesData[categoryIndex],
+        category: category,
         positionX: i * exactTotalWidth,
         // For mobile, initialize highlight states less frequently
         mobileHighlight: isMobileDevice ? (Math.random() < 0.15) : false, // Reduced from 0.3
@@ -322,9 +327,14 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
       });
     }
     
-    setCategoryItems(initialItems);
+    setCategoryItemsState(initialItems);
     itemsStateRef.current = initialItems;
-  }, [categoryItems, categoriesData, isMobileDevice, getCardDimensions]);
+
+    // Start animation loop
+    if (!pauseScrollingRef.current) {
+        animationRef.current = requestAnimationFrame(animate);
+    }
+  }, [categoryItemsState, categoriesData, isMobileDevice, getCardDimensions]);
   
   // Start and manage the animation
   useEffect(() => {
@@ -332,7 +342,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
     setSpeed(isMobileDevice ? defaultSpeed * 0.8 : defaultSpeed);
     
     // Start animation only if no category is selected
-    if (!selectedCategoryForOverlay) {
+    if (!selectedCategory) {
       animationRef.current = requestAnimationFrame(animate);
     }
     
@@ -342,7 +352,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [animate, defaultSpeed, isMobileDevice, selectedCategoryForOverlay]);
+  }, [animate, defaultSpeed, isMobileDevice, selectedCategory]);
   
   // Handle tab visibility changes
   useEffect(() => {
@@ -363,12 +373,12 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
           lastTimestampRef.current = 0; // Reset timestamp to avoid huge jumps
           
           // If no items are showing or positions are wrong, refill the belt
-          if (categoryItems.length === 0) {
+          if (categoryItemsState.length === 0) {
             fillBelt();
           }
           
           // Restart animation
-          if (!animationRef.current && !selectedCategoryForOverlay) {
+          if (!animationRef.current && !selectedCategory) {
             animationRef.current = requestAnimationFrame(animate);
           }
         }
@@ -382,7 +392,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [animate, categoryItems, fillBelt, selectedCategoryForOverlay]);
+  }, [animate, categoryItemsState, fillBelt, selectedCategory]);
   
   useEffect(() => {
     // Initial setup
@@ -445,11 +455,16 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
 
   // Handle keyboard navigation
   const handleKeyDown = (e) => {
-    // Adjust speed with arrow keys
-    if (e.key === 'ArrowLeft') {
-      setSpeed(currentSpeed => currentSpeed * 0.8);
-    } else if (e.key === 'ArrowRight') {
-      setSpeed(currentSpeed => currentSpeed * 1.2);
+    if (e.key === 'Enter' || e.key === ' ') {
+      const focusedItem = document.activeElement;
+      if (focusedItem && focusedItem.dataset.categoryId) {
+        const categoryId = focusedItem.dataset.categoryId;
+        const category = categoriesData.find(cat => cat.id.toString() === categoryId);
+        if (category) {
+          const cardEl = focusedItem; // The focused item is the card element
+          handleCategorySelect(category, cardEl);
+        }
+      }
     }
   };
 
@@ -459,29 +474,126 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
   const transitionInitiatedRef = useRef(false);
   const transitionStartTimeRef = useRef(0);
 
-  const handleTransitionComplete = useCallback(() => {
-    debugLog("handleTransitionComplete in CategoryRows called", { category: navigatingCategoryRef.current });
-    if (navigatingCategoryRef.current) {
-      const targetSlug = navigatingCategoryRef.current.slug;
-      debugLog(`Navigating to /shop/${targetSlug}`);
-      navigate(`/shop/${targetSlug}`);
-    } else {
-      debugLog("Navigation skipped: navigatingCategoryRef.current is null.");
+  const resetAllTransitionStates = useCallback(() => {
+    setIsTransitioning(false);
+    setSelectedCategory(null);
+    navigatingCategoryRef.current = null;
+    setAnimationPhase(0);
+    setSelectedItemRect(null);
+    navigationInProgressRef.current = false;
+    transitionInitiatedRef.current = false;
+    isActiveTransitionRef.current = false; // Reset the ref here
+    debugLog("All transition states reset including isActiveTransitionRef");
+  }, []);
+
+  const handleCategorySelect = useCallback((category, cardElement) => {
+    if (!cardElement) {
+      debugLog("Error: Card element not provided for selection.", { category });
+      return;
     }
-    resetAllTransitionStates();
-  }, [navigate, resetAllTransitionStates]);
+    const rect = cardElement.getBoundingClientRect();
+    debugLog("Category selected, preparing for transition:", { slug: category.slug, rect });
+    
+    // Pause scrolling animation by setting the ref
+    pauseScrollingRef.current = true;
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
+    }
+    
+    setTransitionTriggerData({
+      category: category,
+      cardRect: { // Pass a plain object for cardRect
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height,
+      },
+      isActive: true,
+    });
+  }, []);
+  
+  const safetyTimeoutRef = useRef(null);
+
+  const handleTransitionComplete = useCallback(() => {
+    try {
+      if (navigationInProgressRef.current) {
+        debugLog("Navigation already in progress, ignoring duplicate call to handleTransitionComplete");
+        return;
+      }
+      
+      const categoryToNavigate = navigatingCategoryRef.current;
+
+      if (!categoryToNavigate) {
+        console.error("[CategoryRows] No category found for navigation in handleTransitionComplete. Resetting.");
+        resetAllTransitionStates();
+        navigationInProgressRef.current = false;
+        if (!animationRef.current && !isActiveTransitionRef.current) { // Check ref
+             debugLog("Restarting scroll (no categoryToNavigate)");
+             lastTimestampRef.current = 0;
+             animationRef.current = requestAnimationFrame(animate);
+        }
+        return;
+      }
+      
+      navigationInProgressRef.current = true;
+      debugLog("Transition complete, navigating to shop page", { 
+        category: categoryToNavigate.slug
+      });
+      
+      if (safetyTimeoutRef.current) {
+        clearTimeout(safetyTimeoutRef.current);
+        safetyTimeoutRef.current = null;
+      }
+      
+      navigate(`/shop?category=${categoryToNavigate.slug}`);
+      
+      setTimeout(() => {
+        try {
+          debugLog("Resetting animation state after navigation (handleTransitionComplete)");
+          resetAllTransitionStates(); 
+
+          if (!transitionInitiatedRef.current && !isTransitioning && !isActiveTransitionRef.current && !animationRef.current) { // check ref
+            debugLog("Restarting continuous animation (handleTransitionComplete)");
+            lastTimestampRef.current = 0; 
+            animationRef.current = requestAnimationFrame(animate);
+          }
+          
+          setTimeout(() => {
+            navigationInProgressRef.current = false;
+          }, 800);
+        } catch (error) {
+          console.error("Error resetting animation state in handleTransitionComplete timeout:", error);
+          resetAllTransitionStates(); 
+        }
+      }, 100);
+    } catch (error) {
+      console.error("Error in handleTransitionComplete:", error);
+      resetAllTransitionStates(); 
+    }
+  }, [navigate, animate, resetAllTransitionStates]);
 
   useEffect(() => {
-    if (isOverlayActive && selectedCategoryForOverlay && !navigationInProgressRef.current) {
+    if (isTransitioning && selectedCategory && animationPhase === 2 && !preloadAttemptedRef.current) {
+      preloadAttemptedRef.current = true;
+      debugLog("Preloading shop data", { category: selectedCategory.slug });
+    }
+    if (!isTransitioning) {
+      preloadAttemptedRef.current = false;
+    }
+  }, [isTransitioning, selectedCategory, animationPhase]);
+
+  useEffect(() => {
+    if (isTransitioning && selectedCategory && !navigationInProgressRef.current) {
       if (safetyTimeoutRef.current) { 
         clearTimeout(safetyTimeoutRef.current);
       }
-      debugLog("Setting safety timeout for transition in CategoryRows", { phase: currentVisualPhase });
+      debugLog("Setting safety timeout for transition in CategoryRows", { phase: animationPhase });
       safetyTimeoutRef.current = setTimeout(() => {
-        if (isOverlayActive && !navigationInProgressRef.current && selectedCategoryForOverlay) { 
+        if (isTransitioning && !navigationInProgressRef.current && selectedCategory) { 
           debugLog("⚠️ Safety timeout triggered in CategoryRows - transition may be stuck", { 
-            phase: currentVisualPhase,
-            category: selectedCategoryForOverlay.slug
+            phase: animationPhase,
+            category: selectedCategory.slug
           });
           
           if (animationRef.current) {
@@ -492,8 +604,8 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
 
         }
       }, 3000); 
-    } else if ((!isOverlayActive || navigationInProgressRef.current) && safetyTimeoutRef.current) {
-      debugLog("Clearing safety timeout in CategoryRows", {isOverlayActive, navInProgress: navigationInProgressRef.current});
+    } else if ((!isTransitioning || navigationInProgressRef.current) && safetyTimeoutRef.current) {
+      debugLog("Clearing safety timeout in CategoryRows", {isTransitioning, navInProgress: navigationInProgressRef.current});
       clearTimeout(safetyTimeoutRef.current);
       safetyTimeoutRef.current = null;
     }
@@ -504,32 +616,38 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
         safetyTimeoutRef.current = null;
       }
     };
-  }, [isOverlayActive, selectedCategoryForOverlay, currentVisualPhase, handleTransitionComplete, resetAllTransitionStates]);
+  }, [isTransitioning, selectedCategory, animationPhase, handleTransitionComplete, resetAllTransitionStates]);
 
-  const handleCategorySelect = useCallback((category, cardElement) => {
-    if (isOverlayActive || !cardElement) return;
-
-    debugLog(`Category selected: ${category.name}`, { category });
-    const rect = cardElement.getBoundingClientRect();
-    
-    // Pause the scrolling animation
-    isActiveTransitionRef.current = true;
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
-      animationRef.current = null;
-      debugLog("Scrolling animation PAUSED for transition.", { categoryId: category.id });
+  useEffect(() => {
+    // Update pauseScrollingRef when transitionTriggerData.isActive changes
+    pauseScrollingRef.current = transitionTriggerData.isActive;
+    if (!transitionTriggerData.isActive && !animationRef.current) {
+      // If transition ended and animation isn't running, restart it
+      debugLog("Transition ended, attempting to restart scroll animation.");
+      lastTimestampRef.current = 0; // Reset timestamp to avoid jump
+      animationRef.current = requestAnimationFrame(animate);
     }
+  }, [transitionTriggerData.isActive]);
 
-    setSelectedItemRect(rect);
-    setSelectedCategoryForOverlay(category); // This will be passed to TransitionOverlay
-    navigatingCategoryRef.current = category; // Store for navigation after transition
-    setIsOverlayActive(true); // This activates the TransitionOverlay
-    setCurrentVisualPhase(1); // Inform local components that phase 1 has begun
-    
-    // No need to call setCurrentVisualPhase for the overlay directly, it manages its own phases.
-    // The overlay will call `setCurrentVisualPhase` via `informCategoryRowsPhaseChange` prop.
-
-  }, [isOverlayActive]);
+  // Memoized CategoryItems for performance
+  const memoizedCategoryItems = React.useMemo(() => {
+    const { cardWidth, rowHeight, cardSpacing } = getCardDimensions();
+    return categoryItemsState.map((item, index) => ( // Use renamed state
+      <CategoryItem
+        key={item.id}
+        item={item}
+        cardWidth={cardWidth}
+        rowHeight={rowHeight}
+        cardSpacing={cardSpacing}
+        direction={direction}
+        isMobile={isMobileDevice}
+        onCategorySelect={(category, cardEl) => handleCategorySelect(category, cardEl)} // Pass handler
+        // Determine if this item is the one selected OR if another is selected
+        isSelectedForTransition={transitionTriggerData.isActive && transitionTriggerData.category?.id === item.category.id}
+        isAnotherItemSelected={transitionTriggerData.isActive && transitionTriggerData.category?.id !== item.category.id}
+      />
+    ));
+  }, [categoryItemsState, getCardDimensions, direction, isMobileDevice, handleCategorySelect, transitionTriggerData]); // Added dependencies
 
   return (
     <div 
@@ -583,39 +701,16 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
             height: `${rowHeight}px`
           }}
         >
-          {categoryItems.map(item => (
-            <CategoryItem 
-              key={item.id} 
-              category={item.category}
-              style={{
-                position: 'absolute',
-                left: 0,
-                transform: `translateX(${item.positionX}px)`,
-                width: `${cardWidth}px`,
-                height: `${rowHeight}px`
-              }}
-              cardWidth={cardWidth}
-              cardHeight={rowHeight}
-              isMobile={isMobileDevice}
-              mobileHighlight={item.mobileHighlight}
-              mobileHighlightEdge={item.mobileHighlightEdge}
-              mobileHighlightIntensity={item.mobileHighlightIntensity}
-              mobileHighlightPosition={item.mobileHighlightPosition}
-              onCategorySelect={(cardElement) => handleCategorySelect(item.category, cardElement)}
-              isSelected={selectedCategoryForOverlay && selectedCategoryForOverlay.id === item.category.id && isOverlayActive}
-              isTransitioning={isOverlayActive}
-              visualPhase={currentVisualPhase}
-            />
-          ))}
+          {memoizedCategoryItems}
         </div>
       </div>
       
       <TransitionOverlay
-        isActive={isOverlayActive}
-        selectedCategory={selectedCategoryForOverlay}
-        selectedCardRect={selectedItemRect}
-        onTransitionComplete={handleTransitionComplete}
-        setPhase={setCurrentVisualPhase}
+        isActive={transitionTriggerData.isActive}
+        selectedCategoryData={transitionTriggerData.isActive ? { category: transitionTriggerData.category, cardRect: transitionTriggerData.cardRect } : null}
+        onTransitionEnd={handleTransitionComplete}
+        // Optionally pass theme color if needed by overlay early on
+        // shopPageThemeColor={transitionTriggerData.category?.themeColor}
       />
     </div>
   );
