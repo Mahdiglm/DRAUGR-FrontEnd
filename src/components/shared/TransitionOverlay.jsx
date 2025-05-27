@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 /**
@@ -8,524 +8,316 @@ import { motion, AnimatePresence } from 'framer-motion';
  * and shop page navigation. Uses a state machine approach for more robust animation control.
  */
 
-// State machine states for transition animation
-const TransitionState = {
-  IDLE: 'idle',
-  SELECTION_RESPONSE: 'selection_response', // Phase 1
-  MORPHING_TRANSITION: 'morphing_transition', // Phase 2
-  PAGE_TRANSITION: 'page_transition', // Phase 3
-  COMPLETING: 'completing',
-  COMPLETED: 'completed',
-  ERROR: 'error'
-};
-
-// Debug helper function
-const debugLog = (message, obj = {}) => {
+const debugLog = (message, data = {}) => {
   if (process.env.NODE_ENV === 'development') {
-    console.log(`[TransitionOverlay] ${message}`, obj);
+    console.log(`[TransitionOverlayV2] ${message}`, data);
   }
 };
 
-const TransitionOverlay = ({ 
-  isActive, 
-  selectedCategory, 
-  selectedCardRect,
-  onTransitionComplete,
-  phase,
-  setPhase
+const VisualPhase = {
+  IDLE: 'idle',
+  SELECTED_CARD_RESPONSE: 'selected_card_response', // Phase 1
+  MORPHING_TO_HERO: 'morphing_to_hero',         // Phase 2
+  PAGE_CONTENT_REVEAL: 'page_content_reveal',     // Phase 3
+  FINALIZING: 'finalizing',                   // Cleanup and call onTransitionEnd
+};
+
+const TransitionOverlay = ({
+  isActive,             // Boolean: Is the transition process active?
+  selectedCategoryData, // { category: object, cardRect: DOMRect }
+  onTransitionEnd,      // Callback when visual transition finishes, before navigation
+  shopPageThemeColor,   // Optional: theme color for phase 2/3
 }) => {
-  const [transitionState, setTransitionState] = useState(TransitionState.IDLE);
-  const [progress, setProgress] = useState(0);
-  
-  const hasCompletedRef = useRef(false);
-  const animationFrameRef = useRef(null);
-  const timeoutRef = useRef(null);
-  const startTimeRef = useRef(null);
-  const isActivatedRef = useRef(false);
-  const localCategoryRef = useRef(null);
-  const prevSelectedCategoryIdRef = useRef(null);
-  
-  const cleanupAnimation = useCallback(() => {
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-  }, []);
-  
-  const completeTransition = useCallback(() => {
-    if (hasCompletedRef.current) return;
-    
-    debugLog("Animation completing in TransitionOverlay");
-    setTransitionState(TransitionState.COMPLETING);
-    hasCompletedRef.current = true;
-    
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
-    
-    setTimeout(() => {
-      debugLog("Executing onTransitionComplete from TransitionOverlay");
-      try {
-        onTransitionComplete && onTransitionComplete();
-        setTransitionState(TransitionState.COMPLETED);
-      } catch (error) {
-        console.error("Error in onTransitionComplete callback:", error);
-        setTransitionState(TransitionState.ERROR);
-      }
-    }, 70);
-  }, [onTransitionComplete]);
-  
-  const setStallDetector = useCallback((currentState) => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    let timeout = 2000; 
-    if (currentState === TransitionState.PAGE_TRANSITION) {
-      timeout = 1500; 
-    }
-    timeoutRef.current = setTimeout(() => {
-      debugLog(`⚠️ TransitionOverlay: Stall detected in ${currentState}. Forcing completion.`, {category: localCategoryRef.current?.slug});
-      completeTransition();
-    }, timeout);
-  }, [completeTransition]);
-  
-  const animationStep = useCallback((timestamp) => {
-    if (!isActivatedRef.current || hasCompletedRef.current || !localCategoryRef.current) {
-      return;
-    }
-    
-    if (!startTimeRef.current) {
-      startTimeRef.current = timestamp;
-      setStallDetector(TransitionState.SELECTION_RESPONSE);
-    }
-    
-    const totalDuration = 1600; 
-    const elapsed = timestamp - startTimeRef.current;
-    const rawProgress = Math.min(elapsed / totalDuration, 1);
-    
-    setProgress(rawProgress);
-    
-    const currentFrameTransitionState = transitionState; 
+  const [visualPhase, setVisualPhase] = useState(VisualPhase.IDLE);
+  const [internalSelectedCategory, setInternalSelectedCategory] = useState(null);
+  const [internalCardRect, setInternalCardRect] = useState(null);
 
-    if (rawProgress < 0.2 && currentFrameTransitionState !== TransitionState.SELECTION_RESPONSE) {
-      setTransitionState(TransitionState.SELECTION_RESPONSE);
-      setPhase(1);
-      setStallDetector(TransitionState.SELECTION_RESPONSE);
-    } else if (rawProgress >= 0.2 && rawProgress < 0.65 && currentFrameTransitionState !== TransitionState.MORPHING_TRANSITION) {
-      setTransitionState(TransitionState.MORPHING_TRANSITION);
-      setPhase(2);
-      setStallDetector(TransitionState.MORPHING_TRANSITION);
-    } else if (rawProgress >= 0.65 && currentFrameTransitionState !== TransitionState.PAGE_TRANSITION && !hasCompletedRef.current) {
-      setTransitionState(TransitionState.PAGE_TRANSITION);
-      setPhase(3);
-      setStallDetector(TransitionState.PAGE_TRANSITION);
-    }
-    
-    if (rawProgress >= 0.95 && !hasCompletedRef.current) {
-      debugLog("TransitionOverlay: Animation reached completion threshold.", {category: localCategoryRef.current?.slug});
-      completeTransition();
-      return;
-    }
-    
-    if (!hasCompletedRef.current) {
-      animationFrameRef.current = requestAnimationFrame(animationStep);
-    }
-  }, [completeTransition, setPhase, setStallDetector, transitionState]);
-  
+  const overlayRef = useRef(null);
+
   useEffect(() => {
-    const newCategorySelected = selectedCategory && selectedCategory.id !== prevSelectedCategoryIdRef.current;
-
-    if (isActive && selectedCategory && (!isActivatedRef.current || newCategorySelected)) {
-      debugLog("TransitionOverlay: ACTIVATE / RE-ACTIVATE", { 
-        category: selectedCategory.slug, 
-        wasActive: isActivatedRef.current,
-        newCategorySelected 
-      });
-
-      cleanupAnimation();
-
-      isActivatedRef.current = true;
-      hasCompletedRef.current = false;
-      startTimeRef.current = null;
-      localCategoryRef.current = selectedCategory;
-      prevSelectedCategoryIdRef.current = selectedCategory.id;
-      setProgress(0);
-      setTransitionState(TransitionState.SELECTION_RESPONSE);
-      
-      if (typeof setPhase === 'function') {
-        setPhase(1);
-      }
-      
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-      animationFrameRef.current = requestAnimationFrame(animationStep);
-      
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      timeoutRef.current = setTimeout(() => {
-        if(isActivatedRef.current && localCategoryRef.current?.id === selectedCategory?.id && !hasCompletedRef.current){
-          debugLog("⚠️ TransitionOverlay: Global safety timeout triggered.", {category: localCategoryRef.current?.slug });
-          completeTransition();
-        }
-      }, 3500); 
-
-    } else if (!isActive && isActivatedRef.current) {
-      debugLog("TransitionOverlay: DEACTIVATING (isActive became false)", { category: localCategoryRef.current?.slug });
-      cleanupAnimation();
-      isActivatedRef.current = false;
-      hasCompletedRef.current = true;
-      localCategoryRef.current = null;
-      prevSelectedCategoryIdRef.current = null;
-      setTransitionState(TransitionState.IDLE);
-      setProgress(0);
+    if (isActive && selectedCategoryData) {
+      debugLog('Activation: TransitionOverlay received active state and data.', { category: selectedCategoryData.category.slug });
+      setInternalSelectedCategory(selectedCategoryData.category);
+      setInternalCardRect(selectedCategoryData.cardRect);
+      setVisualPhase(VisualPhase.SELECTED_CARD_RESPONSE);
+    } else if (!isActive && visualPhase !== VisualPhase.IDLE) {
+      // If CategoryRows deactivates us prematurely or after completion
+      debugLog('Deactivation: TransitionOverlay received inactive state. Resetting.', { currentPhase: visualPhase });
+      // Potentially add a quick fade out for the overlay if it's caught mid-transition
+      setVisualPhase(VisualPhase.IDLE);
+      setInternalSelectedCategory(null);
+      setInternalCardRect(null);
     }
+  }, [isActive, selectedCategoryData, visualPhase]);
 
-    return () => {
-      debugLog("TransitionOverlay: useEffect CLEANUP FIRING", { 
-        isActiveProp: isActive, 
-        currentLocalCatId: localCategoryRef.current?.id,
-        propSelectedCatId: selectedCategory?.id,
-        isActivatedRef: isActivatedRef.current
-      });
+  const handlePhaseCompletion = (nextPhase) => {
+    debugLog(`Phase completed, moving to: ${nextPhase}`);
+    setVisualPhase(nextPhase);
+  };
 
-      cleanupAnimation();
-
-      if (!isActive || !selectedCategory) {
-         debugLog("TransitionOverlay: useEffect cleanup - FULL DEACTIVATION due to !isActive or !selectedCategory", {
-           isActive, selectedCategoryExists: !!selectedCategory
-         });
-        isActivatedRef.current = false;
-        hasCompletedRef.current = true; 
-        localCategoryRef.current = null;
-        prevSelectedCategoryIdRef.current = null; 
+  // useEffect to handle the finalization step (calling onTransitionEnd)
+  useEffect(() => {
+    if (visualPhase === VisualPhase.FINALIZING) {
+      debugLog('Finalization Logic: Visual transition visually complete. Calling onTransitionEnd.');
+      if (onTransitionEnd) {
+        onTransitionEnd();
       }
-    };
-  }, [isActive, selectedCategory, onTransitionComplete, animationStep, cleanupAnimation, completeTransition]);
+      // After onTransitionEnd, CategoryRows should set isActive to false,
+      // which will then trigger the cleanup in the first useEffect.
+      // To be safe, we can also schedule a reset here if isActive doesn't change quickly.
+      const resetTimeout = setTimeout(() => {
+        if (isActive) { // Only reset if still active, indicating CategoryRows hasn't reset us
+            debugLog('Finalization Logic: Forcing reset of TransitionOverlay state post-onTransitionEnd.');
+            setVisualPhase(VisualPhase.IDLE);
+            setInternalSelectedCategory(null);
+            setInternalCardRect(null);
+        }
+      }, 500); // Give some time for CategoryRows to react and set isActive=false
 
-  if (!isActivatedRef.current || !localCategoryRef.current || transitionState === TransitionState.IDLE) {
+      return () => clearTimeout(resetTimeout);
+    }
+  }, [visualPhase, onTransitionEnd, isActive]);
+  
+  // Ensure data is ready before trying to render animations
+  if (!isActive || !internalSelectedCategory || !internalCardRect || visualPhase === VisualPhase.IDLE) {
     return null;
   }
+
+  const { category } = internalSelectedCategory;
+  const { cardRect } = internalCardRect;
+
+
+  // --- Backdrop Variants ---
+  const backdropVariants = {
+    initial: { opacity: 0 },
+    selected_card_response: { 
+      opacity: 0.7, 
+      backgroundColor: 'rgba(0,0,0,0.7)',
+      transition: { duration: 0.3 } 
+    },
+    morphing_to_hero: { 
+      opacity: 0.9,
+      // Example: backgroundColor: shopPageThemeColor ? shopPageThemeColor : 'rgba(10,0,0,0.9)',
+      backgroundColor: `rgba(20, 5, 10, 0.95)`, // Darker, thematic
+      transition: { duration: 0.5 }
+    },
+    page_content_reveal: { 
+      opacity: 1, 
+      backgroundColor: `rgba(0,0,0,1)`, // Full black for page reveal
+      transition: { duration: 0.4 }
+    },
+    exit: { opacity: 0, transition: { duration: 0.3, delay: 0.2 } } // Delay exit to allow content to fade
+  };
+
+  // --- Morphing Element (Card Clone -> Hero -> Full Page) Variants ---
+  const morphElementVariants = {
+    initial: { // Starts at the selected card's position
+      x: cardRect.left,
+      y: cardRect.top,
+      width: cardRect.width,
+      height: cardRect.height,
+      scale: 1,
+      opacity: 1,
+      borderRadius: '0.5rem', // Match card's border radius
+      boxShadow: '0 0 0px rgba(0,0,0,0)',
+      backgroundColor: category.themeColor || '#330011', // Initial card color
+    },
+    selected_card_response: { // Phase 1
+      scale: 1.9,
+      boxShadow: `0 0 30px 10px ${category.themeColor || 'rgba(255,50,50,0.5)'}`,
+      transition: { type: 'spring', stiffness: 260, damping: 20, duration: 0.3 }
+    },
+    morphing_to_hero: { // Phase 2
+      x: window.innerWidth * 0.1, // Example: 10% from left
+      y: window.innerHeight * 0.1, // Example: 10% from top
+      width: window.innerWidth * 0.8, // Example: 80% width
+      height: window.innerHeight * 0.4, // Example: 40% height for hero
+      scale: 1, // Reset scale if it was used for initial pop
+      borderRadius: '0.25rem',
+      boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+      // backgroundColor: shopPageThemeColor || '#220011', // Transition to new theme
+      backgroundColor: category.themeColor ? tinycolor(category.themeColor).darken(10).toString() : '#220011',
+      transition: { duration: 0.5, ease: [0.65, 0, 0.35, 1] } // Cubic bezier for premium feel
+    },
+    page_content_reveal: { // Phase 3
+      x: 0,
+      y: 0,
+      width: '100vw',
+      height: '100vh',
+      borderRadius: '0rem',
+      backgroundColor: '#000000', // Full black or page background
+      boxShadow: '0 0 0px rgba(0,0,0,0)',
+      transition: { duration: 0.4, ease: [0.65, 0, 0.35, 1] }
+    },
+  };
   
-  const transitionId = localCategoryRef.current?.slug || 'transition-overlay';
+  // --- Content Variants (Title, Description within Morphing Element) ---
+  const heroTitleVariants = {
+    initial: { opacity: 0, y: 10, scale: 0.8 }, // Starts smaller, slightly offset
+    selected_card_response: { opacity: 1, y: 0, scale: 1, transition: { delay: 0.1, duration: 0.2 } }, // Quickly show original title
+    morphing_to_hero: { 
+      opacity: 1, 
+      y: 0,
+      scale: 1.5, // Larger hero title
+      transition: { delay: 0.2, duration: 0.4 } 
+    },
+    page_content_reveal: { opacity: 0, transition: {duration: 0.2} } // Fade out as page takes over
+  };
 
-  const mistElements = [];
-  for (let i = 0; i < 3; i++) {
-    mistElements.push(
-      <motion.div
-        key={`mist-${transitionId}-${i}`}
-        className="absolute inset-0"
-        style={{
-          backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%25\' height=\'100%25\'%3E%3Cdefs%3E%3CradialGradient id=\'a\' cx=\'50%25\' cy=\'50%25\' r=\'50%25\' gradientUnits=\'userSpaceOnUse\'%3E%3Cstop offset=\'0\' stop-color=\'%23330000\' stop-opacity=\'.3\'/%3E%3Cstop offset=\'1\' stop-color=\'%23330000\' stop-opacity=\'0\'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width=\'100%25\' height=\'100%25\' fill=\'url(%23a)\'/%3E%3C/svg%3E")',
-          backgroundSize: 'cover',
-          opacity: 0
-        }}
-        animate={{ 
-          opacity: [0, 0.4, 0],
-          scale: [1, 1.2, 1],
-          rotate: [(i - 1) * 10, (i - 1) * 10 + 5]
-        }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          repeatType: 'reverse',
-          delay: i * 2,
-          ease: 'easeInOut'
-        }}
-      />
-    );
-  }
+  const heroDescriptionVariants = {
+    initial: { opacity: 0, y: 20 },
+    selected_card_response: { opacity: 0 }, // Hidden initially
+    morphing_to_hero: { opacity: 1, y: 0, transition: { delay: 0.35, duration: 0.4 } },
+    page_content_reveal: { opacity: 0, transition: {duration: 0.2} }
+  };
 
-  const particleElements = [];
-  for (let i = 0; i < 25; i++) {
-    const startX = selectedCardRect ? (selectedCardRect.left + selectedCardRect.width / 2) : '50%';
-    const startY = selectedCardRect ? (selectedCardRect.top + selectedCardRect.height / 2) : '50%';
-    const randomXOffset = (Math.random() - 0.5) * 320;
-    const randomYOffset = (Math.random() - 0.5) * 320 - 50;
-    const scale = Math.random() * 0.5 + 0.3;
-    const width = Math.random() * 6 + 3;
-    const height = Math.random() * 6 + 3;
-    const blur = Math.random() * 2;
-    const duration = 3 + Math.random() * 2;
-    const delay = Math.random() * 0.5;
-    
-    particleElements.push(
-      <motion.div
-        key={`particle-${transitionId}-${i}`}
-        className="absolute rounded-full bg-draugr-500"
-        initial={{
-          opacity: 0,
-          x: startX,
-          y: startY,
-          scale: 0
-        }}
-        animate={{
-          opacity: [0, 0.7 + Math.random() * 0.3, 0],
-          x: `calc(${typeof startX === 'number' ? `${startX}px` : startX} + ${randomXOffset}px)`,
-          y: `calc(${typeof startY === 'number' ? `${startY}px` : startY} + ${randomYOffset}px)`,
-          scale: [0, scale]
-        }}
-        transition={{
-          duration,
-          delay,
-          ease: "easeOut",
-          repeat: Infinity,
-          repeatType: "loop",
-          repeatDelay: Math.random() * 3
-        }}
-        style={{
-          width: `${width}px`,
-          height: `${height}px`,
-          filter: `blur(${blur}px) drop-shadow(0 0 2px #ff0000)`
-        }}
-      />
-    );
-  }
+  // --- Mock Page Elements Variants ---
+  const mockFiltersSidebarVariants = {
+    initial: { x: '-100%', opacity: 0 },
+    page_content_reveal: { x: '0%', opacity: 1, transition: { delay: 0.2, duration: 0.4, ease: 'easeOut' } },
+  };
+  const mockProductGridVariants = {
+    initial: { y: '100%', opacity: 0 },
+    page_content_reveal: { y: '0%', opacity: 1, transition: { delay: 0.3, duration: 0.5, ease: 'easeOut' } },
+  };
+   const mockHeaderVariants = {
+    initial: { y: '-100%', opacity: 0 },
+    page_content_reveal: { y: '0%', opacity: 1, transition: { delay: 0.1, duration: 0.4, ease: 'easeOut' } },
+  };
 
-  const productGridItems = [];
-  for (let i = 0; i < 8; i++) {
-    productGridItems.push(
-      <motion.div
-        key={`grid-item-${transitionId}-${i}`}
-        className="rounded-md bg-black/30 backdrop-blur-sm border border-[#2f0000]/20 h-64"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.4 + (i * 0.05) }}
-      />
-    );
-  }
 
   return (
-    <AnimatePresence mode="sync">
-      {isActivatedRef.current && localCategoryRef.current && (
-        <motion.div 
-          key={transitionId}
-          className="fixed inset-0 z-50 overflow-hidden transition-overlay"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
+    <AnimatePresence>
+      {isActive && visualPhase !== VisualPhase.IDLE && internalSelectedCategory && internalCardRect && (
+        <motion.div
+          ref={overlayRef}
+          className="fixed inset-0 z-[1000] pointer-events-none" // High z-index
+          key="transition-overlay-main"
         >
-          <motion.div 
-            className="absolute inset-0 bg-black transition-bg"
-            initial={{ opacity: 0 }}
-            animate={{ 
-              opacity: transitionState === TransitionState.PAGE_TRANSITION ? 
-                0.85 : progress * 0.75
+          {/* 1. Backdrop */}
+          <motion.div
+            className="absolute inset-0 bg-black"
+            variants={backdropVariants}
+            initial="initial"
+            animate={visualPhase} // Drive by current visualPhase state
+            exit="exit"
+            onAnimationComplete={() => {
+              if (visualPhase === VisualPhase.PAGE_CONTENT_REVEAL) {
+                handlePhaseCompletion(VisualPhase.FINALIZING);
+              }
             }}
           />
-          
-          <div className="absolute inset-0 pointer-events-none mist-container">
-            {mistElements}
-          </div>
-          
-          <div className="absolute inset-0 pointer-events-none">
-            {particleElements}
-          </div>
-          
-          {selectedCardRect && (
-            <motion.div
-              className="absolute rounded-lg overflow-hidden flex flex-col morphing-container"
-              initial={{
-                top: selectedCardRect.top,
-                left: selectedCardRect.left,
-                width: selectedCardRect.width,
-                height: selectedCardRect.height,
-                borderRadius: '0.5rem',
-                boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)'
-              }}
-              animate={{
-                top: transitionState === TransitionState.SELECTION_RESPONSE ? 
-                  selectedCardRect.top : '0px',
-                left: transitionState === TransitionState.PAGE_TRANSITION ? 
-                  '0px' : transitionState === TransitionState.MORPHING_TRANSITION ?
-                  window.innerWidth / 2 - selectedCardRect.width * 1.5 : 
-                  selectedCardRect.left,
-                width: transitionState === TransitionState.PAGE_TRANSITION ? 
-                  '100%' : transitionState === TransitionState.MORPHING_TRANSITION ? 
-                  selectedCardRect.width * 3 : selectedCardRect.width,
-                height: transitionState === TransitionState.PAGE_TRANSITION ? 
-                  '100%' : transitionState === TransitionState.MORPHING_TRANSITION ?
-                  selectedCardRect.height * 1.5 : selectedCardRect.height,
-                borderRadius: transitionState === TransitionState.PAGE_TRANSITION ? 
-                  '0rem' : '0.5rem',
-                boxShadow: transitionState === TransitionState.SELECTION_RESPONSE ? 
-                  '0 10px 40px rgba(139, 0, 0, 0.6), 0 0 20px rgba(255, 0, 0, 0.4)' : 
-                  '0 0 0 rgba(0, 0, 0, 0)',
-              }}
-              transition={{
-                duration: 0.8,
-                ease: [0.16, 1, 0.3, 1],
-                times: [0, 1]
-              }}
-            >
-              <motion.div
-                className="absolute inset-0 z-0"
-                initial={{ opacity: 1 }}
-                animate={{ opacity: 1 }}
-                style={{
-                  background: `linear-gradient(to bottom, ${localCategoryRef.current?.themeColor || '#420011'}, #000000)`
-                }}
-              >
-                <motion.div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{
-                    backgroundImage: "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii4wMSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIiBudW1PY3RhdmVzPSI0IiBzZWVkPSI1MDIiLz48ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIi8+PC9maWx0ZXI+PHBhdGggZD0iTTAgMGgzMDB2MzAwSDB6IiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9Ii4wOCIvPjwvc3ZnPg==')",
-                    backgroundSize: 'cover',
-                    mixBlendMode: 'soft-light',
-                    opacity: 0.2
-                  }}
-                  animate={{
-                    opacity: [0.2, 0.25, 0.2],
-                    scale: [1, 1.05, 1],
-                  }}
-                  transition={{
-                    duration: 8,
-                    repeat: Infinity,
-                    repeatType: 'mirror',
-                    ease: 'easeInOut'
-                  }}
-                />
-              </motion.div>
 
-              <div className="relative z-10 flex flex-col justify-center items-center flex-1 p-6">
-                <motion.div 
-                  className="relative z-10 w-full max-w-4xl mx-auto text-center"
-                  initial={{ opacity: 1, y: 0 }}
-                  animate={{ 
-                    opacity: 1, 
-                    y: transitionState === TransitionState.PAGE_TRANSITION ? -40 : 0
-                  }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <motion.h1
-                    className="font-bold text-white relative z-10 inline-block"
-                    initial={{ fontSize: '1.25rem' }}
-                    animate={{
-                      fontSize: transitionState === TransitionState.SELECTION_RESPONSE ? 
-                        '1.25rem' : transitionState === TransitionState.MORPHING_TRANSITION ? 
-                        '2.5rem' : '3.5rem'
-                    }}
-                    transition={{ duration: 0.6, ease: "easeOut" }}
-                  >
-                    {localCategoryRef.current?.name}
-                    
-                    <motion.div
-                      className="absolute inset-0 -z-10 blur-md"
-                      style={{ 
-                        background: localCategoryRef.current?.themeColor || '#420011',
-                        opacity: 0 
-                      }}
-                      animate={{ 
-                        opacity: [0, 0.6, 0],
-                        scale: [1, 1.1, 1]
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }}
-                    />
-                  </motion.h1>
-                  
-                  {transitionState !== TransitionState.SELECTION_RESPONSE && (
-                    <motion.div
-                      className="mt-4 text-gray-200 text-center"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4, delay: 0.2 }}
-                    >
-                      <p className="mb-4">مجموعه منحصر به فرد محصولات {localCategoryRef.current?.name} ما را کشف کنید</p>
-                      
-                      {transitionState === TransitionState.PAGE_TRANSITION && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.4, delay: 0.2 }}
-                        >
-                          <div className="flex justify-center">
-                            <div className="relative w-64 h-1 bg-gray-700 rounded-full overflow-hidden">
-                              <motion.div
-                                className="absolute top-0 left-0 h-full"
-                                style={{ 
-                                  background: `linear-gradient(to right, ${localCategoryRef.current?.themeColor || '#420011'}, #990000)`
-                                }}
-                                initial={{ width: '0%' }}
-                                animate={{ width: '100%' }}
-                                transition={{ duration: 0.6, ease: "easeInOut" }}
-                              />
-                            </div>
-                          </div>
-                          <p className="mt-2 text-gray-400 text-sm">درحال بارگذاری محصولات...</p>
-                        </motion.div>
-                      )}
-                    </motion.div>
-                  )}
-                </motion.div>
-              </div>
-              
-              {transitionState === TransitionState.PAGE_TRANSITION && (
-                <div className="absolute inset-0 flex flex-col items-stretch">
-                  <motion.div
-                    className="w-full bg-black/80 backdrop-blur-md border-b border-[#2f0000]/30 h-16"
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 0.9, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
-                  />
-                  
-                  <div className="flex flex-1 overflow-hidden">
-                    <motion.div
-                      className="w-64 bg-black/40 backdrop-blur-md border-r border-[#2f0000]/20"
-                      initial={{ opacity: 0, x: -100 }}
-                      animate={{ opacity: 0.9, x: 0 }}
-                      transition={{ duration: 0.5, delay: 0.3 }}
-                    />
-                    
-                    <motion.div
-                      className="flex-1 bg-black/20 p-6"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.5, delay: 0.4 }}
-                    >
-                      <div className="grid grid-cols-4 gap-4">
-                        {productGridItems}
-                      </div>
-                    </motion.div>
-                  </div>
+          {/* 2. Morphing Element */}
+          <motion.div
+            className="absolute overflow-hidden flex flex-col items-center justify-center"
+            style={{ 
+              // Will be controlled by variants: x, y, width, height, backgroundColor, borderRadius, boxShadow
+            }}
+            variants={morphElementVariants}
+            initial="initial"
+            animate={visualPhase}
+            onAnimationComplete={() => {
+              if (visualPhase === VisualPhase.SELECTED_CARD_RESPONSE) {
+                handlePhaseCompletion(VisualPhase.MORPHING_TO_HERO);
+              } else if (visualPhase === VisualPhase.MORPHING_TO_HERO) {
+                handlePhaseCompletion(VisualPhase.PAGE_CONTENT_REVEAL);
+              }
+              // Note: PAGE_CONTENT_REVEAL completion is handled by backdrop to ensure it's the last visual step
+            }}
+          >
+            {/* Content inside the morphing element */}
+            <motion.h1
+              className="text-white font-bold text-center"
+              style={{
+                fontSize: 'clamp(1rem, 5vw, 2.5rem)', // Responsive font size
+                padding: '10px',
+                // Other styles will be implicitly handled if needed or can be added
+              }}
+              variants={heroTitleVariants}
+              initial="initial"
+              animate={visualPhase}
+            >
+              {internalSelectedCategory.name}
+            </motion.h1>
+            {(visualPhase === VisualPhase.MORPHING_TO_HERO || visualPhase === VisualPhase.PAGE_CONTENT_REVEAL) && (
+              <motion.p
+                className="text-gray-300 text-center"
+                style={{
+                  fontSize: 'clamp(0.8rem, 2.5vw, 1.1rem)',
+                  padding: '0 20px',
+                  maxWidth: '80%',
+                }}
+                variants={heroDescriptionVariants}
+                initial="initial"
+                animate={visualPhase} // Animate will pick up from current visualPhase
+              >
+                {/* Replace with actual description or dynamic content */}
+                Discover our exclusive collection of {internalSelectedCategory.name}.
+              </motion.p>
+            )}
+          </motion.div>
+
+          {/* 3. Mock Page Elements (only visible during PAGE_CONTENT_REVEAL) */}
+          {visualPhase === VisualPhase.PAGE_CONTENT_REVEAL && (
+            <>
+              <motion.div 
+                className="absolute top-0 left-0 w-full h-16 bg-gray-800/80 backdrop-blur-sm shadow-lg" // Mock Header
+                variants={mockHeaderVariants}
+                initial="initial"
+                animate="page_content_reveal"
+              />
+              <motion.div 
+                className="absolute top-16 left-0 w-64 h-[calc(100%-4rem)] bg-gray-700/70 backdrop-blur-sm shadow-md" // Mock Sidebar
+                variants={mockFiltersSidebarVariants}
+                initial="initial"
+                animate="page_content_reveal"
+              />
+              <motion.div 
+                className="absolute top-16 left-64 w-[calc(100%-16rem)] h-[calc(100%-4rem)] bg-gray-900/50 p-4 overflow-y-auto" // Mock Product Grid Area
+                variants={mockProductGridVariants}
+                initial="initial"
+                animate="page_content_reveal"
+              >
+                {/* Example grid items */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <div key={i} className="h-48 bg-gray-600/50 rounded-md animate-pulse"></div>
+                  ))}
                 </div>
-              )}
-            </motion.div>
+              </motion.div>
+            </>
           )}
+           {/* Finalizing phase is handled by useEffect, no direct render needed here */}
         </motion.div>
       )}
-      
-      <style jsx="true">{`
-        .transition-overlay {
-          perspective: 1000px;
-          transform-style: preserve-3d;
-        }
-        
-        @keyframes mistAnimation {
-          0% { opacity: 0; transform: translateY(0) scale(1); }
-          50% { opacity: 0.3; transform: translateY(-20px) scale(1.1); }
-          100% { opacity: 0; transform: translateY(-40px) scale(1); }
-        }
-        
-        .mist-container {
-          z-index: 10;
-          overflow: hidden;
-        }
-        
-        .morphing-container {
-          box-shadow: 0 0 30px rgba(255, 0, 0, 0.15);
-        }
-      `}</style>
     </AnimatePresence>
   );
 };
 
-export default TransitionOverlay; 
+// Effect to handle finalization logic when visualPhase changes
+// Need to call outside the main return for hooks
+// const TransitionOverlayWithHooks = (props) => {
+//   const { visualPhase, onTransitionEnd, isActive } = props; // Assuming visualPhase is lifted or passed if needed here
+//                                                        // For this example, let's assume visualPhase from above is accessible or managed.
+//                                                        // This part of the example needs refinement based on how visualPhase state is truly managed.
+//                                                        // The example above keeps visualPhase internal.
+//                                                        // So, the finalization call needs to be in an effect inside the main component.
+
+//   // This effect is illustrative; the actual call to onTransitionEnd is handled by
+//   // onAnimationComplete of the backdrop or a useEffect watching visualPhase inside the main component.
+//   // For now, the onAnimationComplete of the backdrop in the main component is preferred.
+
+//   // The direct call to onTransitionEnd will be handled by the main component's logic now.
+//   // This separate component is not strictly necessary with the current structure.
+//   return <TransitionOverlay {...props} />;
+// };
+
+
+export default TransitionOverlay; // Export the main component directly
+
+
+// Helper for tinycolor if you decide to use it (install separately: npm install tinycolor2)
+// import tinycolor from 'tinycolor2'; 
+// This would be used as: category.themeColor ? tinycolor(category.themeColor).darken(10).toString() : '#220011'
+// For now, I've put a placeholder, but if you want dynamic color changes, tinycolor is good. 
