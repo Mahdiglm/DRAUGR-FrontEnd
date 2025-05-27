@@ -99,6 +99,9 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
     { speed: 0.5 }      // Reduced speed for low-performance devices
   ).speed;
   
+  // Ref to store the category being navigated to, to stabilize handleTransitionComplete
+  const navigatingCategoryRef = useRef(null);
+  
   // Get the appropriate card dimensions based on device
   const getCardDimensions = useCallback(() => {
     return {
@@ -429,214 +432,155 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
   // Preload flag ref to prevent multiple preloads
   const preloadAttemptedRef = useRef(false);
   const navigationInProgressRef = useRef(false);
-  // Add a new ref to track transition state and prevent reactivation
   const transitionInitiatedRef = useRef(false);
-  // Add a global timestamp to track when transitions started
   const transitionStartTimeRef = useRef(0);
 
-  // Cleanup function to reset all transition states
   const resetAllTransitionStates = useCallback(() => {
     setIsTransitioning(false);
     setSelectedCategory(null);
+    navigatingCategoryRef.current = null;
     setAnimationPhase(0);
     setSelectedItemRect(null);
     navigationInProgressRef.current = false;
     transitionInitiatedRef.current = false;
-    
-    // We don't reset the time ref so the debounce still works
   }, []);
 
-  // Enhanced category selection handler
   const handleCategorySelect = useCallback((category, itemElement) => {
     try {
-      // Only allow new selection if:
-      // 1. No navigation is in progress
-      // 2. Not already transitioning
-      // 3. No transition initiated
-      // 4. Enough time has passed since last transition (debounce)
       const now = Date.now();
       const timeSinceLastTransition = now - transitionStartTimeRef.current;
-      const MIN_TRANSITION_INTERVAL = 2000; // 2 seconds between transitions
-      
+      const MIN_TRANSITION_INTERVAL = 2500; // Increased interval slightly
+
       if (navigationInProgressRef.current || 
-          isTransitioning || 
-          transitionInitiatedRef.current ||
-          (timeSinceLastTransition < MIN_TRANSITION_INTERVAL && transitionStartTimeRef.current > 0)) {
-        debugLog("Ignoring category selection", { 
-          reason: navigationInProgressRef.current ? "navigation in progress" : 
-                 isTransitioning ? "transition in progress" : 
-                 transitionInitiatedRef.current ? "transition already initiated" :
-                 "too soon after last transition"
+          (transitionInitiatedRef.current && timeSinceLastTransition < MIN_TRANSITION_INTERVAL) || // More robust check
+          (isTransitioning && timeSinceLastTransition < MIN_TRANSITION_INTERVAL) 
+      ) {
+        debugLog("Ignoring category selection due to active/recent transition or navigation", { 
+          navInProgress: navigationInProgressRef.current,
+          transitionInitiated: transitionInitiatedRef.current,
+          isTrans: isTransitioning,
+          timeSinceLast: timeSinceLastTransition
         });
         return;
       }
       
-      // Reset any existing animation state to avoid conflicts
-      if (animationPhase !== 0 || isTransitioning) {
-        debugLog("Resetting existing animation state before new selection");
-        resetAllTransitionStates();
+      // If a transition is technically ongoing but the MIN_TRANSITION_INTERVAL has passed,
+      // allow a reset and new selection.
+      if (isTransitioning || animationPhase !== 0) {
+         debugLog("Resetting existing (possibly stale) animation state before new selection");
+         resetAllTransitionStates();
       }
       
-      // Mark transition as initiated to prevent multiple activations
       transitionInitiatedRef.current = true;
-      // Record start time
       transitionStartTimeRef.current = now;
       
       debugLog("Category selected", { category: category.slug });
       
-      // Stop animation
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
         animationRef.current = null;
         debugLog("Animation stopped for transition");
       }
       
-      // Capture element's current position for animation
       if (itemElement && itemElement.current) {
         const rect = itemElement.current.getBoundingClientRect();
         setSelectedItemRect(rect);
-        debugLog("Captured card position", { 
-          x: rect.left, 
-          y: rect.top, 
-          width: rect.width, 
-          height: rect.height 
-        });
       } else {
         debugLog("⚠️ Failed to capture card position");
       }
       
-      // Set selected category and start transition
       setSelectedCategory(category);
-      setIsTransitioning(true);
-      setAnimationPhase(1); // Start with phase 1
+      navigatingCategoryRef.current = category;
+      setIsTransitioning(true); 
+      setAnimationPhase(1); 
       
       debugLog("Transition initiated");
     } catch (error) {
       console.error("Error in handleCategorySelect:", error);
-      // Reset transition state in case of error
       resetAllTransitionStates();
     }
-  }, [isTransitioning, resetAllTransitionStates, animationPhase]);
+  }, [resetAllTransitionStates, animationPhase, isTransitioning]);
   
-  // Safety timeout ref to prevent getting stuck
   const safetyTimeoutRef = useRef(null);
 
-  // Handle transition completion
   const handleTransitionComplete = useCallback(() => {
     try {
-      // Prevent multiple calls
       if (navigationInProgressRef.current) {
-        debugLog("Navigation already in progress, ignoring duplicate call");
+        debugLog("Navigation already in progress, ignoring duplicate call to handleTransitionComplete");
         return;
       }
       
-      // Mark navigation as in progress
+      const categoryToNavigate = navigatingCategoryRef.current;
+
+      if (!categoryToNavigate) {
+        console.error("[CategoryRows] No category found for navigation in handleTransitionComplete. Resetting.");
+        resetAllTransitionStates();
+        navigationInProgressRef.current = false;
+        if (!animationRef.current && !selectedCategory) {
+             animationRef.current = requestAnimationFrame(animate);
+        }
+        return;
+      }
+      
       navigationInProgressRef.current = true;
       debugLog("Transition complete, navigating to shop page", { 
-        category: selectedCategory?.slug
+        category: categoryToNavigate.slug
       });
       
-      // Clear any safety timeouts
       if (safetyTimeoutRef.current) {
         clearTimeout(safetyTimeoutRef.current);
         safetyTimeoutRef.current = null;
       }
       
-      // Force-reset transition state to avoid stuck animations
-      setAnimationPhase(0);
+      navigate(`/shop?category=${categoryToNavigate.slug}`);
       
-      // Navigate to shop page with category slug
-      navigate(`/shop?category=${selectedCategory.slug}`);
-      
-      // Reset animation states after a short delay
       setTimeout(() => {
         try {
-          debugLog("Resetting animation state after navigation");
-          setIsTransitioning(false);
-          setSelectedCategory(null);
-          setAnimationPhase(0);
-          setSelectedItemRect(null);
-          transitionInitiatedRef.current = false;
-          
-          // Restart animation after navigation completes
-          if (!animationRef.current) {
-            debugLog("Restarting continuous animation");
+          debugLog("Resetting animation state after navigation (handleTransitionComplete)");
+          resetAllTransitionStates(); 
+
+          if (!transitionInitiatedRef.current && !isTransitioning && !selectedCategory && !animationRef.current) {
+            debugLog("Restarting continuous animation (handleTransitionComplete)");
+            lastTimestampRef.current = 0;
             animationRef.current = requestAnimationFrame(animate);
           }
           
-          // Reset navigation flag after a longer delay to prevent immediate reactivation
           setTimeout(() => {
             navigationInProgressRef.current = false;
-          }, 800); // Slightly longer to ensure full cooldown
+          }, 800);
         } catch (error) {
-          console.error("Error resetting animation state:", error);
-          // Reset refs in case of error
+          console.error("Error resetting animation state in handleTransitionComplete timeout:", error);
           resetAllTransitionStates();
         }
       }, 100);
     } catch (error) {
       console.error("Error in handleTransitionComplete:", error);
-      
-      // Force reset if there's an error
       resetAllTransitionStates();
     }
-  }, [navigate, selectedCategory, animate, resetAllTransitionStates]);
+  }, [navigate, animate, resetAllTransitionStates]);
 
-  // Preload shop page data during transition
   useEffect(() => {
-    // When transitioning to phase 2, preload data
-    if (isTransitioning && selectedCategory && animationPhase === 2 && !preloadAttemptedRef.current) {
-      preloadAttemptedRef.current = true;
-      debugLog("Preloading shop data", { category: selectedCategory.slug });
-      // This is where you could prefetch data for the shop page
-      // e.g., fetch(`/api/products?category=${selectedCategory.slug}`)
-    }
-    
-    // Reset the preload flag when transitioning ends
-    if (!isTransitioning) {
-      preloadAttemptedRef.current = false;
-    }
-  }, [isTransitioning, selectedCategory, animationPhase]);
-
-  // Safety timeout to prevent animation from getting stuck indefinitely
-  useEffect(() => {
-    // Only set the safety timeout if we're transitioning, haven't completed navigation,
-    // and don't already have a timeout set
-    if (isTransitioning && selectedCategory && !navigationInProgressRef.current && !safetyTimeoutRef.current) {
-      debugLog("Setting safety timeout for transition");
-      
-      // Clear any existing timeout first to prevent duplicates
+    if (isTransitioning && selectedCategory && !navigationInProgressRef.current) {
       if (safetyTimeoutRef.current) {
         clearTimeout(safetyTimeoutRef.current);
       }
-      
+      debugLog("Setting safety timeout for transition", { phase: animationPhase });
       safetyTimeoutRef.current = setTimeout(() => {
-        if (isTransitioning && !navigationInProgressRef.current) {
+        if (isTransitioning && !navigationInProgressRef.current && selectedCategory) {
           debugLog("⚠️ Safety timeout triggered - transition may be stuck", { 
             phase: animationPhase,
             category: selectedCategory.slug
           });
           
-          // Force completion of transition and cleanup
           if (animationRef.current) {
             cancelAnimationFrame(animationRef.current);
             animationRef.current = null;
           }
-          
-          // Explicitly reset state before completing
-          setAnimationPhase(3); // Force to final phase
-          
-          // Short delay to allow state update before completion
-          setTimeout(() => {
-            handleTransitionComplete();
-          }, 50);
+          handleTransitionComplete();
         }
-      }, 2400); // Shorter timeout to respond faster to stuck animations
-    }
-
-    // Clear timeout if we're no longer transitioning or navigation is in progress
-    if ((!isTransitioning || navigationInProgressRef.current) && safetyTimeoutRef.current) {
-      debugLog("Clearing safety timeout - no longer needed");
+      }, 3000);
+    } else if ((!isTransitioning || navigationInProgressRef.current) && safetyTimeoutRef.current) {
+      debugLog("Clearing safety timeout", {isTransitioning, navInProgress: navigationInProgressRef.current});
       clearTimeout(safetyTimeoutRef.current);
       safetyTimeoutRef.current = null;
     }
@@ -647,7 +591,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
         safetyTimeoutRef.current = null;
       }
     };
-  }, [isTransitioning, selectedCategory, animationPhase, handleTransitionComplete]);
+  }, [isTransitioning, selectedCategory, animationPhase, handleTransitionComplete, resetAllTransitionStates]);
 
   return (
     <div 
