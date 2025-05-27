@@ -463,7 +463,6 @@ const CategoryItem = ({
   ...props 
 }) => {
   const itemRef = useRef(null);
-  const mouseRef = useRef({ x: 0, y: 0, clientX: 0, clientY: 0 });
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isNear, setIsNear] = useState(false);
   const [proximityData, setProximityData] = useState({
@@ -472,6 +471,8 @@ const CategoryItem = ({
     intensity: 0,
     position: 0,
   });
+  const lastMousePosRef = useRef({ x: 0, y: 0 });
+  const animationFrameIdRef = useRef(null);
   
   // Settings
   const proximityThreshold = 60; // How close the mouse needs to be to activate border effect
@@ -495,51 +496,49 @@ const CategoryItem = ({
     }
   }, [isMobile, mobileHighlight, mobileHighlightEdge, mobileHighlightIntensity, mobileHighlightPosition]);
   
-  // Track global mouse position to detect proximity only on non-mobile devices
+  // Continuous hover detection for non-mobile devices
   useEffect(() => {
     if (isMobile) {
       return; // Skip mouse tracking for mobile
     }
     
-    // Keep track of whether an animation frame is already scheduled
-    let animationFrameId = null;
-    
-    const processMousePosition = () => {
-      // If there's no ref, exit
+    const processHoverState = () => {
       if (!itemRef.current) return;
       
+      const { x, y } = lastMousePosRef.current;
       const rect = itemRef.current.getBoundingClientRect();
       
-      // Calculate mouse position relative to item using the stored global mouse coordinates
-      const x = mouseRef.current.clientX - rect.left;
-      const y = mouseRef.current.clientY - rect.top;
+      // Calculate mouse position relative to item's current position
+      const relativeX = x - rect.left;
+      const relativeY = y - rect.top;
       
       // Update mouse position state
-      setMousePos({ x, y });
+      setMousePos({ x: relativeX, y: relativeY });
       
       // Check if we're close to the item (even outside its borders)
       const isNearItem = 
-        x >= -proximityThreshold && x <= rect.width + proximityThreshold &&
-        y >= -proximityThreshold && y <= rect.height + proximityThreshold;
+        relativeX >= -proximityThreshold && relativeX <= rect.width + proximityThreshold &&
+        relativeY >= -proximityThreshold && relativeY <= rect.height + proximityThreshold;
       
       // Only proceed if we're near the item
       if (!isNearItem) {
         if (isNear) setIsNear(false); // Reset if we were previously near
+        animationFrameIdRef.current = requestAnimationFrame(processHoverState);
         return;
       }
       
       // Calculate distances to each edge
-      const distToLeft = Math.abs(x);
-      const distToRight = Math.abs(x - rect.width);
-      const distToTop = Math.abs(y);
-      const distToBottom = Math.abs(y - rect.height);
+      const distToLeft = Math.abs(relativeX);
+      const distToRight = Math.abs(relativeX - rect.width);
+      const distToTop = Math.abs(relativeY);
+      const distToBottom = Math.abs(relativeY - rect.height);
       
       // Find closest edge and its distance
       let closestEdge;
       let minDistance;
       
       // Check if we're inside the item
-      const isInside = x >= 0 && x <= rect.width && y >= 0 && y <= rect.height;
+      const isInside = relativeX >= 0 && relativeX <= rect.width && relativeY >= 0 && relativeY <= rect.height;
       
       if (isInside) {
         // When inside, check distance to each edge
@@ -557,31 +556,31 @@ const CategoryItem = ({
       } else {
         // When outside, calculate distance to closest point on border
         // Determine which quadrant we're in
-        if (x < 0 && y < 0) {
+        if (relativeX < 0 && relativeY < 0) {
           // Top-left corner
           closestEdge = 'topLeft';
           minDistance = Math.sqrt(distToLeft * distToLeft + distToTop * distToTop);
-        } else if (x > rect.width && y < 0) {
+        } else if (relativeX > rect.width && relativeY < 0) {
           // Top-right corner
           closestEdge = 'topRight';
           minDistance = Math.sqrt(distToRight * distToRight + distToTop * distToTop);
-        } else if (x < 0 && y > rect.height) {
+        } else if (relativeX < 0 && relativeY > rect.height) {
           // Bottom-left corner
           closestEdge = 'bottomLeft';
           minDistance = Math.sqrt(distToLeft * distToLeft + distToBottom * distToBottom);
-        } else if (x > rect.width && y > rect.height) {
+        } else if (relativeX > rect.width && relativeY > rect.height) {
           // Bottom-right corner
           closestEdge = 'bottomRight';
           minDistance = Math.sqrt(distToRight * distToRight + distToBottom * distToBottom);
-        } else if (x < 0) {
+        } else if (relativeX < 0) {
           // Left edge
           closestEdge = 'left';
           minDistance = distToLeft;
-        } else if (x > rect.width) {
+        } else if (relativeX > rect.width) {
           // Right edge
           closestEdge = 'right';
           minDistance = distToRight;
-        } else if (y < 0) {
+        } else if (relativeY < 0) {
           // Top edge
           closestEdge = 'top';
           minDistance = distToTop;
@@ -604,39 +603,33 @@ const CategoryItem = ({
           edge: closestEdge,
           distance: minDistance,
           intensity,
-          position: getPositionAlongEdge(closestEdge, x, y, rect.width, rect.height)
+          position: getPositionAlongEdge(closestEdge, relativeX, relativeY, rect.width, rect.height)
         });
       } else if (isNear) {
         setIsNear(false);
       }
       
-      // Schedule next animation frame to continuously update hover effect
-      animationFrameId = requestAnimationFrame(processMousePosition);
+      // Continue the animation loop
+      animationFrameIdRef.current = requestAnimationFrame(processHoverState);
     };
     
     const handleGlobalMouseMove = (e) => {
-      // Store the latest mouse position globally
-      mouseRef.current.clientX = e.clientX;
-      mouseRef.current.clientY = e.clientY;
-      
-      // Start the animation frame loop if it's not already running
-      if (!animationFrameId) {
-        animationFrameId = requestAnimationFrame(processMousePosition);
-      }
+      // Store the latest mouse position
+      lastMousePosRef.current = { x: e.clientX, y: e.clientY };
     };
     
-    // Add global mouse move listener
+    // Add global mouse move listener to track mouse position
     window.addEventListener('mousemove', handleGlobalMouseMove);
     
-    // Start the animation frame loop immediately
-    animationFrameId = requestAnimationFrame(processMousePosition);
+    // Start the continuous animation loop for hover detection
+    animationFrameIdRef.current = requestAnimationFrame(processHoverState);
     
     return () => {
       window.removeEventListener('mousemove', handleGlobalMouseMove);
       
       // Cancel any pending animation frame
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
+      if (animationFrameIdRef.current) {
+        cancelAnimationFrame(animationFrameIdRef.current);
       }
     };
   }, [isNear, proximityThreshold, isMobile]);
