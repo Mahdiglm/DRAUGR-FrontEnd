@@ -24,6 +24,8 @@ const TransitionOverlay = ({
   const animationRef = useRef(null);
   // Store selected category in a ref to prevent re-renders
   const selectedCategoryRef = useRef(selectedCategory);
+  // Add a ref to track activation to prevent multiple initializations
+  const wasActivatedRef = useRef(false);
   
   // Update the ref when selectedCategory changes
   useEffect(() => {
@@ -32,13 +34,27 @@ const TransitionOverlay = ({
   
   // Reset completion flag when component becomes inactive
   useEffect(() => {
-    // Only log if there's a genuine change in state
-    if (!isActive && hasCompletedRef.current) {
+    // Only proceed if there's a genuine change in activation state
+    // Prevent multiple activations in quick succession
+    if (isActive && !wasActivatedRef.current) {
+      wasActivatedRef.current = true;
+      hasCompletedRef.current = false;
+      setProgress(0);
+      
+      if (selectedCategory) {
+        debugLog("Overlay activated", { category: selectedCategory.slug });
+      }
+    } else if (!isActive && wasActivatedRef.current) {
+      wasActivatedRef.current = false;
       hasCompletedRef.current = false;
       setProgress(0);
       debugLog("Overlay deactivated, state reset");
-    } else if (isActive && selectedCategory && !hasCompletedRef.current) {
-      debugLog("Overlay activated", { category: selectedCategory.slug });
+      
+      // Clear any existing animation
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
     }
     
     // Safety timeout - force completion after 2 seconds if animation gets stuck
@@ -86,7 +102,8 @@ const TransitionOverlay = ({
   
   // Track animation progress for coordinated effects with memoized function
   useEffect(() => {
-    if (!isActive || hasCompletedRef.current) {
+    // Skip animation if it's not active or has already completed
+    if (!isActive || hasCompletedRef.current || !wasActivatedRef.current) {
       return;
     }
     
