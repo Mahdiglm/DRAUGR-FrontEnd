@@ -426,14 +426,23 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
     }
   };
 
+  // Preload flag ref to prevent multiple preloads
+  const preloadAttemptedRef = useRef(false);
+  const navigationInProgressRef = useRef(false);
+  // Add a new ref to track transition state and prevent reactivation
+  const transitionInitiatedRef = useRef(false);
+
   // Enhanced category selection handler
   const handleCategorySelect = useCallback((category, itemElement) => {
     try {
-      // Prevent activation if navigation is already in progress
-      if (navigationInProgressRef.current || isTransitioning) {
+      // Prevent activation if navigation is already in progress or transition already initiated
+      if (navigationInProgressRef.current || isTransitioning || transitionInitiatedRef.current) {
         debugLog("Ignoring category selection - navigation or animation already in progress");
         return;
       }
+      
+      // Mark transition as initiated to prevent multiple activations
+      transitionInitiatedRef.current = true;
       
       debugLog("Category selected", { category: category.slug });
       
@@ -466,15 +475,13 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
       debugLog("Transition initiated");
     } catch (error) {
       console.error("Error in handleCategorySelect:", error);
+      // Reset transition state in case of error
+      transitionInitiatedRef.current = false;
     }
   }, [isTransitioning]);
   
   // Safety timeout ref to prevent getting stuck
   const safetyTimeoutRef = useRef(null);
-  
-  // Preload flag ref to prevent multiple preloads
-  const preloadAttemptedRef = useRef(false);
-  const navigationInProgressRef = useRef(false);
 
   // Handle transition completion
   const handleTransitionComplete = useCallback(() => {
@@ -501,6 +508,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
           setSelectedCategory(null);
           setAnimationPhase(0);
           setSelectedItemRect(null);
+          transitionInitiatedRef.current = false;
           
           // Restart animation after navigation completes
           if (!animationRef.current) {
@@ -514,6 +522,9 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
           }, 500);
         } catch (error) {
           console.error("Error resetting animation state:", error);
+          // Reset refs in case of error
+          transitionInitiatedRef.current = false;
+          navigationInProgressRef.current = false;
         }
       }, 100);
       
@@ -531,6 +542,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
       setAnimationPhase(0);
       setSelectedItemRect(null);
       navigationInProgressRef.current = false;
+      transitionInitiatedRef.current = false;
     }
   }, [navigate, selectedCategory, animate]);
 
@@ -538,6 +550,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
   useEffect(() => {
     if (isTransitioning && selectedCategory && animationPhase >= 2 && !preloadAttemptedRef.current) {
       preloadAttemptedRef.current = true;
+      debugLog("Preloading shop data", { category: selectedCategory.slug });
       // This is where you could prefetch data for the shop page
       // e.g., fetch(`/api/products?category=${selectedCategory.slug}`)
     }
@@ -564,7 +577,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
           // Force completion of transition
           handleTransitionComplete();
         }
-      }, 5000); // 5 second safety timeout
+      }, 3000); // Keep a longer timeout here as a final fallback
     }
 
     // Clear timeout if we're no longer transitioning or navigation is in progress
@@ -580,7 +593,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
         safetyTimeoutRef.current = null;
       }
     };
-  }, [isTransitioning, selectedCategory, animationPhase, handleTransitionComplete, navigationInProgressRef]);
+  }, [isTransitioning, selectedCategory, animationPhase, handleTransitionComplete]);
 
   return (
     <div 
