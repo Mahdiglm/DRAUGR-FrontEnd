@@ -63,30 +63,34 @@ const CategoryItem = memo(({
     velocityBoost: 0, // For tracking the boost from mouse speed
   });
 
+  // Re-add useState for setForceUpdate, needed for desktop animation loop
   const [, setForceUpdate] = useState(0);
 
   const proximityThreshold = 60;
   const borderWidth = 2;
 
+  // Mobile-specific effect: Update refs, but DO NOT call setForceUpdate here.
   useEffect(() => {
     if (isMobile) {
       animatedValuesRef.current = {
         intensity: mobileHighlight ? mobileHighlightIntensity : 0,
         position: mobileHighlight ? mobileHighlightPosition : 0.5,
         edge: mobileHighlight ? mobileHighlightEdge : null,
-        velocityBoost: 0,
+        velocityBoost: 0, // Reset velocity boost on mobile
       };
-      setForceUpdate(val => val + 1);
+      // No setForceUpdate here
     }
+    // When isMobile becomes false, the desktop useEffect will handle re-initializing the animation state.
   }, [isMobile, mobileHighlight, mobileHighlightEdge, mobileHighlightIntensity, mobileHighlightPosition]);
 
+  // Main hover animation effect for non-mobile devices
   useEffect(() => {
     if (isMobile) {
       if (animationFrameIdRef.current) {
         cancelAnimationFrame(animationFrameIdRef.current);
         animationFrameIdRef.current = null;
         animatedValuesRef.current = { intensity: 0, position: 0.5, edge: null, velocityBoost: 0 };
-        setForceUpdate(val => val + 1); 
+        setForceUpdate(val => val + 1); // Keep for immediate visual reset when switching to mobile
       }
       return;
     }
@@ -160,7 +164,7 @@ const CategoryItem = memo(({
       const wasTargetingVisible = targetBaseIntensity > 0;
 
       if (intensityChanged || positionChanged || (stillVisible && !wasTargetingVisible) || (wasTargetingVisible && !stillVisible) ) {
-        setForceUpdate(val => val + 1);
+        setForceUpdate(val => val + 1); // Keep for desktop animation updates
       }
       
       animationFrameIdRef.current = requestAnimationFrame(processHoverState);
