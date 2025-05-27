@@ -13,6 +13,7 @@ const PHASE_DURATIONS = {
   SELECTION_RESPONSE: 300,   // 0-300ms
   MORPHING_TRANSITION: 500,  // 300-800ms
   PAGE_TRANSITION: 400,      // 800-1200ms
+  OUTRO: 600,               // Added outro phase duration
 };
 
 // Horror theme color palette
@@ -41,22 +42,27 @@ const TransitionOverlay = ({
   phase,
   setPhase
 }) => {
-  // Current animation phase (1, 2, 3)
+  // Current animation phase (1, 2, 3, 4=outro)
   const [currentPhase, setCurrentPhase] = useState(0);
   
   // Animation progress within current phase (0-1)
   const [phaseProgress, setPhaseProgress] = useState(0);
+  
+  // Is the outro phase playing
+  const [isOutroActive, setIsOutroActive] = useState(false);
   
   // Animation control refs
   const animationRef = useRef(null);
   const timeoutRef = useRef(null);
   const phaseStartTimeRef = useRef(null);
   const totalStartTimeRef = useRef(null);
+  const outroTimeoutRef = useRef(null);
   
   // State tracking refs
   const activeAnimationIdRef = useRef(null);
   const categoryRef = useRef(null);
   const hasCompletedRef = useRef(false);
+  const notifiedCompletionRef = useRef(false);
   
   // Safety timeout duration (ms)
   const SAFETY_TIMEOUT = 3000;
@@ -77,6 +83,11 @@ const TransitionOverlay = ({
       timeoutRef.current = null;
     }
     
+    if (outroTimeoutRef.current) {
+      clearTimeout(outroTimeoutRef.current);
+      outroTimeoutRef.current = null;
+    }
+    
     phaseStartTimeRef.current = null;
   };
 
@@ -86,16 +97,26 @@ const TransitionOverlay = ({
   const completeTransition = () => {
     if (hasCompletedRef.current) return;
     
-    debugLog("Animation completed");
+    debugLog("Animation completed, starting outro");
     hasCompletedRef.current = true;
-    cleanupAnimationResources();
     
-    // Small delay before calling onTransitionComplete
-    setTimeout(() => {
-      if (typeof onTransitionComplete === 'function') {
+    // Start the outro animation
+    setIsOutroActive(true);
+    setCurrentPhase(4); // Phase 4 = outro
+    
+    // Set up outro timeout to notify when animation is truly done
+    if (outroTimeoutRef.current) {
+      clearTimeout(outroTimeoutRef.current);
+    }
+    
+    outroTimeoutRef.current = setTimeout(() => {
+      debugLog("Outro animation completed, notifying parent");
+      if (!notifiedCompletionRef.current && typeof onTransitionComplete === 'function') {
+        notifiedCompletionRef.current = true;
         onTransitionComplete();
       }
-    }, 50);
+      cleanupAnimationResources();
+    }, PHASE_DURATIONS.OUTRO);
   };
 
   /**
@@ -190,9 +211,11 @@ const TransitionOverlay = ({
     
     // Reset state
     hasCompletedRef.current = false;
+    notifiedCompletionRef.current = false;
     totalStartTimeRef.current = null;
     phaseStartTimeRef.current = null;
     categoryRef.current = selectedCategory;
+    setIsOutroActive(false);
     
     // Initialize to phase 1
     setCurrentPhase(1);
@@ -229,8 +252,10 @@ const TransitionOverlay = ({
       activeAnimationIdRef.current = null;
       categoryRef.current = null;
       hasCompletedRef.current = true;
+      notifiedCompletionRef.current = true;
       setCurrentPhase(0);
       setPhaseProgress(0);
+      setIsOutroActive(false);
     }
     
     // Cleanup on unmount or when dependencies change
@@ -248,21 +273,28 @@ const TransitionOverlay = ({
   const transitionId = categoryRef.current?.slug || 'transition';
 
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       <motion.div 
         key={`overlay-${transitionId}`}
         className="fixed inset-0 z-50 overflow-hidden transition-overlay"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.3 }}
+        exit={{ 
+          opacity: 0, 
+          filter: "contrast(1.2) brightness(5)",
+          transition: { 
+            duration: 0.6, 
+            ease: [0.16, 1, 0.3, 1] 
+          } 
+        }}
       >
         {/* Full-screen background overlay */}
         <motion.div 
           className="absolute inset-0 bg-black transition-bg"
           initial={{ opacity: 0 }}
           animate={{ 
-            opacity: currentPhase === 1 ? 0.5 : 
+            opacity: isOutroActive ? 0.95 : 
+                    currentPhase === 1 ? 0.5 : 
                     currentPhase === 2 ? 0.7 : 0.85
           }}
           transition={{ duration: 0.4 }}
@@ -297,16 +329,16 @@ const TransitionOverlay = ({
         
         {/* Particle effects */}
         <div className="absolute inset-0 pointer-events-none">
-          {Array.from({ length: 20 }).map((_, i) => {
-            const startX = selectedCardRect.left + selectedCardRect.width / 2;
-            const startY = selectedCardRect.top + selectedCardRect.height / 2;
+          {Array.from({ length: isOutroActive ? 40 : 20 }).map((_, i) => {
+            const startX = isOutroActive ? window.innerWidth / 2 : selectedCardRect.left + selectedCardRect.width / 2;
+            const startY = isOutroActive ? window.innerHeight / 2 : selectedCardRect.top + selectedCardRect.height / 2;
             const randomAngle = Math.random() * Math.PI * 2;
-            const randomDistance = Math.random() * 300 + 50;
-            const randomSize = Math.random() * 6 + 2;
+            const randomDistance = isOutroActive ? Math.random() * 800 + 100 : Math.random() * 300 + 50;
+            const randomSize = Math.random() * 6 + (isOutroActive ? 4 : 2);
             
             return (
               <motion.div
-                key={`particle-${i}`}
+                key={`particle-${i}${isOutroActive ? '-outro' : ''}`}
                 className="absolute rounded-full"
                 style={{
                   width: `${randomSize}px`,
@@ -320,23 +352,28 @@ const TransitionOverlay = ({
                   y: startY,
                   scale: 0
                 }}
-                animate={{
+                animate={isOutroActive ? {
+                  opacity: [0, 0.9, 0],
+                  x: startX + Math.cos(randomAngle) * randomDistance,
+                  y: startY + Math.sin(randomAngle) * randomDistance,
+                  scale: [0, Math.random() * 1.2 + 0.3, 0]
+                } : {
                   opacity: [0, 0.7, 0],
                   x: startX + Math.cos(randomAngle) * randomDistance,
                   y: startY + Math.sin(randomAngle) * randomDistance,
                   scale: [0, Math.random() * 0.8 + 0.2, 0]
                 }}
                 transition={{
-                  duration: 2 + Math.random() * 2,
-                  ease: "easeOut",
-                  delay: Math.random() * 0.5
+                  duration: isOutroActive ? 1.5 + Math.random() * 1 : 2 + Math.random() * 2,
+                  ease: isOutroActive ? "easeOut" : "easeOut",
+                  delay: isOutroActive ? Math.random() * 0.3 : Math.random() * 0.5
                 }}
               />
             );
           })}
         </div>
 
-        {/* Blood splatter effects (new) */}
+        {/* Blood splatter effects */}
         <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-20" style={{ mixBlendMode: 'multiply' }}>
           <defs>
             <filter id="turbulence" x="0" y="0" width="100%" height="100%">
@@ -350,10 +387,20 @@ const TransitionOverlay = ({
             fill={HORROR_THEME.PRIMARY} 
             filter="url(#turbulence)"
             initial={{ opacity: 0 }}
-            animate={{ opacity: [0.1, 0.2, 0.1] }}
-            transition={{ duration: 8, repeat: Infinity, repeatType: 'mirror' }}
+            animate={{ opacity: isOutroActive ? [0.3, 0.6, 0] : [0.1, 0.2, 0.1] }}
+            transition={{ duration: isOutroActive ? 1 : 8, repeat: isOutroActive ? 0 : Infinity, repeatType: 'mirror' }}
           />
         </svg>
+
+        {/* Outro flash effect */}
+        {isOutroActive && (
+          <motion.div 
+            className="absolute inset-0 bg-white/60 mix-blend-overlay" 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 1, 0] }}
+            transition={{ duration: 0.6, times: [0, 0.1, 1], ease: "easeOut" }}
+          />
+        )}
 
         {/* Morphing card animation */}
         <motion.div
@@ -370,7 +417,12 @@ const TransitionOverlay = ({
             height: selectedCardRect.height,
             borderRadius: '0.5rem'
           }}
-          animate={{
+          animate={isOutroActive ? {
+            opacity: 0,
+            scale: 1.1,
+            filter: "blur(8px) brightness(1.5)",
+            transition: { duration: 0.5, ease: "easeIn" }
+          } : {
             // Phase 1: Scale up the selected card
             top: currentPhase === 1 ? 
               selectedCardRect.top - (selectedCardRect.height * 0.5 * phaseProgress) : 
@@ -397,6 +449,9 @@ const TransitionOverlay = ({
               '100%',
             
             borderRadius: currentPhase === 3 ? '0rem' : '0.5rem',
+            opacity: 1,
+            scale: 1,
+            filter: "blur(0px) brightness(1)"
           }}
           transition={{
             duration: 0.4,
@@ -517,7 +572,7 @@ const TransitionOverlay = ({
           </div>
           
           {/* Phase 3 UI elements */}
-          {currentPhase === 3 && (
+          {currentPhase === 3 && !isOutroActive && (
             <div className="absolute inset-0 flex flex-col items-stretch">
               {/* Header */}
               <motion.div
@@ -576,6 +631,55 @@ const TransitionOverlay = ({
             </div>
           )}
         </motion.div>
+
+        {/* Outro reveal effect */}
+        {isOutroActive && (
+          <motion.div 
+            className="absolute inset-0"
+            style={{ 
+              background: `radial-gradient(circle at center, transparent 0%, #000 100%)`,
+            }}
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: [0, 1.8] }}
+            transition={{ duration: 0.6, ease: "easeInOut" }}
+          />
+        )}
+        
+        {/* Outro horizontal slash reveals */}
+        {isOutroActive && (
+          <>
+            <motion.div 
+              className="absolute left-0 right-0 bg-white" 
+              style={{ height: '2px', top: '30%' }}
+              initial={{ scaleX: 0, opacity: 0 }}
+              animate={{ 
+                scaleX: [0, 1, 1],
+                opacity: [0, 0.8, 0]
+              }}
+              transition={{ 
+                duration: 0.6,
+                times: [0, 0.3, 1], 
+                ease: "easeInOut" 
+              }}
+            />
+            
+            <motion.div 
+              className="absolute left-0 right-0 bg-white" 
+              style={{ height: '2px', top: '70%' }}
+              initial={{ scaleX: 0, opacity: 0 }}
+              animate={{ 
+                scaleX: [0, 1, 1],
+                opacity: [0, 0.8, 0]
+              }}
+              transition={{ 
+                duration: 0.6,
+                delay: 0.1,
+                times: [0, 0.3, 1], 
+                ease: "easeInOut" 
+              }}
+            />
+          </>
+        )}
       </motion.div>
 
       <style jsx="true">{`
