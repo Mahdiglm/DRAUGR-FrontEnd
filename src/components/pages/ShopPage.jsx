@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useLocation } from 'react-router-dom';
 
 import ProductCard from '../product/ProductCard';
 import { products, categories } from '../../utils/mockData';
@@ -234,6 +234,7 @@ const productItemVariants = {
 
 const ShopPage = () => {
   const { addToCart } = useOutletContext();
+  const location = useLocation();
   
   // NEW: skeleton loading state
   const [isLoading, setIsLoading] = useState(true);
@@ -430,6 +431,28 @@ const ShopPage = () => {
       </motion.div>
     );
   };
+  
+  // Initialize filters from URL parameters on component mount
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const categoryFromUrl = params.get('category');
+    if (categoryFromUrl) {
+      // Ensure it's an array, as setSelectedCategories might expect it
+      setSelectedCategories(prev => {
+        if (prev.includes(categoryFromUrl)) return prev; // Avoid duplicates if already set
+        return [...prev, categoryFromUrl];
+      });
+    }
+    // Potentially handle other filters from URL here (searchTerm, sortBy, etc.)
+  }, [location.search]); // Rerun if URL search params change
+
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      // Handle search term debounce
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
   
   return (
     <motion.section
