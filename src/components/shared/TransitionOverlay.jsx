@@ -15,6 +15,17 @@ const PHASE_DURATIONS = {
   PAGE_TRANSITION: 400,      // 800-1200ms
 };
 
+// Horror theme color palette
+const HORROR_THEME = {
+  PRIMARY: '#800000',       // Deep blood red
+  SECONDARY: '#3a0000',     // Dark crimson
+  ACCENT: '#ff0000',        // Bright red for highlights/effects
+  SHADOW: '#200000',        // Dark shadow color
+  GLOW: 'rgba(255, 0, 0, 0.6)', // Red glow
+  TEXT_MAIN: '#ffffff',     // White text
+  TEXT_SECONDARY: '#aaaaaa' // Gray text
+};
+
 // Debug helper function
 const debugLog = (message, obj = {}) => {
   if (process.env.NODE_ENV === 'development') {
@@ -235,7 +246,6 @@ const TransitionOverlay = ({
 
   // Generate unique ID for animation elements
   const transitionId = categoryRef.current?.slug || 'transition';
-  const themeColor = categoryRef.current?.themeColor || '#420011';
 
   return (
     <AnimatePresence>
@@ -252,8 +262,8 @@ const TransitionOverlay = ({
           className="absolute inset-0 bg-black transition-bg"
           initial={{ opacity: 0 }}
           animate={{ 
-            opacity: currentPhase === 1 ? 0.4 : 
-                    currentPhase === 2 ? 0.65 : 0.85
+            opacity: currentPhase === 1 ? 0.5 : 
+                    currentPhase === 2 ? 0.7 : 0.85
           }}
           transition={{ duration: 0.4 }}
         />
@@ -297,11 +307,12 @@ const TransitionOverlay = ({
             return (
               <motion.div
                 key={`particle-${i}`}
-                className="absolute rounded-full bg-draugr-500"
+                className="absolute rounded-full"
                 style={{
                   width: `${randomSize}px`,
                   height: `${randomSize}px`,
-                  filter: `blur(${Math.random() * 2}px) drop-shadow(0 0 2px #ff0000)`
+                  background: i % 2 === 0 ? HORROR_THEME.ACCENT : HORROR_THEME.PRIMARY,
+                  filter: `blur(${Math.random() * 2}px) drop-shadow(0 0 3px ${HORROR_THEME.GLOW})`
                 }}
                 initial={{
                   opacity: 0,
@@ -325,12 +336,31 @@ const TransitionOverlay = ({
           })}
         </div>
 
+        {/* Blood splatter effects (new) */}
+        <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-20" style={{ mixBlendMode: 'multiply' }}>
+          <defs>
+            <filter id="turbulence" x="0" y="0" width="100%" height="100%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="3" seed="3" />
+              <feDisplacementMap in="SourceGraphic" scale="30" />
+            </filter>
+          </defs>
+          <motion.rect 
+            width="100%" 
+            height="100%" 
+            fill={HORROR_THEME.PRIMARY} 
+            filter="url(#turbulence)"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0.1, 0.2, 0.1] }}
+            transition={{ duration: 8, repeat: Infinity, repeatType: 'mirror' }}
+          />
+        </svg>
+
         {/* Morphing card animation */}
         <motion.div
           className="absolute rounded-lg overflow-hidden flex flex-col"
           style={{
             boxShadow: currentPhase === 1 ? 
-              '0 10px 40px rgba(139, 0, 0, 0.6), 0 0 20px rgba(255, 0, 0, 0.4)' : 
+              `0 10px 40px ${HORROR_THEME.SHADOW}, 0 0 20px ${HORROR_THEME.GLOW}` : 
               '0 0 0 rgba(0, 0, 0, 0)'
           }}
           initial={{
@@ -377,7 +407,7 @@ const TransitionOverlay = ({
           <motion.div
             className="absolute inset-0 z-0"
             style={{
-              background: `linear-gradient(to bottom, ${themeColor}, #000000)`
+              background: `linear-gradient(to bottom, ${HORROR_THEME.PRIMARY}, #000000)`
             }}
           >
             <motion.div
@@ -397,6 +427,15 @@ const TransitionOverlay = ({
                 repeat: Infinity,
                 repeatType: 'mirror',
                 ease: 'easeInOut'
+              }}
+            />
+            
+            {/* Vignette effect */}
+            <div 
+              className="absolute inset-0" 
+              style={{
+                background: 'radial-gradient(circle, transparent 30%, rgba(0, 0, 0, 0.8) 100%)',
+                mixBlendMode: 'multiply'
               }}
             />
           </motion.div>
@@ -428,7 +467,7 @@ const TransitionOverlay = ({
                 {/* Title glow effect */}
                 <motion.div
                   className="absolute inset-0 -z-10 blur-md"
-                  style={{ background: themeColor }}
+                  style={{ background: HORROR_THEME.ACCENT }}
                   animate={{ 
                     opacity: [0, 0.6, 0],
                     scale: [1, 1.1, 1]
@@ -459,10 +498,10 @@ const TransitionOverlay = ({
                       transition={{ duration: 0.4 }}
                     >
                       <div className="flex justify-center">
-                        <div className="relative w-64 h-1 bg-gray-700 rounded-full overflow-hidden">
+                        <div className="relative w-64 h-1 bg-gray-800 rounded-full overflow-hidden">
                           <motion.div
                             className="absolute top-0 left-0 h-full"
-                            style={{ background: `linear-gradient(to right, ${themeColor}, #990000)` }}
+                            style={{ background: `linear-gradient(to right, ${HORROR_THEME.SECONDARY}, ${HORROR_THEME.ACCENT})` }}
                             initial={{ width: '0%' }}
                             animate={{ width: '100%' }}
                             transition={{ duration: 0.6, ease: "easeInOut" }}
@@ -482,7 +521,11 @@ const TransitionOverlay = ({
             <div className="absolute inset-0 flex flex-col items-stretch">
               {/* Header */}
               <motion.div
-                className="w-full bg-black/80 backdrop-blur-md border-b border-[#2f0000]/30 h-16"
+                className="w-full backdrop-blur-md border-b h-16"
+                style={{ 
+                  backgroundColor: 'rgba(10, 0, 0, 0.8)',
+                  borderColor: HORROR_THEME.SECONDARY
+                }}
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 0.9, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.1 }}
@@ -492,7 +535,11 @@ const TransitionOverlay = ({
               <div className="flex flex-1 overflow-hidden">
                 {/* Sidebar */}
                 <motion.div
-                  className="w-64 bg-black/40 backdrop-blur-md border-r border-[#2f0000]/20"
+                  className="w-64 backdrop-blur-md border-r"
+                  style={{ 
+                    backgroundColor: 'rgba(10, 0, 0, 0.6)',
+                    borderColor: HORROR_THEME.SECONDARY
+                  }}
                   initial={{ opacity: 0, x: -100 }}
                   animate={{ opacity: 0.9, x: 0 }}
                   transition={{ duration: 0.5, delay: 0.2 }}
@@ -510,7 +557,14 @@ const TransitionOverlay = ({
                     {Array.from({ length: 8 }).map((_, i) => (
                       <motion.div
                         key={`product-${i}`}
-                        className="rounded-md bg-black/30 backdrop-blur-sm border border-[#2f0000]/20 h-64"
+                        className="rounded-md backdrop-blur-sm h-64"
+                        style={{ 
+                          backgroundColor: 'rgba(15, 0, 0, 0.6)',
+                          borderWidth: '1px',
+                          borderStyle: 'solid',
+                          borderColor: HORROR_THEME.SECONDARY,
+                          boxShadow: `0 4px 12px ${HORROR_THEME.SHADOW}`
+                        }}
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, delay: 0.3 + (i * 0.05) }}
