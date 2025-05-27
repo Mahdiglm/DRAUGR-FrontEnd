@@ -20,7 +20,7 @@ const CARD_TOTAL_WIDTH = CARD_WIDTH + CARD_MARGIN; // Total width including marg
 const MOBILE_CARD_WIDTH = 160; // Smaller width for mobile
 const MOBILE_CARD_MARGIN = 0; // No margin - we'll handle spacing with absolute positioning
 const MOBILE_CARD_TOTAL_WIDTH = MOBILE_CARD_WIDTH + MOBILE_CARD_MARGIN;
-const MOBILE_ROW_HEIGHT = 100; // Decreased height for mobile rows (was 120)
+const MOBILE_ROW_HEIGHT = 80; // Decreased height for mobile rows (was 100)
 
 // Consistent spacing between cards
 const CARD_SPACING = 32; // Fixed spacing between cards for desktop
@@ -91,7 +91,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
       cardWidth: isMobileDevice ? MOBILE_CARD_WIDTH : CARD_WIDTH,
       cardMargin: isMobileDevice ? MOBILE_CARD_MARGIN : CARD_MARGIN,
       cardTotalWidth: isMobileDevice ? MOBILE_CARD_WIDTH + MOBILE_CARD_SPACING : CARD_WIDTH + CARD_SPACING,
-      rowHeight: isMobileDevice ? MOBILE_ROW_HEIGHT : 160,
+      rowHeight: isMobileDevice ? MOBILE_ROW_HEIGHT : 120, // Decreased height for desktop (was 160)
       cardSpacing: isMobileDevice ? MOBILE_CARD_SPACING : CARD_SPACING
     };
   }, [isMobileDevice]);
@@ -408,17 +408,17 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
   return (
     <div 
       className={`py-2 sm:py-3 md:py-4 w-screen min-w-full max-w-none relative overflow-hidden mx-0 px-0 ${isMobileDevice ? 'category-row-mobile' : ''}`}
-      style={{
-        width: '100vw',
-        maxWidth: '100vw',
-        paddingLeft: '0',
-        paddingRight: '0',
-        position: 'relative',
-        left: '50%',
-        right: '50%',
-        marginLeft: '-50vw',
-        marginRight: '-50vw'
-      }}
+         style={{
+           width: '100vw',
+           maxWidth: '100vw',
+           paddingLeft: '0',
+           paddingRight: '0',
+           position: 'relative',
+           left: '50%',
+           right: '50%',
+           marginLeft: '-50vw',
+           marginRight: '-50vw'
+         }}
       role="region"
       aria-label="دسته‌بندی محصولات"
       tabIndex="0"
@@ -469,6 +469,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
                 height: `${rowHeight}px`
               }}
               cardWidth={cardWidth}
+              cardHeight={rowHeight}
               isMobile={isMobileDevice}
               mobileHighlight={item.mobileHighlight}
               mobileHighlightEdge={item.mobileHighlightEdge}
