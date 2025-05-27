@@ -584,4 +584,94 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
 
   return (
     <div 
-      className={`
+      className={`py-2 sm:py-3 md:py-4 w-screen min-w-full max-w-none relative overflow-hidden mx-0 px-0 ${isMobileDevice ? 'category-row-mobile' : ''}`}
+      style={{
+        width: '100vw',
+        maxWidth: '100vw',
+        paddingLeft: '0',
+        paddingRight: '0',
+        position: 'relative',
+        left: '50%',
+        right: '50%',
+        marginLeft: '-50vw',
+        marginRight: '-50vw'
+      }}
+      role="region"
+      aria-label="دسته‌بندی محصولات"
+      tabIndex="0"
+      onKeyDown={handleKeyDown}
+    >
+      {(title.trim() || subtitle.trim()) && (
+        <div className="w-full mb-3 md:mb-6">
+          <h2 className={`${isMobileDevice ? 'text-xl' : 'text-2xl md:text-3xl'} font-bold text-gray-100 mb-1 md:mb-2 pl-4`}>
+            {title}
+          </h2>
+          <p className={`text-gray-400 pl-4 ${isMobileDevice ? 'text-xs' : 'text-sm'}`}>
+            {subtitle}
+          </p>
+        </div>
+      )}
+      
+      <div 
+        ref={containerRef}
+        className="relative w-screen overflow-hidden mx-0 px-0"
+        style={{ 
+          maskImage: 'linear-gradient(to right, black 100%, black 100%)',
+          WebkitMaskImage: 'linear-gradient(to right, black 100%, black 100%)',
+          width: '100vw',
+          maxWidth: '100vw',
+          marginRight: '0',
+          paddingRight: '0'
+        }}
+        aria-live="polite"
+      >
+        <div 
+          ref={beltRef}
+          className="relative w-screen"
+          style={{
+            width: '100vw',
+            maxWidth: '100vw',
+            height: `${rowHeight}px`
+          }}
+        >
+          {categoryItems.map(item => (
+            <CategoryItem 
+              key={item.id} 
+              category={item.category}
+              style={{
+                position: 'absolute',
+                left: 0,
+                transform: `translateX(${item.positionX}px)`,
+                width: `${cardWidth}px`,
+                height: `${rowHeight}px`
+              }}
+              cardWidth={cardWidth}
+              cardHeight={rowHeight}
+              isMobile={isMobileDevice}
+              mobileHighlight={item.mobileHighlight}
+              mobileHighlightEdge={item.mobileHighlightEdge}
+              mobileHighlightIntensity={item.mobileHighlightIntensity}
+              mobileHighlightPosition={item.mobileHighlightPosition}
+              onCategorySelect={handleCategorySelect}
+              isSelected={selectedCategory && selectedCategory.id === item.category.id}
+              isTransitioning={isTransitioning}
+              animationPhase={animationPhase}
+            />
+          ))}
+        </div>
+      </div>
+      
+      {/* Add the TransitionOverlay for animated page transitions */}
+      <TransitionOverlay
+        isActive={isTransitioning}
+        selectedCategory={selectedCategory}
+        selectedCardRect={selectedItemRect}
+        onTransitionComplete={handleTransitionComplete}
+        phase={animationPhase}
+        setPhase={setAnimationPhase}
+      />
+    </div>
+  );
+});
+
+export default CategoryRows;
