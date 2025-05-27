@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 /**
@@ -8,316 +8,530 @@ import { motion, AnimatePresence } from 'framer-motion';
  * and shop page navigation. Uses a state machine approach for more robust animation control.
  */
 
-const debugLog = (message, data = {}) => {
+// Define animation phase durations
+const PHASE_DURATIONS = {
+  SELECTION_RESPONSE: 300,   // 0-300ms
+  MORPHING_TRANSITION: 500,  // 300-800ms
+  PAGE_TRANSITION: 400,      // 800-1200ms
+};
+
+// Debug helper function
+const debugLog = (message, obj = {}) => {
   if (process.env.NODE_ENV === 'development') {
-    console.log(`[TransitionOverlayV2] ${message}`, data);
+    console.log(`[TransitionOverlay] ${message}`, obj);
   }
 };
 
-const VisualPhase = {
-  IDLE: 'idle',
-  SELECTED_CARD_RESPONSE: 'selected_card_response', // Phase 1
-  MORPHING_TO_HERO: 'morphing_to_hero',         // Phase 2
-  PAGE_CONTENT_REVEAL: 'page_content_reveal',     // Phase 3
-  FINALIZING: 'finalizing',                   // Cleanup and call onTransitionEnd
-};
-
-const TransitionOverlay = ({
-  isActive,             // Boolean: Is the transition process active?
-  selectedCategoryData, // { category: object, cardRect: DOMRect }
-  onTransitionEnd,      // Callback when visual transition finishes, before navigation
-  shopPageThemeColor,   // Optional: theme color for phase 2/3
+const TransitionOverlay = ({ 
+  isActive, 
+  selectedCategory, 
+  selectedCardRect,
+  onTransitionComplete,
+  phase,
+  setPhase
 }) => {
-  const [visualPhase, setVisualPhase] = useState(VisualPhase.IDLE);
-  const [internalSelectedCategory, setInternalSelectedCategory] = useState(null);
-  const [internalCardRect, setInternalCardRect] = useState(null);
+  // Current animation phase (1, 2, 3)
+  const [currentPhase, setCurrentPhase] = useState(0);
+  
+  // Animation progress within current phase (0-1)
+  const [phaseProgress, setPhaseProgress] = useState(0);
+  
+  // Animation control refs
+  const animationRef = useRef(null);
+  const timeoutRef = useRef(null);
+  const phaseStartTimeRef = useRef(null);
+  const totalStartTimeRef = useRef(null);
+  
+  // State tracking refs
+  const activeAnimationIdRef = useRef(null);
+  const categoryRef = useRef(null);
+  const hasCompletedRef = useRef(false);
+  
+  // Safety timeout duration (ms)
+  const SAFETY_TIMEOUT = 3000;
 
-  const overlayRef = useRef(null);
-
-  useEffect(() => {
-    if (isActive && selectedCategoryData) {
-      debugLog('Activation: TransitionOverlay received active state and data.', { category: selectedCategoryData.category.slug });
-      setInternalSelectedCategory(selectedCategoryData.category);
-      setInternalCardRect(selectedCategoryData.cardRect);
-      setVisualPhase(VisualPhase.SELECTED_CARD_RESPONSE);
-    } else if (!isActive && visualPhase !== VisualPhase.IDLE) {
-      // If CategoryRows deactivates us prematurely or after completion
-      debugLog('Deactivation: TransitionOverlay received inactive state. Resetting.', { currentPhase: visualPhase });
-      // Potentially add a quick fade out for the overlay if it's caught mid-transition
-      setVisualPhase(VisualPhase.IDLE);
-      setInternalSelectedCategory(null);
-      setInternalCardRect(null);
+  /**
+   * Clean up all animation timers and frames
+   */
+  const cleanupAnimationResources = () => {
+    debugLog("Cleaning up animation resources");
+    
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
     }
-  }, [isActive, selectedCategoryData, visualPhase]);
-
-  const handlePhaseCompletion = (nextPhase) => {
-    debugLog(`Phase completed, moving to: ${nextPhase}`);
-    setVisualPhase(nextPhase);
+    
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    
+    phaseStartTimeRef.current = null;
   };
 
-  // useEffect to handle the finalization step (calling onTransitionEnd)
-  useEffect(() => {
-    if (visualPhase === VisualPhase.FINALIZING) {
-      debugLog('Finalization Logic: Visual transition visually complete. Calling onTransitionEnd.');
-      if (onTransitionEnd) {
-        onTransitionEnd();
+  /**
+   * Complete the transition and notify parent component
+   */
+  const completeTransition = () => {
+    if (hasCompletedRef.current) return;
+    
+    debugLog("Animation completed");
+    hasCompletedRef.current = true;
+    cleanupAnimationResources();
+    
+    // Small delay before calling onTransitionComplete
+    setTimeout(() => {
+      if (typeof onTransitionComplete === 'function') {
+        onTransitionComplete();
       }
-      // After onTransitionEnd, CategoryRows should set isActive to false,
-      // which will then trigger the cleanup in the first useEffect.
-      // To be safe, we can also schedule a reset here if isActive doesn't change quickly.
-      const resetTimeout = setTimeout(() => {
-        if (isActive) { // Only reset if still active, indicating CategoryRows hasn't reset us
-            debugLog('Finalization Logic: Forcing reset of TransitionOverlay state post-onTransitionEnd.');
-            setVisualPhase(VisualPhase.IDLE);
-            setInternalSelectedCategory(null);
-            setInternalCardRect(null);
-        }
-      }, 500); // Give some time for CategoryRows to react and set isActive=false
+    }, 50);
+  };
 
-      return () => clearTimeout(resetTimeout);
+  /**
+   * Set up a safety timeout that forces completion if animation stalls
+   */
+  const setupSafetyTimeout = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
     }
-  }, [visualPhase, onTransitionEnd, isActive]);
-  
-  // Ensure data is ready before trying to render animations
-  if (!isActive || !internalSelectedCategory || !internalCardRect || visualPhase === VisualPhase.IDLE) {
+    
+    timeoutRef.current = setTimeout(() => {
+      debugLog("⚠️ Safety timeout triggered - forcing animation completion");
+      completeTransition();
+    }, SAFETY_TIMEOUT);
+  };
+
+  /**
+   * Animation loop that drives the multi-phase transition
+   */
+  const animationStep = (timestamp) => {
+    // If animation is no longer active, stop the loop
+    if (!isActive || hasCompletedRef.current || !categoryRef.current) {
+      return;
+    }
+    
+    // Initialize start time on first frame
+    if (!totalStartTimeRef.current) {
+      totalStartTimeRef.current = timestamp;
+      phaseStartTimeRef.current = timestamp;
+    }
+    
+    // Calculate elapsed time
+    const totalElapsed = timestamp - totalStartTimeRef.current;
+    const phaseElapsed = timestamp - phaseStartTimeRef.current;
+    
+    // Determine which phase we should be in based on total elapsed time
+    let newPhase = 1;
+    let phaseTime = 0;
+    
+    if (totalElapsed < PHASE_DURATIONS.SELECTION_RESPONSE) {
+      // Phase 1
+      newPhase = 1;
+      phaseTime = totalElapsed / PHASE_DURATIONS.SELECTION_RESPONSE;
+    } else if (totalElapsed < PHASE_DURATIONS.SELECTION_RESPONSE + PHASE_DURATIONS.MORPHING_TRANSITION) {
+      // Phase 2
+      newPhase = 2;
+      phaseTime = (totalElapsed - PHASE_DURATIONS.SELECTION_RESPONSE) / PHASE_DURATIONS.MORPHING_TRANSITION;
+    } else if (totalElapsed < PHASE_DURATIONS.SELECTION_RESPONSE + PHASE_DURATIONS.MORPHING_TRANSITION + PHASE_DURATIONS.PAGE_TRANSITION) {
+      // Phase 3
+      newPhase = 3;
+      phaseTime = (totalElapsed - PHASE_DURATIONS.SELECTION_RESPONSE - PHASE_DURATIONS.MORPHING_TRANSITION) / PHASE_DURATIONS.PAGE_TRANSITION;
+    } else {
+      // Animation complete
+      newPhase = 3;
+      phaseTime = 1;
+      completeTransition();
+      return;
+    }
+    
+    // Update phase if needed
+    if (newPhase !== currentPhase) {
+      debugLog(`Transitioning to Phase ${newPhase}`);
+      setCurrentPhase(newPhase);
+      
+      // Also update parent component's phase state if available
+      if (typeof setPhase === 'function') {
+        setPhase(newPhase);
+      }
+      
+      // Reset phase timer
+      phaseStartTimeRef.current = timestamp;
+    }
+    
+    // Update progress within current phase
+    setPhaseProgress(Math.min(phaseTime, 1));
+    
+    // Continue animation loop
+    animationRef.current = requestAnimationFrame(animationStep);
+  };
+
+  /**
+   * Start a new animation sequence
+   */
+  const startAnimation = () => {
+    if (!selectedCategory || !isActive) return;
+    
+    debugLog("Starting new animation", { categoryId: selectedCategory.id });
+    
+    // Generate unique animation ID
+    const animationId = `${selectedCategory.id}-${Date.now()}`;
+    activeAnimationIdRef.current = animationId;
+    
+    // Reset state
+    hasCompletedRef.current = false;
+    totalStartTimeRef.current = null;
+    phaseStartTimeRef.current = null;
+    categoryRef.current = selectedCategory;
+    
+    // Initialize to phase 1
+    setCurrentPhase(1);
+    setPhaseProgress(0);
+    
+    // Set parent component phase if available
+    if (typeof setPhase === 'function') {
+      setPhase(1);
+    }
+    
+    // Clean up any existing animation
+    cleanupAnimationResources();
+    
+    // Start new animation loop
+    animationRef.current = requestAnimationFrame(animationStep);
+    
+    // Set up safety timeout
+    setupSafetyTimeout();
+  };
+
+  // Handle activation/deactivation and category changes
+  useEffect(() => {
+    const newCategorySelected = selectedCategory && 
+      (!categoryRef.current || categoryRef.current.id !== selectedCategory.id);
+    
+    // Start animation when activated or category changes
+    if (isActive && selectedCategory && (newCategorySelected || !activeAnimationIdRef.current)) {
+      startAnimation();
+    } 
+    // Handle deactivation
+    else if (!isActive && activeAnimationIdRef.current) {
+      debugLog("Deactivating animation");
+      cleanupAnimationResources();
+      activeAnimationIdRef.current = null;
+      categoryRef.current = null;
+      hasCompletedRef.current = true;
+      setCurrentPhase(0);
+      setPhaseProgress(0);
+    }
+    
+    // Cleanup on unmount or when dependencies change
+    return () => {
+      cleanupAnimationResources();
+    };
+  }, [isActive, selectedCategory]);
+
+  // Don't render anything if not active
+  if (!isActive || !categoryRef.current || !selectedCardRect) {
     return null;
   }
 
-  const { category } = internalSelectedCategory;
-  const { cardRect } = internalCardRect;
-
-
-  // --- Backdrop Variants ---
-  const backdropVariants = {
-    initial: { opacity: 0 },
-    selected_card_response: { 
-      opacity: 0.7, 
-      backgroundColor: 'rgba(0,0,0,0.7)',
-      transition: { duration: 0.3 } 
-    },
-    morphing_to_hero: { 
-      opacity: 0.9,
-      // Example: backgroundColor: shopPageThemeColor ? shopPageThemeColor : 'rgba(10,0,0,0.9)',
-      backgroundColor: `rgba(20, 5, 10, 0.95)`, // Darker, thematic
-      transition: { duration: 0.5 }
-    },
-    page_content_reveal: { 
-      opacity: 1, 
-      backgroundColor: `rgba(0,0,0,1)`, // Full black for page reveal
-      transition: { duration: 0.4 }
-    },
-    exit: { opacity: 0, transition: { duration: 0.3, delay: 0.2 } } // Delay exit to allow content to fade
-  };
-
-  // --- Morphing Element (Card Clone -> Hero -> Full Page) Variants ---
-  const morphElementVariants = {
-    initial: { // Starts at the selected card's position
-      x: cardRect.left,
-      y: cardRect.top,
-      width: cardRect.width,
-      height: cardRect.height,
-      scale: 1,
-      opacity: 1,
-      borderRadius: '0.5rem', // Match card's border radius
-      boxShadow: '0 0 0px rgba(0,0,0,0)',
-      backgroundColor: category.themeColor || '#330011', // Initial card color
-    },
-    selected_card_response: { // Phase 1
-      scale: 1.9,
-      boxShadow: `0 0 30px 10px ${category.themeColor || 'rgba(255,50,50,0.5)'}`,
-      transition: { type: 'spring', stiffness: 260, damping: 20, duration: 0.3 }
-    },
-    morphing_to_hero: { // Phase 2
-      x: window.innerWidth * 0.1, // Example: 10% from left
-      y: window.innerHeight * 0.1, // Example: 10% from top
-      width: window.innerWidth * 0.8, // Example: 80% width
-      height: window.innerHeight * 0.4, // Example: 40% height for hero
-      scale: 1, // Reset scale if it was used for initial pop
-      borderRadius: '0.25rem',
-      boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
-      // backgroundColor: shopPageThemeColor || '#220011', // Transition to new theme
-      backgroundColor: category.themeColor ? tinycolor(category.themeColor).darken(10).toString() : '#220011',
-      transition: { duration: 0.5, ease: [0.65, 0, 0.35, 1] } // Cubic bezier for premium feel
-    },
-    page_content_reveal: { // Phase 3
-      x: 0,
-      y: 0,
-      width: '100vw',
-      height: '100vh',
-      borderRadius: '0rem',
-      backgroundColor: '#000000', // Full black or page background
-      boxShadow: '0 0 0px rgba(0,0,0,0)',
-      transition: { duration: 0.4, ease: [0.65, 0, 0.35, 1] }
-    },
-  };
-  
-  // --- Content Variants (Title, Description within Morphing Element) ---
-  const heroTitleVariants = {
-    initial: { opacity: 0, y: 10, scale: 0.8 }, // Starts smaller, slightly offset
-    selected_card_response: { opacity: 1, y: 0, scale: 1, transition: { delay: 0.1, duration: 0.2 } }, // Quickly show original title
-    morphing_to_hero: { 
-      opacity: 1, 
-      y: 0,
-      scale: 1.5, // Larger hero title
-      transition: { delay: 0.2, duration: 0.4 } 
-    },
-    page_content_reveal: { opacity: 0, transition: {duration: 0.2} } // Fade out as page takes over
-  };
-
-  const heroDescriptionVariants = {
-    initial: { opacity: 0, y: 20 },
-    selected_card_response: { opacity: 0 }, // Hidden initially
-    morphing_to_hero: { opacity: 1, y: 0, transition: { delay: 0.35, duration: 0.4 } },
-    page_content_reveal: { opacity: 0, transition: {duration: 0.2} }
-  };
-
-  // --- Mock Page Elements Variants ---
-  const mockFiltersSidebarVariants = {
-    initial: { x: '-100%', opacity: 0 },
-    page_content_reveal: { x: '0%', opacity: 1, transition: { delay: 0.2, duration: 0.4, ease: 'easeOut' } },
-  };
-  const mockProductGridVariants = {
-    initial: { y: '100%', opacity: 0 },
-    page_content_reveal: { y: '0%', opacity: 1, transition: { delay: 0.3, duration: 0.5, ease: 'easeOut' } },
-  };
-   const mockHeaderVariants = {
-    initial: { y: '-100%', opacity: 0 },
-    page_content_reveal: { y: '0%', opacity: 1, transition: { delay: 0.1, duration: 0.4, ease: 'easeOut' } },
-  };
-
+  // Generate unique ID for animation elements
+  const transitionId = categoryRef.current?.slug || 'transition';
+  const themeColor = categoryRef.current?.themeColor || '#420011';
 
   return (
     <AnimatePresence>
-      {isActive && visualPhase !== VisualPhase.IDLE && internalSelectedCategory && internalCardRect && (
-        <motion.div
-          ref={overlayRef}
-          className="fixed inset-0 z-[1000] pointer-events-none" // High z-index
-          key="transition-overlay-main"
-        >
-          {/* 1. Backdrop */}
-          <motion.div
-            className="absolute inset-0 bg-black"
-            variants={backdropVariants}
-            initial="initial"
-            animate={visualPhase} // Drive by current visualPhase state
-            exit="exit"
-            onAnimationComplete={() => {
-              if (visualPhase === VisualPhase.PAGE_CONTENT_REVEAL) {
-                handlePhaseCompletion(VisualPhase.FINALIZING);
-              }
-            }}
-          />
+      <motion.div 
+        key={`overlay-${transitionId}`}
+        className="fixed inset-0 z-50 overflow-hidden transition-overlay"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        {/* Full-screen background overlay */}
+        <motion.div 
+          className="absolute inset-0 bg-black transition-bg"
+          initial={{ opacity: 0 }}
+          animate={{ 
+            opacity: currentPhase === 1 ? 0.4 : 
+                    currentPhase === 2 ? 0.65 : 0.85
+          }}
+          transition={{ duration: 0.4 }}
+        />
+        
+        {/* Atmospheric mist effects */}
+        <div className="absolute inset-0 pointer-events-none">
+          {[0, 1, 2].map(i => (
+            <motion.div
+              key={`mist-${i}`}
+              className="absolute inset-0"
+              style={{
+                backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%25\' height=\'100%25\'%3E%3Cdefs%3E%3CradialGradient id=\'a\' cx=\'50%25\' cy=\'50%25\' r=\'50%25\' gradientUnits=\'userSpaceOnUse\'%3E%3Cstop offset=\'0\' stop-color=\'%23330000\' stop-opacity=\'.3\'/%3E%3Cstop offset=\'1\' stop-color=\'%23330000\' stop-opacity=\'0\'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width=\'100%25\' height=\'100%25\' fill=\'url(%23a)\'/%3E%3C/svg%3E")',
+                backgroundSize: 'cover',
+                opacity: 0
+              }}
+              animate={{ 
+                opacity: [0, 0.4, 0],
+                scale: [1, 1.2, 1],
+                rotate: [(i - 1) * 10, (i - 1) * 10 + 5]
+              }}
+              transition={{
+                duration: 8,
+                repeat: Infinity,
+                repeatType: 'reverse',
+                delay: i * 2,
+                ease: 'easeInOut'
+              }}
+            />
+          ))}
+        </div>
+        
+        {/* Particle effects */}
+        <div className="absolute inset-0 pointer-events-none">
+          {Array.from({ length: 20 }).map((_, i) => {
+            const startX = selectedCardRect.left + selectedCardRect.width / 2;
+            const startY = selectedCardRect.top + selectedCardRect.height / 2;
+            const randomAngle = Math.random() * Math.PI * 2;
+            const randomDistance = Math.random() * 300 + 50;
+            const randomSize = Math.random() * 6 + 2;
+            
+            return (
+              <motion.div
+                key={`particle-${i}`}
+                className="absolute rounded-full bg-draugr-500"
+                style={{
+                  width: `${randomSize}px`,
+                  height: `${randomSize}px`,
+                  filter: `blur(${Math.random() * 2}px) drop-shadow(0 0 2px #ff0000)`
+                }}
+                initial={{
+                  opacity: 0,
+                  x: startX,
+                  y: startY,
+                  scale: 0
+                }}
+                animate={{
+                  opacity: [0, 0.7, 0],
+                  x: startX + Math.cos(randomAngle) * randomDistance,
+                  y: startY + Math.sin(randomAngle) * randomDistance,
+                  scale: [0, Math.random() * 0.8 + 0.2, 0]
+                }}
+                transition={{
+                  duration: 2 + Math.random() * 2,
+                  ease: "easeOut",
+                  delay: Math.random() * 0.5
+                }}
+              />
+            );
+          })}
+        </div>
 
-          {/* 2. Morphing Element */}
+        {/* Morphing card animation */}
+        <motion.div
+          className="absolute rounded-lg overflow-hidden flex flex-col"
+          style={{
+            boxShadow: currentPhase === 1 ? 
+              '0 10px 40px rgba(139, 0, 0, 0.6), 0 0 20px rgba(255, 0, 0, 0.4)' : 
+              '0 0 0 rgba(0, 0, 0, 0)'
+          }}
+          initial={{
+            top: selectedCardRect.top,
+            left: selectedCardRect.left,
+            width: selectedCardRect.width,
+            height: selectedCardRect.height,
+            borderRadius: '0.5rem'
+          }}
+          animate={{
+            // Phase 1: Scale up the selected card
+            top: currentPhase === 1 ? 
+              selectedCardRect.top - (selectedCardRect.height * 0.5 * phaseProgress) : 
+              currentPhase === 2 ? 
+              window.innerHeight * 0.1 : 
+              0,
+            
+            left: currentPhase === 1 ? 
+              selectedCardRect.left - (selectedCardRect.width * 0.5 * phaseProgress) : 
+              currentPhase === 2 ? 
+              window.innerWidth * 0.5 - (selectedCardRect.width * 1.5) : 
+              0,
+            
+            width: currentPhase === 1 ? 
+              selectedCardRect.width * (1 + phaseProgress) : 
+              currentPhase === 2 ? 
+              selectedCardRect.width * 3 : 
+              '100%',
+            
+            height: currentPhase === 1 ? 
+              selectedCardRect.height * (1 + phaseProgress) : 
+              currentPhase === 2 ? 
+              selectedCardRect.height * 1.5 : 
+              '100%',
+            
+            borderRadius: currentPhase === 3 ? '0rem' : '0.5rem',
+          }}
+          transition={{
+            duration: 0.4,
+            ease: [0.16, 1, 0.3, 1]
+          }}
+        >
+          {/* Card background */}
           <motion.div
-            className="absolute overflow-hidden flex flex-col items-center justify-center"
-            style={{ 
-              // Will be controlled by variants: x, y, width, height, backgroundColor, borderRadius, boxShadow
-            }}
-            variants={morphElementVariants}
-            initial="initial"
-            animate={visualPhase}
-            onAnimationComplete={() => {
-              if (visualPhase === VisualPhase.SELECTED_CARD_RESPONSE) {
-                handlePhaseCompletion(VisualPhase.MORPHING_TO_HERO);
-              } else if (visualPhase === VisualPhase.MORPHING_TO_HERO) {
-                handlePhaseCompletion(VisualPhase.PAGE_CONTENT_REVEAL);
-              }
-              // Note: PAGE_CONTENT_REVEAL completion is handled by backdrop to ensure it's the last visual step
+            className="absolute inset-0 z-0"
+            style={{
+              background: `linear-gradient(to bottom, ${themeColor}, #000000)`
             }}
           >
-            {/* Content inside the morphing element */}
-            <motion.h1
-              className="text-white font-bold text-center"
+            <motion.div
+              className="absolute inset-0 pointer-events-none"
               style={{
-                fontSize: 'clamp(1rem, 5vw, 2.5rem)', // Responsive font size
-                padding: '10px',
-                // Other styles will be implicitly handled if needed or can be added
+                backgroundImage: "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii4wMSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIiBudW1PY3RhdmVzPSI0IiBzZWVkPSI1MDIiLz48ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIi8+PC9maWx0ZXI+PHBhdGggZD0iTTAgMGgzMDB2MzAwSDB6IiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9Ii4wOCIvPjwvc3ZnPg==')",
+                backgroundSize: 'cover',
+                mixBlendMode: 'soft-light',
+                opacity: 0.2
               }}
-              variants={heroTitleVariants}
-              initial="initial"
-              animate={visualPhase}
-            >
-              {internalSelectedCategory.name}
-            </motion.h1>
-            {(visualPhase === VisualPhase.MORPHING_TO_HERO || visualPhase === VisualPhase.PAGE_CONTENT_REVEAL) && (
-              <motion.p
-                className="text-gray-300 text-center"
-                style={{
-                  fontSize: 'clamp(0.8rem, 2.5vw, 1.1rem)',
-                  padding: '0 20px',
-                  maxWidth: '80%',
-                }}
-                variants={heroDescriptionVariants}
-                initial="initial"
-                animate={visualPhase} // Animate will pick up from current visualPhase
-              >
-                {/* Replace with actual description or dynamic content */}
-                Discover our exclusive collection of {internalSelectedCategory.name}.
-              </motion.p>
-            )}
+              animate={{
+                opacity: [0.2, 0.25, 0.2],
+                scale: [1, 1.05, 1],
+              }}
+              transition={{
+                duration: 8,
+                repeat: Infinity,
+                repeatType: 'mirror',
+                ease: 'easeInOut'
+              }}
+            />
           </motion.div>
 
-          {/* 3. Mock Page Elements (only visible during PAGE_CONTENT_REVEAL) */}
-          {visualPhase === VisualPhase.PAGE_CONTENT_REVEAL && (
-            <>
-              <motion.div 
-                className="absolute top-0 left-0 w-full h-16 bg-gray-800/80 backdrop-blur-sm shadow-lg" // Mock Header
-                variants={mockHeaderVariants}
-                initial="initial"
-                animate="page_content_reveal"
-              />
-              <motion.div 
-                className="absolute top-16 left-0 w-64 h-[calc(100%-4rem)] bg-gray-700/70 backdrop-blur-sm shadow-md" // Mock Sidebar
-                variants={mockFiltersSidebarVariants}
-                initial="initial"
-                animate="page_content_reveal"
-              />
-              <motion.div 
-                className="absolute top-16 left-64 w-[calc(100%-16rem)] h-[calc(100%-4rem)] bg-gray-900/50 p-4 overflow-y-auto" // Mock Product Grid Area
-                variants={mockProductGridVariants}
-                initial="initial"
-                animate="page_content_reveal"
+          {/* Card content container */}
+          <div className="relative z-10 flex flex-col justify-center items-center flex-1 p-6">
+            <motion.div 
+              className="relative z-10 w-full max-w-4xl mx-auto text-center"
+              animate={{ 
+                y: currentPhase === 3 ? -40 : 0
+              }}
+              transition={{ duration: 0.5 }}
+            >
+              {/* Category title with animation */}
+              <motion.h1
+                className="font-bold text-white relative z-10 inline-block"
+                initial={{ fontSize: '1.25rem' }}
+                animate={{
+                  fontSize: currentPhase === 1 ? 
+                    `${1.25 + (1.25 * phaseProgress)}rem` : 
+                    currentPhase === 2 ? 
+                    `${2.5 + phaseProgress}rem` : 
+                    '3.5rem'
+                }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
               >
-                {/* Example grid items */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {Array.from({ length: 8 }).map((_, i) => (
-                    <div key={i} className="h-48 bg-gray-600/50 rounded-md animate-pulse"></div>
-                  ))}
-                </div>
-              </motion.div>
-            </>
+                {categoryRef.current.name}
+                
+                {/* Title glow effect */}
+                <motion.div
+                  className="absolute inset-0 -z-10 blur-md"
+                  style={{ background: themeColor }}
+                  animate={{ 
+                    opacity: [0, 0.6, 0],
+                    scale: [1, 1.1, 1]
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
+              </motion.h1>
+              
+              {/* Category description - appears in Phase 2 */}
+              {currentPhase >= 2 && (
+                <motion.div
+                  className="mt-4 text-gray-200 text-center"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.1 }}
+                >
+                  <p className="mb-4">مجموعه منحصر به فرد محصولات {categoryRef.current.name} ما را کشف کنید</p>
+                  
+                  {/* Loading indicator - appears in Phase 3 */}
+                  {currentPhase === 3 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4 }}
+                    >
+                      <div className="flex justify-center">
+                        <div className="relative w-64 h-1 bg-gray-700 rounded-full overflow-hidden">
+                          <motion.div
+                            className="absolute top-0 left-0 h-full"
+                            style={{ background: `linear-gradient(to right, ${themeColor}, #990000)` }}
+                            initial={{ width: '0%' }}
+                            animate={{ width: '100%' }}
+                            transition={{ duration: 0.6, ease: "easeInOut" }}
+                          />
+                        </div>
+                      </div>
+                      <p className="mt-2 text-gray-400 text-sm">درحال بارگذاری محصولات...</p>
+                    </motion.div>
+                  )}
+                </motion.div>
+              )}
+            </motion.div>
+          </div>
+          
+          {/* Phase 3 UI elements */}
+          {currentPhase === 3 && (
+            <div className="absolute inset-0 flex flex-col items-stretch">
+              {/* Header */}
+              <motion.div
+                className="w-full bg-black/80 backdrop-blur-md border-b border-[#2f0000]/30 h-16"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 0.9, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+              />
+              
+              {/* Main content area */}
+              <div className="flex flex-1 overflow-hidden">
+                {/* Sidebar */}
+                <motion.div
+                  className="w-64 bg-black/40 backdrop-blur-md border-r border-[#2f0000]/20"
+                  initial={{ opacity: 0, x: -100 }}
+                  animate={{ opacity: 0.9, x: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                />
+                
+                {/* Product grid */}
+                <motion.div
+                  className="flex-1 bg-black/20 p-6"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                >
+                  <div className="grid grid-cols-4 gap-4">
+                    {/* Product items */}
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <motion.div
+                        key={`product-${i}`}
+                        className="rounded-md bg-black/30 backdrop-blur-sm border border-[#2f0000]/20 h-64"
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4, delay: 0.3 + (i * 0.05) }}
+                      />
+                    ))}
+                  </div>
+                </motion.div>
+              </div>
+            </div>
           )}
-           {/* Finalizing phase is handled by useEffect, no direct render needed here */}
         </motion.div>
-      )}
+      </motion.div>
+
+      <style jsx="true">{`
+        .transition-overlay {
+          perspective: 1000px;
+          transform-style: preserve-3d;
+        }
+      `}</style>
     </AnimatePresence>
   );
 };
 
-// Effect to handle finalization logic when visualPhase changes
-// Need to call outside the main return for hooks
-// const TransitionOverlayWithHooks = (props) => {
-//   const { visualPhase, onTransitionEnd, isActive } = props; // Assuming visualPhase is lifted or passed if needed here
-//                                                        // For this example, let's assume visualPhase from above is accessible or managed.
-//                                                        // This part of the example needs refinement based on how visualPhase state is truly managed.
-//                                                        // The example above keeps visualPhase internal.
-//                                                        // So, the finalization call needs to be in an effect inside the main component.
-
-//   // This effect is illustrative; the actual call to onTransitionEnd is handled by
-//   // onAnimationComplete of the backdrop or a useEffect watching visualPhase inside the main component.
-//   // For now, the onAnimationComplete of the backdrop in the main component is preferred.
-
-//   // The direct call to onTransitionEnd will be handled by the main component's logic now.
-//   // This separate component is not strictly necessary with the current structure.
-//   return <TransitionOverlay {...props} />;
-// };
-
-
-export default TransitionOverlay; // Export the main component directly
-
-
-// Helper for tinycolor if you decide to use it (install separately: npm install tinycolor2)
-// import tinycolor from 'tinycolor2'; 
-// This would be used as: category.themeColor ? tinycolor(category.themeColor).darken(10).toString() : '#220011'
-// For now, I've put a placeholder, but if you want dynamic color changes, tinycolor is good. 
+export default TransitionOverlay; 
