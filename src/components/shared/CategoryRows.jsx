@@ -635,7 +635,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
     return categoryItemsState.map((item, index) => ( // Use renamed state
       <CategoryItem
         key={item.id}
-        item={item}
+        category={item.category}
         cardWidth={cardWidth}
         rowHeight={rowHeight}
         cardSpacing={cardSpacing}
