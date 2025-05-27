@@ -155,6 +155,11 @@ button:focus-visible {
     @apply bg-gradient-to-r from-draugr-900 to-draugr-700 text-white hover:from-draugr-800 hover:to-draugr-600 transform hover:scale-105 transition-all duration-300 !important;
   }
   
+  /* New class for accordion buttons without the zoom effect */
+  .horror-button-static {
+    @apply bg-gradient-to-r from-draugr-900 to-draugr-700 text-white hover:from-draugr-800 hover:to-draugr-600 transition-all duration-300 !important;
+  }
+  
   .blood-text {
     @apply text-draugr-500 font-bold text-shadow-horror !important;
   }

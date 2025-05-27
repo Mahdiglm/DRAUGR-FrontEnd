@@ -7,83 +7,81 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
-/* Buttons */
-.btn-primary, .bg-primary, button[type="submit"], 
-.dark button[type="submit"],
-.dark .btn-primary {
+/* Only override specific buttons that should match our theme */
+.btn-draugr, .bg-draugr-primary, 
+.dark .btn-draugr {
   background-color: #8B0000 !important;
   border-color: #660000 !important;
 }
 
-.btn-primary:hover, .bg-primary:hover, button[type="submit"]:hover,
-.dark button[type="submit"]:hover,
-.dark .btn-primary:hover {
+.btn-draugr:hover, .bg-draugr-primary:hover,
+.dark .btn-draugr:hover {
   background-color: #660000 !important;
   border-color: #330000 !important;
 }
 
-/* Alerts */
-.alert-danger, .bg-red-100, .text-red-700 {
+/* Allow most Flowbite buttons to keep their original styling */
+.dark button[type="submit"]:not(.btn-draugr) {
+  /* Keep default Flowbite styling */
+}
+
+/* Alerts - less aggressive overrides */
+.alert-danger.horror-themed {
   background-color: rgba(139, 0, 0, 0.1) !important;
   color: #ff6666 !important;
   border-color: rgba(139, 0, 0, 0.2) !important;
 }
 
-/* Cards */
-.card, .bg-white, .dark .bg-gray-800 {
+/* Card overrides only for specific cards */
+.card.horror-card, .horror-card.bg-white, .dark .horror-card.bg-gray-800 {
   background-color: #1a1a1a !important;
   border-color: #333333 !important;
 }
 
-/* Inputs */
-input[type="text"], input[type="email"], input[type="password"], textarea, select,
-.dark input[type="text"], .dark input[type="email"], .dark input[type="password"], 
-.dark textarea, .dark select {
+/* Inputs - keeping most of Flowbite's styling */
+.horror-input {
   background-color: #1c1c1c !important;
   border-color: #333333 !important;
   color: rgba(255, 255, 255, 0.9) !important;
 }
 
-input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus, 
-textarea:focus, select:focus,
-.dark input[type="text"]:focus, .dark input[type="email"]:focus, 
-.dark input[type="password"]:focus, .dark textarea:focus, .dark select:focus {
+.horror-input:focus {
   border-color: #8B0000 !important;
   box-shadow: 0 0 0 1px #8B0000 !important;
 }
 
-/* Dropdowns */
-.dropdown-menu, .dropdown-content {
+/* Dropdowns - only for horror-themed dropdowns */
+.dropdown-menu.horror-themed, .dropdown-content.horror-themed {
   background-color: #1a1a1a !important;
   border-color: #333333 !important;
 }
 
-.dropdown-item:hover, .dropdown-content a:hover {
+.dropdown-item.horror-themed:hover, .dropdown-content.horror-themed a:hover {
   background-color: #333333 !important;
   color: #ff0000 !important;
 }
 
-/* Modals */
-.modal, .modal-content {
+/* Modals - only for horror-themed modals */
+.modal.horror-themed, .modal-content.horror-themed {
   background-color: #1a1a1a !important;
   border-color: #333333 !important;
 }
 
-.modal-header, .modal-footer {
+.modal-header.horror-themed, .modal-footer.horror-themed {
   border-color: #333333 !important;
 }
 
-/* Tables */
-table, .table {
+/* Tables - only for horror-themed tables */
+table.horror-themed, .table.horror-themed {
   background-color: #1a1a1a !important;
   color: rgba(255, 255, 255, 0.9) !important;
 }
 
-th, td, .table th, .table td {
+th.horror-themed, td.horror-themed, .table.horror-themed th, .table.horror-themed td {
   border-color: #333333 !important;
 }
 
-/* Fix for specific horror theme colors */
+/* Fix for specific horror theme colors - these should remain as is */
 .draugr-red {
   color: #8B0000 !important;
 }
