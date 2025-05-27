@@ -63,6 +63,7 @@ const TransitionOverlay = ({
   const categoryRef = useRef(null);
   const hasCompletedRef = useRef(false);
   const notifiedCompletionRef = useRef(false);
+  const pageChangedRef = useRef(false);
   
   // Safety timeout duration (ms)
   const SAFETY_TIMEOUT = 3000;
@@ -97,24 +98,27 @@ const TransitionOverlay = ({
   const completeTransition = () => {
     if (hasCompletedRef.current) return;
     
-    debugLog("Animation completed, starting outro");
+    debugLog("Animation completed, triggering page change and starting outro");
     hasCompletedRef.current = true;
     
-    // Start the outro animation
+    // First notify parent to change the page BEFORE starting the outro
+    // This ensures the shop page is visible behind the outro animation
+    if (!pageChangedRef.current && typeof onTransitionComplete === 'function') {
+      pageChangedRef.current = true;
+      onTransitionComplete();
+    }
+    
+    // AFTER page change, start the outro animation as an overlay effect
     setIsOutroActive(true);
     setCurrentPhase(4); // Phase 4 = outro
     
-    // Set up outro timeout to notify when animation is truly done
+    // Set up outro timeout to clean up when animation is truly done
     if (outroTimeoutRef.current) {
       clearTimeout(outroTimeoutRef.current);
     }
     
     outroTimeoutRef.current = setTimeout(() => {
-      debugLog("Outro animation completed, notifying parent");
-      if (!notifiedCompletionRef.current && typeof onTransitionComplete === 'function') {
-        notifiedCompletionRef.current = true;
-        onTransitionComplete();
-      }
+      debugLog("Outro animation completed, cleaning up");
       cleanupAnimationResources();
     }, PHASE_DURATIONS.OUTRO);
   };
@@ -212,6 +216,7 @@ const TransitionOverlay = ({
     // Reset state
     hasCompletedRef.current = false;
     notifiedCompletionRef.current = false;
+    pageChangedRef.current = false;
     totalStartTimeRef.current = null;
     phaseStartTimeRef.current = null;
     categoryRef.current = selectedCategory;
@@ -253,6 +258,7 @@ const TransitionOverlay = ({
       categoryRef.current = null;
       hasCompletedRef.current = true;
       notifiedCompletionRef.current = true;
+      pageChangedRef.current = false;
       setCurrentPhase(0);
       setPhaseProgress(0);
       setIsOutroActive(false);
@@ -276,7 +282,7 @@ const TransitionOverlay = ({
     <AnimatePresence mode="wait">
       <motion.div 
         key={`overlay-${transitionId}`}
-        className="fixed inset-0 z-50 overflow-hidden transition-overlay"
+        className="fixed inset-0 z-[9999] overflow-hidden transition-overlay"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ 
@@ -293,7 +299,7 @@ const TransitionOverlay = ({
           className="absolute inset-0 bg-black transition-bg"
           initial={{ opacity: 0 }}
           animate={{ 
-            opacity: isOutroActive ? 0.95 : 
+            opacity: isOutroActive ? 0.8 : 
                     currentPhase === 1 ? 0.5 : 
                     currentPhase === 2 ? 0.7 : 0.85
           }}
@@ -402,252 +408,252 @@ const TransitionOverlay = ({
           />
         )}
 
-        {/* Morphing card animation */}
-        <motion.div
-          className="absolute rounded-lg overflow-hidden flex flex-col"
-          style={{
-            boxShadow: currentPhase === 1 ? 
-              `0 10px 40px ${HORROR_THEME.SHADOW}, 0 0 20px ${HORROR_THEME.GLOW}` : 
-              '0 0 0 rgba(0, 0, 0, 0)'
-          }}
-          initial={{
-            top: selectedCardRect.top,
-            left: selectedCardRect.left,
-            width: selectedCardRect.width,
-            height: selectedCardRect.height,
-            borderRadius: '0.5rem'
-          }}
-          animate={isOutroActive ? {
-            opacity: 0,
-            scale: 1.1,
-            filter: "blur(8px) brightness(1.5)",
-            transition: { duration: 0.5, ease: "easeIn" }
-          } : {
-            // Phase 1: Scale up the selected card
-            top: currentPhase === 1 ? 
-              selectedCardRect.top - (selectedCardRect.height * 0.5 * phaseProgress) : 
-              currentPhase === 2 ? 
-              window.innerHeight * 0.1 : 
-              0,
-            
-            left: currentPhase === 1 ? 
-              selectedCardRect.left - (selectedCardRect.width * 0.5 * phaseProgress) : 
-              currentPhase === 2 ? 
-              window.innerWidth * 0.5 - (selectedCardRect.width * 1.5) : 
-              0,
-            
-            width: currentPhase === 1 ? 
-              selectedCardRect.width * (1 + phaseProgress) : 
-              currentPhase === 2 ? 
-              selectedCardRect.width * 3 : 
-              '100%',
-            
-            height: currentPhase === 1 ? 
-              selectedCardRect.height * (1 + phaseProgress) : 
-              currentPhase === 2 ? 
-              selectedCardRect.height * 1.5 : 
-              '100%',
-            
-            borderRadius: currentPhase === 3 ? '0rem' : '0.5rem',
-            opacity: 1,
-            scale: 1,
-            filter: "blur(0px) brightness(1)"
-          }}
-          transition={{
-            duration: 0.4,
-            ease: [0.16, 1, 0.3, 1]
-          }}
-        >
-          {/* Card background */}
+        {/* Only render morphing card animation if not in outro phase or if in early stages of outro */}
+        {(!isOutroActive || (isOutroActive && outroTimeoutRef.current)) && (
           <motion.div
-            className="absolute inset-0 z-0"
+            className="absolute rounded-lg overflow-hidden flex flex-col"
             style={{
-              background: `linear-gradient(to bottom, ${HORROR_THEME.PRIMARY}, #000000)`
+              boxShadow: currentPhase === 1 ? 
+                `0 10px 40px ${HORROR_THEME.SHADOW}, 0 0 20px ${HORROR_THEME.GLOW}` : 
+                '0 0 0 rgba(0, 0, 0, 0)'
+            }}
+            initial={{
+              top: selectedCardRect.top,
+              left: selectedCardRect.left,
+              width: selectedCardRect.width,
+              height: selectedCardRect.height,
+              borderRadius: '0.5rem'
+            }}
+            animate={isOutroActive ? {
+              opacity: 0,
+              scale: 1.1,
+              filter: "blur(8px) brightness(1.5)",
+              transition: { duration: 0.5, ease: "easeIn" }
+            } : {
+              // Phase 1: Scale up the selected card
+              top: currentPhase === 1 ? 
+                selectedCardRect.top - (selectedCardRect.height * 0.5 * phaseProgress) : 
+                currentPhase === 2 ? 
+                window.innerHeight * 0.1 : 
+                0,
+              
+              left: currentPhase === 1 ? 
+                selectedCardRect.left - (selectedCardRect.width * 0.5 * phaseProgress) : 
+                currentPhase === 2 ? 
+                window.innerWidth * 0.5 - (selectedCardRect.width * 1.5) : 
+                0,
+              
+              width: currentPhase === 1 ? 
+                selectedCardRect.width * (1 + phaseProgress) : 
+                currentPhase === 2 ? 
+                selectedCardRect.width * 3 : 
+                '100%',
+              
+              height: currentPhase === 1 ? 
+                selectedCardRect.height * (1 + phaseProgress) : 
+                currentPhase === 2 ? 
+                selectedCardRect.height * 1.5 : 
+                '100%',
+              
+              borderRadius: currentPhase === 3 ? '0rem' : '0.5rem',
+              opacity: 1,
+              scale: 1,
+              filter: "blur(0px) brightness(1)"
+            }}
+            transition={{
+              duration: 0.4,
+              ease: [0.16, 1, 0.3, 1]
             }}
           >
+            {/* Card background */}
             <motion.div
-              className="absolute inset-0 pointer-events-none"
+              className="absolute inset-0 z-0"
               style={{
-                backgroundImage: "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii4wMSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIiBudW1PY3RhdmVzPSI0IiBzZWVkPSI1MDIiLz48ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIi8+PC9maWx0ZXI+PHBhdGggZD0iTTAgMGgzMDB2MzAwSDB6IiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9Ii4wOCIvPjwvc3ZnPg==')",
-                backgroundSize: 'cover',
-                mixBlendMode: 'soft-light',
-                opacity: 0.2
+                background: `linear-gradient(to bottom, ${HORROR_THEME.PRIMARY}, #000000)`
               }}
-              animate={{
-                opacity: [0.2, 0.25, 0.2],
-                scale: [1, 1.05, 1],
-              }}
-              transition={{
-                duration: 8,
-                repeat: Infinity,
-                repeatType: 'mirror',
-                ease: 'easeInOut'
-              }}
-            />
-            
-            {/* Vignette effect */}
-            <div 
-              className="absolute inset-0" 
-              style={{
-                background: 'radial-gradient(circle, transparent 30%, rgba(0, 0, 0, 0.8) 100%)',
-                mixBlendMode: 'multiply'
-              }}
-            />
-          </motion.div>
-
-          {/* Card content container */}
-          <div className="relative z-10 flex flex-col justify-center items-center flex-1 p-6">
-            <motion.div 
-              className="relative z-10 w-full max-w-4xl mx-auto text-center"
-              animate={{ 
-                y: currentPhase === 3 ? -40 : 0
-              }}
-              transition={{ duration: 0.5 }}
             >
-              {/* Category title with animation */}
-              <motion.h1
-                className="font-bold text-white relative z-10 inline-block"
-                initial={{ fontSize: '1.25rem' }}
-                animate={{
-                  fontSize: currentPhase === 1 ? 
-                    `${1.25 + (1.25 * phaseProgress)}rem` : 
-                    currentPhase === 2 ? 
-                    `${2.5 + phaseProgress}rem` : 
-                    '3.5rem'
-                }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-              >
-                {categoryRef.current.name}
-                
-                {/* Title glow effect */}
-                <motion.div
-                  className="absolute inset-0 -z-10 blur-md"
-                  style={{ background: HORROR_THEME.ACCENT }}
-                  animate={{ 
-                    opacity: [0, 0.6, 0],
-                    scale: [1, 1.1, 1]
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                />
-              </motion.h1>
-              
-              {/* Category description - appears in Phase 2 */}
-              {currentPhase >= 2 && (
-                <motion.div
-                  className="mt-4 text-gray-200 text-center"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.1 }}
-                >
-                  <p className="mb-4">مجموعه منحصر به فرد محصولات {categoryRef.current.name} ما را کشف کنید</p>
-                  
-                  {/* Loading indicator - appears in Phase 3 */}
-                  {currentPhase === 3 && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4 }}
-                    >
-                      <div className="flex justify-center">
-                        <div className="relative w-64 h-1 bg-gray-800 rounded-full overflow-hidden">
-                          <motion.div
-                            className="absolute top-0 left-0 h-full"
-                            style={{ background: `linear-gradient(to right, ${HORROR_THEME.SECONDARY}, ${HORROR_THEME.ACCENT})` }}
-                            initial={{ width: '0%' }}
-                            animate={{ width: '100%' }}
-                            transition={{ duration: 0.6, ease: "easeInOut" }}
-                          />
-                        </div>
-                      </div>
-                      <p className="mt-2 text-gray-400 text-sm">درحال بارگذاری محصولات...</p>
-                    </motion.div>
-                  )}
-                </motion.div>
-              )}
-            </motion.div>
-          </div>
-          
-          {/* Phase 3 UI elements */}
-          {currentPhase === 3 && !isOutroActive && (
-            <div className="absolute inset-0 flex flex-col items-stretch">
-              {/* Header */}
               <motion.div
-                className="w-full backdrop-blur-md border-b h-16"
-                style={{ 
-                  backgroundColor: 'rgba(10, 0, 0, 0.8)',
-                  borderColor: HORROR_THEME.SECONDARY
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  backgroundImage: "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii4wMSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIiBudW1PY3RhdmVzPSI0IiBzZWVkPSI1MDIiLz48ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIi8+PC9maWx0ZXI+PHBhdGggZD0iTTAgMGgzMDB2MzAwSDB6IiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9Ii4wOCIvPjwvc3ZnPg==')",
+                  backgroundSize: 'cover',
+                  mixBlendMode: 'soft-light',
+                  opacity: 0.2
                 }}
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 0.9, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
+                animate={{
+                  opacity: [0.2, 0.25, 0.2],
+                  scale: [1, 1.05, 1],
+                }}
+                transition={{
+                  duration: 8,
+                  repeat: Infinity,
+                  repeatType: 'mirror',
+                  ease: 'easeInOut'
+                }}
               />
               
-              {/* Main content area */}
-              <div className="flex flex-1 overflow-hidden">
-                {/* Sidebar */}
+              {/* Vignette effect */}
+              <div 
+                className="absolute inset-0" 
+                style={{
+                  background: 'radial-gradient(circle, transparent 30%, rgba(0, 0, 0, 0.8) 100%)',
+                  mixBlendMode: 'multiply'
+                }}
+              />
+            </motion.div>
+
+            {/* Card content container */}
+            <div className="relative z-10 flex flex-col justify-center items-center flex-1 p-6">
+              <motion.div 
+                className="relative z-10 w-full max-w-4xl mx-auto text-center"
+                animate={{ 
+                  y: currentPhase === 3 ? -40 : 0
+                }}
+                transition={{ duration: 0.5 }}
+              >
+                {/* Category title with animation */}
+                <motion.h1
+                  className="font-bold text-white relative z-10 inline-block"
+                  initial={{ fontSize: '1.25rem' }}
+                  animate={{
+                    fontSize: currentPhase === 1 ? 
+                      `${1.25 + (1.25 * phaseProgress)}rem` : 
+                      currentPhase === 2 ? 
+                      `${2.5 + phaseProgress}rem` : 
+                      '3.5rem'
+                  }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                >
+                  {categoryRef.current.name}
+                  
+                  {/* Title glow effect */}
+                  <motion.div
+                    className="absolute inset-0 -z-10 blur-md"
+                    style={{ background: HORROR_THEME.ACCENT }}
+                    animate={{ 
+                      opacity: [0, 0.6, 0],
+                      scale: [1, 1.1, 1]
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  />
+                </motion.h1>
+                
+                {/* Category description - appears in Phase 2 */}
+                {currentPhase >= 2 && (
+                  <motion.div
+                    className="mt-4 text-gray-200 text-center"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.1 }}
+                  >
+                    <p className="mb-4">مجموعه منحصر به فرد محصولات {categoryRef.current.name} ما را کشف کنید</p>
+                    
+                    {/* Loading indicator - appears in Phase 3 */}
+                    {currentPhase === 3 && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4 }}
+                      >
+                        <div className="flex justify-center">
+                          <div className="relative w-64 h-1 bg-gray-800 rounded-full overflow-hidden">
+                            <motion.div
+                              className="absolute top-0 left-0 h-full"
+                              style={{ background: `linear-gradient(to right, ${HORROR_THEME.SECONDARY}, ${HORROR_THEME.ACCENT})` }}
+                              initial={{ width: '0%' }}
+                              animate={{ width: '100%' }}
+                              transition={{ duration: 0.6, ease: "easeInOut" }}
+                            />
+                          </div>
+                        </div>
+                        <p className="mt-2 text-gray-400 text-sm">درحال بارگذاری محصولات...</p>
+                      </motion.div>
+                    )}
+                  </motion.div>
+                )}
+              </motion.div>
+            </div>
+            
+            {/* Phase 3 UI elements */}
+            {currentPhase === 3 && !isOutroActive && (
+              <div className="absolute inset-0 flex flex-col items-stretch">
+                {/* Header */}
                 <motion.div
-                  className="w-64 backdrop-blur-md border-r"
+                  className="w-full backdrop-blur-md border-b h-16"
                   style={{ 
-                    backgroundColor: 'rgba(10, 0, 0, 0.6)',
+                    backgroundColor: 'rgba(10, 0, 0, 0.8)',
                     borderColor: HORROR_THEME.SECONDARY
                   }}
-                  initial={{ opacity: 0, x: -100 }}
-                  animate={{ opacity: 0.9, x: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 0.9, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
                 />
                 
-                {/* Product grid */}
-                <motion.div
-                  className="flex-1 bg-black/20 p-6"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5, delay: 0.3 }}
-                >
-                  <div className="grid grid-cols-4 gap-4">
-                    {/* Product items */}
-                    {Array.from({ length: 8 }).map((_, i) => (
-                      <motion.div
-                        key={`product-${i}`}
-                        className="rounded-md backdrop-blur-sm h-64"
-                        style={{ 
-                          backgroundColor: 'rgba(15, 0, 0, 0.6)',
-                          borderWidth: '1px',
-                          borderStyle: 'solid',
-                          borderColor: HORROR_THEME.SECONDARY,
-                          boxShadow: `0 4px 12px ${HORROR_THEME.SHADOW}`
-                        }}
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.4, delay: 0.3 + (i * 0.05) }}
-                      />
-                    ))}
-                  </div>
-                </motion.div>
+                {/* Main content area */}
+                <div className="flex flex-1 overflow-hidden">
+                  {/* Sidebar */}
+                  <motion.div
+                    className="w-64 backdrop-blur-md border-r"
+                    style={{ 
+                      backgroundColor: 'rgba(10, 0, 0, 0.6)',
+                      borderColor: HORROR_THEME.SECONDARY
+                    }}
+                    initial={{ opacity: 0, x: -100 }}
+                    animate={{ opacity: 0.9, x: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                  />
+                  
+                  {/* Product grid */}
+                  <motion.div
+                    className="flex-1 bg-black/20 p-6"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                  >
+                    <div className="grid grid-cols-4 gap-4">
+                      {/* Product items */}
+                      {Array.from({ length: 8 }).map((_, i) => (
+                        <motion.div
+                          key={`product-${i}`}
+                          className="rounded-md backdrop-blur-sm h-64"
+                          style={{ 
+                            backgroundColor: 'rgba(15, 0, 0, 0.6)',
+                            borderWidth: '1px',
+                            borderStyle: 'solid',
+                            borderColor: HORROR_THEME.SECONDARY,
+                            boxShadow: `0 4px 12px ${HORROR_THEME.SHADOW}`
+                          }}
+                          initial={{ opacity: 0, y: 30 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.4, delay: 0.3 + (i * 0.05) }}
+                        />
+                      ))}
+                    </div>
+                  </motion.div>
+                </div>
               </div>
-            </div>
-          )}
-        </motion.div>
+            )}
+          </motion.div>
+        )}
 
         {/* Outro reveal effect */}
         {isOutroActive && (
-          <motion.div 
-            className="absolute inset-0"
-            style={{ 
-              background: `radial-gradient(circle at center, transparent 0%, #000 100%)`,
-            }}
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: [0, 1.8] }}
-            transition={{ duration: 0.6, ease: "easeInOut" }}
-          />
-        )}
-        
-        {/* Outro horizontal slash reveals */}
-        {isOutroActive && (
           <>
+            <motion.div 
+              className="absolute inset-0"
+              style={{ 
+                background: `radial-gradient(circle at center, transparent 0%, #000 100%)`,
+              }}
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: [0, 1.8] }}
+              transition={{ duration: 0.6, ease: "easeInOut" }}
+            />
+            
+            {/* Horizontal slash reveals */}
             <motion.div 
               className="absolute left-0 right-0 bg-white" 
               style={{ height: '2px', top: '30%' }}
@@ -676,6 +682,19 @@ const TransitionOverlay = ({
                 delay: 0.1,
                 times: [0, 0.3, 1], 
                 ease: "easeInOut" 
+              }}
+            />
+            
+            {/* Final flash out */}
+            <motion.div 
+              className="absolute inset-0 bg-white mix-blend-overlay" 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 0.8, 0] }}
+              transition={{ 
+                duration: 0.35, 
+                delay: 0.3,
+                times: [0, 0.2, 1], 
+                ease: "easeOut" 
               }}
             />
           </>
