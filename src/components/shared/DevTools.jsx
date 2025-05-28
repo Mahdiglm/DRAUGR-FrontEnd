@@ -5,15 +5,15 @@ import { motion } from 'framer-motion';
 const isDev = import.meta.env.DEV;
 
 const DevTools = () => {
-  // Early return before hooks to prevent unnecessary hook calls
-  if (!isDev) return null;
-  
   const [isOpen, setIsOpen] = useState(false);
   const [logs, setLogs] = useState([]);
   const logsRef = useRef([]);
   const updateScheduledRef = useRef(false);
   const consoleOverridesInitialized = useRef(false);
   const isTabVisibleRef = useRef(true);
+  
+  // Early return after hooks are declared
+  if (!isDev) return null;
 
   // Track tab visibility to avoid updates when tab is not visible
   useEffect(() => {
@@ -45,10 +45,12 @@ const DevTools = () => {
       // Use setTimeout to batch updates
       setTimeout(() => {
         if (isTabVisibleRef.current) { // Double-check tab is still visible
-          setLogs([...logsRef.current]);
+          // Create a snapshot of the current logs to avoid dependency on previous state
+          const currentLogs = [...logsRef.current];
+          setLogs(currentLogs);
         }
         updateScheduledRef.current = false;
-      }, 100); // Increased timeout for better batching
+      }, 300); // Increased timeout for better batching
     };
 
     console.log = (...args) => {
@@ -66,8 +68,11 @@ const DevTools = () => {
           time: new Date() 
         };
         
-        // Use function form to avoid dependency on current state
-        logsRef.current = [...logsRef.current.slice(-99), newLog]; // Limit to last 100 logs
+        // Limit to last 100 logs without creating new arrays constantly
+        if (logsRef.current.length >= 100) {
+          logsRef.current.shift();
+        }
+        logsRef.current.push(newLog);
         scheduleUpdate();
       } catch (e) {
         // Fail silently to avoid breaking the app
@@ -88,7 +93,10 @@ const DevTools = () => {
           }).join(' '),
           time: new Date() 
         };
-        logsRef.current = [...logsRef.current.slice(-99), newLog]; // Limit to last 100 logs
+        if (logsRef.current.length >= 100) {
+          logsRef.current.shift();
+        }
+        logsRef.current.push(newLog);
         scheduleUpdate();
       } catch (e) {
         // Fail silently
@@ -109,7 +117,10 @@ const DevTools = () => {
           }).join(' '),
           time: new Date() 
         };
-        logsRef.current = [...logsRef.current.slice(-99), newLog]; // Limit to last 100 logs
+        if (logsRef.current.length >= 100) {
+          logsRef.current.shift();
+        }
+        logsRef.current.push(newLog);
         scheduleUpdate();
       } catch (e) {
         // Fail silently
