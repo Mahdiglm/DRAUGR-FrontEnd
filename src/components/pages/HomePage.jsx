@@ -11,138 +11,15 @@ import { safeBlur, safeFilterTransition, isLowPerformanceDevice, getOptimizedAni
 import heroBackground from '../../assets/Background-Hero.jpg';
 import mainBackground from '../../assets/BackGround-Main.jpg';
 
-// Letter animation styles and setup - Simplified for better performance
-const letterWrapperVariants = {
-  hidden: {
-    opacity: 0,
-  },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.05, // Faster stagger
-      delayChildren: 0.05, // Less delay
-    },
-  },
-  exit: {
-    opacity: 0,
-    transition: {
-      duration: 0.3
-    },
-  }
-};
-
-const letterVariants = {
-  hidden: {
-    opacity: 0,
-    y: 20,
-  },
-  visible: (i) => ({
-    opacity: 1,
-    y: 0,
-    transition: {
-      type: "tween", // Using tween instead of spring for better performance
-      duration: 0.4,
-      delay: i * 0.03, // Even faster per-letter delay
-    },
-  }),
-  exit: {
-    opacity: 0,
-    transition: {
-      duration: 0.3
-    },
-  },
-};
-
-// Particles system for the intro - Optimized for mobile
-const Particles = () => {
-  const [particleCount, setParticleCount] = useState(50);
-  
-  // Dynamically adjust particle count based on device
-  useEffect(() => {
-    // Use the helper function to detect low-performance devices
-    const lowPerformance = isLowPerformanceDevice();
-    setParticleCount(lowPerformance ? 10 : 50);
-  }, []);
-  
-  // Generate fewer particles for performance
-  const particles = Array.from({ length: particleCount }).map((_, i) => ({
-    id: i,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    size: Math.random() * 1.5 + 0.5, // Slightly smaller particles
-    velocity: Math.random() * 0.15 + 0.05, // Slightly slower for better performance
-  }));
-
-  // Helper function to safely calculate duration
-  const getParticleDuration = (velocity) => {
-    // Always return a positive value between 1.5 and 4 seconds
-    return 1.5 + Math.abs(velocity) * 2.5; 
-  };
-
-  const lowPerformance = isLowPerformanceDevice();
-
-  return (
-    <div className="absolute inset-0 overflow-hidden z-0">
-      {particles.map((particle) => (
-        <motion.div
-          key={particle.id}
-          className="absolute rounded-full opacity-70"
-          style={{
-            left: `${particle.x}%`,
-            top: `${particle.y}%`,
-            width: `${particle.size}px`,
-            height: `${particle.size}px`,
-            background: '#ff0000',
-            willChange: 'transform, opacity',
-            transform: 'translateZ(0)'
-          }}
-          animate={{
-            y: [0, window.innerHeight * particle.velocity],
-            opacity: [0.7, 0],
-          }}
-          transition={{
-            duration: lowPerformance ? 2.0 : getParticleDuration(particle.velocity),
-            repeat: Infinity,
-            delay: Math.random(),
-            ease: "linear",
-          }}
-        />
-      ))}
-    </div>
-  );
-};
-
 const HomePage = () => {
   const { addToCart } = useOutletContext();
   const heroRef = useRef(null);
-  const [showIntro, setShowIntro] = useState(false);
-  const [isExiting, setIsExiting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isLowPerformance, setIsLowPerformance] = useState(false);
   
   // Check device performance on mount
   useEffect(() => {
     setIsLowPerformance(isLowPerformanceDevice());
-  }, []);
-  
-  // For testing - reset intro animation
-  const resetIntroAnimation = () => {
-    localStorage.removeItem('hasSeenDraugrIntro');
-    window.location.reload();
-  };
-  
-  // Check if user has already seen the intro
-  useEffect(() => {
-    const hasSeenIntro = localStorage.getItem('hasSeenDraugrIntro');
-    
-    if (hasSeenIntro) {
-      // Skip intro if user has already seen it
-      setShowIntro(false);
-      setIsLoading(false);
-    } else {
-      // Show intro for first-time visitors
-      setShowIntro(true);
-    }
   }, []);
   
   // Handle initial loading - immediate load
@@ -161,33 +38,6 @@ const HomePage = () => {
     setIsLoading(false);
   }, []);
   
-  // Handle intro completion - reduced to 1 second
-  useEffect(() => {
-    if (!showIntro) return; // Skip if intro not shown
-    
-    const timer = setTimeout(() => {
-      // Start exit animation
-      setIsExiting(true);
-      
-      // Wait for exit animation to complete before removing intro
-      setTimeout(() => {
-        // Immediately scroll to top before showing main content
-        window.scrollTo(0, 0);
-        document.body.scrollTop = 0;
-        document.documentElement.scrollTop = 0;
-        
-        // Now transition to main content
-        setShowIntro(false);
-        
-        // Set flag in localStorage that user has seen the intro
-        localStorage.setItem('hasSeenDraugrIntro', 'true');
-      }, isLowPerformance ? 300 : 400); // Even faster on low-end devices
-      
-    }, isLowPerformance ? 600 : 800); // Even shorter on low-end devices
-    
-    return () => clearTimeout(timer);
-  }, [showIntro, isLowPerformance]);
-  
   // Parallax effect
   const { scrollY } = useScroll();
   const backgroundY = useTransform(scrollY, [0, 500], [0, 100]);
@@ -205,39 +55,6 @@ const HomePage = () => {
       img.src = image;
     });
   }, []);
-
-  // Dynamic background variants for the intro
-  const bgVariants = {
-    initial: { 
-      opacity: 0 
-    },
-    visible: { 
-      opacity: 0.4
-    },
-    exit: { 
-      opacity: 0, 
-      scale: 1.2,
-      transition: { 
-        duration: 0.8, 
-        ease: "easeOut" 
-      }
-    }
-  };
-
-  // Vignette variants
-  const vignetteVariants = {
-    initial: { opacity: 0 },
-    visible: { opacity: 1 },
-    exit: { 
-      opacity: 0, 
-      scale: 1.3,
-      transition: { 
-        duration: 0.8, 
-        ease: "easeOut" 
-      }
-    }
-  };
-
 
   return (
     <>
@@ -272,129 +89,8 @@ const HomePage = () => {
         )}
       </AnimatePresence>
 
-      {/* Intro Animation - conditionally simplified for low-performance devices */}
-      <AnimatePresence>
-        {showIntro && (
-          <motion.div
-            key="intro"
-            className="fixed inset-0 flex justify-center items-center z-50 bg-midnight overflow-hidden"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ 
-              opacity: 0,
-              transition: { 
-                duration: isLowPerformance ? 0.3 : 0.4,
-                when: "afterChildren" 
-              }
-            }}
-            style={{
-              willChange: 'opacity',
-              transform: 'translateZ(0)'
-            }}
-          >
-            {/* Background pulse effect - Simplified or removed for low-performance */}
-            {!isLowPerformance && (
-              <motion.div
-                className="absolute inset-0 bg-gradient-radial from-vampire-dark to-midnight"
-                variants={bgVariants}
-                initial="initial"
-                animate={{ opacity: 0.4 }}
-                exit="exit"
-                style={{
-                  willChange: 'opacity',
-                  transform: 'translateZ(0)'
-                }}
-              />
-            )}
-            
-            {/* Simplified background for low-performance devices */}
-            {isLowPerformance && (
-              <div 
-                className="absolute inset-0 bg-midnight"
-                style={{ opacity: 0.9 }}
-              />
-            )}
-            
-            {/* Particles shown conditionally based on device performance */}
-            {!isLowPerformance && <Particles />}
-            
-            {/* Vignette effect - conditionally shown */}
-            {!isLowPerformance && (
-              <motion.div 
-                className="absolute inset-0 bg-radial-vignette pointer-events-none"
-                variants={vignetteVariants}
-                initial="initial"
-                animate="visible"
-                exit="exit"
-                style={{
-                  willChange: 'opacity',
-                  transform: 'translateZ(0)'
-                }}
-              />
-            )}
-            
-            {/* Brand name animation - Simplified for performance */}
-            <motion.div
-              className="relative flex items-center justify-center h-40"
-              variants={letterWrapperVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              style={{ direction: "ltr", willChange: 'opacity' }}
-            >
-              {"DRAUGR".split('').map((letter, index) => (
-                <motion.div 
-                  key={index} 
-                  className="relative mx-1 md:mx-3"
-                  custom={index}
-                  variants={letterVariants}
-                  style={{
-                    willChange: 'transform, opacity',
-                    transform: 'translateZ(0)'
-                  }}
-                >
-                  <span
-                    className="inline-block text-6xl md:text-9xl font-bold text-draugr-500 relative"
-                    style={{ 
-                      textShadow: isLowPerformance 
-                        ? '0 0 5px rgba(239,35,60,0.5)' 
-                        : '0 0 15px rgba(239,35,60,0.6)'
-                    }}
-                  >
-                    {letter}
-                  </span>
-                </motion.div>
-              ))}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Main Content - always rendered */}
-      <motion.div 
-        style={{ 
-          opacity: showIntro ? 0 : 1,
-        }}
-        animate={{ 
-          opacity: showIntro ? 0 : 1,
-          y: showIntro ? 20 : 0,
-          scale: showIntro ? 0.98 : 1,
-        }}
-        transition={{ 
-          duration: 0.6,
-          ease: "easeOut"
-        }}
-      >
-        {/* FOR TESTING ONLY - Remove in production */}
-        <div className="fixed bottom-4 right-4 z-50">
-          <button 
-            onClick={resetIntroAnimation}
-            className="bg-black bg-opacity-50 text-white text-xs px-3 py-1 rounded-md"
-          >
-            Reset Intro (Test Only)
-          </button>
-        </div>
-        
+      {/* Main Content */}
+      <div>
         {/* Hero Section with Parallax */}
         <motion.section
           ref={heroRef}
@@ -723,7 +419,7 @@ const HomePage = () => {
             />
           </div>
         </motion.section>
-      </motion.div>
+      </div>
     </>
   );
 };
