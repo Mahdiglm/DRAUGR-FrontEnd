@@ -93,10 +93,10 @@ const Particles = () => {
             opacity: [0.7, 0],
           }}
           transition={{
-            duration: getOptimizedAnimationSettings(
+            duration: Math.max(0.1, getOptimizedAnimationSettings(
               1 + particle.velocity * 3, // Default duration
               0.8 + particle.velocity * 2 // Optimized duration
-            ),
+            )),
             repeat: Infinity,
             delay: Math.random(),
             ease: "linear",
