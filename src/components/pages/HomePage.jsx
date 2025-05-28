@@ -73,6 +73,14 @@ const Particles = () => {
     velocity: Math.random() * 0.15 + 0.05, // Slightly slower for better performance
   }));
 
+  // Helper function to safely calculate duration
+  const getParticleDuration = (velocity) => {
+    // Always return a positive value between 1.5 and 4 seconds
+    return 1.5 + Math.abs(velocity) * 2.5; 
+  };
+
+  const lowPerformance = isLowPerformanceDevice();
+
   return (
     <div className="absolute inset-0 overflow-hidden z-0">
       {particles.map((particle) => (
@@ -93,10 +101,7 @@ const Particles = () => {
             opacity: [0.7, 0],
           }}
           transition={{
-            duration: Math.max(0.1, getOptimizedAnimationSettings(
-              1 + particle.velocity * 3, // Default duration
-              0.8 + particle.velocity * 2 // Optimized duration
-            )),
+            duration: lowPerformance ? 2.0 : getParticleDuration(particle.velocity),
             repeat: Infinity,
             delay: Math.random(),
             ease: "linear",
