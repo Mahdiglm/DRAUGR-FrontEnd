@@ -1,8 +1,8 @@
 /**
  * CategoryRows Component
  * 
- * Creates a horizontally scrolling category section with dynamically generated items
- * and interactive proximity-based hover effects.
+ * Creates a dynamic orbital category system with gravitational interactions,
+ * where items float in multiple orbital rings and respond to user interaction.
  */
 
 import React, { useRef, useEffect, useState, useCallback, memo } from 'react';
@@ -13,20 +13,21 @@ import { getOptimizedAnimationSettings } from '../../utils/animationHelpers';
 import CategoryItem from './CategoryItem'; // Moved to separate component
 import TransitionOverlay from './TransitionOverlay'; // Import new component
 
-// Constants for layout - moved to global scope for reuse
-const CARD_WIDTH = 224; // 56px * 4 (actual width)
-const CARD_MARGIN = 0;  // No margin - we'll handle spacing with absolute positioning
-const CARD_TOTAL_WIDTH = CARD_WIDTH + CARD_MARGIN; // Total width including margins
+// Constants for layout
+const CARD_WIDTH = 180; // Adjusted for orbital layout
+const CARD_HEIGHT = 120; // Height for cards
+const ORBITAL_LAYERS = 3; // Number of orbital rings
+const MAX_ITEMS_PER_ORBIT = [8, 12, 16]; // Items per orbit (inner to outer)
+const ORBIT_RADII = [150, 270, 390]; // Radii of orbits in pixels
+const ORBIT_SPEEDS = [0.0005, 0.0003, 0.0002]; // Angular speeds (inner is faster)
+const GRAVITY_STRENGTH = 0.2; // Strength of mouse gravity
+const REPULSION_RADIUS = 80; // Distance for repulsion effect
 
-// Mobile constants (smaller sizes)
-const MOBILE_CARD_WIDTH = 160; // Smaller width for mobile
-const MOBILE_CARD_MARGIN = 0; // No margin - we'll handle spacing with absolute positioning
-const MOBILE_CARD_TOTAL_WIDTH = MOBILE_CARD_WIDTH + MOBILE_CARD_MARGIN;
-const MOBILE_ROW_HEIGHT = 80; // Decreased height for mobile rows (was 100)
-
-// Consistent spacing between cards
-const CARD_SPACING = 32; // Fixed spacing between cards for desktop
-const MOBILE_CARD_SPACING = 8; // Fixed spacing between cards for mobile
+// Mobile constants
+const MOBILE_CARD_WIDTH = 120;
+const MOBILE_CARD_HEIGHT = 80;
+const MOBILE_ORBIT_RADII = [120, 200, 280];
+const MOBILE_MAX_ITEMS_PER_ORBIT = [6, 9, 12];
 
 // Debug helper function
 const debugLog = (message, obj = {}) => {
@@ -71,52 +72,52 @@ const useMobileDetection = () => {
   return isMobile;
 };
 
+// Generate a random position on an orbit
+const getPositionOnOrbit = (angle, radius) => ({
+  x: radius * Math.cos(angle),
+  y: radius * Math.sin(angle)
+});
+
 const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = null, title = "دسته‌بندی‌ها", subtitle = "مجموعه‌ای از محصولات منحصر به فرد در دسته‌بندی‌های مختلف" }) => {
   const containerRef = useRef(null);
-  const beltRef = useRef(null);
-  const [categoryItems, setCategoryItems] = useState([]);
-  const [speed, setSpeed] = useState(1); // pixels per frame
+  const centerRef = useRef({ x: 0, y: 0 });
+  const [orbitalItems, setOrbitalItems] = useState([]);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [isMouseInContainer, setIsMouseInContainer] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [isTransitioning, setIsTransitioning] = useState(false); // Animation state
-  const [selectedItemRect, setSelectedItemRect] = useState(null); // For animation positioning
-  const [animationPhase, setAnimationPhase] = useState(0); // Controls animation phases
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [selectedItemRect, setSelectedItemRect] = useState(null);
+  const [animationPhase, setAnimationPhase] = useState(0);
   const isMobileDevice = useMobileDetection();
   const animationRef = useRef(null);
   const lastTimestampRef = useRef(0);
   const wasVisibleRef = useRef(true);
-  const itemsStateRef = useRef([]); // Reference to keep track of items state for visibility changes
-  const navigate = useNavigate();
-  
-  // Track the next ID for new items
   const nextIdRef = useRef(1);
+  const navigate = useNavigate();
   
   // Determine which categories to use
   const categoriesData = propCategories || (direction === "rtl" ? categories : additionalCategories);
   
-  // Reduce animation speed on low-performance devices
-  const defaultSpeed = getOptimizedAnimationSettings(
-    { speed: 0.8 },     // Default settings for high-performance devices
-    { speed: 0.5 }      // Reduced speed for low-performance devices
-  ).speed;
-  
-  // Ref to store the category being navigated to, to stabilize handleTransitionComplete
+  // Refs to store state for navigation
   const navigatingCategoryRef = useRef(null);
-  const isActiveTransitionRef = useRef(false); // Ref to track active transition for scrolling animation
+  const isActiveTransitionRef = useRef(false);
+  const transitionInitiatedRef = useRef(false);
+  const transitionStartTimeRef = useRef(0);
+  const navigationInProgressRef = useRef(false);
   
-  // Get the appropriate card dimensions based on device
+  // Get appropriate dimensions based on device
   const getCardDimensions = useCallback(() => {
     return {
       cardWidth: isMobileDevice ? MOBILE_CARD_WIDTH : CARD_WIDTH,
-      cardMargin: isMobileDevice ? MOBILE_CARD_MARGIN : CARD_MARGIN,
-      cardTotalWidth: isMobileDevice ? MOBILE_CARD_WIDTH + MOBILE_CARD_SPACING : CARD_WIDTH + CARD_SPACING,
-      rowHeight: isMobileDevice ? MOBILE_ROW_HEIGHT : 120, // Decreased height for desktop (was 160)
-      cardSpacing: isMobileDevice ? MOBILE_CARD_SPACING : CARD_SPACING
+      cardHeight: isMobileDevice ? MOBILE_CARD_HEIGHT : CARD_HEIGHT,
+      orbitRadii: isMobileDevice ? MOBILE_ORBIT_RADII : ORBIT_RADII,
+      maxItemsPerOrbit: isMobileDevice ? MOBILE_MAX_ITEMS_PER_ORBIT : MAX_ITEMS_PER_ORBIT
     };
   }, [isMobileDevice]);
   
-  // Create animation frame handler with performance optimizations
+  // Create orbital animation with gravitational effects
   const animate = useCallback((timestamp) => {
-    if (document.hidden || isActiveTransitionRef.current) { // Use ref here
+    if (document.hidden || isActiveTransitionRef.current) {
       if (isActiveTransitionRef.current && animationRef.current) {
         cancelAnimationFrame(animationRef.current);
         animationRef.current = null;
@@ -130,183 +131,131 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
       lastTimestampRef.current = timestamp;
     }
     
-    // If too much time has passed (e.g., after tab switch), limit delta
+    // If too much time has passed, limit delta
     const maxDelta = 100; // ms - prevents huge jumps after tab switch
     const rawDelta = timestamp - lastTimestampRef.current;
     const deltaTime = Math.min(rawDelta, maxDelta);
     
     lastTimestampRef.current = timestamp;
     
-    // Reduce animation work on mobile devices
-    const performanceMultiplier = isMobileDevice ? 0.7 : 1;
+    // Get the center coordinates of the container
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      centerRef.current = {
+        x: rect.width / 2,
+        y: rect.height / 2
+      };
+    }
     
-    // Get the appropriate card dimensions
-    const { cardWidth, cardSpacing } = getCardDimensions();
-    const exactTotalWidth = cardWidth + cardSpacing;
-    
-    // Move each item based on direction
-    setCategoryItems(prevItems => {
-      // Safety check - if we somehow lost all items, refill
-      if (prevItems.length === 0) {
-        const containerWidth = containerRef.current?.offsetWidth || 1000;
-        const itemsNeeded = Math.ceil(containerWidth / exactTotalWidth) + 4;
+    // Update orbital items positions
+    setOrbitalItems(prevItems => {
+      return prevItems.map(item => {
+        // Calculate new orbital position
+        let newAngle = item.angle + (ORBIT_SPEEDS[item.orbitIndex] * deltaTime);
         
-        const initialItems = [];
-        for (let i = 0; i < itemsNeeded; i++) {
-          const categoryIndex = i % categoriesData.length;
-          initialItems.push({
-            id: nextIdRef.current++,
-            category: categoriesData[categoryIndex],
-            positionX: i * exactTotalWidth,
-            // For mobile, initialize highlight states less frequently
-            mobileHighlight: isMobileDevice ? (Math.random() < 0.15) : false,
-            mobileHighlightEdge: ['top', 'right', 'bottom', 'left'][Math.floor(Math.random() * 4)],
-            mobileHighlightIntensity: Math.random() * 0.7 + 0.3,
-            mobileHighlightPosition: Math.random()
-          });
+        // Keep angle between 0 and 2π
+        if (newAngle > Math.PI * 2) {
+          newAngle -= Math.PI * 2;
         }
         
-        itemsStateRef.current = initialItems;
-        return initialItems;
-      }
-      
-      const moveAmount = speed * deltaTime / 16 * performanceMultiplier; // normalize to ~60fps and apply performance factor
-      const moveDirection = direction === "rtl" ? -1 : 1; // Negative = right to left, Positive = left to right
-      
-      // Bundle updates by calculating all positions at once
-      // This reduces GC pressure and improves performance
-      let updatedItems = prevItems.map((item) => {
-        // For mobile, reduce random updates to improve performance
-        let updatedItem = { ...item };
+        // Base orbital position
+        const orbitPosition = getPositionOnOrbit(
+          newAngle,
+          getCardDimensions().orbitRadii[item.orbitIndex]
+        );
         
-        // Only update highlight ~1/100 of the time (0.01) and only on mobile
-        if (isMobileDevice && Math.random() < 0.005) { // Reduced from 0.01 to 0.005
-          updatedItem = {
-            ...updatedItem,
-            mobileHighlight: Math.random() < 0.15, // Reduced from 0.3
-            mobileHighlightEdge: ['top', 'right', 'bottom', 'left'][Math.floor(Math.random() * 4)],
-            mobileHighlightIntensity: Math.random() * 0.7 + 0.3,
-            mobileHighlightPosition: Math.random()
-          };
+        // Apply gravitational effect if mouse is in container
+        let gravitationalOffset = { x: 0, y: 0 };
+        
+        if (isMouseInContainer) {
+          // Calculate distance between mouse and item
+          const dx = mousePos.x - (centerRef.current.x + orbitPosition.x);
+          const dy = mousePos.y - (centerRef.current.y + orbitPosition.y);
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          // Apply gravitational effect
+          if (distance > 0) {
+            // Direction unit vector
+            const unitX = dx / distance;
+            const unitY = dy / distance;
+            
+            let gravityFactor;
+            if (distance < REPULSION_RADIUS) {
+              // Repulsion when mouse is too close
+              gravityFactor = -GRAVITY_STRENGTH * (REPULSION_RADIUS - distance) / REPULSION_RADIUS;
+            } else {
+              // Attraction when mouse is at a distance
+              gravityFactor = GRAVITY_STRENGTH * Math.min(1, 800 / (distance * distance));
+            }
+            
+            gravitationalOffset = {
+              x: unitX * gravityFactor * 40,
+              y: unitY * gravityFactor * 40
+            };
+          }
         }
         
+        // Calculate final position with gravitational effects
         return {
-          ...updatedItem,
-          positionX: item.positionX + (moveAmount * moveDirection)
+          ...item,
+          angle: newAngle,
+          orbitPosition,
+          position: {
+            x: orbitPosition.x + gravitationalOffset.x,
+            y: orbitPosition.y + gravitationalOffset.y
+          }
         };
       });
+    });
+    
+    animationRef.current = requestAnimationFrame(animate);
+  }, [isMouseInContainer, mousePos, getCardDimensions]);
+  
+  // Initialize orbital items
+  const initializeOrbitalItems = useCallback(() => {
+    if (!containerRef.current) return;
+    
+    const { maxItemsPerOrbit } = getCardDimensions();
+    const allItems = [];
+    
+    // Create items for each orbital layer
+    for (let orbitIndex = 0; orbitIndex < ORBITAL_LAYERS; orbitIndex++) {
+      const itemCount = maxItemsPerOrbit[orbitIndex];
+      const angleIncrement = (Math.PI * 2) / itemCount;
       
-      // Safety check for ref
-      if (!containerRef.current) {
-        return updatedItems;
-      }
-      
-      const containerWidth = containerRef.current.offsetWidth;
-      
-      // Find relevant edge items based on direction
-      let edgeItem, removeCondition, newItemPosition;
-      
-      if (direction === "rtl") {
-        // Right to left scrolling (default)
-        // Find the rightmost item
-        edgeItem = updatedItems.reduce(
-          (max, item) => item.positionX > max.positionX ? item : max, 
-          { positionX: -Infinity }
-        );
-        
-        // Add new item at the right if needed
-        removeCondition = item => item.positionX > -exactTotalWidth;
-        newItemPosition = edgeItem.positionX + exactTotalWidth;
-      } else {
-        // Left to right scrolling (opposite direction)
-        // Find the leftmost item
-        edgeItem = updatedItems.reduce(
-          (min, item) => item.positionX < min.positionX ? item : min, 
-          { positionX: Infinity }
-        );
-        
-        // Add new item at the left if needed
-        removeCondition = item => item.positionX < containerWidth + exactTotalWidth;
-        newItemPosition = edgeItem.positionX - exactTotalWidth;
-      }
-      
-      // If the edge item has moved in enough, add a new item at the appropriate end
-      const needNewItem = direction === "rtl" 
-        ? edgeItem.positionX < containerWidth + (exactTotalWidth/2)
-        : edgeItem.positionX > -(exactTotalWidth/2);
-        
-      if (needNewItem) {
-        // Determine the category index
+      for (let i = 0; i < itemCount; i++) {
+        // Distribute categories evenly
         const categoryIndex = nextIdRef.current % categoriesData.length;
+        const angle = i * angleIncrement;
         
-        // Add a new item
-        updatedItems.push({
+        // Calculate position on orbit
+        const orbitPosition = getPositionOnOrbit(
+          angle,
+          getCardDimensions().orbitRadii[orbitIndex]
+        );
+        
+        // Add item with orbital data
+        allItems.push({
           id: nextIdRef.current++,
           category: categoriesData[categoryIndex],
-          positionX: newItemPosition,
-          // For mobile, initialize highlight states less frequently
+          orbitIndex,
+          angle,
+          orbitPosition,
+          position: { ...orbitPosition }, // Initial position is the orbital position
+          // For visuals and hover effects
           mobileHighlight: isMobileDevice ? (Math.random() < 0.15) : false,
           mobileHighlightEdge: ['top', 'right', 'bottom', 'left'][Math.floor(Math.random() * 4)],
           mobileHighlightIntensity: Math.random() * 0.7 + 0.3,
           mobileHighlightPosition: Math.random()
         });
       }
-      
-      // Remove items that have moved completely off the visible area
-      const filteredItems = updatedItems.filter(removeCondition);
-      
-      // Update our ref to the current state for recovering after tab switches
-      itemsStateRef.current = filteredItems;
-      
-      return filteredItems;
-    });
-    
-    animationRef.current = requestAnimationFrame(animate);
-  }, [speed, direction, categoriesData, isMobileDevice, getCardDimensions]);
-  
-  // Initialize category items
-  const fillBelt = useCallback(() => {
-    if (!containerRef.current) return;
-    
-    // Get the appropriate card dimensions
-    const { cardWidth, cardSpacing } = getCardDimensions();
-    const exactTotalWidth = cardWidth + cardSpacing;
-    
-    // Calculate how many items we need to fill the container width plus buffer
-    const containerWidth = containerRef.current.offsetWidth;
-    const itemsNeeded = Math.ceil(containerWidth / exactTotalWidth) + 4; // +4 for buffer
-    
-    // If we already have items, maintain their current positions
-    if (categoryItems.length > 0 && wasVisibleRef.current) {
-      return; // Don't refill if there are already items and the tab was visible
     }
     
-    // Otherwise create fresh items
-    const initialItems = [];
-    
-    for (let i = 0; i < itemsNeeded; i++) {
-      const categoryIndex = i % categoriesData.length;
-      initialItems.push({
-        id: nextIdRef.current++,
-        category: categoriesData[categoryIndex],
-        positionX: i * exactTotalWidth,
-        // For mobile, initialize highlight states less frequently
-        mobileHighlight: isMobileDevice ? (Math.random() < 0.15) : false, // Reduced from 0.3
-        mobileHighlightEdge: ['top', 'right', 'bottom', 'left'][Math.floor(Math.random() * 4)],
-        mobileHighlightIntensity: Math.random() * 0.7 + 0.3,
-        mobileHighlightPosition: Math.random()
-      });
-    }
-    
-    setCategoryItems(initialItems);
-    itemsStateRef.current = initialItems;
-  }, [categoryItems, categoriesData, isMobileDevice, getCardDimensions]);
+    setOrbitalItems(allItems);
+  }, [categoriesData, getCardDimensions, isMobileDevice]);
   
   // Start and manage the animation
   useEffect(() => {
-    // Use slower speed on mobile
-    setSpeed(isMobileDevice ? defaultSpeed * 0.8 : defaultSpeed);
-    
     // Start animation only if no category is selected
     if (!selectedCategory) {
       animationRef.current = requestAnimationFrame(animate);
@@ -318,7 +267,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [animate, defaultSpeed, isMobileDevice, selectedCategory]);
+  }, [animate, selectedCategory]);
   
   // Handle tab visibility changes
   useEffect(() => {
@@ -338,9 +287,9 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
           // Tab was previously hidden, now visible again
           lastTimestampRef.current = 0; // Reset timestamp to avoid huge jumps
           
-          // If no items are showing or positions are wrong, refill the belt
-          if (categoryItems.length === 0) {
-            fillBelt();
+          // If no items are showing, reinitialize
+          if (orbitalItems.length === 0) {
+            initializeOrbitalItems();
           }
           
           // Restart animation
@@ -358,17 +307,17 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [animate, categoryItems, fillBelt, selectedCategory]);
+  }, [animate, orbitalItems, initializeOrbitalItems, selectedCategory]);
   
   useEffect(() => {
     // Initial setup
-    fillBelt();
+    initializeOrbitalItems();
     
-    // Set up resize handler with debounce to prevent excessive re-renders
+    // Set up resize handler with debounce
     let resizeTimer;
     const handleResize = () => {
       clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(fillBelt, 100);
+      resizeTimer = setTimeout(initializeOrbitalItems, 100);
     };
     
     window.addEventListener('resize', handleResize);
@@ -376,65 +325,44 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
       window.removeEventListener('resize', handleResize);
       clearTimeout(resizeTimer);
     };
-  }, [fillBelt]);
+  }, [initializeOrbitalItems]);
   
-  // Handle mouse movement to adjust speed - only for desktop with throttling
+  // Handle mouse movement for gravitational effects
   useEffect(() => {
-    if (isMobileDevice) return; // Skip for mobile devices
-    
-    let lastMouseMoveTime = 0;
-    const throttleInterval = 100; // Only process every 100ms
+    if (!containerRef.current) return;
     
     const handleMouseMove = (e) => {
-      const now = Date.now();
-      if (now - lastMouseMoveTime < throttleInterval) return;
-      lastMouseMoveTime = now;
-      
-      if (!containerRef.current) return;
-      
-      // Adjust speed based on mouse position
-      const container = containerRef.current;
-      const { left, width } = container.getBoundingClientRect();
-      const mouseXRelative = (e.clientX - left) / width;
-      
-      // When mouse is on the right side, scroll slightly faster
-      // When on the left, scroll slightly slower
-      // Invert the effect for RTL direction
-      const speedFactor = direction === "rtl"
-        ? 1 + (mouseXRelative - 0.5) * 0.3 // RTL: faster on right 
-        : 1 - (mouseXRelative - 0.5) * 0.3; // LTR: faster on left
-      
-      // Smoothly interpolate current speed
-      setSpeed(currentSpeed => {
-        const targetSpeed = defaultSpeed * speedFactor;
-        // Smooth interpolation
-        return currentSpeed + (targetSpeed - currentSpeed) * 0.05;
+      const rect = containerRef.current.getBoundingClientRect();
+      setMousePos({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
       });
     };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [defaultSpeed, direction, isMobileDevice]);
+    
+    const handleMouseEnter = () => {
+      setIsMouseInContainer(true);
+    };
+    
+    const handleMouseLeave = () => {
+      setIsMouseInContainer(false);
+    };
+    
+    const container = containerRef.current;
+    container.addEventListener('mousemove', handleMouseMove);
+    container.addEventListener('mouseenter', handleMouseEnter);
+    container.addEventListener('mouseleave', handleMouseLeave);
+    
+    return () => {
+      container.removeEventListener('mousemove', handleMouseMove);
+      container.removeEventListener('mouseenter', handleMouseEnter);
+      container.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, []);
   
   // Get current card dimensions
-  const { cardWidth, rowHeight } = getCardDimensions();
-
-  // Handle keyboard navigation
-  const handleKeyDown = (e) => {
-    // Adjust speed with arrow keys
-    if (e.key === 'ArrowLeft') {
-      setSpeed(currentSpeed => currentSpeed * 0.8);
-    } else if (e.key === 'ArrowRight') {
-      setSpeed(currentSpeed => currentSpeed * 1.2);
-    }
-  };
-
-  // Preload flag ref to prevent multiple preloads
-  const preloadAttemptedRef = useRef(false);
-  const navigationInProgressRef = useRef(false);
-  const transitionInitiatedRef = useRef(false);
-  const transitionStartTimeRef = useRef(0);
-
+  const { cardWidth, cardHeight } = getCardDimensions();
+  
+  // Reset all transition states
   const resetAllTransitionStates = useCallback(() => {
     setIsTransitioning(false);
     setSelectedCategory(null);
@@ -443,18 +371,19 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
     setSelectedItemRect(null);
     navigationInProgressRef.current = false;
     transitionInitiatedRef.current = false;
-    isActiveTransitionRef.current = false; // Reset the ref here
+    isActiveTransitionRef.current = false;
     debugLog("All transition states reset including isActiveTransitionRef");
   }, []);
-
+  
+  // Handle category selection
   const handleCategorySelect = useCallback((category, itemElement) => {
     try {
       const now = Date.now();
       const timeSinceLastTransition = now - transitionStartTimeRef.current;
-      const MIN_TRANSITION_INTERVAL = 2500; // Increased interval slightly
+      const MIN_TRANSITION_INTERVAL = 2500;
 
       if (navigationInProgressRef.current || 
-          (transitionInitiatedRef.current && timeSinceLastTransition < MIN_TRANSITION_INTERVAL) || // More robust check
+          (transitionInitiatedRef.current && timeSinceLastTransition < MIN_TRANSITION_INTERVAL) || 
           (isTransitioning && timeSinceLastTransition < MIN_TRANSITION_INTERVAL) 
       ) {
         debugLog("Ignoring category selection due to active/recent transition or navigation", { 
@@ -466,15 +395,13 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
         return;
       }
       
-      // If a transition is technically ongoing but the MIN_TRANSITION_INTERVAL has passed,
-      // allow a reset and new selection.
       if (isTransitioning || animationPhase !== 0) {
-         debugLog("Resetting existing (possibly stale) animation state before new selection");
+         debugLog("Resetting existing animation state before new selection");
          resetAllTransitionStates();
       }
       
       transitionInitiatedRef.current = true;
-      isActiveTransitionRef.current = true; // Set ref here
+      isActiveTransitionRef.current = true;
       transitionStartTimeRef.current = now;
       
       debugLog("Category selected", { category: category.slug });
@@ -482,261 +409,162 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
         animationRef.current = null;
-        debugLog("Scrolling animation stopped for transition");
       }
       
       if (itemElement && itemElement.current) {
         const rect = itemElement.current.getBoundingClientRect();
         setSelectedItemRect(rect);
-      } else {
-        debugLog("⚠️ Failed to capture card position");
       }
       
       setSelectedCategory(category);
       navigatingCategoryRef.current = category;
       setIsTransitioning(true); 
-      setAnimationPhase(1); 
+      setAnimationPhase(1);
       
-      debugLog("Transition initiated in CategoryRows");
-    } catch (error) {
-      console.error("Error in handleCategorySelect:", error);
+      // Navigate after animation completes
+      setTimeout(() => {
+        navigationInProgressRef.current = true;
+        navigate(`/shop/${category.slug}`);
+      }, 800);
+    } catch (e) {
+      debugLog("Error in handleCategorySelect", e);
       resetAllTransitionStates();
     }
-  }, [resetAllTransitionStates, animationPhase, isTransitioning]);
+  }, [navigate, resetAllTransitionStates, isTransitioning, animationPhase]);
   
-  const safetyTimeoutRef = useRef(null);
-
-  const handleTransitionComplete = useCallback(({ stage, keepAnimationAlive, canceled }) => {
-    try {
-      if (navigationInProgressRef.current && !canceled) {
-        debugLog("Navigation already in progress, ignoring duplicate call to handleTransitionComplete");
-        return;
-      }
-      
-      // Handle cancellation (user unselected the category)
-      if (canceled) {
-        debugLog("Transition was canceled by user, resetting state");
-        resetAllTransitionStates();
-        
-        // Restart the continuous animation
-        if (!animationRef.current) {
-          debugLog("Restarting continuous animation after cancellation");
-          lastTimestampRef.current = 0;
-          animationRef.current = requestAnimationFrame(animate);
-        }
-        return;
-      }
-      
-      const categoryToNavigate = navigatingCategoryRef.current;
-
-      if (!categoryToNavigate) {
-        console.error("[CategoryRows] No category found for navigation in handleTransitionComplete. Resetting.");
-        resetAllTransitionStates();
-        navigationInProgressRef.current = false;
-        if (!animationRef.current && !isActiveTransitionRef.current) { // Check ref
-             debugLog("Restarting scroll (no categoryToNavigate)");
-             lastTimestampRef.current = 0;
-             animationRef.current = requestAnimationFrame(animate);
-        }
-        return;
-      }
-      
-      navigationInProgressRef.current = true;
-      debugLog("Transition complete, navigating to shop page", { 
-        category: categoryToNavigate.slug
-      });
-      
-      if (safetyTimeoutRef.current) {
-        clearTimeout(safetyTimeoutRef.current);
-        safetyTimeoutRef.current = null;
-      }
-      
-      navigate(`/shop?category=${categoryToNavigate.slug}`);
-      
-      setTimeout(() => {
-        try {
-          debugLog("Resetting animation state after navigation (handleTransitionComplete)");
-          resetAllTransitionStates(); 
-
-          if (!transitionInitiatedRef.current && !isTransitioning && !isActiveTransitionRef.current && !animationRef.current) { // check ref
-            debugLog("Restarting continuous animation (handleTransitionComplete)");
-            lastTimestampRef.current = 0; 
-            animationRef.current = requestAnimationFrame(animate);
-          }
-          
-          setTimeout(() => {
-            navigationInProgressRef.current = false;
-          }, 800);
-        } catch (error) {
-          console.error("Error resetting animation state in handleTransitionComplete timeout:", error);
-          resetAllTransitionStates(); 
-        }
-      }, 100);
-    } catch (error) {
-      console.error("Error in handleTransitionComplete:", error);
-      resetAllTransitionStates(); 
-    }
-  }, [navigate, animate, resetAllTransitionStates]);
-
-  useEffect(() => {
-    if (isTransitioning && selectedCategory && animationPhase === 2 && !preloadAttemptedRef.current) {
-      preloadAttemptedRef.current = true;
-      debugLog("Preloading shop data", { category: selectedCategory.slug });
-    }
-    if (!isTransitioning) {
-      preloadAttemptedRef.current = false;
-    }
-  }, [isTransitioning, selectedCategory, animationPhase]);
-
-  useEffect(() => {
-    if (isTransitioning && selectedCategory && !navigationInProgressRef.current) {
-      if (safetyTimeoutRef.current) { 
-        clearTimeout(safetyTimeoutRef.current);
-      }
-      debugLog("Setting safety timeout for transition in CategoryRows", { phase: animationPhase });
-      safetyTimeoutRef.current = setTimeout(() => {
-        if (isTransitioning && !navigationInProgressRef.current && selectedCategory) { 
-          debugLog("⚠️ Safety timeout triggered in CategoryRows - transition may be stuck", { 
-            phase: animationPhase,
-            category: selectedCategory.slug
-          });
-          
-          if (animationRef.current) {
-            cancelAnimationFrame(animationRef.current);
-            animationRef.current = null;
-          }
-           handleTransitionComplete(); 
-
-        }
-      }, 3000); 
-    } else if ((!isTransitioning || navigationInProgressRef.current) && safetyTimeoutRef.current) {
-      debugLog("Clearing safety timeout in CategoryRows", {isTransitioning, navInProgress: navigationInProgressRef.current});
-      clearTimeout(safetyTimeoutRef.current);
-      safetyTimeoutRef.current = null;
-    }
-
-    return () => {
-      if (safetyTimeoutRef.current) {
-        clearTimeout(safetyTimeoutRef.current);
-        safetyTimeoutRef.current = null;
-      }
-    };
-  }, [isTransitioning, selectedCategory, animationPhase, handleTransitionComplete, resetAllTransitionStates]);
-
+  // Handle transition completion
+  const handleTransitionComplete = useCallback(() => {
+    debugLog("Transition animation completed");
+    resetAllTransitionStates();
+  }, [resetAllTransitionStates]);
+  
   return (
-    <div 
-      className={`py-2 sm:py-3 md:py-4 w-screen min-w-full max-w-none relative overflow-hidden mx-0 px-0 ${isMobileDevice ? 'category-row-mobile' : ''}`}
-      style={{
-        width: '100vw',
-        maxWidth: '100vw',
-        paddingLeft: '0',
-        paddingRight: '0',
-        position: 'relative',
-        left: '50%',
-        right: '50%',
-        marginLeft: '-50vw',
-        marginRight: '-50vw'
-      }}
-      role="region"
-      aria-label="دسته‌بندی محصولات"
-      tabIndex="0"
-      onKeyDown={handleKeyDown}
-    >
-      {(title.trim() || subtitle.trim()) && (
-        <div className="w-full mb-3 md:mb-6">
-          <h2 className={`${isMobileDevice ? 'text-xl' : 'text-2xl md:text-3xl'} font-bold text-gray-100 mb-1 md:mb-2 pl-4`}>
-            {title}
-          </h2>
-          <p className={`text-gray-400 pl-4 ${isMobileDevice ? 'text-xs' : 'text-sm'}`}>
-            {subtitle}
-          </p>
+    <>
+      <div className="relative w-full my-16">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold mb-2">{title}</h2>
+            <p className="text-gray-600">{subtitle}</p>
+          </div>
         </div>
-      )}
-      
-      <div 
-        ref={containerRef}
-        className="relative w-screen overflow-hidden mx-0 px-0"
-        style={{ 
-          maskImage: direction === "rtl" 
-            ? 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)'
-            : 'linear-gradient(to left, transparent 0%, black 5%, black 95%, transparent 100%)',
-          WebkitMaskImage: direction === "rtl" 
-            ? 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)'
-            : 'linear-gradient(to left, transparent 0%, black 5%, black 95%, transparent 100%)',
-          width: '100vw',
-          maxWidth: '100vw',
-          marginRight: '0',
-          paddingRight: '0'
-        }}
-        aria-live="polite"
-      >
-        {/* Left side gradient overlay */}
-        <div 
-          className="absolute top-0 left-0 h-full w-[150px] z-10 pointer-events-none"
-          style={{ 
-            background: 'linear-gradient(to right, rgb(0, 0, 0) 0%, rgba(0, 0, 0, 0.95) 40%, rgba(0, 0, 0, 0) 100%)'
-          }}
-          aria-hidden="true"
-        />
         
+        {/* Orbital Container - using a square aspect ratio */}
         <div 
-          ref={beltRef}
-          className="relative w-screen"
-          style={{
-            width: '100vw',
-            maxWidth: '100vw',
-            height: `${rowHeight}px`
-          }}
+          ref={containerRef}
+          className="relative w-full aspect-square max-h-[700px] max-w-[1000px] mx-auto overflow-hidden"
+          style={{ direction: 'ltr' }} // Force LTR for positioning
         >
-          {categoryItems.map(item => (
-            <CategoryItem 
-              key={item.id} 
-              category={item.category}
+          {/* Central "sun" element */}
+          <motion.div 
+            className="absolute rounded-full bg-gradient-to-br from-amber-400 via-orange-500 to-pink-500 z-10"
+            style={{ 
+              top: '50%', 
+              left: '50%', 
+              width: isMobileDevice ? '40px' : '60px',
+              height: isMobileDevice ? '40px' : '60px',
+              marginTop: isMobileDevice ? '-20px' : '-30px',
+              marginLeft: isMobileDevice ? '-20px' : '-30px',
+              boxShadow: '0 0 40px rgba(255, 140, 0, 0.6)'
+            }}
+            animate={{
+              scale: [1, 1.1, 1],
+              boxShadow: [
+                '0 0 40px rgba(255, 140, 0, 0.6)',
+                '0 0 60px rgba(255, 140, 0, 0.8)',
+                '0 0 40px rgba(255, 140, 0, 0.6)'
+              ]
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+          
+          {/* Render orbital paths */}
+          {ORBIT_RADII.map((radius, index) => (
+            <div 
+              key={`orbit-${index}`}
+              className="absolute rounded-full border border-gray-200 opacity-20"
               style={{
-                position: 'absolute',
-                left: 0,
-                transform: `translateX(${item.positionX}px)`,
-                width: `${cardWidth}px`,
-                height: `${rowHeight}px`
+                top: '50%',
+                left: '50%',
+                width: isMobileDevice ? MOBILE_ORBIT_RADII[index] * 2 : radius * 2,
+                height: isMobileDevice ? MOBILE_ORBIT_RADII[index] * 2 : radius * 2,
+                marginTop: isMobileDevice ? -MOBILE_ORBIT_RADII[index] : -radius,
+                marginLeft: isMobileDevice ? -MOBILE_ORBIT_RADII[index] : -radius
               }}
-              cardWidth={cardWidth}
-              cardHeight={rowHeight}
-              isMobile={isMobileDevice}
-              mobileHighlight={item.mobileHighlight}
-              mobileHighlightEdge={item.mobileHighlightEdge}
-              mobileHighlightIntensity={item.mobileHighlightIntensity}
-              mobileHighlightPosition={item.mobileHighlightPosition}
-              onCategorySelect={handleCategorySelect}
-              isSelected={selectedCategory && selectedCategory.id === item.category.id}
-              isTransitioning={isTransitioning}
-              animationPhase={animationPhase}
             />
           ))}
+          
+          {/* Render orbital items */}
+          {orbitalItems.map((item) => {
+            const xPos = centerRef.current.x + item.position.x;
+            const yPos = centerRef.current.y + item.position.y;
+            
+            // Calculate a distance-based z-index to preserve proper layering
+            // Outer orbits should be behind inner orbits
+            const zIndex = 100 - Math.floor(item.orbitIndex * 10);
+            
+            return (
+              <motion.div
+                key={item.id}
+                className="absolute"
+                style={{
+                  top: 0,
+                  left: 0,
+                  transform: `translate(${xPos - cardWidth/2}px, ${yPos - cardHeight/2}px)`,
+                  zIndex
+                }}
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ 
+                  opacity: 1, 
+                  scale: 1,
+                  rotate: [0, Math.random() * 3 - 1.5]
+                }}
+                transition={{
+                  duration: 0.8,
+                  ease: "easeOut",
+                  rotate: {
+                    duration: 4,
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                    ease: "easeInOut"
+                  }
+                }}
+              >
+                <CategoryItem 
+                  category={item.category}
+                  cardWidth={cardWidth}
+                  cardHeight={cardHeight}
+                  isMobile={isMobileDevice}
+                  mobileHighlight={item.mobileHighlight}
+                  mobileHighlightEdge={item.mobileHighlightEdge}
+                  mobileHighlightIntensity={item.mobileHighlightIntensity}
+                  mobileHighlightPosition={item.mobileHighlightPosition}
+                  onCategorySelect={handleCategorySelect}
+                  isSelected={selectedCategory?.slug === item.category.slug}
+                  isTransitioning={isTransitioning}
+                  animationPhase={animationPhase}
+                />
+              </motion.div>
+            );
+          })}
         </div>
-        
-        {/* Right side gradient overlay */}
-        <div 
-          className="absolute top-0 right-0 h-full w-[150px] z-10 pointer-events-none"
-          style={{ 
-            background: 'linear-gradient(to left, rgb(0, 0, 0) 0%, rgba(0, 0, 0, 0.95) 40%, rgba(0, 0, 0, 0) 100%)'
-          }}
-          aria-hidden="true"
-        />
       </div>
       
-      <TransitionOverlay
-        isActive={isTransitioning}
-        selectedCategory={selectedCategory}
-        selectedCardRect={selectedItemRect}
-        onTransitionComplete={handleTransitionComplete}
-        phase={animationPhase}
-        setPhase={setAnimationPhase}
-      />
-    </div>
+      {/* Transition overlay for category selection */}
+      {isTransitioning && (
+        <TransitionOverlay 
+          initialRect={selectedItemRect}
+          category={selectedCategory}
+          onTransitionComplete={handleTransitionComplete}
+          animationPhase={animationPhase}
+          setAnimationPhase={setAnimationPhase}
+        />
+      )}
+    </>
   );
 });
-
-// Add display name for debugging
-CategoryRows.displayName = 'CategoryRows';
 
 export default CategoryRows;
