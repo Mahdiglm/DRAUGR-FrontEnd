@@ -1,44 +1,20 @@
 import React, { useRef, useEffect, useState, memo, useCallback } from 'react';
+import { motion } from 'framer-motion';
 
 /**
  * CategoryItem Component
  * 
- * Displays individual category cards with interactive hover effects
- * Optimized for both mobile and desktop devices
+ * Refined category cards with elegant hover effects and minimal design
+ * Optimized for sophisticated user interactions
  */
 
-// Generate a point on a circuit path based on the given parameters
-const generateCircuitPoint = (angle, radius, centerX, centerY, variation = 0) => {
-  // Add some randomness for more organic circuit paths
-  const adjustedRadius = radius * (1 + variation * (Math.random() * 0.4 - 0.2));
-  const adjustedAngle = angle + variation * (Math.random() * 0.2 - 0.1);
-  
-  return {
-    x: centerX + adjustedRadius * Math.cos(adjustedAngle),
-    y: centerY + adjustedRadius * Math.sin(adjustedAngle)
-  };
-};
-
-// Generate SVG path for circuit trace
-const generateCircuitPath = (startX, startY, endX, endY) => {
-  // Calculate midpoint with some variation
-  const midX = (startX + endX) / 2 + (Math.random() * 10 - 5);
-  const midY = (startY + endY) / 2 + (Math.random() * 10 - 5);
-  
-  // Circuit paths with corners rather than curves
-  if (Math.random() > 0.5) {
-    return `M${startX},${startY} L${midX},${startY} L${midX},${endY} L${endX},${endY}`;
-  } else {
-    return `M${startX},${startY} L${startX},${midY} L${endX},${midY} L${endX},${endY}`;
-  }
-};
-
+// Refined animation constants for smoother interactions
 const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
-const SPRING_FACTOR = 0.15;
-const MIN_INTENSITY_FOR_RENDER = 0.01;
-const VELOCITY_SENSITIVITY = 0.005; // How much mouse speed affects intensity boost
-const VELOCITY_BOOST_DECAY = 0.9;  // How quickly the velocity boost fades
-const MAX_VELOCITY_BOOST = 0.5;     // Max *additional* intensity from velocity (so total can be 1.0 + 0.5 = 1.5)
+const SPRING_FACTOR = 0.12; // Slightly slower for more elegant feel
+const MIN_INTENSITY_FOR_RENDER = 0.02;
+const VELOCITY_SENSITIVITY = 0.003; // Reduced for subtler effects
+const VELOCITY_BOOST_DECAY = 0.92;
+const MAX_VELOCITY_BOOST = 0.3; // Reduced for more restrained effects
 
 const CategoryItem = memo(({ 
   category, 
@@ -228,66 +204,60 @@ const CategoryItem = memo(({
     const { intensity, position, edge } = animatedValuesRef.current;
     if (intensity < MIN_INTENSITY_FOR_RENDER) return null;
     
-    const glowColor = '#ff0066';
-    // Use raw intensity (can be > 1) for more dramatic scaling of visual elements
-    const visualScale = intensity; 
-    const baseSegmentLength = 20;
-    const dynamicSegmentLength = 50 * (1 - Math.min(1, intensity)); // This part shrinks as intensity goes to 1, and stays 0 if intensity > 1
-    const boostSegmentLength = (intensity > 1) ? (intensity - 1) * 60 : 0; // Extra length for intensity > 1
-
-    const segmentLength = baseSegmentLength + dynamicSegmentLength + boostSegmentLength;
+    const glowColor = '#ef4444'; // Refined red color
+    const visualScale = Math.min(intensity, 1); // Cap at 1 for more restrained effect
+    const baseSegmentLength = 15; // Smaller base length
+    const dynamicSegmentLength = 30 * (1 - visualScale); // Reduced dynamic range
+    
+    const segmentLength = baseSegmentLength + dynamicSegmentLength;
     const halfSegment = segmentLength / 2;
     
     const startPercent = Math.max(0, position * 100 - halfSegment);
     const endPercent = Math.min(100, position * 100 + halfSegment);
     
     const segmentStyle = {
-      position: 'absolute', backgroundColor: glowColor,
-      // boxShadow and filter can also scale with `visualScale`
-      boxShadow: `0 0 ${6 * visualScale}px ${glowColor}, 0 0 ${10 * visualScale}px ${glowColor} inset`,
-      filter: `drop-shadow(0 0 ${4 * visualScale}px ${glowColor})`,
-      opacity: Math.min(1, intensity), // Opacity still capped at 1
+      position: 'absolute',
+      backgroundColor: glowColor,
+      boxShadow: `0 0 ${4 * visualScale}px ${glowColor}40, 0 0 ${8 * visualScale}px ${glowColor}20`,
+      filter: `blur(${0.5 * visualScale}px)`,
+      opacity: Math.min(0.8, intensity * 0.8), // More subtle opacity
       pointerEvents: 'none',
+      borderRadius: '2px'
     };
 
     if (edge && (edge.includes('Left') || edge.includes('Right') || edge.includes('Top') || edge.includes('Bottom'))) {
-      return renderCornerSegments(edge, visualScale, segmentStyle); // Pass visualScale
+      return renderCornerSegments(edge, visualScale, segmentStyle);
     }
 
     switch (edge) {
-      case 'top': return <div className="absolute top-0 rounded-t-lg overflow-hidden" style={{ ...segmentStyle, height: `${borderWidth}px`, left: `${startPercent}%`, width: `${endPercent - startPercent}%` }} />;
-      case 'right': return <div className="absolute right-0 rounded-r-lg overflow-hidden" style={{ ...segmentStyle, width: `${borderWidth}px`, top: `${startPercent}%`, height: `${endPercent - startPercent}%` }} />;
-      case 'bottom': return <div className="absolute bottom-0 rounded-b-lg overflow-hidden" style={{ ...segmentStyle, height: `${borderWidth}px`, right: `${startPercent}%`, width: `${endPercent - startPercent}%` }} />;
-      case 'left': return <div className="absolute left-0 rounded-l-lg overflow-hidden" style={{ ...segmentStyle, width: `${borderWidth}px`, bottom: `${startPercent}%`, height: `${endPercent - startPercent}%` }} />;
+      case 'top': return <div className="absolute top-0" style={{ ...segmentStyle, height: '2px', left: `${startPercent}%`, width: `${endPercent - startPercent}%` }} />;
+      case 'right': return <div className="absolute right-0" style={{ ...segmentStyle, width: '2px', top: `${startPercent}%`, height: `${endPercent - startPercent}%` }} />;
+      case 'bottom': return <div className="absolute bottom-0" style={{ ...segmentStyle, height: '2px', right: `${startPercent}%`, width: `${endPercent - startPercent}%` }} />;
+      case 'left': return <div className="absolute left-0" style={{ ...segmentStyle, width: '2px', bottom: `${startPercent}%`, height: `${endPercent - startPercent}%` }} />;
       default: return null;
     }
   };
 
-  const renderCornerSegments = (corner, visualScale, baseSegmentStyle) => { // visualScale from arg
-    const baseCornerSize = 25;
-    const dynamicCornerSize = 15 * visualScale; // Scale size with visualScale
-    const cornerSize = Math.min(60, baseCornerSize + dynamicCornerSize); // Cap max size
-    const segmentStyle = { ...baseSegmentStyle }; // NEW: baseSegmentStyle doesn't have borderRadius
+  const renderCornerSegments = (corner, visualScale, baseSegmentStyle) => {
+    const cornerSize = Math.min(20, 12 + 8 * visualScale); // Smaller, more refined corners
+    const segmentStyle = { ...baseSegmentStyle };
     
     switch (corner) {
-        case 'topLeft': return <><div style={{ ...segmentStyle, top: 0, left: 0, height: `${borderWidth}px`, width: `${cornerSize}px`, borderTopLeftRadius: '8px' }} /><div style={{ ...segmentStyle, top: 0, left: 0, width: `${borderWidth}px`, height: `${cornerSize}px`, borderTopLeftRadius: '8px' }} /></>;
-        case 'topRight': return <><div style={{ ...segmentStyle, top: 0, right: 0, height: `${borderWidth}px`, width: `${cornerSize}px`, borderTopRightRadius: '8px' }} /><div style={{ ...segmentStyle, top: 0, right: 0, width: `${borderWidth}px`, height: `${cornerSize}px`, borderTopRightRadius: '8px' }} /></>;
-        case 'bottomLeft': return <><div style={{ ...segmentStyle, bottom: 0, left: 0, height: `${borderWidth}px`, width: `${cornerSize}px`, borderBottomLeftRadius: '8px' }} /><div style={{ ...segmentStyle, bottom: 0, left: 0, width: `${borderWidth}px`, height: `${cornerSize}px`, borderBottomLeftRadius: '8px' }} /></>;
-        case 'bottomRight': return <><div style={{ ...segmentStyle, bottom: 0, right: 0, height: `${borderWidth}px`, width: `${cornerSize}px`, borderBottomRightRadius: '8px' }} /><div style={{ ...segmentStyle, bottom: 0, right: 0, width: `${borderWidth}px`, height: `${cornerSize}px`, borderBottomRightRadius: '8px' }} /></>;
+        case 'topLeft': return <><div style={{ ...segmentStyle, top: 0, left: 0, height: '2px', width: `${cornerSize}px`, borderTopLeftRadius: '4px' }} /><div style={{ ...segmentStyle, top: 0, left: 0, width: '2px', height: `${cornerSize}px`, borderTopLeftRadius: '4px' }} /></>;
+        case 'topRight': return <><div style={{ ...segmentStyle, top: 0, right: 0, height: '2px', width: `${cornerSize}px`, borderTopRightRadius: '4px' }} /><div style={{ ...segmentStyle, top: 0, right: 0, width: '2px', height: `${cornerSize}px`, borderTopRightRadius: '4px' }} /></>;
+        case 'bottomLeft': return <><div style={{ ...segmentStyle, bottom: 0, left: 0, height: '2px', width: `${cornerSize}px`, borderBottomLeftRadius: '4px' }} /><div style={{ ...segmentStyle, bottom: 0, left: 0, width: '2px', height: `${cornerSize}px`, borderBottomLeftRadius: '4px' }} /></>;
+        case 'bottomRight': return <><div style={{ ...segmentStyle, bottom: 0, right: 0, height: '2px', width: `${cornerSize}px`, borderBottomRightRadius: '4px' }} /><div style={{ ...segmentStyle, bottom: 0, right: 0, width: '2px', height: `${cornerSize}px`, borderBottomRightRadius: '4px' }} /></>;
         default: return null;
     }
   };
 
-  const renderCircuitTrace = () => {
+  const renderAccentLines = () => {
     const { intensity, position, edge } = animatedValuesRef.current;
     if (intensity < MIN_INTENSITY_FOR_RENDER) return null;
-    const simplifiedForMobile = isMobile;
-    const visualScale = intensity; // Use raw intensity for scaling SVG elements
-    const opacity = Math.min(1, intensity); // Opacity capped at 1
-
-    const baseExtension = simplifiedForMobile ? 3 : 6;
-    const dynamicExtension = simplifiedForMobile ? 0 : visualScale * 15; // Scale extension with visualScale
-    const traceExtension = baseExtension + ( (visualScale > 1 && !simplifiedForMobile) ? (visualScale -1) * 25 : 0); // Further boost for intensity > 1 on desktop
+    
+    const visualScale = Math.min(intensity, 1);
+    const opacity = intensity * 0.4; // More subtle accent lines
+    const lineLength = 8 + (visualScale * 6); // Shorter, more refined lines
 
     return (
       <svg
@@ -297,60 +267,51 @@ const CategoryItem = memo(({
         aria-hidden="true"
       >
         {edge === 'top' && (
-          <path
-            d={simplifiedForMobile 
-              ? `M${position * cardWidth},${borderWidth} v${baseExtension}` 
-              : `M${position * cardWidth},${borderWidth} v${baseExtension} h${traceExtension}`}
-            stroke="#ff0066" strokeWidth="1" fill="none"
-            strokeDasharray={simplifiedForMobile ? "3,3" : "4,3"}
-            style={{ opacity: opacity * 0.7, filter: `drop-shadow(0 0 ${2 * visualScale}px #ff0066)`, animation: 'dashOffset 2s linear infinite', animationPlayState: 'running' }}
+          <line
+            x1={position * cardWidth}
+            y1={2}
+            x2={position * cardWidth}
+            y2={2 + lineLength}
+            stroke="#ef4444"
+            strokeWidth="1"
+            opacity={opacity}
+            style={{ filter: `drop-shadow(0 0 2px #ef444440)` }}
           />
         )}
         {edge === 'right' && (
-          <path
-            d={simplifiedForMobile 
-              ? `M${cardWidth - borderWidth},${position * cardHeight} h-${baseExtension}` 
-              : `M${cardWidth - borderWidth},${position * cardHeight} h-${baseExtension} v${traceExtension}`}
-            stroke="#ff0066" strokeWidth="1" fill="none"
-            strokeDasharray={simplifiedForMobile ? "3,3" : "4,3"}
-            style={{ opacity: opacity * 0.7, filter: `drop-shadow(0 0 ${2 * visualScale}px #ff0066)`, animation: 'dashOffset 2s linear infinite', animationPlayState: 'running' }}
+          <line
+            x1={cardWidth - 2}
+            y1={position * cardHeight}
+            x2={cardWidth - 2 - lineLength}
+            y2={position * cardHeight}
+            stroke="#ef4444"
+            strokeWidth="1"
+            opacity={opacity}
+            style={{ filter: `drop-shadow(0 0 2px #ef444440)` }}
           />
         )}
         {edge === 'bottom' && (
-          <path
-            d={simplifiedForMobile 
-              ? `M${(1-position) * cardWidth},${cardHeight - borderWidth} v-${baseExtension}` 
-              : `M${(1-position) * cardWidth},${cardHeight - borderWidth} v-${baseExtension} h-${traceExtension}`}
-            stroke="#ff0066" strokeWidth="1" fill="none"
-            strokeDasharray={simplifiedForMobile ? "3,3" : "4,3"}
-            style={{ opacity: opacity * 0.7, filter: `drop-shadow(0 0 ${2 * visualScale}px #ff0066)`, animation: 'dashOffset 2s linear infinite', animationPlayState: 'running' }}
+          <line
+            x1={(1-position) * cardWidth}
+            y1={cardHeight - 2}
+            x2={(1-position) * cardWidth}
+            y2={cardHeight - 2 - lineLength}
+            stroke="#ef4444"
+            strokeWidth="1"
+            opacity={opacity}
+            style={{ filter: `drop-shadow(0 0 2px #ef444440)` }}
           />
         )}
         {edge === 'left' && (
-          <path
-            d={simplifiedForMobile 
-              ? `M${borderWidth},${(1-position) * cardHeight} h${baseExtension}` 
-              : `M${borderWidth},${(1-position) * cardHeight} h${baseExtension} v-${traceExtension}`}
-            stroke="#ff0066" strokeWidth="1" fill="none" 
-            strokeDasharray={simplifiedForMobile ? "3,3" : "4,3"}
-            style={{ opacity: opacity * 0.7, filter: `drop-shadow(0 0 ${2 * visualScale}px #ff0066)`, animation: 'dashOffset 2s linear infinite', animationPlayState: 'running' }}
-          />
-        )}
-        {/* Corner traces can also scale with visualScale */} 
-        {!simplifiedForMobile && edge === 'topLeft' && <path d={`M${borderWidth + 1},${borderWidth + 1} l${4*visualScale},${4*visualScale} l${4*visualScale},${-2*visualScale} l${6*visualScale},${6*visualScale}`} stroke="#ff0066" strokeWidth="1" fill="none" strokeDasharray="3,2" style={{ opacity: opacity * 0.7, filter: `drop-shadow(0 0 ${2*visualScale}px #ff0066)`, animation: 'dashOffset 1.8s linear infinite'}} />}
-        {!simplifiedForMobile && edge === 'topRight' && <path d={`M${cardWidth - borderWidth - 1},${borderWidth + 1} l${-4*visualScale},${4*visualScale} l${-4*visualScale},${-2*visualScale} l${-6*visualScale},${6*visualScale}`} stroke="#ff0066" strokeWidth="1" fill="none" strokeDasharray="3,2" style={{ opacity: opacity * 0.7, filter: `drop-shadow(0 0 ${2*visualScale}px #ff0066)`, animation: 'dashOffset 1.8s linear infinite'}} />}
-        {!simplifiedForMobile && edge === 'bottomLeft' && <path d={`M${borderWidth + 1},${cardHeight - borderWidth - 1} l${4*visualScale},${-4*visualScale} l${4*visualScale},${2*visualScale} l${6*visualScale},${-6*visualScale}`} stroke="#ff0066" strokeWidth="1" fill="none" strokeDasharray="3,2" style={{ opacity: opacity * 0.7, filter: `drop-shadow(0 0 ${2*visualScale}px #ff0066)`, animation: 'dashOffset 1.8s linear infinite'}} />}
-        {!simplifiedForMobile && edge === 'bottomRight' && <path d={`M${cardWidth - borderWidth - 1},${cardHeight - borderWidth - 1} l${-4*visualScale},${-4*visualScale} l${-4*visualScale},${2*visualScale} l${-6*visualScale},${-6*visualScale}`} stroke="#ff0066" strokeWidth="1" fill="none" strokeDasharray="3,2" style={{ opacity: opacity * 0.7, filter: `drop-shadow(0 0 ${2*visualScale}px #ff0066)`, animation: 'dashOffset 1.8s linear infinite'}} />}
-        {simplifiedForMobile && (edge === 'topLeft' || edge === 'topRight' || edge === 'bottomLeft' || edge === 'bottomRight') && (
-          <path
-            d={
-              edge === 'topLeft' ? `M${borderWidth + 1},${borderWidth + 1} l${2*visualScale},${2*visualScale}` :
-              edge === 'topRight' ? `M${cardWidth - borderWidth - 1},${borderWidth + 1} l${-2*visualScale},${2*visualScale}` :
-              edge === 'bottomLeft' ? `M${borderWidth + 1},${cardHeight - borderWidth - 1} l${2*visualScale},${-2*visualScale}` :
-              `M${cardWidth - borderWidth - 1},${cardHeight - borderWidth - 1} l${-2*visualScale},${-2*visualScale}`
-            }
-            stroke="#ff0066" strokeWidth="1" fill="none" strokeDasharray="2,2"
-            style={{ opacity: opacity * 0.7, filter: `drop-shadow(0 0 2px #ff0066)`, animation: 'dashOffset 1.8s linear infinite' }}
+          <line
+            x1={2}
+            y1={(1-position) * cardHeight}
+            x2={2 + lineLength}
+            y2={(1-position) * cardHeight}
+            stroke="#ef4444"
+            strokeWidth="1"
+            opacity={opacity}
+            style={{ filter: `drop-shadow(0 0 2px #ef444440)` }}
           />
         )}
       </svg>
@@ -358,26 +319,35 @@ const CategoryItem = memo(({
   };
 
   return (
-    <div
+    <motion.div
       ref={itemRef}
-      className={`absolute overflow-visible cursor-pointer select-none transition-all ${
+      className={`overflow-visible cursor-pointer select-none ${
         isSelected && !isTransitioning ? 'z-50' : ''
       }`}
       style={{
         ...style,
-        // Apply different transformations based on animation phase - use simple transforms that won't fail
-        transform: `
-          ${style.transform || ''} 
-          ${isSelected && !isTransitioning ? 'scale(1.1)' : ''}
-          ${isSelected && isTransitioning && animationPhase === 1 ? 'scale(1.15)' : ''}
-          ${isSelected && isTransitioning && animationPhase >= 2 ? 'scale(0.01)' : ''}
-        `,
+        width: '100%',
+        height: '100%',
+        zIndex: isSelected ? 100 : style.zIndex || 'auto',
+        pointerEvents: isTransitioning ? 'none' : 'auto',
+        visibility: isSelected && isTransitioning && animationPhase >= 2 ? 'hidden' : 'visible',
+      }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ 
         opacity: isSelected && isTransitioning && animationPhase >= 2 ? 0 : 1,
-        transition: `transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease-in-out`,
-        zIndex: isSelected ? 100 : style.zIndex || 'auto', // Ensure selected card is on top
-        filter: isSelected && isTransitioning && animationPhase === 1 ? 'drop-shadow(0 0 15px rgba(255, 0, 0, 0.6))' : 'none',
-        pointerEvents: isTransitioning ? 'none' : 'auto', // Disable interactions during transition
-        visibility: isSelected && isTransitioning && animationPhase >= 2 ? 'hidden' : 'visible', // Hide completely in later phases
+        y: 0,
+        scale: isSelected && !isTransitioning ? 1.05 : 
+               isSelected && isTransitioning && animationPhase === 1 ? 1.08 : 
+               isSelected && isTransitioning && animationPhase >= 2 ? 0.01 : 1
+      }}
+      transition={{ 
+        duration: 0.6, 
+        ease: [0.16, 1, 0.3, 1],
+        scale: { duration: 0.4 }
+      }}
+      whileHover={{ 
+        y: -2,
+        transition: { duration: 0.2, ease: "easeOut" }
       }}
       role="link"
       tabIndex="0"
@@ -391,73 +361,115 @@ const CategoryItem = memo(({
       }}
       {...props}
     >
-    {/* Apply blur effect to non-selected cards during Phase 1 */}
-    {isTransitioning && !isSelected && animationPhase === 1 && (
-      <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-md z-10 rounded-lg"
-        style={{
-          transition: 'all 0.3s ease-out'
-        }}
-      />
-    )}
+      {/* Blur overlay for non-selected cards during transition */}
+      {isTransitioning && !isSelected && animationPhase === 1 && (
+        <motion.div 
+          className="absolute inset-0 bg-black/50 backdrop-blur-sm z-10 rounded-xl"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        />
+      )}
 
-    <style jsx="true">{`
-        @keyframes neonPulse { 0% { opacity: 0.8; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
-        @keyframes dashOffset { from { stroke-dashoffset: 30; } to { stroke-dashoffset: 0; } }
-        @keyframes pulseGlow {
-          0% { filter: drop-shadow(0 0 5px rgba(255, 0, 102, 0.5)); }
-          50% { filter: drop-shadow(0 0 15px rgba(255, 0, 102, 0.8)); }
-          100% { filter: drop-shadow(0 0 5px rgba(255, 0, 102, 0.5)); }
-        }
-        
-        .selected-card {
-          animation: pulseGlow 1.5s infinite ease-in-out;
-        }
-      `}</style>
-      
-      <div 
-        className={`absolute inset-0 bg-gradient-to-b from-[#1c0b0f] to-black rounded-lg overflow-hidden ${
-          isSelected && isTransitioning && animationPhase === 1 ? 'selected-card' : ''
+      {/* Main card background with refined gradient */}
+      <motion.div 
+        className={`absolute inset-0 rounded-xl overflow-hidden backdrop-blur-sm ${
+          isSelected && isTransitioning && animationPhase === 1 ? 'ring-2 ring-red-500/40' : ''
         }`}
         style={{ 
+          background: 'linear-gradient(135deg, rgba(15, 15, 17, 0.95) 0%, rgba(25, 25, 28, 0.9) 50%, rgba(12, 12, 14, 0.95) 100%)',
+          border: '1px solid rgba(60, 60, 65, 0.3)',
           boxShadow: isSelected && isTransitioning ? 
-            "0 10px 30px rgba(0,0,0,0.8), 0 0 30px rgba(255,0,102,0.4)" : 
-            isMobile ? "0 2px 6px rgba(0,0,0,0.3)" : "0 4px 12px rgba(0,0,0,0.3)" 
+            "0 20px 40px rgba(0,0,0,0.6), 0 0 20px rgba(239, 68, 68, 0.2)" : 
+            isMobile ? "0 4px 12px rgba(0,0,0,0.2)" : "0 8px 24px rgba(0,0,0,0.15)"
+        }}
+        animate={{
+          boxShadow: isSelected && isTransitioning ?
+            "0 20px 40px rgba(0,0,0,0.6), 0 0 20px rgba(239, 68, 68, 0.2)" :
+            isMobile ? "0 4px 12px rgba(0,0,0,0.2)" : "0 8px 24px rgba(0,0,0,0.15)"
+        }}
+        transition={{ duration: 0.3 }}
+      />
+      
+      {/* Subtle inner border */}
+      <div 
+        className="absolute inset-[1px] rounded-xl pointer-events-none"
+        style={{ 
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%, rgba(255,255,255,0.02) 100%)',
+          border: '1px solid rgba(255,255,255,0.08)'
         }}
       />
       
-      <div 
-        className="absolute inset-0 rounded-lg pointer-events-none"
-        style={{ border: '1px solid rgba(100, 20, 30, 0.4)' }}
-      />
-      
+      {/* Interactive border effects */}
       {renderBorderSegments()}
-      {renderCircuitTrace()}
+      {renderAccentLines()}
       
-      <div className={`relative z-5 h-full flex flex-col justify-center items-center ${isMobile ? 'p-2' : 'p-4'}`}>
-        <span className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-white mb-1 md:mb-2`}>{category.name}</span>
-        <div 
-          className={`text-[#d64356] ${isMobile ? 'text-[10px]' : 'text-sm'} mt-1 flex items-center border border-red-900/40 ${isMobile ? 'px-1.5 py-0.5' : 'px-2 py-1 md:px-3 md:py-1'} rounded-full`}
-          style={{ background: "rgba(127,29,29,0.2)", transition: "all 0.3s ease" }}
+      {/* Content area with refined typography */}
+      <div className={`relative z-10 h-full flex flex-col justify-center items-center ${isMobile ? 'p-3' : 'p-6'}`}>
+        <motion.h3 
+          className={`${isMobile ? 'text-lg' : 'text-xl md:text-2xl'} font-medium text-white mb-2 md:mb-3 text-center leading-tight`}
+          style={{
+            background: 'linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text'
+          }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
         >
-          <span className="mr-1">مشاهده محصولات</span>
-          <svg xmlns="http://www.w3.org/2000/svg" className={`${isMobile ? 'h-2.5 w-2.5' : 'h-4 w-4'} mr-1`} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          {category.name}
+        </motion.h3>
+        
+        <motion.div 
+          className={`inline-flex items-center gap-2 text-red-400/90 ${isMobile ? 'text-xs' : 'text-sm'} font-light border border-red-500/20 ${isMobile ? 'px-3 py-1.5' : 'px-4 py-2'} rounded-full backdrop-blur-sm`}
+          style={{ 
+            background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%)',
+            transition: 'all 0.3s ease'
+          }}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          whileHover={{
+            background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.08) 100%)',
+            borderColor: 'rgba(239, 68, 68, 0.3)'
+          }}
+        >
+          <span>مشاهده محصولات</span>
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} transition-transform duration-200 group-hover:translate-x-0.5`} 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke="currentColor" 
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
           </svg>
-        </div>
+        </motion.div>
       </div>
       
+      {/* Subtle texture overlay */}
       <div 
-        className="absolute inset-0 opacity-10 mix-blend-overlay pointer-events-none rounded-lg"
-        style={{ backgroundImage: "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxwYXRoIGQ9Ik0wIDBoMzAwdjMwMEgweiIgZmlsdGVyPSJ1cmwoI2EpIiBvcGFjaXR5PSIuMDUiLz48L3N2Zz4=')", backgroundSize: "cover" }}
+        className="absolute inset-0 opacity-[0.03] mix-blend-overlay pointer-events-none rounded-xl"
+        style={{ 
+          backgroundImage: "url('data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E')",
+          backgroundSize: '200px 200px'
+        }}
         aria-hidden="true"
       />
 
-      <div className="absolute inset-0 rounded-lg pointer-events-none opacity-0 focus-within:opacity-100" 
-           style={{ boxShadow: "0 0 0 2px rgba(255,0,102,0.4)", transition: "opacity 0.2s ease" }} />
-    </div>
+      {/* Focus indicator */}
+      <div 
+        className="absolute inset-0 rounded-xl pointer-events-none opacity-0 focus-within:opacity-100" 
+        style={{ 
+          boxShadow: "0 0 0 2px rgba(239, 68, 68, 0.4)", 
+          transition: "opacity 0.2s ease" 
+        }} 
+      />
+    </motion.div>
   );
 });
 
 CategoryItem.displayName = 'CategoryItem';
-export default CategoryItem; 
+export default CategoryItem;

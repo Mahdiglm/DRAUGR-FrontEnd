@@ -152,18 +152,16 @@ const CategoryGrid = ({ title = "دسته‌بندی‌ها", subtitle = "مجم
         </div>
       )}
       
-      {/* Grid container */}
-      <div className="relative mx-auto px-4 py-2">
+      {/* Grid container - updated to fill full width */}
+      <div className="relative w-full px-2">
         <div 
-          className="relative grid-container"
+          className="relative grid-container w-full"
           style={{
             display: 'grid',
-            gridTemplateColumns: `repeat(7, ${cardWidth}px)`,
+            gridTemplateColumns: 'repeat(7, 1fr)',
             gridTemplateRows: `repeat(4, ${cardHeight}px)`,
             gap: `${cardGap}px`,
-            justifyContent: 'center',
-            width: 'fit-content',
-            margin: '0 auto'
+            width: '100%'
           }}
         >
           {gridCategories.map((item) => (
@@ -172,7 +170,7 @@ const CategoryGrid = ({ title = "دسته‌بندی‌ها", subtitle = "مجم
               category={item.category}
               style={{
                 position: 'relative',
-                width: `${cardWidth}px`,
+                width: '100%',
                 height: `${cardHeight}px`,
                 gridRow: item.row + 1,
                 gridColumn: item.col + 1,

@@ -370,10 +370,10 @@ const HomePage = () => {
           transition={{ duration: 0.8 }}
           viewport={{ once: true, margin: "-100px" }}
         >
-          {/* Content container */}
-          <div className="relative z-10 container mx-auto px-4">
+          {/* Content container - full width */}
+          <div className="relative z-10 w-full px-0">
             {/* Section header with enhanced styling */}
-            <div className="mb-4 text-center">
+            <div className="mb-4 text-center px-4">
               <h2 className="text-3xl md:text-4xl font-bold text-white text-shadow-horror mb-2">
                 <span className="relative inline-block">
                   دسته‌بندی‌های محصولات
@@ -386,7 +386,7 @@ const HomePage = () => {
               <p className="text-gray-400 max-w-2xl mx-auto mb-2">مجموعه‌ای از محصولات منحصر به فرد در دسته‌بندی‌های مختلف</p>
             </div>
             
-            {/* Category Grid with fixed positions */}
+            {/* Category Grid with fixed positions - full width */}
             <CategoryGrid 
               title="" 
               subtitle=""
