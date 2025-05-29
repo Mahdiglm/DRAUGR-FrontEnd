@@ -346,8 +346,13 @@ const CategoryItem = memo(({
         scale: { duration: 0.4 }
       }}
       whileHover={{ 
-        y: -2,
-        transition: { duration: 0.2, ease: "easeOut" }
+        y: -5,
+        scale: 1.03,
+        transition: { 
+          duration: 0.3, 
+          ease: [0.33, 1, 0.68, 1],
+          scale: { duration: 0.2 }
+        }
       }}
       role="link"
       tabIndex="0"
@@ -388,7 +393,26 @@ const CategoryItem = memo(({
             "0 20px 40px rgba(0,0,0,0.6), 0 0 20px rgba(239, 68, 68, 0.2)" :
             isMobile ? "0 4px 12px rgba(0,0,0,0.2)" : "0 8px 24px rgba(0,0,0,0.15)"
         }}
+        whileHover={{
+          boxShadow: "0 15px 30px rgba(0,0,0,0.4), 0 0 15px rgba(239, 68, 68, 0.3)",
+          background: 'linear-gradient(135deg, rgba(18, 18, 20, 0.95) 0%, rgba(30, 30, 35, 0.9) 50%, rgba(15, 15, 18, 0.95) 100%)',
+          border: '1px solid rgba(80, 80, 85, 0.4)',
+          transition: { duration: 0.3 }
+        }}
         transition={{ duration: 0.3 }}
+      />
+      
+      {/* Hover glow effect */}
+      <motion.div
+        className="absolute inset-0 rounded-xl pointer-events-none opacity-0 z-[1]"
+        style={{ 
+          boxShadow: "inset 0 0 15px 2px rgba(239, 68, 68, 0.1)",
+          background: 'radial-gradient(circle at center, rgba(239, 68, 68, 0.05) 0%, transparent 70%)'
+        }}
+        whileHover={{ 
+          opacity: 1,
+          transition: { duration: 0.3 }
+        }}
       />
       
       {/* Subtle inner border */}
@@ -422,7 +446,7 @@ const CategoryItem = memo(({
         </motion.h3>
         
         <motion.div 
-          className={`inline-flex items-center gap-2 text-red-400/90 ${isMobile ? 'text-xs' : 'text-sm'} font-light border border-red-500/20 ${isMobile ? 'px-3 py-1.5' : 'px-4 py-2'} rounded-full backdrop-blur-sm`}
+          className={`inline-flex items-center gap-2 text-red-400/90 ${isMobile ? 'text-xs' : 'text-sm'} font-light border border-red-500/20 ${isMobile ? 'px-3 py-1.5' : 'px-4 py-2'} rounded-full backdrop-blur-sm group`}
           style={{ 
             background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%)',
             transition: 'all 0.3s ease'
@@ -432,13 +456,15 @@ const CategoryItem = memo(({
           transition={{ duration: 0.5, delay: 0.2 }}
           whileHover={{
             background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.08) 100%)',
-            borderColor: 'rgba(239, 68, 68, 0.3)'
+            borderColor: 'rgba(239, 68, 68, 0.3)',
+            x: 5,
+            transition: { duration: 0.2 }
           }}
         >
           <span>مشاهده محصولات</span>
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
-            className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} transition-transform duration-200 group-hover:translate-x-0.5`} 
+            className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} transition-transform duration-200 group-hover:translate-x-1`} 
             fill="none" 
             viewBox="0 0 24 24" 
             stroke="currentColor" 
@@ -457,6 +483,20 @@ const CategoryItem = memo(({
           backgroundSize: '200px 200px'
         }}
         aria-hidden="true"
+      />
+      
+      {/* 3D tilt effect on hover */}
+      <motion.div
+        className="absolute inset-0 rounded-xl pointer-events-none z-20"
+        style={{
+          perspective: '1000px',
+          transformStyle: 'preserve-3d'
+        }}
+        whileHover={{
+          rotateX: 2,
+          rotateY: -2,
+          transition: { duration: 0.3 }
+        }}
       />
 
       {/* Focus indicator */}
