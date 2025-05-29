@@ -52,9 +52,12 @@ const authService = {
   getCurrentUser: () => {
     try {
       const user = localStorage.getItem('user');
-      return user ? JSON.parse(user) : null;
+      if (!user) return null;
+      return JSON.parse(user);
     } catch (error) {
       console.error('Failed to parse user from localStorage', error);
+      // Clear corrupted data
+      localStorage.removeItem('user');
       return null;
     }
   },

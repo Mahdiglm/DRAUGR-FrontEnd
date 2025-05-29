@@ -8,14 +8,26 @@ const cartService = {
     try {
       // For authenticated users, get cart from API
       if (authService.isAuthenticated()) {
-        return await api.get('/api/cart');
+        try {
+          return await api.get('/api/cart');
+        } catch (apiError) {
+          // If authentication fails, fall back to local cart
+          if (apiError.message === 'Unauthorized') {
+            // Clear invalid token
+            authService.logout();
+            // Return local cart
+            return getLocalCart();
+          }
+          throw apiError;
+        }
       } else {
         // For guests, get cart from localStorage
-        const cartItems = localStorage.getItem('cart');
-        return cartItems ? JSON.parse(cartItems) : { items: [] };
+        return getLocalCart();
       }
     } catch (error) {
-      throw error;
+      console.error('Error in getCart:', error);
+      // Fallback to empty cart on any error
+      return { items: [] };
     }
   },
   
@@ -27,7 +39,7 @@ const cartService = {
         return await api.post('/api/cart/items', { productId, quantity });
       } else {
         // For guests, store in localStorage
-        const cart = await cartService.getCart();
+        const cart = getLocalCart();
         const items = cart.items || [];
         
         // Check if item already exists
@@ -41,8 +53,9 @@ const cartService = {
           items.push({ productId, quantity });
         }
         
-        localStorage.setItem('cart', JSON.stringify({ items }));
-        return { items };
+        const updatedCart = { items };
+        saveLocalCart(updatedCart);
+        return updatedCart;
       }
     } catch (error) {
       throw error;
@@ -57,7 +70,7 @@ const cartService = {
         return await api.put(`/api/cart/items/${productId}`, { quantity });
       } else {
         // For guests, update localStorage
-        const cart = await cartService.getCart();
+        const cart = getLocalCart();
         const items = cart.items || [];
         
         // Find the item
@@ -72,8 +85,9 @@ const cartService = {
             items.splice(existingItemIndex, 1);
           }
           
-          localStorage.setItem('cart', JSON.stringify({ items }));
-          return { items };
+          const updatedCart = { items };
+          saveLocalCart(updatedCart);
+          return updatedCart;
         }
         
         return cart; // Return unchanged cart if item not found
@@ -91,11 +105,12 @@ const cartService = {
         return await api.delete(`/api/cart/items/${productId}`);
       } else {
         // For guests, update localStorage
-        const cart = await cartService.getCart();
+        const cart = getLocalCart();
         const items = cart.items.filter(item => item.productId !== productId);
         
-        localStorage.setItem('cart', JSON.stringify({ items }));
-        return { items };
+        const updatedCart = { items };
+        saveLocalCart(updatedCart);
+        return updatedCart;
       }
     } catch (error) {
       throw error;
@@ -110,8 +125,9 @@ const cartService = {
         return await api.delete('/api/cart');
       } else {
         // For guests, clear localStorage
-        localStorage.setItem('cart', JSON.stringify({ items: [] }));
-        return { items: [] };
+        const emptyCart = { items: [] };
+        saveLocalCart(emptyCart);
+        return emptyCart;
       }
     } catch (error) {
       throw error;
@@ -122,24 +138,52 @@ const cartService = {
   mergeCart: async () => {
     try {
       if (authService.isAuthenticated()) {
-        const guestCart = localStorage.getItem('cart');
+        const guestCart = getLocalCart();
         
-        if (guestCart) {
-          const { items } = JSON.parse(guestCart);
-          
-          // Only proceed if there are items to merge
-          if (items && items.length > 0) {
+        // Only proceed if there are items to merge
+        if (guestCart.items && guestCart.items.length > 0) {
+          try {
             // Send items to backend for merging
-            await api.post('/api/cart/merge', { items });
+            await api.post('/api/cart/merge', { items: guestCart.items });
             
             // Clear guest cart from localStorage
-            localStorage.removeItem('cart');
+            saveLocalCart({ items: [] });
+          } catch (error) {
+            console.error('Error merging cart:', error);
+            // If unauthorized, just clear the guest cart
+            if (error.message === 'Unauthorized') {
+              saveLocalCart({ items: [] });
+              authService.logout();
+            }
           }
         }
       }
     } catch (error) {
-      throw error;
+      console.error('Error in mergeCart:', error);
     }
+  }
+};
+
+// Helper to safely get cart from localStorage
+const getLocalCart = () => {
+  try {
+    const cartItems = localStorage.getItem('cart');
+    if (!cartItems) return { items: [] };
+    return JSON.parse(cartItems);
+  } catch (error) {
+    console.error('Error parsing cart from localStorage:', error);
+    // Reset corrupted cart data
+    localStorage.setItem('cart', JSON.stringify({ items: [] }));
+    return { items: [] };
+  }
+};
+
+// Helper to safely save cart to localStorage
+const saveLocalCart = (cart) => {
+  try {
+    localStorage.setItem('cart', JSON.stringify(cart));
+  } catch (error) {
+    console.error('Error saving cart to localStorage:', error);
   }
 };
 

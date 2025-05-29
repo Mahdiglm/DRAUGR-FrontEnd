@@ -4,6 +4,14 @@ import { HashRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import './App.css'
 
+// Import the storage reset utility
+import { resetLocalStorage } from './utils/resetStorage';
+
+// Make it available globally for troubleshooting
+if (typeof window !== 'undefined') {
+  window.resetDraugrStorage = resetLocalStorage;
+}
+
 // Set default scroll behavior for the entire application
 document.documentElement.style.scrollBehavior = 'smooth';
 

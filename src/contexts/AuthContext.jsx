@@ -17,6 +17,15 @@ export const AuthProvider = ({ children }) => {
     const initializeAuth = async () => {
       setLoading(true);
       try {
+        // First check if we have a token
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+        
+        // Then get user data
         const currentUser = authService.getCurrentUser();
         
         if (currentUser) {
@@ -24,10 +33,18 @@ export const AuthProvider = ({ children }) => {
           try {
             const userProfile = await authService.getUserProfile();
             setUser(userProfile);
+            
+            // Merge guest cart with user cart if needed
+            try {
+              await cartService.mergeCart();
+            } catch (cartError) {
+              console.error('Error merging cart:', cartError);
+            }
           } catch (profileError) {
             console.error('Error fetching user profile:', profileError);
-            // If token is invalid, log the user out
-            if (profileError.message.includes('Invalid token')) {
+            // If token is invalid or unauthorized, log the user out
+            if (profileError.message.includes('Invalid token') || 
+                profileError.message === 'Unauthorized') {
               authService.logout();
               setUser(null);
             } else {
@@ -35,19 +52,18 @@ export const AuthProvider = ({ children }) => {
               setUser(currentUser);
             }
           }
-          
-          // Merge guest cart with user cart if needed
-          try {
-            await cartService.mergeCart();
-          } catch (cartError) {
-            console.error('Error merging cart:', cartError);
-          }
         } else {
+          // If we have a token but no user data, log out to clear invalid state
+          if (token) {
+            authService.logout();
+          }
           setUser(null);
         }
       } catch (err) {
         console.error('Auth initialization error:', err);
         setError(err.message);
+        // Clean up any corrupt data
+        authService.logout();
         setUser(null);
       } finally {
         setLoading(false);

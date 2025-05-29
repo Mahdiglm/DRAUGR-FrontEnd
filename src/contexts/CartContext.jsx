@@ -23,7 +23,13 @@ export const CartProvider = ({ children }) => {
         setCart(cartData);
       } catch (err) {
         console.error('Error loading cart:', err);
-        setError('Failed to load cart');
+        
+        // If unauthorized, use an empty cart
+        if (err.message === 'Unauthorized') {
+          setCart({ items: [] });
+        } else {
+          setError('Failed to load cart');
+        }
       } finally {
         setLoading(false);
       }
