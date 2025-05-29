@@ -1,8 +1,8 @@
 /**
  * CategoryRows Component
  * 
- * Creates a horizontally scrolling category section with dynamically generated items
- * and interactive proximity-based hover effects.
+ * Refined horizontal scrolling category section with elegant design
+ * and sophisticated micro-interactions.
  */
 
 import React, { useRef, useEffect, useState, useCallback, memo } from 'react';
@@ -10,23 +10,24 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { categories, additionalCategories } from '../../utils/mockData';
 import { getOptimizedAnimationSettings } from '../../utils/animationHelpers';
-import CategoryItem from './CategoryItem'; // Moved to separate component
-import TransitionOverlay from './TransitionOverlay'; // Import new component
+import CategoryItem from './CategoryItem';
+import TransitionOverlay from './TransitionOverlay';
 
-// Constants for layout - moved to global scope for reuse
-const CARD_WIDTH = 224; // 56px * 4 (actual width)
-const CARD_MARGIN = 0;  // No margin - we'll handle spacing with absolute positioning
-const CARD_TOTAL_WIDTH = CARD_WIDTH + CARD_MARGIN; // Total width including margins
+// Refined layout constants with improved proportions
+const CARD_WIDTH = 280; // Increased for better content display
+const CARD_HEIGHT = 140; // Refined aspect ratio
+const CARD_MARGIN = 0;
+const CARD_TOTAL_WIDTH = CARD_WIDTH + CARD_MARGIN;
 
-// Mobile constants (smaller sizes)
-const MOBILE_CARD_WIDTH = 160; // Smaller width for mobile
-const MOBILE_CARD_MARGIN = 0; // No margin - we'll handle spacing with absolute positioning
+// Mobile constants with optimized dimensions
+const MOBILE_CARD_WIDTH = 180;
+const MOBILE_CARD_HEIGHT = 100;
+const MOBILE_CARD_MARGIN = 0;
 const MOBILE_CARD_TOTAL_WIDTH = MOBILE_CARD_WIDTH + MOBILE_CARD_MARGIN;
-const MOBILE_ROW_HEIGHT = 80; // Decreased height for mobile rows (was 100)
 
-// Consistent spacing between cards
-const CARD_SPACING = 32; // Fixed spacing between cards for desktop
-const MOBILE_CARD_SPACING = 8; // Fixed spacing between cards for mobile
+// Refined spacing for visual breathing room
+const CARD_SPACING = 24; // Reduced for tighter, more elegant layout
+const MOBILE_CARD_SPACING = 16; // Optimized mobile spacing
 
 // Debug helper function
 const debugLog = (message, obj = {}) => {
@@ -103,13 +104,14 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
   const navigatingCategoryRef = useRef(null);
   const isActiveTransitionRef = useRef(false); // Ref to track active transition for scrolling animation
   
-  // Get the appropriate card dimensions based on device
+  // Get refined card dimensions with improved proportions
   const getCardDimensions = useCallback(() => {
     return {
       cardWidth: isMobileDevice ? MOBILE_CARD_WIDTH : CARD_WIDTH,
+      cardHeight: isMobileDevice ? MOBILE_CARD_HEIGHT : CARD_HEIGHT,
       cardMargin: isMobileDevice ? MOBILE_CARD_MARGIN : CARD_MARGIN,
       cardTotalWidth: isMobileDevice ? MOBILE_CARD_WIDTH + MOBILE_CARD_SPACING : CARD_WIDTH + CARD_SPACING,
-      rowHeight: isMobileDevice ? MOBILE_ROW_HEIGHT : 120, // Decreased height for desktop (was 160)
+      rowHeight: isMobileDevice ? MOBILE_CARD_HEIGHT + 20 : CARD_HEIGHT + 40, // Refined heights with proper padding
       cardSpacing: isMobileDevice ? MOBILE_CARD_SPACING : CARD_SPACING
     };
   }, [isMobileDevice]);
@@ -417,15 +419,14 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
   }, [defaultSpeed, direction, isMobileDevice]);
   
   // Get current card dimensions
-  const { cardWidth, rowHeight } = getCardDimensions();
+  const { cardWidth, cardHeight, rowHeight } = getCardDimensions();
 
-  // Handle keyboard navigation
+  // Handle keyboard navigation with refined speed adjustments
   const handleKeyDown = (e) => {
-    // Adjust speed with arrow keys
     if (e.key === 'ArrowLeft') {
-      setSpeed(currentSpeed => currentSpeed * 0.8);
+      setSpeed(currentSpeed => Math.max(0.2, currentSpeed * 0.85));
     } else if (e.key === 'ArrowRight') {
-      setSpeed(currentSpeed => currentSpeed * 1.2);
+      setSpeed(currentSpeed => Math.min(2.0, currentSpeed * 1.15));
     }
   };
 
@@ -643,13 +644,57 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
       onKeyDown={handleKeyDown}
     >
       {(title.trim() || subtitle.trim()) && (
-        <div className="w-full mb-3 md:mb-6">
-          <h2 className={`${isMobileDevice ? 'text-xl' : 'text-2xl md:text-3xl'} font-bold text-gray-100 mb-1 md:mb-2 pl-4`}>
-            {title}
-          </h2>
-          <p className={`text-gray-400 pl-4 ${isMobileDevice ? 'text-xs' : 'text-sm'}`}>
-            {subtitle}
-          </p>
+        <div className="w-full mb-8 md:mb-12 px-4">
+          <motion.div
+            className="text-center mb-6 md:mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            {/* Elegant decorative element */}
+            <motion.div
+              className="inline-flex items-center gap-3 mb-4 md:mb-6"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+            >
+              <div className="w-8 h-[1px] bg-gradient-to-r from-transparent to-red-500/50"></div>
+              <div className="w-1.5 h-1.5 bg-red-500/70 rounded-full animate-pulse"></div>
+              <div className="w-8 h-[1px] bg-gradient-to-l from-transparent to-red-500/50"></div>
+            </motion.div>
+            
+            <motion.h2 
+              className={`${isMobileDevice ? 'text-2xl' : 'text-3xl md:text-4xl'} font-light text-white mb-3 md:mb-4 tracking-wide`}
+              style={{
+                background: 'linear-gradient(135deg, #ffffff 0%, #f8f8f8 50%, #e8e8e8 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+            >
+              {title}
+            </motion.h2>
+            
+            <motion.p 
+              className={`text-gray-400/90 max-w-2xl mx-auto leading-relaxed font-light ${isMobileDevice ? 'text-sm' : 'text-base md:text-lg'}`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.5 }}
+            >
+              {subtitle}
+            </motion.p>
+            
+            {/* Subtle underline */}
+            <motion.div
+              className="mt-4 md:mt-6 w-12 h-[1px] bg-gradient-to-r from-transparent via-red-500/30 to-transparent mx-auto"
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: 1, delay: 0.7 }}
+            ></motion.div>
+          </motion.div>
         </div>
       )}
       
