@@ -40,26 +40,34 @@ import BlogPage from './components/pages/BlogPage';
 import SingleBlogPostPage from './components/pages/SingleBlogPostPage';
 import SpecialOffersPage from './components/pages/SpecialOffersPage';
 
+// Context Providers
+import { AuthProvider } from './contexts/AuthContext';
+import { CartProvider } from './contexts/CartContext';
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>
-      <HashRouter>
-        <Routes>
-          <Route path="/" element={<MainLayout />}>
-            <Route index element={<HomePage />} />
-            <Route path="shop" element={<ShopPage />} />
-            <Route path="checkout" element={<CheckoutPage />} />
-            <Route path="product/:id" element={<ProductDetail />} />
-            <Route path="about" element={<AboutPage />} />
-            <Route path="login" element={<Login />} />
-            <Route path="signup" element={<SignUp />} />
-            <Route path="blog" element={<BlogPage />} />
-            <Route path="blog/:slug" element={<SingleBlogPostPage />} />
-            <Route path="special-offers" element={<SpecialOffersPage />} />
-            <Route path="special-offers/:id" element={<SpecialOffersPage />} />
-          </Route>
-        </Routes>
-      </HashRouter>
+      <AuthProvider>
+        <CartProvider>
+          <HashRouter>
+            <Routes>
+              <Route path="/" element={<MainLayout />}>
+                <Route index element={<HomePage />} />
+                <Route path="shop" element={<ShopPage />} />
+                <Route path="checkout" element={<CheckoutPage />} />
+                <Route path="product/:id" element={<ProductDetail />} />
+                <Route path="about" element={<AboutPage />} />
+                <Route path="login" element={<Login />} />
+                <Route path="signup" element={<SignUp />} />
+                <Route path="blog" element={<BlogPage />} />
+                <Route path="blog/:slug" element={<SingleBlogPostPage />} />
+                <Route path="special-offers" element={<SpecialOffersPage />} />
+                <Route path="special-offers/:id" element={<SpecialOffersPage />} />
+              </Route>
+            </Routes>
+          </HashRouter>
+        </CartProvider>
+      </AuthProvider>
     </ErrorBoundary>
   </StrictMode>,
 )

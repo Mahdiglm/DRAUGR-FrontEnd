@@ -7,70 +7,22 @@ import Footer from './Footer';
 import Cart from '../cart/Cart';
 import DevTools from '../shared/DevTools';
 import ScrollToTop from '../shared/ScrollToTop';
+import { useCart } from '../../contexts/CartContext';
 
 const MainLayout = () => {
-  const [cartItems, setCartItems] = useState([]);
-  const [isCartOpen, setIsCartOpen] = useState(false);
+  const { 
+    cartProducts, 
+    isCartOpen, 
+    toggleCart, 
+    addToCart,
+    removeFromCart,
+    updateCartItem
+  } = useCart();
+  
   const [showMessage, setShowMessage] = useState(false);
   const [message, setMessage] = useState('');
 
-  // Expose these functions through React Context in a real app
-  const addToCart = (product) => {
-    // Check if the product is already in the cart
-    const existingItemIndex = cartItems.findIndex(item => item.id === product.id);
-    
-    if (existingItemIndex !== -1) {
-      // If product already exists, increment its quantity
-      const updatedCartItems = [...cartItems];
-      if (!updatedCartItems[existingItemIndex].quantity) {
-        updatedCartItems[existingItemIndex].quantity = 1; // Initialize quantity if it doesn't exist
-      }
-      
-      // If product comes with quantity (from product detail page), add that amount
-      const quantityToAdd = product.quantity || 1;
-      updatedCartItems[existingItemIndex].quantity += quantityToAdd;
-      
-      setCartItems(updatedCartItems);
-    } else {
-      // If product doesn't exist, add it with quantity from product or default to 1
-      const productWithQuantity = { 
-        ...product, 
-        quantity: product.quantity || 1
-      };
-      setCartItems([...cartItems, productWithQuantity]);
-    }
-    
-    // No need to show message here since the product page already shows one
-    if (!product.quantity) {
-    showTemporaryMessage(`${product.name} به سبد خرید اضافه شد`);
-    }
-  };
-
-  const removeFromCart = (productId, removeCompletely = false) => {
-    const product = cartItems.find(item => item.id === productId);
-    
-    if (product && product.quantity > 1 && !removeCompletely) {
-      // If quantity > 1, just decrement the quantity (unless removeCompletely flag is true)
-      const updatedCartItems = cartItems.map(item => 
-        item.id === productId 
-          ? { ...item, quantity: item.quantity - 1 } 
-          : item
-      );
-      setCartItems(updatedCartItems);
-      showTemporaryMessage(`یک عدد از ${product.name} از سبد خرید کم شد`);
-    } else {
-      // Remove the item completely
-    setCartItems(cartItems.filter(item => item.id !== productId));
-    if (product) {
-      showTemporaryMessage(`${product.name} از سبد خرید حذف شد`);
-      }
-    }
-  };
-
-  const toggleCart = () => {
-    setIsCartOpen(!isCartOpen);
-  };
-  
+  // Helper to show temporary messages
   const showTemporaryMessage = (msg) => {
     setMessage(msg);
     setShowMessage(true);
@@ -119,14 +71,14 @@ const MainLayout = () => {
   return (
     <div className="w-full font-vazirmatn bg-midnight dark">
       <ScrollToTop />
-      <Header cartItems={cartItems} onCartClick={toggleCart} />
+      <Header cartItems={cartProducts} onCartClick={toggleCart} />
       
       <Cart 
-        items={cartItems} 
+        items={cartProducts} 
         removeItem={removeFromCart} 
         isOpen={isCartOpen} 
-        onClose={() => setIsCartOpen(false)} 
-        addToCartPlus={addToCart}
+        onClose={() => toggleCart()} 
+        addToCartPlus={(product) => updateCartItem(product.id, product.quantity + 1)}
       />
 
       {/* Floating Message - Moved to right side and made responsive */}
@@ -153,7 +105,7 @@ const MainLayout = () => {
 
       {/* Main Content */}
       <main className="main-content">
-      <Outlet context={{ addToCart, cartItems, showTemporaryMessage }} />
+      <Outlet context={{ addToCart, showTemporaryMessage }} />
       <Footer />
       </main>
       
