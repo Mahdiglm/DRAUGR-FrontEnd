@@ -4,8 +4,8 @@ import { useOutletContext, Link } from 'react-router-dom';
 
 import ProductList from '../product/ProductList';
 import FeaturedProductSlider from '../product/FeaturedProductSlider';
-import CategoryRows from '../shared/CategoryRows';
-import { products, categories, additionalCategories, thirdRowCategories, fourthRowCategories } from '../../utils/mockData';
+import CategoryGrid from '../shared/CategoryGrid';
+import { products } from '../../utils/mockData';
 import { safeBlur, safeFilterTransition, isLowPerformanceDevice, getOptimizedAnimationSettings } from '../../utils/animationHelpers';
 // Try with relative path to asset folder
 import heroBackground from '../../assets/Background-Hero.jpg';
@@ -362,7 +362,7 @@ const HomePage = () => {
           </div>
         </motion.section>
 
-        {/* Category Rows Section */}
+        {/* Category Grid Section */}
         <motion.section 
           className="py-6 sm:py-8 md:py-10 w-full relative overflow-hidden"
           initial={{ opacity: 0 }}
@@ -386,36 +386,10 @@ const HomePage = () => {
               <p className="text-gray-400 max-w-2xl mx-auto mb-2">مجموعه‌ای از محصولات منحصر به فرد در دسته‌بندی‌های مختلف</p>
             </div>
             
-            {/* First row - right to left (default) */}
-            <CategoryRows 
-              direction="rtl" 
+            {/* Category Grid with fixed positions */}
+            <CategoryGrid 
               title="" 
               subtitle=""
-              categoryItems={categories}
-            />
-            
-            {/* Second row - left to right (without title) */}
-            <CategoryRows 
-              direction="ltr" 
-              title="" 
-              subtitle=""
-              categoryItems={additionalCategories}
-            />
-            
-            {/* Third row - right to left (without title) */}
-            <CategoryRows 
-              direction="rtl" 
-              title="" 
-              subtitle=""
-              categoryItems={thirdRowCategories}
-            />
-            
-            {/* Fourth row - left to right (without title) */}
-            <CategoryRows 
-              direction="ltr" 
-              title="" 
-              subtitle=""
-              categoryItems={fourthRowCategories}
             />
           </div>
         </motion.section>
