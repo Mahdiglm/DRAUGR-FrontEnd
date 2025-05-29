@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { blogPosts } from '../../utils/mockData';
+import { blogPosts } from '../../utils/blogData';
 import BlogPostCard from '../blog/BlogPostCard';
 
 // Animation variants for the container and items

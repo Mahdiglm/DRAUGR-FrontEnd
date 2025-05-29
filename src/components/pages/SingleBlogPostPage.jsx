@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useParams, Link } from 'react-router-dom';
-import { blogPosts } from '../../utils/mockData';
+import { blogPosts } from '../../utils/blogData';
 
 const SingleBlogPostPage = () => {
   const { slug } = useParams();

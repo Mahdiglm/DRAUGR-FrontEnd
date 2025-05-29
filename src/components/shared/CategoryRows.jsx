@@ -8,7 +8,7 @@
 import React, { useRef, useEffect, useState, useCallback, memo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { categories, additionalCategories } from '../../utils/mockData';
+import { categories, additionalCategories } from '../../utils/categoryData';
 import { getOptimizedAnimationSettings } from '../../utils/animationHelpers';
 import CategoryItem from './CategoryItem';
 import TransitionOverlay from './TransitionOverlay';
