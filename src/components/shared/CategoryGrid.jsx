@@ -68,10 +68,12 @@ const CategoryGrid = ({ title = "دسته‌بندی‌ها", subtitle = "مجم
       try {
         setIsLoading(true);
         const data = await productService.getCategories();
-        setCategories(data);
+        // Ensure data is an array before setting state
+        setCategories(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error('Error fetching categories:', err);
         setError('خطا در دریافت دسته‌بندی‌ها');
+        setCategories([]); // Set to empty array on error
       } finally {
         setIsLoading(false);
       }
@@ -88,39 +90,41 @@ const CategoryGrid = ({ title = "دسته‌بندی‌ها", subtitle = "مجم
   // Prepare all categories for the grid (7x4 = 28 positions total)
   const gridCategories = [];
   
-  // Ensure we have enough categories to fill the grid
-  const filledCategories = [...categories];
-  
-  // If we have less than 28 categories, duplicate existing ones
-  if (filledCategories.length < 28 && filledCategories.length > 0) {
-    const extraNeeded = 28 - filledCategories.length;
-    for (let i = 0; i < extraNeeded; i++) {
-      const sourceCategory = categories[i % categories.length];
-      const newCategory = {
-        ...sourceCategory,
-        id: 100 + i,
-        name: `${sourceCategory.name} ${i+1}`,
-        slug: `${sourceCategory.slug}-${i+1}`
-      };
-      filledCategories.push(newCategory);
+  // Ensure we have categories and it's an array before processing
+  if (Array.isArray(categories) && categories.length > 0) {
+    const filledCategories = [...categories];
+    
+    // If we have less than 28 categories, duplicate existing ones
+    if (filledCategories.length < 28) { // No need to check filledCategories.length > 0 here as categories.length > 0 is already checked
+      const extraNeeded = 28 - filledCategories.length;
+      for (let i = 0; i < extraNeeded; i++) {
+        const sourceCategory = categories[i % categories.length]; // Safe now
+        const newCategory = {
+          ...sourceCategory,
+          id: sourceCategory.id + 100 + i, // Ensure unique IDs for duplicated items
+          name: `${sourceCategory.name} ${i+1}`,
+          slug: `${sourceCategory.slug}-${i+1}`
+        };
+        filledCategories.push(newCategory);
+      }
     }
-  }
-  
-  // Create grid items
-  for (let row = 0; row < 4; row++) {
-    for (let col = 0; col < 7; col++) {
-      const index = row * 7 + col;
-      // Only add if we have enough categories
-      if (index < filledCategories.length) {
-        const category = filledCategories[index];
-        
-        // Add to grid with position data
-        gridCategories.push({
-          id: category.id,
-          category,
-          row,
-          col
-        });
+    
+    // Create grid items
+    for (let row = 0; row < 4; row++) {
+      for (let col = 0; col < 7; col++) {
+        const index = row * 7 + col;
+        // Only add if we have enough categories
+        if (index < filledCategories.length) {
+          const category = filledCategories[index];
+          
+          // Add to grid with position data
+          gridCategories.push({
+            id: category.id, // Use the potentially modified ID
+            category,
+            row,
+            col
+          });
+        }
       }
     }
   }
