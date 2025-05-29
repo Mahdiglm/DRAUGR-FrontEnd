@@ -54,8 +54,8 @@ const Login = () => {
       // Use the login function from AuthContext
       await login(formData.email, formData.password);
       
-      // Redirect to home page after successful login
-      navigate('/');
+      // Redirect to dashboard after successful login
+      navigate('/dashboard');
     } catch (err) {
       // Check for common error patterns and set Persian error messages
       const errorMsg = err.message || '';

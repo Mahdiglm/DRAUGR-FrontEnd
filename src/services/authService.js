@@ -10,7 +10,16 @@ const authService = {
       // Store token and user info in local storage
       if (response.token) {
         localStorage.setItem('token', response.token);
-        localStorage.setItem('user', JSON.stringify(response.user));
+        
+        // Create proper user object with response data
+        const user = {
+          id: response.id,
+          firstName: response.firstName,
+          lastName: response.lastName,
+          email: response.email,
+          role: response.role,
+        };
+        localStorage.setItem('user', JSON.stringify(user));
       }
       
       return response;
@@ -27,7 +36,16 @@ const authService = {
       // Store token and user info if registration leads directly to login
       if (response.token) {
         localStorage.setItem('token', response.token);
-        localStorage.setItem('user', JSON.stringify(response.user));
+        
+        // Create proper user object with response data
+        const user = {
+          id: response.id,
+          firstName: response.firstName,
+          lastName: response.lastName,
+          email: response.email,
+          role: response.role,
+        };
+        localStorage.setItem('user', JSON.stringify(user));
       }
       
       return response;

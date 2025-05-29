@@ -116,10 +116,10 @@ const SignUp = () => {
       
       await register(userData);
       
-      // Redirect to home page after successful registration
-      navigate('/');
+      // Redirect to dashboard after successful registration
+      navigate('/dashboard');
     } catch (err) {
-      // Handle specific errors - translate them to Persian
+      // Handle specific errors
       const errorMsg = err.message || '';
       if (errorMsg.toLowerCase().includes('email') && errorMsg.toLowerCase().includes('already registered')) {
         setErrors(prev => ({
