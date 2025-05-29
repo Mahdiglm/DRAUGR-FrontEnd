@@ -1,22 +1,29 @@
 import React, { useRef, useEffect, useState, memo, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import {
+  calculateVelocity,
+  getRandomEffectParams,
+  generateEffectStyles,
+  generateParticles,
+  cleanupParticles,
+  updateParticles,
+  EFFECT_TYPES
+} from '../../utils/hoverEffects';
 
 /**
  * CategoryItem Component
  * 
  * Refined category cards with elegant hover effects and minimal design
- * Optimized for sophisticated user interactions and enhanced cursor velocity effects
+ * Optimized for sophisticated user interactions with dynamic velocity-based effects
  */
 
 // Refined animation constants for smoother interactions
 const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
-const easeInOutQuart = t => t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2; // More dramatic easing
 const SPRING_FACTOR = 0.12; // Slightly slower for more elegant feel
 const MIN_INTENSITY_FOR_RENDER = 0.02;
-const VELOCITY_SENSITIVITY = 0.004; // Increased for more dramatic effects on fast movement
-const VELOCITY_BOOST_DECAY = 0.90; // Slower decay for longer-lasting effects
-const MAX_VELOCITY_BOOST = 0.5; // Increased for more dramatic effects
-const CURSOR_HISTORY_LENGTH = 5; // Track recent cursor positions for better velocity calculation
+const VELOCITY_SENSITIVITY = 0.003; // Reduced for subtler effects
+const VELOCITY_BOOST_DECAY = 0.92;
+const MAX_VELOCITY_BOOST = 0.3; // Reduced for more restrained effects
 
 const CategoryItem = memo(({ 
   category, 
@@ -36,19 +43,35 @@ const CategoryItem = memo(({
 }) => {
   const itemRef = useRef(null);
   const lastMousePosRef = useRef({ x: 0, y: 0, time: Date.now() });
-  const mouseHistoryRef = useRef([]); // Track recent mouse positions for better velocity calculation
   const animationFrameIdRef = useRef(null);
+  const particlesRef = useRef([]);
+  const lastParticleTimeRef = useRef(0);
   
   const animatedValuesRef = useRef({
     intensity: 0,
     position: 0.5,
     edge: null,
     velocityBoost: 0, // For tracking the boost from mouse speed
-    randomOffset: Math.random() * 0.5, // Random offset for varied effects
-    effectVariant: Math.floor(Math.random() * 3), // Random effect variant (0, 1, or 2)
   });
 
-  // Re-add useState for setForceUpdate, needed for desktop animation loop
+  // State for velocity-based dynamic effects
+  const [velocityData, setVelocityData] = useState({ 
+    speed: 0, 
+    direction: { x: 0, y: 0 },
+    speedTier: 'SLOW'
+  });
+  
+  // State for dynamic hover effects
+  const [hoverEffects, setHoverEffects] = useState({
+    isHovering: false,
+    effectParams: null,
+    elementRect: null
+  });
+  
+  // State for particles system
+  const [particles, setParticles] = useState([]);
+  
+  // State for forcing render updates
   const [, setForceUpdate] = useState(0);
 
   const proximityThreshold = 60;
@@ -155,6 +178,42 @@ const CategoryItem = memo(({
       const stillVisible = currentAV.intensity > MIN_INTENSITY_FOR_RENDER;
       const wasTargetingVisible = targetBaseIntensity > 0;
 
+      // Check if we are now hovering or just left
+      const nowHovering = isInside;
+      
+      // Update hover state for effects if changed
+      if (nowHovering !== hoverEffects.isHovering) {
+        setHoverEffects(prev => ({
+          ...prev,
+          isHovering: nowHovering,
+          elementRect: rect,
+          effectParams: nowHovering ? 
+            getRandomEffectParams(velocityData.speedTier) : 
+            null
+        }));
+        
+        // If we're now hovering and moving fast, generate particles
+        if (nowHovering && 
+            (velocityData.speedTier === 'FAST' || velocityData.speedTier === 'EXTREME') &&
+            Date.now() - lastParticleTimeRef.current > 100) { // Rate limit particle generation
+          
+          const newParticles = generateParticles(
+            getRandomEffectParams(velocityData.speedTier), 
+            velocityData
+          );
+          
+          // Set initial positions relative to cursor in element
+          const particlesWithPositions = newParticles.map(p => ({
+            ...p,
+            x: relativeX,
+            y: relativeY
+          }));
+          
+          setParticles(current => [...current, ...particlesWithPositions]);
+          lastParticleTimeRef.current = Date.now();
+        }
+      }
+
       if (intensityChanged || positionChanged || (stillVisible && !wasTargetingVisible) || (wasTargetingVisible && !stillVisible) ) {
         setForceUpdate(val => val + 1); // Keep for desktop animation updates
       }
@@ -167,53 +226,20 @@ const CategoryItem = memo(({
       const prevPos = lastMousePosRef.current;
       const timeDiff = now - prevPos.time;
       
-      // Add to mouse history for better velocity tracking
-      mouseHistoryRef.current.push({
-        x: e.clientX,
-        y: e.clientY,
-        time: now
-      });
-      
-      // Keep history limited to CURSOR_HISTORY_LENGTH entries
-      if (mouseHistoryRef.current.length > CURSOR_HISTORY_LENGTH) {
-        mouseHistoryRef.current.shift();
-      }
-      
-      // Calculate velocity based on history for smoother, more accurate speed detection
-      if (mouseHistoryRef.current.length >= 2 && timeDiff > 1) {
-        const oldestPos = mouseHistoryRef.current[0];
-        const totalTimeDiff = now - oldestPos.time;
+      if (timeDiff > 1) { // Ensure a small amount of time has passed to avoid extreme speeds
+        const currentPos = { x: e.clientX, y: e.clientY };
+        const velocity = calculateVelocity(currentPos, prevPos);
         
-        if (totalTimeDiff > 0) {
-          const totalDistMoved = Math.sqrt(
-            Math.pow(e.clientX - oldestPos.x, 2) + 
-            Math.pow(e.clientY - oldestPos.y, 2)
-          );
-          
-          const speed = totalDistMoved / totalTimeDiff;
-          
-          // Apply more dramatic boost for faster movements with variable effect
-          const speedVariation = 1 + (animatedValuesRef.current.randomOffset * 0.5);
-          const boostMultiplier = speed > 1.5 ? speedVariation * 1.5 : speedVariation;
-          const newBoost = Math.min(MAX_VELOCITY_BOOST, speed * VELOCITY_SENSITIVITY * boostMultiplier);
-          
-          // Apply more random effects for high-speed movements
-          if (speed > 2) {
-            // Reset random effect variant occasionally for variety
-            if (Math.random() < 0.3) {
-              animatedValuesRef.current.effectVariant = Math.floor(Math.random() * 3);
-              animatedValuesRef.current.randomOffset = Math.random() * 0.5;
-            }
-          }
-          
-          animatedValuesRef.current.velocityBoost = Math.max(
-            animatedValuesRef.current.velocityBoost, 
-            newBoost
-          );
-        }
+        // Update last position with the new one
+        lastMousePosRef.current = { ...currentPos, time: now };
+        
+        // Store velocity data for effects
+        setVelocityData(velocity);
+        
+        // Calculate velocity boost for standard hover effect
+        const newBoost = Math.min(MAX_VELOCITY_BOOST, velocity.speed * VELOCITY_SENSITIVITY * 5);
+        animatedValuesRef.current.velocityBoost = Math.max(animatedValuesRef.current.velocityBoost, newBoost);
       }
-      
-      lastMousePosRef.current = { x: e.clientX, y: e.clientY, time: now };
     };
 
     window.addEventListener('mousemove', handleGlobalMouseMove);
@@ -226,7 +252,39 @@ const CategoryItem = memo(({
         animationFrameIdRef.current = null;
       }
     };
-  }, [isMobile, proximityThreshold, cardWidth, cardHeight]); // Added cardWidth, cardHeight
+  }, [isMobile, proximityThreshold, cardWidth, cardHeight, hoverEffects.isHovering, velocityData.speedTier]);
+  
+  // Particle animation system
+  useEffect(() => {
+    if (isMobile || particles.length === 0) return;
+    
+    let lastTimestamp = 0;
+    const animateParticles = (timestamp) => {
+      if (!lastTimestamp) lastTimestamp = timestamp;
+      const deltaTime = timestamp - lastTimestamp;
+      lastTimestamp = timestamp;
+      
+      // Update particle positions
+      const updatedParticles = updateParticles(particles, deltaTime);
+      
+      // Clean up expired particles
+      const activeParticles = cleanupParticles(updatedParticles);
+      
+      setParticles(activeParticles);
+      
+      if (activeParticles.length > 0) {
+        particlesRef.current = requestAnimationFrame(animateParticles);
+      }
+    };
+    
+    particlesRef.current = requestAnimationFrame(animateParticles);
+    
+    return () => {
+      if (particlesRef.current) {
+        cancelAnimationFrame(particlesRef.current);
+      }
+    };
+  }, [isMobile, particles]);
   
   const getPositionAlongEdge = (edge, x, y, width, height) => {
     // Ensure height is not zero to prevent division by zero
@@ -246,168 +304,84 @@ const CategoryItem = memo(({
   };
 
   const renderBorderSegments = () => {
-    const { intensity, position, edge, velocityBoost, effectVariant, randomOffset } = animatedValuesRef.current;
+    const { intensity, position, edge } = animatedValuesRef.current;
     if (intensity < MIN_INTENSITY_FOR_RENDER) return null;
     
-    // Determine if this is a high-velocity effect (fast cursor movement)
-    const isHighVelocity = velocityBoost > 0.2;
-    
-    // Dynamic color based on velocity and random variation
-    const glowColors = [
-      '#ef4444', // Default red
-      '#f97316', // Orange for variation
-      '#8b5cf6', // Purple for fast movements
-      '#ec4899'  // Pink for very fast movements
-    ];
-    
-    const colorIndex = isHighVelocity 
-      ? (effectVariant === 0 ? 2 : 3) // Purple or pink for high velocity
-      : (effectVariant === 0 ? 0 : 1); // Red or orange for normal
-    
-    const glowColor = glowColors[colorIndex];
-    
-    // More dramatic visual scale for high velocity
-    const velocityFactor = isHighVelocity ? 1.2 + (velocityBoost * 0.6) : 1;
-    const visualScale = Math.min(intensity * velocityFactor, 1.5); // Cap at higher value for more dramatic effect
-    
-    // Dynamic segment length based on velocity
-    const baseLengthFactor = isHighVelocity ? 1.2 + randomOffset : 1;
-    const baseSegmentLength = 15 * baseLengthFactor; // Larger base length for high velocity
-    const dynamicSegmentLength = isHighVelocity ? 
-      20 * (1 - visualScale * 0.7) : // Less contraction for high velocity
-      30 * (1 - visualScale); // Normal contraction for regular movement
+    const glowColor = '#ef4444'; // Refined red color
+    const visualScale = Math.min(intensity, 1); // Cap at 1 for more restrained effect
+    const baseSegmentLength = 15; // Smaller base length
+    const dynamicSegmentLength = 30 * (1 - visualScale); // Reduced dynamic range
     
     const segmentLength = baseSegmentLength + dynamicSegmentLength;
     const halfSegment = segmentLength / 2;
     
-    // Position variation for high velocity
-    const positionOffset = isHighVelocity ? (Math.sin(Date.now() / 200) * 0.1 * randomOffset) : 0;
-    const adjustedPosition = Math.max(0, Math.min(1, position + positionOffset));
+    const startPercent = Math.max(0, position * 100 - halfSegment);
+    const endPercent = Math.min(100, position * 100 + halfSegment);
     
-    const startPercent = Math.max(0, adjustedPosition * 100 - halfSegment);
-    const endPercent = Math.min(100, adjustedPosition * 100 + halfSegment);
+    // Apply velocity-based enhancements
+    const boostFactor = velocityData.speedTier === 'SLOW' ? 1 :
+                       velocityData.speedTier === 'MEDIUM' ? 1.2 :
+                       velocityData.speedTier === 'FAST' ? 1.5 : 2;
     
-    // Enhanced glow effect for high velocity
-    const glowSize = isHighVelocity ? 8 * visualScale : 4 * visualScale;
-    const glowIntensity = isHighVelocity ? 0.5 : 0.4;
+    // Select glow color based on speed
+    const dynamicGlowColor = velocityData.speedTier === 'SLOW' ? glowColor :
+                            velocityData.speedTier === 'MEDIUM' ? '#ff6b6b' :
+                            velocityData.speedTier === 'FAST' ? '#ff3333' : '#ff0000';
     
     const segmentStyle = {
       position: 'absolute',
-      backgroundColor: glowColor,
-      boxShadow: isHighVelocity
-        ? `0 0 ${glowSize}px ${glowColor}70, 0 0 ${glowSize * 2}px ${glowColor}40`
-        : `0 0 ${glowSize}px ${glowColor}40, 0 0 ${glowSize * 1.5}px ${glowColor}20`,
-      filter: `blur(${isHighVelocity ? 1.0 : 0.5} * ${visualScale}px)`,
-      opacity: Math.min(0.9, intensity * glowIntensity * (isHighVelocity ? 1.2 : 0.8)), // More intense for high velocity
+      backgroundColor: dynamicGlowColor,
+      boxShadow: `0 0 ${4 * visualScale * boostFactor}px ${dynamicGlowColor}40, 0 0 ${8 * visualScale * boostFactor}px ${dynamicGlowColor}20`,
+      filter: `blur(${0.5 * visualScale * boostFactor}px)`,
+      opacity: Math.min(0.8, intensity * 0.8), // More subtle opacity
       pointerEvents: 'none',
-      borderRadius: '2px',
-      transition: isHighVelocity ? 'none' : 'opacity 0.1s ease' // No transition for high velocity for more immediate effect
+      borderRadius: '2px'
     };
 
     if (edge && (edge.includes('Left') || edge.includes('Right') || edge.includes('Top') || edge.includes('Bottom'))) {
-      return renderCornerSegments(edge, visualScale, segmentStyle, isHighVelocity);
+      return renderCornerSegments(edge, visualScale, segmentStyle, boostFactor);
     }
 
-    // Add slight variations to edge segments for high velocity
-    const thickness = isHighVelocity ? 2 + (velocityBoost * 2) : 2;
-
     switch (edge) {
-      case 'top': return <div className="absolute top-0" style={{ ...segmentStyle, height: `${thickness}px`, left: `${startPercent}%`, width: `${endPercent - startPercent}%` }} />;
-      case 'right': return <div className="absolute right-0" style={{ ...segmentStyle, width: `${thickness}px`, top: `${startPercent}%`, height: `${endPercent - startPercent}%` }} />;
-      case 'bottom': return <div className="absolute bottom-0" style={{ ...segmentStyle, height: `${thickness}px`, right: `${startPercent}%`, width: `${endPercent - startPercent}%` }} />;
-      case 'left': return <div className="absolute left-0" style={{ ...segmentStyle, width: `${thickness}px`, bottom: `${startPercent}%`, height: `${endPercent - startPercent}%` }} />;
+      case 'top': return <div className="absolute top-0" style={{ ...segmentStyle, height: '2px', left: `${startPercent}%`, width: `${endPercent - startPercent}%` }} />;
+      case 'right': return <div className="absolute right-0" style={{ ...segmentStyle, width: '2px', top: `${startPercent}%`, height: `${endPercent - startPercent}%` }} />;
+      case 'bottom': return <div className="absolute bottom-0" style={{ ...segmentStyle, height: '2px', right: `${startPercent}%`, width: `${endPercent - startPercent}%` }} />;
+      case 'left': return <div className="absolute left-0" style={{ ...segmentStyle, width: '2px', bottom: `${startPercent}%`, height: `${endPercent - startPercent}%` }} />;
       default: return null;
     }
   };
 
-  const renderCornerSegments = (corner, visualScale, baseSegmentStyle, isHighVelocity) => {
-    // Enhanced corner size based on velocity
-    const velocityFactor = isHighVelocity ? 1.3 : 1;
-    const cornerSize = Math.min(28, (12 + 8 * visualScale) * velocityFactor); // Larger corners for high velocity
-    const thickness = isHighVelocity ? 2 + (visualScale * 2) : 2; // Thicker lines for high velocity
-    
-    const segmentStyle = { 
-      ...baseSegmentStyle,
-      height: `${thickness}px`,
-      width: `${thickness}px`,
-      // Slight animation for high velocity corners
-      animation: isHighVelocity ? 'pulse 1.2s ease-in-out infinite alternate' : 'none'
-    };
-    
-    // Add @keyframes for the pulse animation if it doesn't exist
-    if (isHighVelocity && !document.getElementById('hover-animation-style')) {
-      const style = document.createElement('style');
-      style.id = 'hover-animation-style';
-      style.innerHTML = `
-        @keyframes pulse {
-          0% { opacity: ${baseSegmentStyle.opacity * 0.8}; }
-          100% { opacity: ${baseSegmentStyle.opacity}; }
-        }
-      `;
-      document.head.appendChild(style);
-    }
+  const renderCornerSegments = (corner, visualScale, baseSegmentStyle, boostFactor = 1) => {
+    const cornerSize = Math.min(20, 12 + 8 * visualScale * boostFactor); // Smaller, more refined corners
+    const segmentStyle = { ...baseSegmentStyle };
     
     switch (corner) {
-      case 'topLeft': return <><div style={{ ...segmentStyle, top: 0, left: 0, height: `${thickness}px`, width: `${cornerSize}px`, borderTopLeftRadius: '4px' }} /><div style={{ ...segmentStyle, top: 0, left: 0, width: `${thickness}px`, height: `${cornerSize}px`, borderTopLeftRadius: '4px' }} /></>;
-      case 'topRight': return <><div style={{ ...segmentStyle, top: 0, right: 0, height: `${thickness}px`, width: `${cornerSize}px`, borderTopRightRadius: '4px' }} /><div style={{ ...segmentStyle, top: 0, right: 0, width: `${thickness}px`, height: `${cornerSize}px`, borderTopRightRadius: '4px' }} /></>;
-      case 'bottomLeft': return <><div style={{ ...segmentStyle, bottom: 0, left: 0, height: `${thickness}px`, width: `${cornerSize}px`, borderBottomLeftRadius: '4px' }} /><div style={{ ...segmentStyle, bottom: 0, left: 0, width: `${thickness}px`, height: `${cornerSize}px`, borderBottomLeftRadius: '4px' }} /></>;
-      case 'bottomRight': return <><div style={{ ...segmentStyle, bottom: 0, right: 0, height: `${thickness}px`, width: `${cornerSize}px`, borderBottomRightRadius: '4px' }} /><div style={{ ...segmentStyle, bottom: 0, right: 0, width: `${thickness}px`, height: `${cornerSize}px`, borderBottomRightRadius: '4px' }} /></>;
-      default: return null;
+        case 'topLeft': return <><div style={{ ...segmentStyle, top: 0, left: 0, height: '2px', width: `${cornerSize}px`, borderTopLeftRadius: '4px' }} /><div style={{ ...segmentStyle, top: 0, left: 0, width: '2px', height: `${cornerSize}px`, borderTopLeftRadius: '4px' }} /></>;
+        case 'topRight': return <><div style={{ ...segmentStyle, top: 0, right: 0, height: '2px', width: `${cornerSize}px`, borderTopRightRadius: '4px' }} /><div style={{ ...segmentStyle, top: 0, right: 0, width: '2px', height: `${cornerSize}px`, borderTopRightRadius: '4px' }} /></>;
+        case 'bottomLeft': return <><div style={{ ...segmentStyle, bottom: 0, left: 0, height: '2px', width: `${cornerSize}px`, borderBottomLeftRadius: '4px' }} /><div style={{ ...segmentStyle, bottom: 0, left: 0, width: '2px', height: `${cornerSize}px`, borderBottomLeftRadius: '4px' }} /></>;
+        case 'bottomRight': return <><div style={{ ...segmentStyle, bottom: 0, right: 0, height: '2px', width: `${cornerSize}px`, borderBottomRightRadius: '4px' }} /><div style={{ ...segmentStyle, bottom: 0, right: 0, width: '2px', height: `${cornerSize}px`, borderBottomRightRadius: '4px' }} /></>;
+        default: return null;
     }
   };
 
   const renderAccentLines = () => {
-    const { intensity, position, edge, velocityBoost, effectVariant } = animatedValuesRef.current;
+    const { intensity, position, edge } = animatedValuesRef.current;
     if (intensity < MIN_INTENSITY_FOR_RENDER) return null;
     
-    const isHighVelocity = velocityBoost > 0.2;
+    const visualScale = Math.min(intensity, 1);
+    const opacity = intensity * 0.4; // More subtle accent lines
     
-    // Different colors for accent lines based on velocity and effect variant
-    const glowColors = [
-      '#ef4444', // Default red
-      '#f97316', // Orange
-      '#8b5cf6', // Purple
-      '#ec4899'  // Pink
-    ];
+    // Dynamic line attributes based on velocity
+    const boostFactor = velocityData.speedTier === 'SLOW' ? 1 :
+                       velocityData.speedTier === 'MEDIUM' ? 1.3 :
+                       velocityData.speedTier === 'FAST' ? 1.7 : 2.2;
+                       
+    const lineLength = (8 + (visualScale * 6)) * boostFactor; // Shorter, more refined lines
     
-    const colorIndex = isHighVelocity 
-      ? (effectVariant === 0 ? 2 : 3) 
-      : (effectVariant === 0 ? 0 : 1);
-      
-    const glowColor = glowColors[colorIndex];
-    
-    const visualScale = Math.min(intensity * (isHighVelocity ? 1.5 : 1), 1.5);
-    const opacity = isHighVelocity ? intensity * 0.6 : intensity * 0.4;
-    
-    // Longer accent lines for high velocity
-    const baseLength = isHighVelocity ? 12 : 8;
-    const velocityExtraLength = isHighVelocity ? velocityBoost * 10 : 0;
-    const lineLength = baseLength + (visualScale * 6) + velocityExtraLength;
-    
-    // Add pulsing effect for high velocity
-    const animationProps = isHighVelocity 
-      ? {
-          animation: 'accentPulse 0.8s ease-in-out infinite alternate',
-          style: { transformOrigin: 'center' }
-        }
-      : {};
-    
-    // Add @keyframes for the accent pulse animation if needed
-    if (isHighVelocity && !document.getElementById('accent-animation-style')) {
-      const style = document.createElement('style');
-      style.id = 'accent-animation-style';
-      style.innerHTML = `
-        @keyframes accentPulse {
-          0% { transform: scaleY(0.85); }
-          100% { transform: scaleY(1.15); }
-        }
-      `;
-      document.head.appendChild(style);
-    }
-
-    // Add slight variation to position for high velocity
-    const positionJitter = isHighVelocity ? (Math.random() * 0.04) - 0.02 : 0;
-    const adjustedPosition = Math.max(0, Math.min(1, position + positionJitter));
+    // Dynamic color based on velocity
+    const lineColor = velocityData.speedTier === 'SLOW' ? "#ef4444" :
+                     velocityData.speedTier === 'MEDIUM' ? "#ff5555" :
+                     velocityData.speedTier === 'FAST' ? "#ff3333" : "#ff0000";
 
     return (
       <svg
@@ -417,59 +391,171 @@ const CategoryItem = memo(({
         aria-hidden="true"
       >
         {edge === 'top' && (
-          <motion.line
-            x1={adjustedPosition * cardWidth}
+          <line
+            x1={position * cardWidth}
             y1={2}
-            x2={adjustedPosition * cardWidth}
+            x2={position * cardWidth}
             y2={2 + lineLength}
-            stroke={glowColor}
-            strokeWidth={isHighVelocity ? "1.5" : "1"}
+            stroke={lineColor}
+            strokeWidth={velocityData.speedTier === 'EXTREME' ? "1.5" : "1"}
             opacity={opacity}
-            style={{ filter: `drop-shadow(0 0 3px ${glowColor}70)` }}
-            {...animationProps}
+            style={{ filter: `drop-shadow(0 0 ${boostFactor * 2}px ${lineColor}40)` }}
           />
         )}
         {edge === 'right' && (
-          <motion.line
+          <line
             x1={cardWidth - 2}
-            y1={adjustedPosition * cardHeight}
+            y1={position * cardHeight}
             x2={cardWidth - 2 - lineLength}
-            y2={adjustedPosition * cardHeight}
-            stroke={glowColor}
-            strokeWidth={isHighVelocity ? "1.5" : "1"}
+            y2={position * cardHeight}
+            stroke={lineColor}
+            strokeWidth={velocityData.speedTier === 'EXTREME' ? "1.5" : "1"}
             opacity={opacity}
-            style={{ filter: `drop-shadow(0 0 3px ${glowColor}70)` }}
-            {...animationProps}
+            style={{ filter: `drop-shadow(0 0 ${boostFactor * 2}px ${lineColor}40)` }}
           />
         )}
         {edge === 'bottom' && (
-          <motion.line
-            x1={(1-adjustedPosition) * cardWidth}
+          <line
+            x1={(1-position) * cardWidth}
             y1={cardHeight - 2}
-            x2={(1-adjustedPosition) * cardWidth}
+            x2={(1-position) * cardWidth}
             y2={cardHeight - 2 - lineLength}
-            stroke={glowColor}
-            strokeWidth={isHighVelocity ? "1.5" : "1"}
+            stroke={lineColor}
+            strokeWidth={velocityData.speedTier === 'EXTREME' ? "1.5" : "1"}
             opacity={opacity}
-            style={{ filter: `drop-shadow(0 0 3px ${glowColor}70)` }}
-            {...animationProps}
+            style={{ filter: `drop-shadow(0 0 ${boostFactor * 2}px ${lineColor}40)` }}
           />
         )}
         {edge === 'left' && (
-          <motion.line
+          <line
             x1={2}
-            y1={(1-adjustedPosition) * cardHeight}
+            y1={(1-position) * cardHeight}
             x2={2 + lineLength}
-            y2={(1-adjustedPosition) * cardHeight}
-            stroke={glowColor}
-            strokeWidth={isHighVelocity ? "1.5" : "1"}
+            y2={(1-position) * cardHeight}
+            stroke={lineColor}
+            strokeWidth={velocityData.speedTier === 'EXTREME' ? "1.5" : "1"}
             opacity={opacity}
-            style={{ filter: `drop-shadow(0 0 3px ${glowColor}70)` }}
-            {...animationProps}
+            style={{ filter: `drop-shadow(0 0 ${boostFactor * 2}px ${lineColor}40)` }}
           />
         )}
       </svg>
     );
+  };
+  
+  // Generate dynamic styles based on hover state and velocity
+  const getDynamicStyles = () => {
+    if (!hoverEffects.isHovering || !hoverEffects.effectParams) return {};
+    
+    const { effectParams } = hoverEffects;
+    const styles = {};
+    
+    // Apply scale effect
+    if (effectParams.enabledEffects.includes(EFFECT_TYPES.SCALE)) {
+      const scaleStyles = generateEffectStyles(effectParams, EFFECT_TYPES.SCALE);
+      Object.assign(styles, scaleStyles);
+    }
+    
+    // Apply glow effect
+    if (effectParams.enabledEffects.includes(EFFECT_TYPES.GLOW)) {
+      const glowStyles = generateEffectStyles(effectParams, EFFECT_TYPES.GLOW);
+      Object.assign(styles, glowStyles);
+    }
+    
+    // Apply color shift effect
+    if (effectParams.enabledEffects.includes(EFFECT_TYPES.COLOR_SHIFT)) {
+      const colorStyles = generateEffectStyles(effectParams, EFFECT_TYPES.COLOR_SHIFT);
+      Object.assign(styles, colorStyles);
+    }
+    
+    // Apply distortion effects for extreme speeds
+    if (effectParams.enabledEffects.includes(EFFECT_TYPES.DISTORTION)) {
+      const distortionStyles = generateEffectStyles(effectParams, EFFECT_TYPES.DISTORTION);
+      Object.assign(styles, distortionStyles);
+    }
+    
+    return styles;
+  };
+  
+  // Render particles
+  const renderParticles = () => {
+    if (particles.length === 0) return null;
+    
+    return (
+      <div className="absolute inset-0 overflow-visible pointer-events-none z-20">
+        {particles.map(particle => (
+          <div
+            key={particle.id}
+            className="absolute rounded-full"
+            style={{
+              width: `${particle.size}px`,
+              height: `${particle.size}px`,
+              backgroundColor: particle.color,
+              left: `${particle.x}px`,
+              top: `${particle.y}px`,
+              opacity: 1 - ((Date.now() - particle.createdAt) / particle.lifetime),
+              transform: `translate(-50%, -50%)`,
+              boxShadow: `0 0 ${particle.size * 2}px ${particle.color}`,
+              transition: 'none'
+            }}
+          />
+        ))}
+      </div>
+    );
+  };
+  
+  // Dynamic text effect for category name based on velocity
+  const getCategoryNameStyle = () => {
+    if (!hoverEffects.isHovering || !hoverEffects.effectParams) {
+      return {
+        background: 'linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text'
+      };
+    }
+    
+    const { effectParams } = hoverEffects;
+    
+    if (effectParams.speedTier === 'EXTREME' && 
+        effectParams.enabledEffects.includes(EFFECT_TYPES.TEXT_EFFECT)) {
+      // Wild text effect for extreme speeds
+      return {
+        background: `linear-gradient(45deg, ${effectParams.colorPalette.join(', ')})`,
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        textShadow: `0 0 5px ${effectParams.color}80`,
+        animation: 'textGlitch 0.3s infinite',
+        letterSpacing: '0.05em'
+      };
+    } else if (effectParams.speedTier === 'FAST' && 
+              effectParams.enabledEffects.includes(EFFECT_TYPES.TEXT_EFFECT)) {
+      // Enhanced text effect for fast speeds
+      return {
+        background: `linear-gradient(135deg, #ffffff 0%, ${effectParams.color} 100%)`,
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        textShadow: `0 0 3px ${effectParams.color}50`
+      };
+    } else if (effectParams.speedTier === 'MEDIUM') {
+      // Subtle enhancement for medium speeds
+      return {
+        background: 'linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        textShadow: '0 0 1px rgba(255,255,255,0.5)'
+      };
+    } else {
+      // Default style for slow speeds
+      return {
+        background: 'linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text'
+      };
+    }
   };
 
   return (
@@ -485,6 +571,7 @@ const CategoryItem = memo(({
         zIndex: isSelected ? 100 : style.zIndex || 'auto',
         pointerEvents: isTransitioning ? 'none' : 'auto',
         visibility: isSelected && isTransitioning && animationPhase >= 2 ? 'hidden' : 'visible',
+        ...getDynamicStyles()
       }}
       initial={{ opacity: 0, y: 20 }}
       animate={{ 
@@ -558,16 +645,14 @@ const CategoryItem = memo(({
       {renderBorderSegments()}
       {renderAccentLines()}
       
+      {/* Render particles */}
+      {renderParticles()}
+      
       {/* Content area with refined typography */}
       <div className={`relative z-10 h-full flex flex-col justify-center items-center ${isMobile ? 'p-3' : 'p-6'}`}>
         <motion.h3 
           className={`${isMobile ? 'text-lg' : 'text-xl md:text-2xl'} font-medium text-white mb-2 md:mb-3 text-center leading-tight`}
-          style={{
-            background: 'linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text'
-          }}
+          style={getCategoryNameStyle()}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
@@ -621,6 +706,18 @@ const CategoryItem = memo(({
           transition: "opacity 0.2s ease" 
         }} 
       />
+      
+      {/* Add CSS for text glitch animation */}
+      <style jsx>{`
+        @keyframes textGlitch {
+          0% { transform: translate(0); }
+          20% { transform: translate(-2px, 2px); }
+          40% { transform: translate(2px, -2px); }
+          60% { transform: translate(-2px, -2px); }
+          80% { transform: translate(2px, 2px); }
+          100% { transform: translate(0); }
+        }
+      `}</style>
     </motion.div>
   );
 });
