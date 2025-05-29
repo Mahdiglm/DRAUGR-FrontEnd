@@ -2,16 +2,18 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from './AuthLayout';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login, error: authError, loading: authLoading } = useAuth();
+  
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [focusedInput, setFocusedInput] = useState(null);
 
   // Input change handler
@@ -32,7 +34,7 @@ const Login = () => {
   };
 
   // Form submission handler
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     // Basic form validation
@@ -48,19 +50,29 @@ const Login = () => {
       return;
     }
     
-    // Simulate form submission
-    setIsLoading(true);
-    
-    // Fake API call delay
-    setTimeout(() => {
-      setIsLoading(false);
-      
-      // Here you would normally handle response from your auth API
-      console.log('Login attempt with:', formData);
+    try {
+      // Use the login function from AuthContext
+      await login(formData.email, formData.password);
       
       // Redirect to home page after successful login
       navigate('/');
-    }, 2000);
+    } catch (err) {
+      // Display error from auth context or set specific form errors
+      if (err.message.includes('email')) {
+        setErrors(prev => ({
+          ...prev,
+          email: 'ایمیل نادرست است'
+        }));
+      } else if (err.message.includes('password')) {
+        setErrors(prev => ({
+          ...prev,
+          password: 'رمز عبور نادرست است'
+        }));
+      } else {
+        // General error (displayed by AuthContext)
+        console.error('Login error:', err);
+      }
+    }
   };
 
   // Animation variants
@@ -216,12 +228,12 @@ const Login = () => {
         >
           <motion.button
             type="submit"
-            disabled={isLoading}
+            disabled={authLoading}
             className="w-full bg-gradient-to-r from-draugr-900 to-draugr-700 text-white py-2 md:py-3 lg:py-4 px-4 rounded-md text-sm md:text-base font-medium shadow-md focus:outline-none relative overflow-hidden"
             whileHover={{ scale: 1.02, boxShadow: "0 0 10px rgba(255,0,0,0.3)" }}
             whileTap={{ scale: 0.98 }}
           >
-            {isLoading ? (
+            {authLoading ? (
               <div className="flex justify-center items-center">
                 <svg className="animate-spin -ml-1 mr-2 h-4 w-4 md:h-5 md:w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -232,6 +244,17 @@ const Login = () => {
             ) : "ورود"}
           </motion.button>
         </motion.div>
+        
+        {/* Auth error message */}
+        {authError && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-sm text-draugr-500 text-center"
+          >
+            {authError}
+          </motion.div>
+        )}
         
         {/* Auth navigation buttons */}
         <motion.div
