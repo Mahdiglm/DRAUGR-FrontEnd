@@ -1,6 +1,15 @@
 import { api } from './api';
 import authService from './authService';
 
+// Helper function to ensure productId is a primitive value (string or number)
+const normalizeProductId = (productId) => {
+  if (typeof productId === 'object') {
+    // Try to get the id from the object
+    return productId.id || productId._id || null;
+  }
+  return productId;
+};
+
 // Cart Service - Handles shopping cart operations
 const cartService = {
   // Get current user's cart
@@ -34,23 +43,33 @@ const cartService = {
   // Add item to cart
   addToCart: async (productId, quantity = 1) => {
     try {
+      // Ensure productId is a primitive value
+      const normalizedId = normalizeProductId(productId);
+      if (!normalizedId) {
+        throw new Error('Invalid product ID');
+      }
+      
       // For authenticated users, use API
       if (authService.isAuthenticated()) {
-        return await api.post('/api/cart/items', { productId, quantity });
+        return await api.post('/api/cart/items', { productId: normalizedId, quantity });
       } else {
         // For guests, store in localStorage
         const cart = getLocalCart();
         const items = cart.items || [];
         
         // Check if item already exists
-        const existingItemIndex = items.findIndex(item => item.productId === productId);
+        const existingItemIndex = items.findIndex(item => {
+          const itemId = normalizeProductId(item.productId);
+          return itemId === normalizedId;
+        });
         
         if (existingItemIndex !== -1) {
           // Update quantity if item exists
           items[existingItemIndex].quantity += quantity;
+          items[existingItemIndex].productId = normalizedId; // Ensure clean ID
         } else {
           // Add new item
-          items.push({ productId, quantity });
+          items.push({ productId: normalizedId, quantity });
         }
         
         const updatedCart = { items };
@@ -65,20 +84,30 @@ const cartService = {
   // Update item quantity
   updateCartItem: async (productId, quantity) => {
     try {
+      // Ensure productId is a primitive value
+      const normalizedId = normalizeProductId(productId);
+      if (!normalizedId) {
+        throw new Error('Invalid product ID');
+      }
+      
       // For authenticated users, use API
       if (authService.isAuthenticated()) {
-        return await api.put(`/api/cart/items/${productId}`, { quantity });
+        return await api.put(`/api/cart/items/${normalizedId}`, { quantity });
       } else {
         // For guests, update localStorage
         const cart = getLocalCart();
         const items = cart.items || [];
         
         // Find the item
-        const existingItemIndex = items.findIndex(item => item.productId === productId);
+        const existingItemIndex = items.findIndex(item => {
+          const itemId = normalizeProductId(item.productId);
+          return itemId === normalizedId;
+        });
         
         if (existingItemIndex !== -1) {
           // Update quantity
           items[existingItemIndex].quantity = quantity;
+          items[existingItemIndex].productId = normalizedId; // Ensure clean ID
           
           // Remove item if quantity is 0
           if (quantity <= 0) {
@@ -100,13 +129,22 @@ const cartService = {
   // Remove item from cart
   removeFromCart: async (productId) => {
     try {
+      // Ensure productId is a primitive value
+      const normalizedId = normalizeProductId(productId);
+      if (!normalizedId) {
+        throw new Error('Invalid product ID');
+      }
+      
       // For authenticated users, use API
       if (authService.isAuthenticated()) {
-        return await api.delete(`/api/cart/items/${productId}`);
+        return await api.delete(`/api/cart/items/${normalizedId}`);
       } else {
         // For guests, update localStorage
         const cart = getLocalCart();
-        const items = cart.items.filter(item => item.productId !== productId);
+        const items = cart.items.filter(item => {
+          const itemId = normalizeProductId(item.productId);
+          return itemId !== normalizedId;
+        });
         
         const updatedCart = { items };
         saveLocalCart(updatedCart);
@@ -143,8 +181,14 @@ const cartService = {
         // Only proceed if there are items to merge
         if (guestCart.items && guestCart.items.length > 0) {
           try {
+            // Clean up product IDs before sending to backend
+            const cleanItems = guestCart.items.map(item => ({
+              productId: normalizeProductId(item.productId),
+              quantity: item.quantity
+            })).filter(item => item.productId);
+            
             // Send items to backend for merging
-            await api.post('/api/cart/merge', { items: guestCart.items });
+            await api.post('/api/cart/merge', { items: cleanItems });
             
             // Clear guest cart from localStorage
             saveLocalCart({ items: [] });
@@ -169,7 +213,20 @@ const getLocalCart = () => {
   try {
     const cartItems = localStorage.getItem('cart');
     if (!cartItems) return { items: [] };
-    return JSON.parse(cartItems);
+    
+    const cart = JSON.parse(cartItems);
+    
+    // Clean up product IDs in the loaded cart
+    if (cart.items && Array.isArray(cart.items)) {
+      cart.items = cart.items.map(item => ({
+        productId: normalizeProductId(item.productId),
+        quantity: item.quantity
+      })).filter(item => item.productId);
+    } else {
+      cart.items = [];
+    }
+    
+    return cart;
   } catch (error) {
     console.error('Error parsing cart from localStorage:', error);
     // Reset corrupted cart data
@@ -181,6 +238,14 @@ const getLocalCart = () => {
 // Helper to safely save cart to localStorage
 const saveLocalCart = (cart) => {
   try {
+    // Ensure all product IDs are normalized before saving
+    if (cart.items && Array.isArray(cart.items)) {
+      cart.items = cart.items.map(item => ({
+        productId: normalizeProductId(item.productId),
+        quantity: item.quantity
+      })).filter(item => item.productId);
+    }
+    
     localStorage.setItem('cart', JSON.stringify(cart));
   } catch (error) {
     console.error('Error saving cart to localStorage:', error);

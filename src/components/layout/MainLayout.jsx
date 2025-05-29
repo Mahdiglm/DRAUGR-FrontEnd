@@ -7,6 +7,7 @@ import Footer from './Footer';
 import Cart from '../cart/Cart';
 import DevTools from '../shared/DevTools';
 import ScrollToTop from '../shared/ScrollToTop';
+import AppStatusBar from './AppStatusBar';
 import { useCart } from '../../contexts/CartContext';
 
 const MainLayout = () => {
@@ -71,6 +72,7 @@ const MainLayout = () => {
   return (
     <div className="w-full font-vazirmatn bg-midnight dark">
       <ScrollToTop />
+      <AppStatusBar />
       <Header cartItems={cartProducts} onCartClick={toggleCart} />
       
       <Cart 

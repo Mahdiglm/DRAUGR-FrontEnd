@@ -31,11 +31,17 @@ const HomePage = () => {
       try {
         // Get all products
         const productsData = await productService.getProducts();
-        setProducts(productsData);
+        
+        // Handle both regular API response and mock data formats
+        const products = Array.isArray(productsData) 
+          ? productsData 
+          : (productsData.products || []);
+        
+        setProducts(products);
         
         // For featured products, we'll just use the first 5 for now
         // In a real app, you might have a featured flag in the database
-        setFeaturedProducts(productsData.slice(0, 5));
+        setFeaturedProducts(products.slice(0, 5));
       } catch (err) {
         console.error('Error fetching products:', err);
         setError('خطا در دریافت محصولات');

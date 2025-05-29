@@ -49,7 +49,15 @@ export const CartProvider = ({ children }) => {
       try {
         const productPromises = cart.items.map(async (item) => {
           try {
-            const product = await productService.getProductById(item.productId);
+            // Extract productId properly - ensure it's a primitive value, not an object
+            const productId = typeof item.productId === 'object' ? item.productId.id || item.productId._id : item.productId;
+            
+            if (!productId) {
+              console.error('Invalid productId in cart item:', item);
+              return null;
+            }
+            
+            const product = await productService.getProductById(productId);
             return {
               ...product,
               quantity: item.quantity,

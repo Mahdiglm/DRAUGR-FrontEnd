@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOutletContext, useLocation, useSearchParams } from 'react-router-dom';
 import ProductList from '../product/ProductList';
+import ProductCard from '../product/ProductCard';
 import productService from '../../services/productService';
 
 // Import background image
@@ -283,7 +284,13 @@ const ShopPage = () => {
   const filteredProducts = products;
   
   // Sort products - now handled by backend
-  const sortedProducts = products;
+  // Ensure products data is handled properly whether it comes from API or mock data
+  const sortedProducts = React.useMemo(() => {
+    if (!products) return [];
+    if (Array.isArray(products)) return products;
+    if (products.products && Array.isArray(products.products)) return products.products;
+    return [];
+  }, [products]);
   
   // Reset filters
   const resetFilters = () => {
