@@ -1,78 +1,65 @@
 import React, { useRef, useEffect, useState, memo, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import {
-  calculateVelocity,
-  getRandomEffectParams,
-  generateEffectStyles,
-  generateParticles,
-  cleanupParticles,
-  updateParticles,
-  EFFECT_TYPES
-} from '../../utils/hoverEffects';
 
 /**
  * CategoryItem Component
  * 
- * Refined category cards with elegant hover effects and minimal design
- * Optimized for sophisticated user interactions with dynamic velocity-based effects
+ * Refined category cards with elegant hover effects, dynamic responsiveness,
+ * and enhanced cursor velocity-based animations
  */
 
-// Refined animation constants for smoother interactions
+// Enhanced animation constants for more dramatic effects
 const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
-const SPRING_FACTOR = 0.12; // Slightly slower for more elegant feel
+const easeOutElastic = (t) => t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * ((2 * Math.PI) / 3)) + 1;
+const SPRING_FACTOR = 0.12;
 const MIN_INTENSITY_FOR_RENDER = 0.02;
-const VELOCITY_SENSITIVITY = 0.003; // Reduced for subtler effects
+const VELOCITY_SENSITIVITY = 0.006; // Increased sensitivity
 const VELOCITY_BOOST_DECAY = 0.92;
-const MAX_VELOCITY_BOOST = 0.3; // Reduced for more restrained effects
+const MAX_VELOCITY_BOOST = 0.6; // Increased maximum boost
+const HIGH_VELOCITY_THRESHOLD = 0.8; // Threshold for high-velocity effects
+const EFFECT_DURATION = 600; // Duration for special effects in ms
 
 const CategoryItem = memo(({ 
   category, 
   style, 
   cardWidth,
-  cardHeight, // New prop
+  cardHeight,
   isMobile = false, 
   mobileHighlight = false,
   mobileHighlightEdge = 'top',
   mobileHighlightIntensity = 0.5,
   mobileHighlightPosition = 0.5,
-  onCategorySelect, // Added prop
-  isSelected, // Added prop
-  isTransitioning, // New prop for animation
-  animationPhase, // New prop for animation phase
+  onCategorySelect,
+  isSelected,
+  isTransitioning,
+  animationPhase,
   ...props 
 }) => {
   const itemRef = useRef(null);
   const lastMousePosRef = useRef({ x: 0, y: 0, time: Date.now() });
   const animationFrameIdRef = useRef(null);
-  const particlesRef = useRef([]);
-  const lastParticleTimeRef = useRef(0);
   
+  // Enhanced animated values with additional effect states
   const animatedValuesRef = useRef({
     intensity: 0,
     position: 0.5,
     edge: null,
-    velocityBoost: 0, // For tracking the boost from mouse speed
+    velocityBoost: 0,
+    pulseEffect: false,
+    glowEffect: false,
+    randomEffectSeed: Math.random(), // Seed for randomizing effects
+    effectStartTime: 0,
+    highVelocityDetected: false
   });
 
-  // State for velocity-based dynamic effects
-  const [velocityData, setVelocityData] = useState({ 
-    speed: 0, 
-    direction: { x: 0, y: 0 },
-    speedTier: 'SLOW'
-  });
-  
-  // State for dynamic hover effects
-  const [hoverEffects, setHoverEffects] = useState({
-    isHovering: false,
-    effectParams: null,
-    elementRect: null
-  });
-  
-  // State for particles system
-  const [particles, setParticles] = useState([]);
-  
-  // State for forcing render updates
   const [, setForceUpdate] = useState(0);
+  // Add state for high-velocity effects
+  const [velocityEffects, setVelocityEffects] = useState({
+    active: false,
+    type: null,
+    intensity: 0,
+    startTime: 0
+  });
 
   const proximityThreshold = 60;
   const borderWidth = 2;
@@ -84,28 +71,47 @@ const CategoryItem = memo(({
     }
   }, [category, onCategorySelect, isTransitioning]);
 
-  // Mobile-specific effect: Update refs, but DO NOT call setForceUpdate here.
+  // Mobile-specific effect
   useEffect(() => {
     if (isMobile) {
       animatedValuesRef.current = {
         intensity: mobileHighlight ? mobileHighlightIntensity : 0,
         position: mobileHighlight ? mobileHighlightPosition : 0.5,
         edge: mobileHighlight ? mobileHighlightEdge : null,
-        velocityBoost: 0, // Reset velocity boost on mobile
+        velocityBoost: 0,
+        pulseEffect: false,
+        glowEffect: false,
+        randomEffectSeed: Math.random(),
+        effectStartTime: 0,
+        highVelocityDetected: false
       };
-      // No setForceUpdate here
     }
-    // When isMobile becomes false, the desktop useEffect will handle re-initializing the animation state.
   }, [isMobile, mobileHighlight, mobileHighlightEdge, mobileHighlightIntensity, mobileHighlightPosition]);
 
-  // Main hover animation effect for non-mobile devices
+  // Enhanced hover animation effect for non-mobile devices
   useEffect(() => {
     if (isMobile) {
       if (animationFrameIdRef.current) {
         cancelAnimationFrame(animationFrameIdRef.current);
         animationFrameIdRef.current = null;
-        animatedValuesRef.current = { intensity: 0, position: 0.5, edge: null, velocityBoost: 0 };
-        setForceUpdate(val => val + 1); // Keep for immediate visual reset when switching to mobile
+        animatedValuesRef.current = { 
+          intensity: 0, 
+          position: 0.5, 
+          edge: null, 
+          velocityBoost: 0,
+          pulseEffect: false,
+          glowEffect: false,
+          randomEffectSeed: Math.random(),
+          effectStartTime: 0,
+          highVelocityDetected: false
+        };
+        setForceUpdate(val => val + 1);
+        setVelocityEffects({
+          active: false,
+          type: null,
+          intensity: 0,
+          startTime: 0
+        });
       }
       return;
     }
@@ -164,12 +170,44 @@ const CategoryItem = memo(({
       const currentAV = animatedValuesRef.current;
       let currentVelocityBoost = currentAV.velocityBoost;
       const targetIntensityWithBoost = Math.min(1 + MAX_VELOCITY_BOOST, targetBaseIntensity + currentVelocityBoost);
-      currentAV.velocityBoost *= VELOCITY_BOOST_DECAY; // Decay boost
+      
+      // Check for high velocity conditions
+      const now = Date.now();
+      const isHighVelocity = currentVelocityBoost > HIGH_VELOCITY_THRESHOLD;
+      
+      // Handle high velocity effects
+      if (isHighVelocity && !currentAV.highVelocityDetected) {
+        // Trigger high-velocity effects
+        currentAV.highVelocityDetected = true;
+        currentAV.effectStartTime = now;
+        currentAV.pulseEffect = Math.random() > 0.5;
+        currentAV.glowEffect = Math.random() > 0.3;
+        currentAV.randomEffectSeed = Math.random();
+        
+        // Trigger state update for high-velocity effects
+        const effectTypes = ['pulse', 'glow', 'scale', 'shake', 'ripple'];
+        const selectedEffect = effectTypes[Math.floor(Math.random() * effectTypes.length)];
+        
+        setVelocityEffects({
+          active: true,
+          type: selectedEffect,
+          intensity: Math.min(1, currentVelocityBoost / MAX_VELOCITY_BOOST),
+          startTime: now
+        });
+      } 
+      
+      // Reset high velocity flag when effect is complete
+      if (currentAV.highVelocityDetected && now - currentAV.effectStartTime > EFFECT_DURATION) {
+        currentAV.highVelocityDetected = false;
+      }
+      
+      // Apply velocity boost decay
+      currentAV.velocityBoost *= VELOCITY_BOOST_DECAY;
 
       const nextIntensity = currentAV.intensity + (targetIntensityWithBoost - currentAV.intensity) * SPRING_FACTOR;
       const nextPosition = currentAV.position + (targetPosition - currentAV.position) * SPRING_FACTOR;
       
-      currentAV.intensity = Math.max(0, Math.min(1 + MAX_VELOCITY_BOOST, nextIntensity)); // Clamp intensity
+      currentAV.intensity = Math.max(0, Math.min(1 + MAX_VELOCITY_BOOST, nextIntensity));
       currentAV.position = nextPosition;
       currentAV.edge = (targetBaseIntensity > MIN_INTENSITY_FOR_RENDER || currentAV.intensity > MIN_INTENSITY_FOR_RENDER) ? closestEdge : null;
 
@@ -177,69 +215,33 @@ const CategoryItem = memo(({
       const positionChanged = Math.abs(targetPosition - currentAV.position) > 0.001;
       const stillVisible = currentAV.intensity > MIN_INTENSITY_FOR_RENDER;
       const wasTargetingVisible = targetBaseIntensity > 0;
+      const effectsActive = currentAV.highVelocityDetected;
 
-      // Check if we are now hovering or just left
-      const nowHovering = isInside;
-      
-      // Update hover state for effects if changed
-      if (nowHovering !== hoverEffects.isHovering) {
-        setHoverEffects(prev => ({
-          ...prev,
-          isHovering: nowHovering,
-          elementRect: rect,
-          effectParams: nowHovering ? 
-            getRandomEffectParams(velocityData.speedTier) : 
-            null
-        }));
-        
-        // If we're now hovering and moving fast, generate particles
-        if (nowHovering && 
-            (velocityData.speedTier === 'FAST' || velocityData.speedTier === 'EXTREME') &&
-            Date.now() - lastParticleTimeRef.current > 100) { // Rate limit particle generation
-          
-          const newParticles = generateParticles(
-            getRandomEffectParams(velocityData.speedTier), 
-            velocityData
-          );
-          
-          // Set initial positions relative to cursor in element
-          const particlesWithPositions = newParticles.map(p => ({
-            ...p,
-            x: relativeX,
-            y: relativeY
-          }));
-          
-          setParticles(current => [...current, ...particlesWithPositions]);
-          lastParticleTimeRef.current = Date.now();
-        }
-      }
-
-      if (intensityChanged || positionChanged || (stillVisible && !wasTargetingVisible) || (wasTargetingVisible && !stillVisible) ) {
-        setForceUpdate(val => val + 1); // Keep for desktop animation updates
+      if (intensityChanged || positionChanged || stillVisible || wasTargetingVisible || effectsActive) {
+        setForceUpdate(val => val + 1);
       }
       
       animationFrameIdRef.current = requestAnimationFrame(processHoverState);
     };
 
+    // Enhanced mouse movement detection with improved velocity calculation
     const handleGlobalMouseMove = (e) => {
       const now = Date.now();
       const prevPos = lastMousePosRef.current;
       const timeDiff = now - prevPos.time;
       
-      if (timeDiff > 1) { // Ensure a small amount of time has passed to avoid extreme speeds
-        const currentPos = { x: e.clientX, y: e.clientY };
-        const velocity = calculateVelocity(currentPos, prevPos);
+      if (timeDiff > 1) {
+        const distMoved = Math.sqrt((e.clientX - prevPos.x)**2 + (e.clientY - prevPos.y)**2);
         
-        // Update last position with the new one
-        lastMousePosRef.current = { ...currentPos, time: now };
+        // Enhanced velocity calculation with exponential scaling for faster movements
+        const speed = distMoved / timeDiff;
+        const speedScaled = Math.pow(speed, 1.5) * 0.02; // Exponential scaling for more dramatic effect
         
-        // Store velocity data for effects
-        setVelocityData(velocity);
-        
-        // Calculate velocity boost for standard hover effect
-        const newBoost = Math.min(MAX_VELOCITY_BOOST, velocity.speed * VELOCITY_SENSITIVITY * 5);
+        const newBoost = Math.min(MAX_VELOCITY_BOOST, speedScaled * VELOCITY_SENSITIVITY * (1 + Math.random() * 0.3));
         animatedValuesRef.current.velocityBoost = Math.max(animatedValuesRef.current.velocityBoost, newBoost);
       }
+      
+      lastMousePosRef.current = { x: e.clientX, y: e.clientY, time: now };
     };
 
     window.addEventListener('mousemove', handleGlobalMouseMove);
@@ -252,42 +254,9 @@ const CategoryItem = memo(({
         animationFrameIdRef.current = null;
       }
     };
-  }, [isMobile, proximityThreshold, cardWidth, cardHeight, hoverEffects.isHovering, velocityData.speedTier]);
-  
-  // Particle animation system
-  useEffect(() => {
-    if (isMobile || particles.length === 0) return;
-    
-    let lastTimestamp = 0;
-    const animateParticles = (timestamp) => {
-      if (!lastTimestamp) lastTimestamp = timestamp;
-      const deltaTime = timestamp - lastTimestamp;
-      lastTimestamp = timestamp;
-      
-      // Update particle positions
-      const updatedParticles = updateParticles(particles, deltaTime);
-      
-      // Clean up expired particles
-      const activeParticles = cleanupParticles(updatedParticles);
-      
-      setParticles(activeParticles);
-      
-      if (activeParticles.length > 0) {
-        particlesRef.current = requestAnimationFrame(animateParticles);
-      }
-    };
-    
-    particlesRef.current = requestAnimationFrame(animateParticles);
-    
-    return () => {
-      if (particlesRef.current) {
-        cancelAnimationFrame(particlesRef.current);
-      }
-    };
-  }, [isMobile, particles]);
+  }, [isMobile, proximityThreshold, cardWidth, cardHeight]);
   
   const getPositionAlongEdge = (edge, x, y, width, height) => {
-    // Ensure height is not zero to prevent division by zero
     const safeHeight = height === 0 ? 1 : height;
     const safeWidth = width === 0 ? 1 : width;
     switch (edge) {
@@ -303,14 +272,25 @@ const CategoryItem = memo(({
     }
   };
 
+  // Enhanced border segments with velocity-based effects
   const renderBorderSegments = () => {
-    const { intensity, position, edge } = animatedValuesRef.current;
+    const { intensity, position, edge, velocityBoost, pulseEffect, glowEffect, randomEffectSeed } = animatedValuesRef.current;
     if (intensity < MIN_INTENSITY_FOR_RENDER) return null;
     
-    const glowColor = '#ef4444'; // Refined red color
-    const visualScale = Math.min(intensity, 1); // Cap at 1 for more restrained effect
-    const baseSegmentLength = 15; // Smaller base length
-    const dynamicSegmentLength = 30 * (1 - visualScale); // Reduced dynamic range
+    // Base colors
+    const baseColor = '#ef4444';
+    const highVelocityColor = velocityBoost > HIGH_VELOCITY_THRESHOLD ? 
+      `hsl(${330 + Math.floor(randomEffectSeed * 30)}, 100%, ${50 + Math.floor(velocityBoost * 20)}%)` : 
+      baseColor;
+    
+    // Dynamic effects based on velocity
+    const visualScale = Math.min(intensity * (1 + velocityBoost * 2), 1.5);
+    const pulseFactor = pulseEffect && velocityBoost > 0.3 ? 
+      (1 + 0.3 * Math.sin(Date.now() / 100)) : 
+      1;
+    
+    const baseSegmentLength = 15 * pulseFactor;
+    const dynamicSegmentLength = 30 * (1 - visualScale * 0.8);
     
     const segmentLength = baseSegmentLength + dynamicSegmentLength;
     const halfSegment = segmentLength / 2;
@@ -318,28 +298,21 @@ const CategoryItem = memo(({
     const startPercent = Math.max(0, position * 100 - halfSegment);
     const endPercent = Math.min(100, position * 100 + halfSegment);
     
-    // Apply velocity-based enhancements
-    const boostFactor = velocityData.speedTier === 'SLOW' ? 1 :
-                       velocityData.speedTier === 'MEDIUM' ? 1.2 :
-                       velocityData.speedTier === 'FAST' ? 1.5 : 2;
-    
-    // Select glow color based on speed
-    const dynamicGlowColor = velocityData.speedTier === 'SLOW' ? glowColor :
-                            velocityData.speedTier === 'MEDIUM' ? '#ff6b6b' :
-                            velocityData.speedTier === 'FAST' ? '#ff3333' : '#ff0000';
-    
+    // Enhanced segment styling with glow effects
     const segmentStyle = {
       position: 'absolute',
-      backgroundColor: dynamicGlowColor,
-      boxShadow: `0 0 ${4 * visualScale * boostFactor}px ${dynamicGlowColor}40, 0 0 ${8 * visualScale * boostFactor}px ${dynamicGlowColor}20`,
-      filter: `blur(${0.5 * visualScale * boostFactor}px)`,
-      opacity: Math.min(0.8, intensity * 0.8), // More subtle opacity
+      backgroundColor: highVelocityColor,
+      boxShadow: glowEffect && velocityBoost > 0.4 ? 
+        `0 0 ${8 * visualScale}px ${highVelocityColor}70, 0 0 ${15 * visualScale}px ${highVelocityColor}40` :
+        `0 0 ${4 * visualScale}px ${highVelocityColor}40, 0 0 ${8 * visualScale}px ${highVelocityColor}20`,
+      filter: `blur(${0.5 * visualScale * pulseFactor}px)`,
+      opacity: Math.min(0.9, intensity * 0.9 * pulseFactor),
       pointerEvents: 'none',
       borderRadius: '2px'
     };
 
     if (edge && (edge.includes('Left') || edge.includes('Right') || edge.includes('Top') || edge.includes('Bottom'))) {
-      return renderCornerSegments(edge, visualScale, segmentStyle, boostFactor);
+      return renderCornerSegments(edge, visualScale, segmentStyle, pulseFactor);
     }
 
     switch (edge) {
@@ -351,8 +324,9 @@ const CategoryItem = memo(({
     }
   };
 
-  const renderCornerSegments = (corner, visualScale, baseSegmentStyle, boostFactor = 1) => {
-    const cornerSize = Math.min(20, 12 + 8 * visualScale * boostFactor); // Smaller, more refined corners
+  // Enhanced corner segments with velocity-based effects
+  const renderCornerSegments = (corner, visualScale, baseSegmentStyle, pulseFactor = 1) => {
+    const cornerSize = Math.min(25, 15 + 10 * visualScale * pulseFactor);
     const segmentStyle = { ...baseSegmentStyle };
     
     switch (corner) {
@@ -364,24 +338,21 @@ const CategoryItem = memo(({
     }
   };
 
+  // Enhanced accent lines with velocity-based effects
   const renderAccentLines = () => {
-    const { intensity, position, edge } = animatedValuesRef.current;
+    const { intensity, position, edge, velocityBoost, randomEffectSeed } = animatedValuesRef.current;
     if (intensity < MIN_INTENSITY_FOR_RENDER) return null;
     
-    const visualScale = Math.min(intensity, 1);
-    const opacity = intensity * 0.4; // More subtle accent lines
+    const visualScale = Math.min(intensity * (1 + velocityBoost * 1.5), 1.5);
+    const opacity = intensity * (0.4 + velocityBoost * 0.3);
     
-    // Dynamic line attributes based on velocity
-    const boostFactor = velocityData.speedTier === 'SLOW' ? 1 :
-                       velocityData.speedTier === 'MEDIUM' ? 1.3 :
-                       velocityData.speedTier === 'FAST' ? 1.7 : 2.2;
-                       
-    const lineLength = (8 + (visualScale * 6)) * boostFactor; // Shorter, more refined lines
+    // Dynamic line length based on velocity
+    const lineLength = 8 + (visualScale * 6) + (velocityBoost > HIGH_VELOCITY_THRESHOLD ? 8 : 0);
     
-    // Dynamic color based on velocity
-    const lineColor = velocityData.speedTier === 'SLOW' ? "#ef4444" :
-                     velocityData.speedTier === 'MEDIUM' ? "#ff5555" :
-                     velocityData.speedTier === 'FAST' ? "#ff3333" : "#ff0000";
+    // Color based on velocity
+    const lineColor = velocityBoost > HIGH_VELOCITY_THRESHOLD ? 
+      `hsl(${330 + Math.floor(randomEffectSeed * 30)}, 100%, ${50 + Math.floor(velocityBoost * 20)}%)` : 
+      "#ef4444";
 
     return (
       <svg
@@ -397,9 +368,9 @@ const CategoryItem = memo(({
             x2={position * cardWidth}
             y2={2 + lineLength}
             stroke={lineColor}
-            strokeWidth={velocityData.speedTier === 'EXTREME' ? "1.5" : "1"}
+            strokeWidth={velocityBoost > HIGH_VELOCITY_THRESHOLD ? "1.5" : "1"}
             opacity={opacity}
-            style={{ filter: `drop-shadow(0 0 ${boostFactor * 2}px ${lineColor}40)` }}
+            style={{ filter: `drop-shadow(0 0 ${2 + velocityBoost * 3}px ${lineColor}70)` }}
           />
         )}
         {edge === 'right' && (
@@ -409,9 +380,9 @@ const CategoryItem = memo(({
             x2={cardWidth - 2 - lineLength}
             y2={position * cardHeight}
             stroke={lineColor}
-            strokeWidth={velocityData.speedTier === 'EXTREME' ? "1.5" : "1"}
+            strokeWidth={velocityBoost > HIGH_VELOCITY_THRESHOLD ? "1.5" : "1"}
             opacity={opacity}
-            style={{ filter: `drop-shadow(0 0 ${boostFactor * 2}px ${lineColor}40)` }}
+            style={{ filter: `drop-shadow(0 0 ${2 + velocityBoost * 3}px ${lineColor}70)` }}
           />
         )}
         {edge === 'bottom' && (
@@ -421,9 +392,9 @@ const CategoryItem = memo(({
             x2={(1-position) * cardWidth}
             y2={cardHeight - 2 - lineLength}
             stroke={lineColor}
-            strokeWidth={velocityData.speedTier === 'EXTREME' ? "1.5" : "1"}
+            strokeWidth={velocityBoost > HIGH_VELOCITY_THRESHOLD ? "1.5" : "1"}
             opacity={opacity}
-            style={{ filter: `drop-shadow(0 0 ${boostFactor * 2}px ${lineColor}40)` }}
+            style={{ filter: `drop-shadow(0 0 ${2 + velocityBoost * 3}px ${lineColor}70)` }}
           />
         )}
         {edge === 'left' && (
@@ -433,129 +404,103 @@ const CategoryItem = memo(({
             x2={2 + lineLength}
             y2={(1-position) * cardHeight}
             stroke={lineColor}
-            strokeWidth={velocityData.speedTier === 'EXTREME' ? "1.5" : "1"}
+            strokeWidth={velocityBoost > HIGH_VELOCITY_THRESHOLD ? "1.5" : "1"}
             opacity={opacity}
-            style={{ filter: `drop-shadow(0 0 ${boostFactor * 2}px ${lineColor}40)` }}
+            style={{ filter: `drop-shadow(0 0 ${2 + velocityBoost * 3}px ${lineColor}70)` }}
           />
         )}
       </svg>
     );
   };
-  
-  // Generate dynamic styles based on hover state and velocity
-  const getDynamicStyles = () => {
-    if (!hoverEffects.isHovering || !hoverEffects.effectParams) return {};
+
+  // Render velocity-based special effects
+  const renderVelocityEffects = () => {
+    if (!velocityEffects.active) return null;
     
-    const { effectParams } = hoverEffects;
-    const styles = {};
+    const elapsed = Date.now() - velocityEffects.startTime;
+    const progress = Math.min(1, elapsed / EFFECT_DURATION);
     
-    // Apply scale effect
-    if (effectParams.enabledEffects.includes(EFFECT_TYPES.SCALE)) {
-      const scaleStyles = generateEffectStyles(effectParams, EFFECT_TYPES.SCALE);
-      Object.assign(styles, scaleStyles);
+    // Auto-deactivate effect when done
+    if (progress >= 1 && velocityEffects.active) {
+      setTimeout(() => {
+        setVelocityEffects({
+          active: false,
+          type: null,
+          intensity: 0,
+          startTime: 0
+        });
+      }, 50);
     }
     
-    // Apply glow effect
-    if (effectParams.enabledEffects.includes(EFFECT_TYPES.GLOW)) {
-      const glowStyles = generateEffectStyles(effectParams, EFFECT_TYPES.GLOW);
-      Object.assign(styles, glowStyles);
-    }
+    const intensity = velocityEffects.intensity;
     
-    // Apply color shift effect
-    if (effectParams.enabledEffects.includes(EFFECT_TYPES.COLOR_SHIFT)) {
-      const colorStyles = generateEffectStyles(effectParams, EFFECT_TYPES.COLOR_SHIFT);
-      Object.assign(styles, colorStyles);
-    }
-    
-    // Apply distortion effects for extreme speeds
-    if (effectParams.enabledEffects.includes(EFFECT_TYPES.DISTORTION)) {
-      const distortionStyles = generateEffectStyles(effectParams, EFFECT_TYPES.DISTORTION);
-      Object.assign(styles, distortionStyles);
-    }
-    
-    return styles;
-  };
-  
-  // Render particles
-  const renderParticles = () => {
-    if (particles.length === 0) return null;
-    
-    return (
-      <div className="absolute inset-0 overflow-visible pointer-events-none z-20">
-        {particles.map(particle => (
-          <div
-            key={particle.id}
-            className="absolute rounded-full"
+    switch (velocityEffects.type) {
+      case 'ripple':
+        return (
+          <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
+            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <circle 
+                cx="50" 
+                cy="50" 
+                r={10 + 40 * progress} 
+                fill="none" 
+                stroke={`rgba(239, 68, 68, ${0.7 * (1 - progress)})`} 
+                strokeWidth={2 * intensity} 
+              />
+            </svg>
+          </div>
+        );
+      case 'glow':
+        return (
+          <div 
+            className="absolute inset-0 z-20 pointer-events-none rounded-xl"
             style={{
-              width: `${particle.size}px`,
-              height: `${particle.size}px`,
-              backgroundColor: particle.color,
-              left: `${particle.x}px`,
-              top: `${particle.y}px`,
-              opacity: 1 - ((Date.now() - particle.createdAt) / particle.lifetime),
-              transform: `translate(-50%, -50%)`,
-              boxShadow: `0 0 ${particle.size * 2}px ${particle.color}`,
-              transition: 'none'
+              boxShadow: `0 0 ${15 * intensity * (1 - progress)}px rgba(239, 68, 68, ${0.8 * (1 - progress)})`,
+              transition: 'box-shadow 0.1s ease-out'
             }}
           />
-        ))}
-      </div>
-    );
+        );
+      case 'pulse':
+        return (
+          <div 
+            className="absolute inset-0 z-20 pointer-events-none rounded-xl"
+            style={{
+              border: `2px solid rgba(239, 68, 68, ${0.8 * (1 - progress)})`,
+              transform: `scale(${1 + 0.1 * intensity * (1 - Math.pow(progress - 0.5, 2) * 4)})`,
+              transition: 'transform 0.1s ease-out, border 0.1s ease-out'
+            }}
+          />
+        );
+      default:
+        return null;
+    }
   };
-  
-  // Dynamic text effect for category name based on velocity
-  const getCategoryNameStyle = () => {
-    if (!hoverEffects.isHovering || !hoverEffects.effectParams) {
+
+  // Get dynamic hover animation properties based on velocity
+  const getHoverAnimationProps = () => {
+    const { velocityBoost } = animatedValuesRef.current;
+    const isHighVelocity = velocityBoost > HIGH_VELOCITY_THRESHOLD;
+    
+    // Default animations
+    const defaultAnimation = { 
+      y: -2,
+      transition: { duration: 0.2, ease: "easeOut" }
+    };
+    
+    // Enhanced animations for high velocity
+    if (isHighVelocity) {
       return {
-        background: 'linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text'
+        y: -4,
+        scale: 1.03,
+        transition: { 
+          duration: 0.3,
+          ease: [0.16, 1, 0.3, 1],
+          y: { duration: 0.25, ease: easeOutElastic }
+        }
       };
     }
     
-    const { effectParams } = hoverEffects;
-    
-    if (effectParams.speedTier === 'EXTREME' && 
-        effectParams.enabledEffects.includes(EFFECT_TYPES.TEXT_EFFECT)) {
-      // Wild text effect for extreme speeds
-      return {
-        background: `linear-gradient(45deg, ${effectParams.colorPalette.join(', ')})`,
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text',
-        textShadow: `0 0 5px ${effectParams.color}80`,
-        animation: 'textGlitch 0.3s infinite',
-        letterSpacing: '0.05em'
-      };
-    } else if (effectParams.speedTier === 'FAST' && 
-              effectParams.enabledEffects.includes(EFFECT_TYPES.TEXT_EFFECT)) {
-      // Enhanced text effect for fast speeds
-      return {
-        background: `linear-gradient(135deg, #ffffff 0%, ${effectParams.color} 100%)`,
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text',
-        textShadow: `0 0 3px ${effectParams.color}50`
-      };
-    } else if (effectParams.speedTier === 'MEDIUM') {
-      // Subtle enhancement for medium speeds
-      return {
-        background: 'linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text',
-        textShadow: '0 0 1px rgba(255,255,255,0.5)'
-      };
-    } else {
-      // Default style for slow speeds
-      return {
-        background: 'linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text'
-      };
-    }
+    return defaultAnimation;
   };
 
   return (
@@ -571,7 +516,6 @@ const CategoryItem = memo(({
         zIndex: isSelected ? 100 : style.zIndex || 'auto',
         pointerEvents: isTransitioning ? 'none' : 'auto',
         visibility: isSelected && isTransitioning && animationPhase >= 2 ? 'hidden' : 'visible',
-        ...getDynamicStyles()
       }}
       initial={{ opacity: 0, y: 20 }}
       animate={{ 
@@ -586,10 +530,7 @@ const CategoryItem = memo(({
         ease: [0.16, 1, 0.3, 1],
         scale: { duration: 0.4 }
       }}
-      whileHover={{ 
-        y: -2,
-        transition: { duration: 0.2, ease: "easeOut" }
-      }}
+      whileHover={getHoverAnimationProps()}
       role="link"
       tabIndex="0"
       aria-label={`دسته‌بندی ${category.name}`}
@@ -644,15 +585,18 @@ const CategoryItem = memo(({
       {/* Interactive border effects */}
       {renderBorderSegments()}
       {renderAccentLines()}
-      
-      {/* Render particles */}
-      {renderParticles()}
+      {renderVelocityEffects()}
       
       {/* Content area with refined typography */}
       <div className={`relative z-10 h-full flex flex-col justify-center items-center ${isMobile ? 'p-3' : 'p-6'}`}>
         <motion.h3 
           className={`${isMobile ? 'text-lg' : 'text-xl md:text-2xl'} font-medium text-white mb-2 md:mb-3 text-center leading-tight`}
-          style={getCategoryNameStyle()}
+          style={{
+            background: 'linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text'
+          }}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
@@ -706,18 +650,6 @@ const CategoryItem = memo(({
           transition: "opacity 0.2s ease" 
         }} 
       />
-      
-      {/* Add CSS for text glitch animation */}
-      <style jsx>{`
-        @keyframes textGlitch {
-          0% { transform: translate(0); }
-          20% { transform: translate(-2px, 2px); }
-          40% { transform: translate(2px, -2px); }
-          60% { transform: translate(-2px, -2px); }
-          80% { transform: translate(2px, 2px); }
-          100% { transform: translate(0); }
-        }
-      `}</style>
     </motion.div>
   );
 });
