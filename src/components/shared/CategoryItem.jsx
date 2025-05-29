@@ -5,16 +5,18 @@ import { motion } from 'framer-motion';
  * CategoryItem Component
  * 
  * Refined category cards with elegant hover effects and minimal design
- * Optimized for sophisticated user interactions
+ * Optimized for sophisticated user interactions and enhanced cursor velocity effects
  */
 
 // Refined animation constants for smoother interactions
 const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
+const easeInOutQuart = t => t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2; // More dramatic easing
 const SPRING_FACTOR = 0.12; // Slightly slower for more elegant feel
 const MIN_INTENSITY_FOR_RENDER = 0.02;
-const VELOCITY_SENSITIVITY = 0.003; // Reduced for subtler effects
-const VELOCITY_BOOST_DECAY = 0.92;
-const MAX_VELOCITY_BOOST = 0.3; // Reduced for more restrained effects
+const VELOCITY_SENSITIVITY = 0.004; // Increased for more dramatic effects on fast movement
+const VELOCITY_BOOST_DECAY = 0.90; // Slower decay for longer-lasting effects
+const MAX_VELOCITY_BOOST = 0.5; // Increased for more dramatic effects
+const CURSOR_HISTORY_LENGTH = 5; // Track recent cursor positions for better velocity calculation
 
 const CategoryItem = memo(({ 
   category, 
@@ -34,6 +36,7 @@ const CategoryItem = memo(({
 }) => {
   const itemRef = useRef(null);
   const lastMousePosRef = useRef({ x: 0, y: 0, time: Date.now() });
+  const mouseHistoryRef = useRef([]); // Track recent mouse positions for better velocity calculation
   const animationFrameIdRef = useRef(null);
   
   const animatedValuesRef = useRef({
@@ -41,6 +44,8 @@ const CategoryItem = memo(({
     position: 0.5,
     edge: null,
     velocityBoost: 0, // For tracking the boost from mouse speed
+    randomOffset: Math.random() * 0.5, // Random offset for varied effects
+    effectVariant: Math.floor(Math.random() * 3), // Random effect variant (0, 1, or 2)
   });
 
   // Re-add useState for setForceUpdate, needed for desktop animation loop
@@ -161,13 +166,53 @@ const CategoryItem = memo(({
       const now = Date.now();
       const prevPos = lastMousePosRef.current;
       const timeDiff = now - prevPos.time;
-      if (timeDiff > 1) { // Ensure a small amount of time has passed to avoid extreme speeds
-        const distMoved = Math.sqrt((e.clientX - prevPos.x)**2 + (e.clientY - prevPos.y)**2);
-        const speed = distMoved / timeDiff; 
-        
-        const newBoost = Math.min(MAX_VELOCITY_BOOST, speed * VELOCITY_SENSITIVITY);
-        animatedValuesRef.current.velocityBoost = Math.max(animatedValuesRef.current.velocityBoost, newBoost);
+      
+      // Add to mouse history for better velocity tracking
+      mouseHistoryRef.current.push({
+        x: e.clientX,
+        y: e.clientY,
+        time: now
+      });
+      
+      // Keep history limited to CURSOR_HISTORY_LENGTH entries
+      if (mouseHistoryRef.current.length > CURSOR_HISTORY_LENGTH) {
+        mouseHistoryRef.current.shift();
       }
+      
+      // Calculate velocity based on history for smoother, more accurate speed detection
+      if (mouseHistoryRef.current.length >= 2 && timeDiff > 1) {
+        const oldestPos = mouseHistoryRef.current[0];
+        const totalTimeDiff = now - oldestPos.time;
+        
+        if (totalTimeDiff > 0) {
+          const totalDistMoved = Math.sqrt(
+            Math.pow(e.clientX - oldestPos.x, 2) + 
+            Math.pow(e.clientY - oldestPos.y, 2)
+          );
+          
+          const speed = totalDistMoved / totalTimeDiff;
+          
+          // Apply more dramatic boost for faster movements with variable effect
+          const speedVariation = 1 + (animatedValuesRef.current.randomOffset * 0.5);
+          const boostMultiplier = speed > 1.5 ? speedVariation * 1.5 : speedVariation;
+          const newBoost = Math.min(MAX_VELOCITY_BOOST, speed * VELOCITY_SENSITIVITY * boostMultiplier);
+          
+          // Apply more random effects for high-speed movements
+          if (speed > 2) {
+            // Reset random effect variant occasionally for variety
+            if (Math.random() < 0.3) {
+              animatedValuesRef.current.effectVariant = Math.floor(Math.random() * 3);
+              animatedValuesRef.current.randomOffset = Math.random() * 0.5;
+            }
+          }
+          
+          animatedValuesRef.current.velocityBoost = Math.max(
+            animatedValuesRef.current.velocityBoost, 
+            newBoost
+          );
+        }
+      }
+      
       lastMousePosRef.current = { x: e.clientX, y: e.clientY, time: now };
     };
 
@@ -201,63 +246,168 @@ const CategoryItem = memo(({
   };
 
   const renderBorderSegments = () => {
-    const { intensity, position, edge } = animatedValuesRef.current;
+    const { intensity, position, edge, velocityBoost, effectVariant, randomOffset } = animatedValuesRef.current;
     if (intensity < MIN_INTENSITY_FOR_RENDER) return null;
     
-    const glowColor = '#ef4444'; // Refined red color
-    const visualScale = Math.min(intensity, 1); // Cap at 1 for more restrained effect
-    const baseSegmentLength = 15; // Smaller base length
-    const dynamicSegmentLength = 30 * (1 - visualScale); // Reduced dynamic range
+    // Determine if this is a high-velocity effect (fast cursor movement)
+    const isHighVelocity = velocityBoost > 0.2;
+    
+    // Dynamic color based on velocity and random variation
+    const glowColors = [
+      '#ef4444', // Default red
+      '#f97316', // Orange for variation
+      '#8b5cf6', // Purple for fast movements
+      '#ec4899'  // Pink for very fast movements
+    ];
+    
+    const colorIndex = isHighVelocity 
+      ? (effectVariant === 0 ? 2 : 3) // Purple or pink for high velocity
+      : (effectVariant === 0 ? 0 : 1); // Red or orange for normal
+    
+    const glowColor = glowColors[colorIndex];
+    
+    // More dramatic visual scale for high velocity
+    const velocityFactor = isHighVelocity ? 1.2 + (velocityBoost * 0.6) : 1;
+    const visualScale = Math.min(intensity * velocityFactor, 1.5); // Cap at higher value for more dramatic effect
+    
+    // Dynamic segment length based on velocity
+    const baseLengthFactor = isHighVelocity ? 1.2 + randomOffset : 1;
+    const baseSegmentLength = 15 * baseLengthFactor; // Larger base length for high velocity
+    const dynamicSegmentLength = isHighVelocity ? 
+      20 * (1 - visualScale * 0.7) : // Less contraction for high velocity
+      30 * (1 - visualScale); // Normal contraction for regular movement
     
     const segmentLength = baseSegmentLength + dynamicSegmentLength;
     const halfSegment = segmentLength / 2;
     
-    const startPercent = Math.max(0, position * 100 - halfSegment);
-    const endPercent = Math.min(100, position * 100 + halfSegment);
+    // Position variation for high velocity
+    const positionOffset = isHighVelocity ? (Math.sin(Date.now() / 200) * 0.1 * randomOffset) : 0;
+    const adjustedPosition = Math.max(0, Math.min(1, position + positionOffset));
+    
+    const startPercent = Math.max(0, adjustedPosition * 100 - halfSegment);
+    const endPercent = Math.min(100, adjustedPosition * 100 + halfSegment);
+    
+    // Enhanced glow effect for high velocity
+    const glowSize = isHighVelocity ? 8 * visualScale : 4 * visualScale;
+    const glowIntensity = isHighVelocity ? 0.5 : 0.4;
     
     const segmentStyle = {
       position: 'absolute',
       backgroundColor: glowColor,
-      boxShadow: `0 0 ${4 * visualScale}px ${glowColor}40, 0 0 ${8 * visualScale}px ${glowColor}20`,
-      filter: `blur(${0.5 * visualScale}px)`,
-      opacity: Math.min(0.8, intensity * 0.8), // More subtle opacity
+      boxShadow: isHighVelocity
+        ? `0 0 ${glowSize}px ${glowColor}70, 0 0 ${glowSize * 2}px ${glowColor}40`
+        : `0 0 ${glowSize}px ${glowColor}40, 0 0 ${glowSize * 1.5}px ${glowColor}20`,
+      filter: `blur(${isHighVelocity ? 1.0 : 0.5} * ${visualScale}px)`,
+      opacity: Math.min(0.9, intensity * glowIntensity * (isHighVelocity ? 1.2 : 0.8)), // More intense for high velocity
       pointerEvents: 'none',
-      borderRadius: '2px'
+      borderRadius: '2px',
+      transition: isHighVelocity ? 'none' : 'opacity 0.1s ease' // No transition for high velocity for more immediate effect
     };
 
     if (edge && (edge.includes('Left') || edge.includes('Right') || edge.includes('Top') || edge.includes('Bottom'))) {
-      return renderCornerSegments(edge, visualScale, segmentStyle);
+      return renderCornerSegments(edge, visualScale, segmentStyle, isHighVelocity);
     }
 
+    // Add slight variations to edge segments for high velocity
+    const thickness = isHighVelocity ? 2 + (velocityBoost * 2) : 2;
+
     switch (edge) {
-      case 'top': return <div className="absolute top-0" style={{ ...segmentStyle, height: '2px', left: `${startPercent}%`, width: `${endPercent - startPercent}%` }} />;
-      case 'right': return <div className="absolute right-0" style={{ ...segmentStyle, width: '2px', top: `${startPercent}%`, height: `${endPercent - startPercent}%` }} />;
-      case 'bottom': return <div className="absolute bottom-0" style={{ ...segmentStyle, height: '2px', right: `${startPercent}%`, width: `${endPercent - startPercent}%` }} />;
-      case 'left': return <div className="absolute left-0" style={{ ...segmentStyle, width: '2px', bottom: `${startPercent}%`, height: `${endPercent - startPercent}%` }} />;
+      case 'top': return <div className="absolute top-0" style={{ ...segmentStyle, height: `${thickness}px`, left: `${startPercent}%`, width: `${endPercent - startPercent}%` }} />;
+      case 'right': return <div className="absolute right-0" style={{ ...segmentStyle, width: `${thickness}px`, top: `${startPercent}%`, height: `${endPercent - startPercent}%` }} />;
+      case 'bottom': return <div className="absolute bottom-0" style={{ ...segmentStyle, height: `${thickness}px`, right: `${startPercent}%`, width: `${endPercent - startPercent}%` }} />;
+      case 'left': return <div className="absolute left-0" style={{ ...segmentStyle, width: `${thickness}px`, bottom: `${startPercent}%`, height: `${endPercent - startPercent}%` }} />;
       default: return null;
     }
   };
 
-  const renderCornerSegments = (corner, visualScale, baseSegmentStyle) => {
-    const cornerSize = Math.min(20, 12 + 8 * visualScale); // Smaller, more refined corners
-    const segmentStyle = { ...baseSegmentStyle };
+  const renderCornerSegments = (corner, visualScale, baseSegmentStyle, isHighVelocity) => {
+    // Enhanced corner size based on velocity
+    const velocityFactor = isHighVelocity ? 1.3 : 1;
+    const cornerSize = Math.min(28, (12 + 8 * visualScale) * velocityFactor); // Larger corners for high velocity
+    const thickness = isHighVelocity ? 2 + (visualScale * 2) : 2; // Thicker lines for high velocity
+    
+    const segmentStyle = { 
+      ...baseSegmentStyle,
+      height: `${thickness}px`,
+      width: `${thickness}px`,
+      // Slight animation for high velocity corners
+      animation: isHighVelocity ? 'pulse 1.2s ease-in-out infinite alternate' : 'none'
+    };
+    
+    // Add @keyframes for the pulse animation if it doesn't exist
+    if (isHighVelocity && !document.getElementById('hover-animation-style')) {
+      const style = document.createElement('style');
+      style.id = 'hover-animation-style';
+      style.innerHTML = `
+        @keyframes pulse {
+          0% { opacity: ${baseSegmentStyle.opacity * 0.8}; }
+          100% { opacity: ${baseSegmentStyle.opacity}; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
     
     switch (corner) {
-        case 'topLeft': return <><div style={{ ...segmentStyle, top: 0, left: 0, height: '2px', width: `${cornerSize}px`, borderTopLeftRadius: '4px' }} /><div style={{ ...segmentStyle, top: 0, left: 0, width: '2px', height: `${cornerSize}px`, borderTopLeftRadius: '4px' }} /></>;
-        case 'topRight': return <><div style={{ ...segmentStyle, top: 0, right: 0, height: '2px', width: `${cornerSize}px`, borderTopRightRadius: '4px' }} /><div style={{ ...segmentStyle, top: 0, right: 0, width: '2px', height: `${cornerSize}px`, borderTopRightRadius: '4px' }} /></>;
-        case 'bottomLeft': return <><div style={{ ...segmentStyle, bottom: 0, left: 0, height: '2px', width: `${cornerSize}px`, borderBottomLeftRadius: '4px' }} /><div style={{ ...segmentStyle, bottom: 0, left: 0, width: '2px', height: `${cornerSize}px`, borderBottomLeftRadius: '4px' }} /></>;
-        case 'bottomRight': return <><div style={{ ...segmentStyle, bottom: 0, right: 0, height: '2px', width: `${cornerSize}px`, borderBottomRightRadius: '4px' }} /><div style={{ ...segmentStyle, bottom: 0, right: 0, width: '2px', height: `${cornerSize}px`, borderBottomRightRadius: '4px' }} /></>;
-        default: return null;
+      case 'topLeft': return <><div style={{ ...segmentStyle, top: 0, left: 0, height: `${thickness}px`, width: `${cornerSize}px`, borderTopLeftRadius: '4px' }} /><div style={{ ...segmentStyle, top: 0, left: 0, width: `${thickness}px`, height: `${cornerSize}px`, borderTopLeftRadius: '4px' }} /></>;
+      case 'topRight': return <><div style={{ ...segmentStyle, top: 0, right: 0, height: `${thickness}px`, width: `${cornerSize}px`, borderTopRightRadius: '4px' }} /><div style={{ ...segmentStyle, top: 0, right: 0, width: `${thickness}px`, height: `${cornerSize}px`, borderTopRightRadius: '4px' }} /></>;
+      case 'bottomLeft': return <><div style={{ ...segmentStyle, bottom: 0, left: 0, height: `${thickness}px`, width: `${cornerSize}px`, borderBottomLeftRadius: '4px' }} /><div style={{ ...segmentStyle, bottom: 0, left: 0, width: `${thickness}px`, height: `${cornerSize}px`, borderBottomLeftRadius: '4px' }} /></>;
+      case 'bottomRight': return <><div style={{ ...segmentStyle, bottom: 0, right: 0, height: `${thickness}px`, width: `${cornerSize}px`, borderBottomRightRadius: '4px' }} /><div style={{ ...segmentStyle, bottom: 0, right: 0, width: `${thickness}px`, height: `${cornerSize}px`, borderBottomRightRadius: '4px' }} /></>;
+      default: return null;
     }
   };
 
   const renderAccentLines = () => {
-    const { intensity, position, edge } = animatedValuesRef.current;
+    const { intensity, position, edge, velocityBoost, effectVariant } = animatedValuesRef.current;
     if (intensity < MIN_INTENSITY_FOR_RENDER) return null;
     
-    const visualScale = Math.min(intensity, 1);
-    const opacity = intensity * 0.4; // More subtle accent lines
-    const lineLength = 8 + (visualScale * 6); // Shorter, more refined lines
+    const isHighVelocity = velocityBoost > 0.2;
+    
+    // Different colors for accent lines based on velocity and effect variant
+    const glowColors = [
+      '#ef4444', // Default red
+      '#f97316', // Orange
+      '#8b5cf6', // Purple
+      '#ec4899'  // Pink
+    ];
+    
+    const colorIndex = isHighVelocity 
+      ? (effectVariant === 0 ? 2 : 3) 
+      : (effectVariant === 0 ? 0 : 1);
+      
+    const glowColor = glowColors[colorIndex];
+    
+    const visualScale = Math.min(intensity * (isHighVelocity ? 1.5 : 1), 1.5);
+    const opacity = isHighVelocity ? intensity * 0.6 : intensity * 0.4;
+    
+    // Longer accent lines for high velocity
+    const baseLength = isHighVelocity ? 12 : 8;
+    const velocityExtraLength = isHighVelocity ? velocityBoost * 10 : 0;
+    const lineLength = baseLength + (visualScale * 6) + velocityExtraLength;
+    
+    // Add pulsing effect for high velocity
+    const animationProps = isHighVelocity 
+      ? {
+          animation: 'accentPulse 0.8s ease-in-out infinite alternate',
+          style: { transformOrigin: 'center' }
+        }
+      : {};
+    
+    // Add @keyframes for the accent pulse animation if needed
+    if (isHighVelocity && !document.getElementById('accent-animation-style')) {
+      const style = document.createElement('style');
+      style.id = 'accent-animation-style';
+      style.innerHTML = `
+        @keyframes accentPulse {
+          0% { transform: scaleY(0.85); }
+          100% { transform: scaleY(1.15); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    // Add slight variation to position for high velocity
+    const positionJitter = isHighVelocity ? (Math.random() * 0.04) - 0.02 : 0;
+    const adjustedPosition = Math.max(0, Math.min(1, position + positionJitter));
 
     return (
       <svg
@@ -267,51 +417,55 @@ const CategoryItem = memo(({
         aria-hidden="true"
       >
         {edge === 'top' && (
-          <line
-            x1={position * cardWidth}
+          <motion.line
+            x1={adjustedPosition * cardWidth}
             y1={2}
-            x2={position * cardWidth}
+            x2={adjustedPosition * cardWidth}
             y2={2 + lineLength}
-            stroke="#ef4444"
-            strokeWidth="1"
+            stroke={glowColor}
+            strokeWidth={isHighVelocity ? "1.5" : "1"}
             opacity={opacity}
-            style={{ filter: `drop-shadow(0 0 2px #ef444440)` }}
+            style={{ filter: `drop-shadow(0 0 3px ${glowColor}70)` }}
+            {...animationProps}
           />
         )}
         {edge === 'right' && (
-          <line
+          <motion.line
             x1={cardWidth - 2}
-            y1={position * cardHeight}
+            y1={adjustedPosition * cardHeight}
             x2={cardWidth - 2 - lineLength}
-            y2={position * cardHeight}
-            stroke="#ef4444"
-            strokeWidth="1"
+            y2={adjustedPosition * cardHeight}
+            stroke={glowColor}
+            strokeWidth={isHighVelocity ? "1.5" : "1"}
             opacity={opacity}
-            style={{ filter: `drop-shadow(0 0 2px #ef444440)` }}
+            style={{ filter: `drop-shadow(0 0 3px ${glowColor}70)` }}
+            {...animationProps}
           />
         )}
         {edge === 'bottom' && (
-          <line
-            x1={(1-position) * cardWidth}
+          <motion.line
+            x1={(1-adjustedPosition) * cardWidth}
             y1={cardHeight - 2}
-            x2={(1-position) * cardWidth}
+            x2={(1-adjustedPosition) * cardWidth}
             y2={cardHeight - 2 - lineLength}
-            stroke="#ef4444"
-            strokeWidth="1"
+            stroke={glowColor}
+            strokeWidth={isHighVelocity ? "1.5" : "1"}
             opacity={opacity}
-            style={{ filter: `drop-shadow(0 0 2px #ef444440)` }}
+            style={{ filter: `drop-shadow(0 0 3px ${glowColor}70)` }}
+            {...animationProps}
           />
         )}
         {edge === 'left' && (
-          <line
+          <motion.line
             x1={2}
-            y1={(1-position) * cardHeight}
+            y1={(1-adjustedPosition) * cardHeight}
             x2={2 + lineLength}
-            y2={(1-position) * cardHeight}
-            stroke="#ef4444"
-            strokeWidth="1"
+            y2={(1-adjustedPosition) * cardHeight}
+            stroke={glowColor}
+            strokeWidth={isHighVelocity ? "1.5" : "1"}
             opacity={opacity}
-            style={{ filter: `drop-shadow(0 0 2px #ef444440)` }}
+            style={{ filter: `drop-shadow(0 0 3px ${glowColor}70)` }}
+            {...animationProps}
           />
         )}
       </svg>
@@ -346,13 +500,8 @@ const CategoryItem = memo(({
         scale: { duration: 0.4 }
       }}
       whileHover={{ 
-        y: -5,
-        scale: 1.03,
-        transition: { 
-          duration: 0.3, 
-          ease: [0.33, 1, 0.68, 1],
-          scale: { duration: 0.2 }
-        }
+        y: -2,
+        transition: { duration: 0.2, ease: "easeOut" }
       }}
       role="link"
       tabIndex="0"
@@ -393,26 +542,7 @@ const CategoryItem = memo(({
             "0 20px 40px rgba(0,0,0,0.6), 0 0 20px rgba(239, 68, 68, 0.2)" :
             isMobile ? "0 4px 12px rgba(0,0,0,0.2)" : "0 8px 24px rgba(0,0,0,0.15)"
         }}
-        whileHover={{
-          boxShadow: "0 15px 30px rgba(0,0,0,0.4), 0 0 15px rgba(239, 68, 68, 0.3)",
-          background: 'linear-gradient(135deg, rgba(18, 18, 20, 0.95) 0%, rgba(30, 30, 35, 0.9) 50%, rgba(15, 15, 18, 0.95) 100%)',
-          border: '1px solid rgba(80, 80, 85, 0.4)',
-          transition: { duration: 0.3 }
-        }}
         transition={{ duration: 0.3 }}
-      />
-      
-      {/* Hover glow effect */}
-      <motion.div
-        className="absolute inset-0 rounded-xl pointer-events-none opacity-0 z-[1]"
-        style={{ 
-          boxShadow: "inset 0 0 15px 2px rgba(239, 68, 68, 0.1)",
-          background: 'radial-gradient(circle at center, rgba(239, 68, 68, 0.05) 0%, transparent 70%)'
-        }}
-        whileHover={{ 
-          opacity: 1,
-          transition: { duration: 0.3 }
-        }}
       />
       
       {/* Subtle inner border */}
@@ -446,7 +576,7 @@ const CategoryItem = memo(({
         </motion.h3>
         
         <motion.div 
-          className={`inline-flex items-center gap-2 text-red-400/90 ${isMobile ? 'text-xs' : 'text-sm'} font-light border border-red-500/20 ${isMobile ? 'px-3 py-1.5' : 'px-4 py-2'} rounded-full backdrop-blur-sm group`}
+          className={`inline-flex items-center gap-2 text-red-400/90 ${isMobile ? 'text-xs' : 'text-sm'} font-light border border-red-500/20 ${isMobile ? 'px-3 py-1.5' : 'px-4 py-2'} rounded-full backdrop-blur-sm`}
           style={{ 
             background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%)',
             transition: 'all 0.3s ease'
@@ -456,15 +586,13 @@ const CategoryItem = memo(({
           transition={{ duration: 0.5, delay: 0.2 }}
           whileHover={{
             background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.08) 100%)',
-            borderColor: 'rgba(239, 68, 68, 0.3)',
-            x: 5,
-            transition: { duration: 0.2 }
+            borderColor: 'rgba(239, 68, 68, 0.3)'
           }}
         >
           <span>مشاهده محصولات</span>
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
-            className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} transition-transform duration-200 group-hover:translate-x-1`} 
+            className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} transition-transform duration-200 group-hover:translate-x-0.5`} 
             fill="none" 
             viewBox="0 0 24 24" 
             stroke="currentColor" 
@@ -483,20 +611,6 @@ const CategoryItem = memo(({
           backgroundSize: '200px 200px'
         }}
         aria-hidden="true"
-      />
-      
-      {/* 3D tilt effect on hover */}
-      <motion.div
-        className="absolute inset-0 rounded-xl pointer-events-none z-20"
-        style={{
-          perspective: '1000px',
-          transformStyle: 'preserve-3d'
-        }}
-        whileHover={{
-          rotateX: 2,
-          rotateY: -2,
-          transition: { duration: 0.3 }
-        }}
       />
 
       {/* Focus indicator */}
