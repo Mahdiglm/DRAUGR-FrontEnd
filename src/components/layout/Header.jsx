@@ -2,16 +2,21 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import pfpIcon from '../../assets/pfp-icon.png';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Header = ({ cartItems, onCartClick }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [typedText, setTypedText] = useState("");
   const [isTyping, setIsTyping] = useState(true);
+  const [showAuthMenu, setShowAuthMenu] = useState(false);
   const brandName = "DRAUGR";
   const navigate = useNavigate();
   const location = useLocation();
   const mobileMenuRef = useRef(null);
+  const authMenuRef = useRef(null);
+  
+  const { user, logout, isAuthenticated } = useAuth();
 
   // Updated navigation structure based on new requirements
   const navigationItems = [
@@ -79,6 +84,10 @@ const Header = ({ cartItems, onCartClick }) => {
       setIsMobileMenuOpen(false);
       document.body.classList.remove('menu-open');
     }
+    
+    if (showAuthMenu) {
+      setShowAuthMenu(false);
+    }
   }, [location.pathname]);
 
   // Handle clicks outside the mobile menu to close it
@@ -90,13 +99,17 @@ const Header = ({ cartItems, onCartClick }) => {
           document.body.classList.remove('menu-open');
         }
       }
+      
+      if (authMenuRef.current && !authMenuRef.current.contains(event.target)) {
+        setShowAuthMenu(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isMobileMenuOpen]);
+  }, [isMobileMenuOpen, showAuthMenu]);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -105,6 +118,16 @@ const Header = ({ cartItems, onCartClick }) => {
     } else {
       document.body.classList.remove('menu-open');
     }
+  };
+  
+  const toggleAuthMenu = () => {
+    setShowAuthMenu(!showAuthMenu);
+  };
+  
+  const handleLogout = () => {
+    logout();
+    setShowAuthMenu(false);
+    navigate('/');
   };
 
   // Cleanup on unmount
@@ -191,7 +214,7 @@ const Header = ({ cartItems, onCartClick }) => {
         
         {/* Header right section: improved for mobile */}
         <div className="flex items-center">
-          {/* Login button - With improved mobile sizing */}
+          {/* User Authentication Menu */}
           <motion.div 
             whileHover={{ scale: 1.1 }}
             initial={{ scale: 1 }}
@@ -201,13 +224,63 @@ const Header = ({ cartItems, onCartClick }) => {
             }}
             whileTap={{ scale: 0.95 }}
             className="relative cursor-pointer"
-            onClick={() => navigate('/login')}
+            onClick={toggleAuthMenu}
+            ref={authMenuRef}
           >
             <img 
-              src={pfpIcon} 
-              alt="Profile" 
+              src={user?.profileImage || pfpIcon} 
+              alt={user ? `${user.firstName} ${user.lastName}` : "Profile"} 
               className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full object-cover border-2 border-draugr-600 transition-all duration-300"
             />
+            {isAuthenticated && (
+              <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border border-black"></div>
+            )}
+            
+            {/* Auth dropdown menu */}
+            <AnimatePresence>
+              {showAuthMenu && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute top-full right-0 mt-2 w-48 bg-gray-900 border border-draugr-900 rounded-md shadow-lg py-1 z-50"
+                >
+                  {isAuthenticated ? (
+                    <>
+                      <div className="px-4 py-2 border-b border-gray-800 text-sm">
+                        <p className="text-white font-semibold truncate">
+                          {user.firstName} {user.lastName}
+                        </p>
+                        <p className="text-gray-400 text-xs truncate">
+                          {user.email}
+                        </p>
+                      </div>
+                      <Link to="/profile" className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors">
+                        پروفایل کاربری
+                      </Link>
+                      <Link to="/orders" className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors">
+                        سفارشات من
+                      </Link>
+                      <button 
+                        onClick={handleLogout}
+                        className="block w-full text-right px-4 py-2 text-sm text-draugr-400 hover:bg-gray-800 transition-colors"
+                      >
+                        خروج از حساب کاربری
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Link to="/login" className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors">
+                        ورود
+                      </Link>
+                      <Link to="/signup" className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors">
+                        ثبت نام
+                      </Link>
+                    </>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
 
           {/* Spacer div with adjusted spacing for mobile */}
@@ -248,114 +321,103 @@ const Header = ({ cartItems, onCartClick }) => {
             onClick={toggleMobileMenu}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            aria-label="Toggle mobile menu"
           >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="h-5 w-5 sm:h-5 sm:w-5" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              {isMobileMenuOpen ? (
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M6 18L18 6M6 6l12 12" 
-                />
-              ) : (
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M4 6h16M4 12h16M4 18h16" 
-                />
-              )}
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7"></path>
             </svg>
           </motion.button>
         </div>
       </div>
-      
-      {/* Mobile Menu with improved overlay and accessibility */}
+
+      {/* Mobile Menu - Made more interactive */}
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <>
-            {/* Background overlay with improved blur effect */}
-            <motion.div 
-              className="fixed inset-0 z-40 bg-black/70"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              onClick={toggleMobileMenu}
-              style={{ 
-                cursor: 'pointer',
-                backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)',
-                MozBackdropFilter: 'blur(8px)'
-              }}
-            />
-
-            {/* Menu content - Improved responsive sizing and accessibility */}
-            <motion.div
-              ref={mobileMenuRef}
-              initial={{ opacity: 0, x: '100%' }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: '100%' }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className="md:hidden fixed top-0 right-0 h-screen w-[85%] xs:w-[75%] sm:w-[60%] bg-gradient-to-b from-black to-draugr-950 shadow-[-10px_0px_30px_rgba(0,0,0,0.5)] z-50 overflow-hidden flex flex-col"
-            >
-              {/* Menu Header with improved UX */}
-              <div className="p-3 sm:p-4 flex justify-between items-center border-b border-draugr-800 shrink-0">
-                <div className="flex items-center">
-                  <span className="blood-text text-base sm:text-lg font-bold">{brandName}</span>
-                  <div className="h-4 sm:h-5 w-0.5 mx-2 bg-draugr-800"></div>
-                  <span className="text-sm sm:text-base text-gray-400">منو</span>
+          <motion.div
+            ref={mobileMenuRef}
+            className="absolute top-full left-0 w-full bg-black/95 backdrop-blur-md border-t border-draugr-900/30 shadow-[0_5px_15px_rgba(255,0,0,0.2)] overflow-hidden"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="py-4 max-h-[75vh] overflow-y-auto custom-scrollbar">
+              <nav className="space-y-1 px-4">
+                {navigationItems.map((item, index) => (
+                  <MobileNavLink 
+                    key={index} 
+                    to={item.path} 
+                    label={item.name} 
+                    isNested={item.subcategories && item.subcategories.length > 0}
+                    navItem={item}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  />
+                ))}
+                
+                {/* Mobile auth menu */}
+                <div className="border-t border-draugr-900/50 mt-4 pt-4">
+                  {isAuthenticated ? (
+                    <>
+                      <div className="flex items-center px-4 py-2 mb-2">
+                        <img 
+                          src={user?.profileImage || pfpIcon} 
+                          alt="Profile" 
+                          className="w-8 h-8 rounded-full object-cover border-2 border-draugr-600 mr-3" 
+                        />
+                        <div>
+                          <p className="text-white text-sm font-medium">
+                            {user.firstName} {user.lastName}
+                          </p>
+                          <p className="text-gray-400 text-xs truncate max-w-[200px]">
+                            {user.email}
+                          </p>
+                        </div>
+                      </div>
+                      <Link 
+                        to="/profile" 
+                        className="block px-4 py-3 font-medium text-sm text-gray-300 hover:bg-vampire-darker transition-colors"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        پروفایل کاربری
+                      </Link>
+                      <Link 
+                        to="/orders" 
+                        className="block px-4 py-3 font-medium text-sm text-gray-300 hover:bg-vampire-darker transition-colors"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        سفارشات من
+                      </Link>
+                      <button 
+                        onClick={() => {
+                          handleLogout();
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="block w-full text-right px-4 py-3 font-medium text-sm text-draugr-400 hover:bg-vampire-darker transition-colors"
+                      >
+                        خروج از حساب کاربری
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Link 
+                        to="/login" 
+                        className="block px-4 py-3 font-medium text-sm text-gray-300 hover:bg-vampire-darker transition-colors"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        ورود
+                      </Link>
+                      <Link 
+                        to="/signup" 
+                        className="block px-4 py-3 font-medium text-sm text-gray-300 hover:bg-vampire-darker transition-colors"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        ثبت نام
+                      </Link>
+                    </>
+                  )}
                 </div>
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={toggleMobileMenu}
-                  className="text-white p-1.5 rounded-full hover:bg-draugr-900 focus:outline-none focus:ring-1 focus:ring-draugr-500"
-                  aria-label="Close menu"
-                >
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    className="h-5 w-5" 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
-                    stroke="currentColor"
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth={2} 
-                      d="M6 18L18 6M6 6l12 12" 
-                    />
-                  </svg>
-                </motion.button>
-              </div>
-              
-              {/* Mobile Navigation Links with improved scrolling and touch targets */}
-              <div className="flex-1 overflow-y-auto overscroll-contain scrollbar-thin scrollbar-track-draugr-950 scrollbar-thumb-draugr-800">
-                <div className="py-2 px-3 overflow-y-auto">
-                  <div className="flex flex-col">
-                    {navigationItems.map((item, index) => (
-                      <MobileNavLink 
-                        key={index}
-                        to={item.path} 
-                        label={item.name} 
-                        isNested={item.subcategories && item.subcategories.length > 0}
-                        navItem={item}
-                        onClick={toggleMobileMenu}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </>
+              </nav>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </motion.header>

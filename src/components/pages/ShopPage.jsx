@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOutletContext, useLocation, useSearchParams } from 'react-router-dom';
-
-import ProductCard from '../product/ProductCard';
-import { products, categories } from '../../utils/mockData';
+import ProductList from '../product/ProductList';
+import productService from '../../services/productService';
 
 // Import background image
 import shopBgImage from '../../assets/Background-Hero.jpg';
@@ -198,13 +197,12 @@ const SearchIcon = () => (
   </svg>
 );
 
-// Expanded category options for the demo
-const expandedCategories = [
-  ...categories,
-  { id: 9, name: "کتاب‌های نادر", slug: "rare-books" },
-  { id: 10, name: "جواهرات", slug: "jewelry" },
-  { id: 11, name: "ابزارها", slug: "tools" },
-  { id: 12, name: "گیاهان", slug: "herbs" }
+// Default categories to use before API data is loaded
+const defaultCategories = [
+  { id: 1, name: "اکسسوری", slug: "accessories" },
+  { id: 2, name: "لباس", slug: "clothing" },
+  { id: 3, name: "کتاب", slug: "books" },
+  { id: 4, name: "طلسم", slug: "charms" }
 ];
 
 // Animation variants for product grid
@@ -233,17 +231,19 @@ const productItemVariants = {
 };
 
 const ShopPage = () => {
-  const { addToCart } = useOutletContext();
+  const { addToCart, showTemporaryMessage } = useOutletContext();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const [isEnteringFromTransition, setIsEnteringFromTransition] = useState(false);
   
   // NEW: skeleton loading state
   const [isLoading, setIsLoading] = useState(true);
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 700); // artificial delay for demo
-    return () => clearTimeout(timer);
-  }, []);
+  const [error, setError] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState(defaultCategories);
+  
+  // Create expanded categories from our state
+  const [expandedCategories, setExpandedCategories] = useState([...defaultCategories]);
   
   // States for filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -251,6 +251,39 @@ const ShopPage = () => {
   const [sortBy, setSortBy] = useState('newest');
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  
+  // Fetch products and categories from API
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch products
+        const productsData = await productService.getProducts();
+        setProducts(productsData);
+        
+        // Fetch categories
+        const categoriesData = await productService.getCategories();
+        setCategories(categoriesData);
+        
+        // Update expanded categories with additional items
+        const additionalCategories = [
+          { id: 9, name: "کتاب‌های نادر", slug: "rare-books" },
+          { id: 10, name: "جواهرات", slug: "jewelry" },
+          { id: 11, name: "ابزارها", slug: "tools" },
+          { id: 12, name: "گیاهان", slug: "herbs" }
+        ];
+        
+        setExpandedCategories([...categoriesData, ...additionalCategories]);
+      } catch (err) {
+        console.error('Error fetching shop data:', err);
+        setError('خطا در دریافت اطلاعات');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, []);
   
   // Filter products based on criteria
   const filteredProducts = products.filter(product => {
@@ -342,96 +375,10 @@ const ShopPage = () => {
     }, 50);
   };
   
-  // Render development page content
-  const renderDevelopmentPage = () => {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="py-32 px-4 flex flex-col items-center justify-center bg-ash bg-opacity-30 rounded-lg"
-      >
-        <motion.div
-          className="relative"
-          animate={{ 
-            rotate: [0, 2, 0, -2, 0],
-            scale: [1, 1.02, 1, 0.98, 1]
-          }}
-          transition={{ 
-            duration: 4,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        >
-          <motion.div
-            className="absolute inset-0 bg-draugr-500 blur-xl opacity-20 rounded-full"
-            animate={{ 
-              scale: [1, 1.2, 1],
-            }}
-            transition={{ 
-              duration: 3,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          />
-          <svg 
-            className="h-32 w-32 text-draugr-500 relative z-10 opacity-70" 
-            xmlns="http://www.w3.org/2000/svg" 
-            fill="none" 
-            viewBox="0 0 24 24" 
-            stroke="currentColor"
-          >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth={1} 
-              d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" 
-            />
-          </svg>
-        </motion.div>
-        
-        <motion.h2 
-          className="mt-8 text-3xl font-bold text-white text-center"
-          animate={{ 
-            textShadow: ['0 0 8px rgba(239,35,60,0.3)', '0 0 16px rgba(239,35,60,0.7)', '0 0 8px rgba(239,35,60,0.3)']
-          }}
-          transition={{ 
-            duration: 3, 
-            repeat: Infinity,
-          }}
-        >
-          در حال توسعه...
-        </motion.h2>
-        
-        <motion.p 
-          className="mt-4 text-gray-300 text-center max-w-md"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          این صفحه در حال ساخت است و به زودی با محصولات جدید و شگفت‌انگیز تکمیل خواهد شد
-        </motion.p>
-        
-        <motion.div 
-          className="mt-10"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-        >
-          <motion.button
-            className="bg-vampire-dark text-white py-2 px-6 rounded-md border border-draugr-500 hover:bg-vampire-primary transition-all"
-            whileHover={{ 
-              scale: 1.05,
-              boxShadow: "0 0 15px rgba(239,35,60,0.5)"
-            }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => handlePageChange(1)}
-          >
-            بازگشت به صفحه اصلی
-          </motion.button>
-        </motion.div>
-      </motion.div>
-    );
+  // Handle product added to cart
+  const handleAddToCart = (product) => {
+    addToCart(product.id, 1);
+    showTemporaryMessage(`${product.name} به سبد خرید اضافه شد`);
   };
   
   // Initialize filters from URL parameters on component mount

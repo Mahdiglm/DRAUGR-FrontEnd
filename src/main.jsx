@@ -39,6 +39,8 @@ import SignUp from './components/auth/SignUp'
 import BlogPage from './components/pages/BlogPage';
 import SingleBlogPostPage from './components/pages/SingleBlogPostPage';
 import SpecialOffersPage from './components/pages/SpecialOffersPage';
+import ProfilePage from './components/pages/ProfilePage';
+import OrdersPage from './components/pages/OrdersPage';
 
 // Context Providers
 import { AuthProvider } from './contexts/AuthContext';
@@ -63,6 +65,9 @@ createRoot(document.getElementById('root')).render(
                 <Route path="blog/:slug" element={<SingleBlogPostPage />} />
                 <Route path="special-offers" element={<SpecialOffersPage />} />
                 <Route path="special-offers/:id" element={<SpecialOffersPage />} />
+                <Route path="profile" element={<ProfilePage />} />
+                <Route path="orders" element={<OrdersPage />} />
+                <Route path="orders/:id" element={<OrdersPage />} />
               </Route>
             </Routes>
           </HashRouter>

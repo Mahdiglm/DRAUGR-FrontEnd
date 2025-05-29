@@ -1,189 +1,85 @@
-# فروشگاه دراگر (DRAUGR)
+# DRAUGR Shop Frontend
 
-<div align="center">
-  <h2>فروشگاه آنلاین با تم ترسناک و طراحی منحصر به فرد</h2>
-  <hr />
-</div>
+A modern e-commerce frontend for DRAUGR shop built with React, Tailwind CSS, and Framer Motion.
 
-<div dir="rtl">
+## Features
 
-## درباره پروژه
+- Responsive design for all screen sizes
+- Real-time cart management
+- User authentication
+- Product catalog with filtering and search
+- Checkout process
+- API integration with Draugr backend
 
-فروشگاه دراگر یک فروشگاه آنلاین با تم وحشت و ترسناک است که با استفاده از فناوری‌های مدرن وب همچون React، Tailwind CSS، Framer Motion و Three.js ساخته شده است. این پروژه با استفاده از انیمیشن‌های پیشرفته، رابط کاربری جذاب و پشتیبانی کامل از زبان فارسی (RTL)، تجربه خرید منحصر به فردی را ارائه می‌دهد.
+## Setup Instructions
 
-## ویژگی‌های کلیدی
+### Prerequisites
 
-- **طراحی متمایز**: رابط کاربری با تم وحشت و جلوه‌های بصری منحصر به فرد
-- **انیمیشن‌های پیشرفته**: استفاده از Framer Motion برای ایجاد انیمیشن‌های روان و جذاب
-- **مدل‌های سه بعدی**: نمایش محصولات با استفاده از Three.js و مدل‌های GLTF
-- **واکنش‌گرا**: سازگاری کامل با انواع دستگاه‌ها از موبایل تا دسکتاپ
-- **پشتیبانی RTL**: پشتیبانی کامل از زبان فارسی و چیدمان راست به چپ
-- **مدیریت سبد خرید**: امکان افزودن محصولات به سبد خرید و مدیریت آن‌ها
-- **احراز هویت کاربران**: سیستم ورود و ثبت نام کاربران
-- **صفحات محصول**: نمایش جزئیات محصولات با افکت‌های جذاب
+- Node.js (v14+)
+- NPM or Yarn
 
-## فناوری‌ها
+### Installation
 
-| فناوری | نسخه | کاربرد |
-|--------|-------|--------|
-| React | 19.1.0 | کتابخانه اصلی رابط کاربری |
-| Vite | 6.3.5 | ابزار توسعه و ساخت |
-| Tailwind CSS | 3.3.5 | چارچوب CSS برای استایل‌دهی |
-| Framer Motion | 11.18.2 | کتابخانه انیمیشن |
-| React Router | 6.22.1 | مدیریت مسیریابی |
-| Three.js & React Three Fiber | 0.176.0 | رندر مدل‌های سه بعدی |
+1. Clone the repository
+2. Install dependencies:
 
-## نصب و اجرا
+```bash
+cd draugr-shop
+npm install
+# or
+yarn
+```
 
-### پیش‌نیازها
+3. Create a `.env` file in the project root with the following content:
 
-- Node.js نسخه 18 یا بالاتر
-- npm یا yarn
+```
+VITE_API_URL=https://draugr-backend.onrender.com
+```
 
-### مراحل نصب
+> Note: You can use a different API URL if you are running the backend locally.
 
-1. **کلون کردن مخزن:**
-   ```bash
-   git clone https://github.com/Mahdiglm/DRAUGR-FrontEnd.git
-   cd DRAUGR-FrontEnd
-   ```
+### Running the Application
 
-2. **نصب وابستگی‌ها:**
-   ```bash
-   npm install
-   # یا
-   yarn
-   ```
+```bash
+npm run dev
+# or
+yarn dev
+```
 
-3. **اجرای نسخه توسعه:**
-   ```bash
-   npm run dev
-   # یا
-   yarn dev
-   ```
+The application will be available at http://localhost:5173.
 
-   پروژه در آدرس `http://localhost:5173` قابل مشاهده خواهد بود.
+## Building for Production
 
-4. **ساخت نسخه تولید:**
 ```bash
 npm run build
-# یا
+# or
 yarn build
 ```
 
-## ساختار پروژه
+## Connecting to the Backend
+
+This frontend is designed to work with the DRAUGR backend API. The backend should be running and accessible at the URL specified in your `.env` file.
+
+Backend repository: [DRAUGR-BackEnd](https://github.com/Mahdiglm/DRAUGR-BackEnd)
+
+## Environment Variables
+
+- `VITE_API_URL`: URL of the backend API (default: https://draugr-backend.onrender.com)
+
+## Project Structure
 
 ```
 draugr-shop/
-├── public/            # فایل‌های استاتیک و مدل‌های سه بعدی
-│   └── models/        # مدل‌های GLTF سه بعدی
+├── public/            # Static assets
 ├── src/
-│   ├── assets/        # تصاویر و منابع گرافیکی
-│   ├── components/    # کامپوننت‌های React
-│   │   ├── auth/      # کامپوننت‌های احراز هویت
-│   │   ├── cart/      # کامپوننت‌های سبد خرید
-│   │   ├── layout/    # هدر، فوتر و ساختار اصلی
-│   │   ├── pages/     # صفحات اصلی برنامه
-│   │   ├── product/   # نمایش و مدیریت محصولات
-│   │   └── shared/    # کامپوننت‌های مشترک
-│   ├── utils/         # توابع و ابزارهای کمکی
-│   └── App.jsx        # کامپوننت اصلی
-├── package.json       # وابستگی‌ها و اسکریپت‌ها
-├── tailwind.config.js # پیکربندی Tailwind
-└── vite.config.js     # پیکربندی Vite
+│   ├── assets/        # Images, fonts, and other assets
+│   ├── components/    # Reusable components
+│   ├── contexts/      # React context providers
+│   ├── services/      # API services
+│   └── utils/         # Utility functions
+└── .env               # Environment variables
 ```
 
-## راهنمای توسعه‌دهندگان
+## Authentication
 
-این بخش شامل اطلاعات مهم برای توسعه‌دهندگان پروژه است.
-
-### ملاحظات مهم
-
-1. **ساختار کدنویسی**:
-   - کامپوننت‌ها را در پوشه مرتبط در `src/components` قرار دهید
-   - از Tailwind CSS برای استایل‌دهی استفاده کنید
-   - استایل‌های پیچیده را در فایل‌های CSS جداگانه تعریف کنید
-
-2. **مسیریابی**:
-   - از `HashRouter` استفاده می‌کنیم (نه `BrowserRouter`) زیرا برای میزبانی GitHub Pages مناسب‌تر است
-   - تغییر به `BrowserRouter` منجر به مشکلات در نمایش سایت روی GitHub Pages می‌شود
-
-3. **فونت و زبان**:
-   - از فونت وزیرمتن استفاده می‌شود
-   - تمام متن‌ها باید به زبان فارسی و با پشتیبانی RTL باشند
-
-### فرآیند استقرار (دیپلوی)
-
-برای استقرار پروژه روی GitHub Pages، دو روش وجود دارد:
-
-1. **روش توصیه شده (با استفاده از GitHub Actions)**:
-   ```bash
-   # اعمال تغییرات روی مخزن
-   git add .
-   git commit -m "توضیحات تغییرات به فارسی"
-   git push origin main
-   
-   # استقرار با استفاده از GitHub Actions
-   gh workflow run deploy.yml
-   ```
-   
-   این روش ورک‌فلوی GitHub Actions را فعال می‌کند که به طور خودکار پروژه را بیلد کرده و روی شاخه `gh-pages` مستقر می‌کند.
-
-2. **روش جایگزین (با استفاده از دستور npm)**:
-   ```bash
-   # استقرار با اسکریپت تعریف شده در package.json
-   npm run gh-deploy
-   ```
-
-3. **روش دستی (در صورت بروز مشکل در روش‌های بالا)**:
-   ```bash
-   # ساخت پروژه
-   npm run build
-   
-   # استقرار دستی
-   cd dist
-   git init
-   git add .
-   git commit -m "استقرار دستی"
-   git branch -M gh-pages
-   git push -f https://github.com/Mahdiglm/DRAUGR-FrontEnd.git gh-pages
-   ```
-
-### حل مشکلات شایع
-
-1. **صفحه سیاه در GitHub Pages**:
-   - اطمینان حاصل کنید که مسیرهای فایل در `index.html` نسبی هستند (با `./` شروع می‌شوند)
-   - استایل‌های بحرانی در `index.html` و `main.jsx` تنظیم شده‌اند
-   - از `HashRouter` استفاده شده باشد
-
-2. **خطای بارگذاری فایل‌های صوتی و تصاویر**:
-   - اطمینان حاصل کنید که مسیرهای فایل صحیح هستند
-   - از آدرس‌های نسبی استفاده کنید
-   - فایل‌های بزرگ را در پوشه `public` قرار دهید
-
-3. **مشکلات استقرار**:
-   - اگر با خطای دسترسی PowerShell مواجه شدید، از GitHub Actions استفاده کنید
-   - اطمینان حاصل کنید که تنظیمات GitHub Pages در مخزن شما فعال است
-   - شاخه `gh-pages` را به عنوان منبع سایت در تنظیمات GitHub Pages انتخاب کنید
-
-## مشارکت در پروژه
-
-از همکاری شما در بهبود فروشگاه دراگر استقبال می‌کنیم. برای مشارکت:
-
-1. پروژه را fork کنید
-2. یک شاخه جدید بسازید (`git checkout -b feature/amazing-feature`)
-3. تغییرات خود را کامیت کنید (`git commit -m 'افزودن ویژگی جدید'`)
-4. تغییرات را push کنید (`git push origin feature/amazing-feature`)
-5. یک Pull Request ایجاد کنید
-
-## مجوز
-
-این پروژه تحت مجوز MIT منتشر شده است.
-
-<hr/>
-
-<p align="center">
-توسعه یافته با زبان React، Tailwind CSS و Framer Motion
-</p>
-
-</div>
+The application uses JWT for authentication. Tokens are stored in localStorage and automatically included in API requests.
