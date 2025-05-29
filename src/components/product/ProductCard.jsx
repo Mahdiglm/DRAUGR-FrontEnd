@@ -6,6 +6,11 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
   const { id, name, description, price, imageUrl } = product;
   const navigate = useNavigate();
 
+  // Ensure imageUrl is properly formatted
+  const formattedImageUrl = imageUrl.startsWith('http') 
+    ? imageUrl 
+    : `${import.meta.env.VITE_API_URL}${imageUrl}`;
+
   const handleViewDetails = () => {
     if (isDisabled) return;
     
@@ -75,7 +80,7 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
           ${isDisabled ? '' : 'cursor-pointer'}
         `}
         style={{ 
-          backgroundImage: imageUrl ? `url(${imageUrl})` : 'none',
+          backgroundImage: formattedImageUrl ? `url(${formattedImageUrl})` : 'none',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           transition: 'transform 0.3s ease'

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import CategoryItem from './CategoryItem';
-import { categories, additionalCategories, thirdRowCategories, fourthRowCategories } from '../../utils/mockData';
+import productService from '../../services/productService';
 
 /**
  * CategoryGrid Component
@@ -56,8 +56,29 @@ const CategoryGrid = ({ title = "دسته‌بندی‌ها", subtitle = "مجم
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [animationPhase, setAnimationPhase] = useState(0);
+  const [categories, setCategories] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const isMobileDevice = useMobileDetection();
   const navigate = useNavigate();
+
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setIsLoading(true);
+        const data = await productService.getCategories();
+        setCategories(data);
+      } catch (err) {
+        console.error('Error fetching categories:', err);
+        setError('خطا در دریافت دسته‌بندی‌ها');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchCategories();
+  }, []);
 
   // Get card dimensions based on device
   const cardWidth = isMobileDevice ? MOBILE_CARD_WIDTH : CARD_WIDTH;
@@ -67,24 +88,21 @@ const CategoryGrid = ({ title = "دسته‌بندی‌ها", subtitle = "مجم
   // Prepare all categories for the grid (7x4 = 28 positions total)
   const gridCategories = [];
   
-  // Combine all category arrays and ensure we have exactly 28 items
-  const allCategories = [...categories, ...additionalCategories, ...thirdRowCategories, ...fourthRowCategories];
+  // Ensure we have enough categories to fill the grid
+  const filledCategories = [...categories];
   
-  // If we have more than 28 categories, trim the array
-  const trimmedCategories = allCategories.slice(0, 28);
-  
-  // If we have less than 28 categories, add more with new IDs
-  if (trimmedCategories.length < 28) {
-    const extraNeeded = 28 - trimmedCategories.length;
+  // If we have less than 28 categories, duplicate existing ones
+  if (filledCategories.length < 28 && filledCategories.length > 0) {
+    const extraNeeded = 28 - filledCategories.length;
     for (let i = 0; i < extraNeeded; i++) {
-      const sourceCategory = allCategories[i % allCategories.length];
+      const sourceCategory = categories[i % categories.length];
       const newCategory = {
         ...sourceCategory,
         id: 100 + i,
         name: `${sourceCategory.name} ${i+1}`,
         slug: `${sourceCategory.slug}-${i+1}`
       };
-      trimmedCategories.push(newCategory);
+      filledCategories.push(newCategory);
     }
   }
   
@@ -92,15 +110,18 @@ const CategoryGrid = ({ title = "دسته‌بندی‌ها", subtitle = "مجم
   for (let row = 0; row < 4; row++) {
     for (let col = 0; col < 7; col++) {
       const index = row * 7 + col;
-      const category = trimmedCategories[index];
-      
-      // Add to grid with position data
-      gridCategories.push({
-        id: category.id,
-        category,
-        row,
-        col
-      });
+      // Only add if we have enough categories
+      if (index < filledCategories.length) {
+        const category = filledCategories[index];
+        
+        // Add to grid with position data
+        gridCategories.push({
+          id: category.id,
+          category,
+          row,
+          col
+        });
+      }
     }
   }
   
@@ -112,7 +133,7 @@ const CategoryGrid = ({ title = "دسته‌بندی‌ها", subtitle = "مجم
     
     // Navigate after a short delay to allow animation
     setTimeout(() => {
-      navigate(`/category/${category.slug}`);
+      navigate(`/shop?category=${category.slug}`);
       
       // Reset state after navigation
       setTimeout(() => {
@@ -122,6 +143,22 @@ const CategoryGrid = ({ title = "دسته‌بندی‌ها", subtitle = "مجم
       }, 500);
     }, 800);
   };
+
+  if (isLoading) {
+    return (
+      <div className="py-8 text-center">
+        <div className="w-10 h-10 border-t-2 border-r-2 border-draugr-500 rounded-full animate-spin mx-auto"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="py-8 text-center">
+        <p className="text-red-400">{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div 

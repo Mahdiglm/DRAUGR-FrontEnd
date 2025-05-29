@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { products } from '../../utils/mockData';
+import productService from '../../services/productService';
 import productBackground from '../../assets/BackGround-Product.jpg';
 
 const ProductDetail = () => {
@@ -9,15 +9,44 @@ const ProductDetail = () => {
   const navigate = useNavigate();
   const { addToCart, showTemporaryMessage } = useOutletContext();
   const [quantity, setQuantity] = useState(1);
+  const [product, setProduct] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   
-  // Find the product by ID
-  const product = products.find(p => p.id === parseInt(id));
+  // Fetch product details from API
+  useEffect(() => {
+    const fetchProductDetails = async () => {
+      try {
+        setIsLoading(true);
+        const productData = await productService.getProductById(id);
+        setProduct(productData);
+      } catch (err) {
+        console.error('Error fetching product details:', err);
+        setError('خطا در دریافت اطلاعات محصول');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchProductDetails();
+  }, [id]);
   
-  // If product is not found
-  if (!product) {
+  // Loading state
+  if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <h2 className="text-2xl font-bold text-center mb-4">محصول مورد نظر یافت نشد</h2>
+        <div className="w-10 h-10 border-t-2 border-r-2 border-draugr-500 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+  
+  // Error state
+  if (error || !product) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+        <h2 className="text-2xl font-bold text-center mb-4">
+          {error || 'محصول مورد نظر یافت نشد'}
+        </h2>
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -41,13 +70,10 @@ const ProductDetail = () => {
     showTemporaryMessage(`${quantity} عدد ${product.name} به سبد خرید اضافه شد`);
   };
   
-  // Category translations
-  const categoryTranslations = {
-    'weapons': 'سلاح‌ها',
-    'armor': 'زره‌ها',
-    'potions': 'معجون‌ها',
-    'magic': 'اقلام جادویی'
-  };
+  // Ensure imageUrl is properly formatted
+  const formattedImageUrl = product.imageUrl?.startsWith('http') 
+    ? product.imageUrl 
+    : `${import.meta.env.VITE_API_URL}${product.imageUrl}`;
   
   return (
     <div 
@@ -117,7 +143,7 @@ const ProductDetail = () => {
               className="relative aspect-square rounded-lg overflow-hidden shadow-horror"
             >
               <img 
-                src={product.imageUrl} 
+                src={formattedImageUrl} 
                 alt={product.name} 
                 className="w-full h-full object-cover"
               />
@@ -133,7 +159,7 @@ const ProductDetail = () => {
             >
               {/* Category Badge */}
               <span className="text-sm bg-draugr-900 text-draugr-400 px-3 py-1 rounded-full w-fit mb-2">
-                {categoryTranslations[product.category] || product.category}
+                {product.category?.name || 'دسته‌بندی نشده'}
               </span>
               
               {/* Product Name */}
@@ -215,7 +241,7 @@ const ProductDetail = () => {
                   <tbody>
                     <tr className="border-b border-gray-700">
                       <td className="py-2 font-semibold">دسته‌بندی</td>
-                      <td className="py-2">{categoryTranslations[product.category] || product.category}</td>
+                      <td className="py-2">{product.category?.name || 'دسته‌بندی نشده'}</td>
                     </tr>
                     <tr className="border-b border-gray-700">
                       <td className="py-2 font-semibold">شناسه محصول</td>

@@ -198,12 +198,7 @@ const SearchIcon = () => (
 );
 
 // Default categories to use before API data is loaded
-const defaultCategories = [
-  { id: 1, name: "اکسسوری", slug: "accessories" },
-  { id: 2, name: "لباس", slug: "clothing" },
-  { id: 3, name: "کتاب", slug: "books" },
-  { id: 4, name: "طلسم", slug: "charms" }
-];
+const defaultCategories = [];
 
 // Animation variants for product grid
 const productContainerVariants = {
@@ -243,7 +238,7 @@ const ShopPage = () => {
   const [categories, setCategories] = useState(defaultCategories);
   
   // Create expanded categories from our state
-  const [expandedCategories, setExpandedCategories] = useState([...defaultCategories]);
+  const [expandedCategories, setExpandedCategories] = useState([]);
   
   // States for filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -257,23 +252,22 @@ const ShopPage = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Fetch products
-        const productsData = await productService.getProducts();
-        setProducts(productsData);
-        
-        // Fetch categories
+        // Fetch categories first
         const categoriesData = await productService.getCategories();
         setCategories(categoriesData);
+        setExpandedCategories(categoriesData);
         
-        // Update expanded categories with additional items
-        const additionalCategories = [
-          { id: 9, name: "کتاب‌های نادر", slug: "rare-books" },
-          { id: 10, name: "جواهرات", slug: "jewelry" },
-          { id: 11, name: "ابزارها", slug: "tools" },
-          { id: 12, name: "گیاهان", slug: "herbs" }
-        ];
+        // Fetch products with filter parameters
+        const filters = {
+          category: selectedCategories.length > 0 ? selectedCategories.join(',') : undefined,
+          search: searchTerm || undefined,
+          sortBy: sortBy || undefined,
+          page: currentPage,
+          perPage: 12
+        };
         
-        setExpandedCategories([...categoriesData, ...additionalCategories]);
+        const productsData = await productService.getProducts(filters);
+        setProducts(productsData);
       } catch (err) {
         console.error('Error fetching shop data:', err);
         setError('خطا در دریافت اطلاعات');
@@ -283,36 +277,13 @@ const ShopPage = () => {
     };
     
     fetchData();
-  }, []);
+  }, [selectedCategories, searchTerm, sortBy, currentPage]);
   
-  // Filter products based on criteria
-  const filteredProducts = products.filter(product => {
-    // Search term filter
-    const matchesSearch = searchTerm === '' || 
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchTerm.toLowerCase());
-      
-    // Category filter
-    const matchesCategory = selectedCategories.length === 0 || 
-      selectedCategories.includes(product.category);
-    
-    return matchesSearch && matchesCategory;
-  });
+  // Filter products based on criteria - now handled by backend
+  const filteredProducts = products;
   
-  // Sort products
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    switch(sortBy) {
-      case 'price-low':
-        return a.price - b.price;
-      case 'price-high':
-        return b.price - a.price;
-      case 'name':
-        return a.name.localeCompare(b.name);
-      case 'newest':
-      default:
-        return b.id - a.id; // Using ID as a proxy for newness
-    }
-  });
+  // Sort products - now handled by backend
+  const sortedProducts = products;
   
   // Reset filters
   const resetFilters = () => {

@@ -5,7 +5,7 @@ import { useOutletContext, Link } from 'react-router-dom';
 import ProductList from '../product/ProductList';
 import FeaturedProductSlider from '../product/FeaturedProductSlider';
 import CategoryGrid from '../shared/CategoryGrid';
-import { products } from '../../utils/mockData';
+import productService from '../../services/productService';
 import { safeBlur, safeFilterTransition, isLowPerformanceDevice, getOptimizedAnimationSettings } from '../../utils/animationHelpers';
 // Try with relative path to asset folder
 import heroBackground from '../../assets/Background-Hero.jpg';
@@ -16,10 +16,35 @@ const HomePage = () => {
   const heroRef = useRef(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLowPerformance, setIsLowPerformance] = useState(false);
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [error, setError] = useState(null);
   
   // Check device performance on mount
   useEffect(() => {
     setIsLowPerformance(isLowPerformanceDevice());
+  }, []);
+  
+  // Fetch products from API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        // Get all products
+        const productsData = await productService.getProducts();
+        setProducts(productsData);
+        
+        // For featured products, we'll just use the first 5 for now
+        // In a real app, you might have a featured flag in the database
+        setFeaturedProducts(productsData.slice(0, 5));
+      } catch (err) {
+        console.error('Error fetching products:', err);
+        setError('خطا در دریافت محصولات');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchProducts();
   }, []);
   
   // Handle initial loading - immediate load
@@ -33,9 +58,6 @@ const HomePage = () => {
     if ('scrollRestoration' in history) {
       history.scrollRestoration = 'manual';
     }
-    
-    // Hide loader immediately
-    setIsLoading(false);
   }, []);
   
   // Parallax effect
@@ -185,212 +207,53 @@ const HomePage = () => {
           </div>
         </motion.section>
 
-        {/* Featured Products */}
-        <motion.section 
-          className="py-8 sm:py-10 md:py-12 bg-gradient-to-b from-charcoal to-midnight w-full relative overflow-hidden"
-          style={{
-            backgroundImage: `url(${mainBackground})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat'
-          }}
-        >
-          {/* Dark overlay for better readability */}
-          <div className="absolute inset-0 bg-black bg-opacity-70 z-0"></div>
+        {/* Featured Products Section */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 py-6">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-center text-white">
+            محصولات <span className="text-draugr-500">ویژه</span>
+          </h2>
           
-          {/* Top gradient overlay for smooth transition from hero section */}
-          <div 
-            className="absolute top-0 left-0 right-0 h-32 z-0" 
-            style={{
-              background: 'linear-gradient(to top, transparent, rgba(0, 0, 0, 0.95))',
-              pointerEvents: 'none'
-            }}
-          ></div>
-          
-          {/* Bottom gradient overlay for smooth transition to footer */}
-          <div 
-            className="absolute bottom-0 left-0 right-0 h-32 z-0" 
-            style={{
-              background: 'linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.95))',
-              pointerEvents: 'none'
-            }}
-          ></div>
-          
-          {/* Subtle fog animations in background - Using will-change for performance */}
-          <div className="absolute inset-0 z-[1] opacity-20" style={{ willChange: 'transform' }}>
-            <motion.div 
-              className="absolute inset-0"
-              animate={{ 
-                backgroundPosition: ['0% 0%', '100% 100%']
-              }}
-              transition={{ 
-                duration: 60, 
-                ease: "linear", 
-                repeat: Infinity,
-                repeatType: "reverse" 
-              }}
-              style={{
-                backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 2000 2000\' fill=\'none\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\' opacity=\'0.4\'/%3E%3C/svg%3E")',
-                backgroundSize: '200% 200%',
-                willChange: 'background-position'
-              }}
-            />
-          </div>
-          
-          {/* Content container with enhanced styling */}
-          <div className="relative z-10 container mx-auto px-4">
-            <div className="mb-4 text-center">
-              <h2 className="text-3xl md:text-4xl font-bold text-white text-shadow-horror mb-2">
-                <span className="relative inline-block">
-                  محصولات ویژه
-                  <motion.span 
-                    className="absolute -bottom-2 left-0 right-0 h-0.5 bg-draugr-500"
-                    style={{ width: '100%' }}
-                  ></motion.span>
-                </span>
-              </h2>
-              <p className="text-gray-400 max-w-2xl mx-auto mb-2">محصولات برتر و منحصر به فرد ما را کشف کنید، هر کدام با ویژگی‌های خاص طراحی شده‌اند.</p>
+          {error ? (
+            <div className="text-center py-8">
+              <p className="text-red-400">{error}</p>
             </div>
-            
-            {/* Ensure products are available before rendering slider 
-                Apply key for proper remounting when props change */}
-            {products && products.length > 0 && (
-              <FeaturedProductSlider 
-                key="featured-product-slider"
-                products={products} 
-                onAddToCart={addToCart} 
-              />
-            )}
-            
-            <div className="text-center mt-12">
-              <Link to="/shop">
-                <motion.div 
-                  className="inline-block relative"
-                  whileHover="hover"
-                  initial="rest"
-                  animate="rest"
-                >
-                  {/* Main button */}
-                  <motion.button
-                    className="bg-black text-red-100 font-bold py-3 px-10 relative z-10
-                              border border-red-900/50 rounded
-                              flex items-center justify-center gap-3"
-                    variants={{
-                      rest: { scale: 1 },
-                      hover: { scale: 1.03 }
-                    }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    {/* Left chevron */}
-                    <motion.svg 
-                      width="16" 
-                      height="16" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      xmlns="http://www.w3.org/2000/svg"
-                      variants={{
-                        rest: { x: 0, opacity: 0.7 },
-                        hover: { x: -5, opacity: 1 }
-                      }}
-                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                      className="text-red-500"
-                    >
-                      <path d="M15 6L9 12L15 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </motion.svg>
-
-                    <span>مشاهده همه محصولات</span>
-
-                    {/* Right chevron */}
-                    <motion.svg 
-                      width="16" 
-                      height="16" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      xmlns="http://www.w3.org/2000/svg"
-                      variants={{
-                        rest: { x: 0, opacity: 0.7 },
-                        hover: { x: 5, opacity: 1 }
-                      }}
-                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                      className="text-red-500"
-                    >
-                      <path d="M9 6L15 12L9 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </motion.svg>
-                  </motion.button>
-
-                  {/* Background animated glow/frame effect */}
-                  <motion.div 
-                    className="absolute inset-0 -z-10 bg-gradient-to-r from-red-900/0 via-red-700/50 to-red-900/0 rounded-lg blur-md"
-                    variants={{
-                      rest: { opacity: 0, scale: 0.95 },
-                      hover: { opacity: 1, scale: 1.05 }
-                    }}
-                  ></motion.div>
-
-                  {/* Corner accents (Norse-inspired) */}
-                  <motion.div 
-                    className="absolute -top-1 -left-1 w-3 h-3 border-t-2 border-l-2 border-red-600"
-                    variants={{
-                      rest: { opacity: 0.4 },
-                      hover: { opacity: 1 }
-                    }}
-                  ></motion.div>
-                  <motion.div 
-                    className="absolute -top-1 -right-1 w-3 h-3 border-t-2 border-r-2 border-red-600"
-                    variants={{
-                      rest: { opacity: 0.4 },
-                      hover: { opacity: 1 }
-                    }}
-                  ></motion.div>
-                  <motion.div 
-                    className="absolute -bottom-1 -left-1 w-3 h-3 border-b-2 border-l-2 border-red-600"
-                    variants={{
-                      rest: { opacity: 0.4 },
-                      hover: { opacity: 1 }
-                    }}
-                  ></motion.div>
-                  <motion.div 
-                    className="absolute -bottom-1 -right-1 w-3 h-3 border-b-2 border-r-2 border-red-600"
-                    variants={{
-                      rest: { opacity: 0.4 },
-                      hover: { opacity: 1 }
-                    }}
-                  ></motion.div>
-                </motion.div>
-              </Link>
+          ) : isLoading ? (
+            <div className="text-center py-12">
+              <div className="w-10 h-10 border-t-2 border-r-2 border-draugr-500 rounded-full animate-spin mx-auto"></div>
             </div>
+          ) : (
+            <FeaturedProductSlider products={featuredProducts} onAddToCart={addToCart} />
+          )}
+        </div>
+
+        {/* Product Categories Grid */}
+        <motion.section className="py-12 bg-gradient-to-b from-midnight to-charcoal">
+          <div className="max-w-7xl mx-auto px-4">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-8 text-center text-white">
+              دسته‌بندی‌های <span className="text-draugr-500">محبوب</span>
+            </h2>
+            <CategoryGrid />
           </div>
         </motion.section>
 
-        {/* Category Grid Section */}
-        <motion.section 
-          className="py-6 sm:py-8 md:py-10 w-full relative overflow-hidden"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true, margin: "-100px" }}
-        >
-          {/* Content container - full width */}
-          <div className="relative z-10 w-full px-0">
-            {/* Section header with enhanced styling */}
-            <div className="mb-4 text-center px-4">
-              <h2 className="text-3xl md:text-4xl font-bold text-white text-shadow-horror mb-2">
-                <span className="relative inline-block">
-                  دسته‌بندی‌های محصولات
-                  <motion.span 
-                    className="absolute -bottom-2 left-0 right-0 h-0.5 bg-draugr-500"
-                    style={{ width: '100%' }}
-                  ></motion.span>
-                </span>
-              </h2>
-              <p className="text-gray-400 max-w-2xl mx-auto mb-2">مجموعه‌ای از محصولات منحصر به فرد در دسته‌بندی‌های مختلف</p>
-            </div>
+        {/* Featured Products List */}
+        <motion.section className="py-12 bg-gradient-to-b from-charcoal to-midnight">
+          <div className="max-w-7xl mx-auto px-4">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center text-white">
+              محصولات <span className="text-draugr-500">جدید</span>
+            </h2>
             
-            {/* Category Grid with fixed positions - full width */}
-            <CategoryGrid 
-              title="" 
-              subtitle=""
-            />
+            {error ? (
+              <div className="text-center py-8">
+                <p className="text-red-400">{error}</p>
+              </div>
+            ) : isLoading ? (
+              <div className="text-center py-12">
+                <div className="w-10 h-10 border-t-2 border-r-2 border-draugr-500 rounded-full animate-spin mx-auto"></div>
+              </div>
+            ) : (
+              <ProductList products={products} onAddToCart={addToCart} />
+            )}
           </div>
         </motion.section>
       </div>

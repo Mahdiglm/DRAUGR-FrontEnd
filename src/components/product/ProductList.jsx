@@ -7,27 +7,20 @@ const ProductList = ({ products = [], onAddToCart, title = "محصولات", bac
   const [selectedCategory, setSelectedCategory] = useState('all');
   
   // Extract unique categories from products
-  const categories = ['all', ...new Set(products.map(product => product.category))];
+  const uniqueCategories = products.reduce((acc, product) => {
+    if (product.category && !acc.find(cat => cat.slug === product.category.slug)) {
+      acc.push(product.category);
+    }
+    return acc;
+  }, []);
   
-  // Category translations for Persian display
-  const categoryTranslations = {
-    'all': 'همه',
-    'clothing': 'پوشاک',
-    'electronics': 'الکترونیک',
-    'home': 'خانه',
-    'accessories': 'اکسسوری',
-    'books': 'کتاب',
-    'weapons': 'سلاح‌ها',
-    'armor': 'زره‌ها',
-    'potions': 'معجون‌ها',
-    'magic': 'اقلام جادویی',
-    'rare_books': 'کتاب‌های نایاب'
-  };
+  // Add "all" category to the beginning
+  const categories = [{ slug: 'all', name: 'همه' }, ...uniqueCategories];
   
   // Filter products based on selected category
   const filteredProducts = selectedCategory === 'all'
     ? products
-    : products.filter(product => product.category === selectedCategory);
+    : products.filter(product => product.category && product.category.slug === selectedCategory);
   
   // Get background styling if needed
   const getBackgroundStyling = () => {
@@ -95,10 +88,10 @@ const ProductList = ({ products = [], onAddToCart, title = "محصولات", bac
         <div className="flex flex-wrap justify-center mb-8 sm:mb-12 space-x-0 gap-3 sm:gap-4 md:gap-5 overflow-visible pb-4 pt-2 rtl">
           {categories.map(category => (
             <motion.button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
+              key={category.slug}
+              onClick={() => setSelectedCategory(category.slug)}
               className={`px-4 sm:px-6 py-2 rounded-full text-sm transition-all duration-300 min-w-[80px] sm:min-w-[100px] ${
-                selectedCategory === category 
+                selectedCategory === category.slug 
                   ? 'bg-black text-white font-medium shadow-md' 
                   : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
               }`}
@@ -108,7 +101,7 @@ const ProductList = ({ products = [], onAddToCart, title = "محصولات", bac
               }}
               whileTap={{ scale: 0.95 }}
             >
-              {categoryTranslations[category] || category}
+              {category.name}
             </motion.button>
           ))}
         </div>
