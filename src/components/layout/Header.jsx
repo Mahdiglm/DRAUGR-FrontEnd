@@ -253,10 +253,10 @@ const Header = ({ cartItems, onCartClick }) => {
                       {user.email}
                     </p>
                   </div>
-                  <Link to="/profile" className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors">
-                    پروفایل کاربری
+                  <Link to="/dashboard/profile" className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors">
+                    داشبورد کاربری
                   </Link>
-                  <Link to="/orders" className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors">
+                  <Link to="/dashboard/orders" className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors">
                     سفارشات من
                   </Link>
                   <button 
@@ -360,14 +360,14 @@ const Header = ({ cartItems, onCartClick }) => {
                         </div>
                       </div>
                       <Link 
-                        to="/profile" 
+                        to="/dashboard/profile" 
                         className="block px-4 py-3 font-medium text-sm text-gray-300 hover:bg-vampire-darker transition-colors"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        پروفایل کاربری
+                        داشبورد کاربری
                       </Link>
                       <Link 
-                        to="/orders" 
+                        to="/dashboard/orders" 
                         className="block px-4 py-3 font-medium text-sm text-gray-300 hover:bg-vampire-darker transition-colors"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >

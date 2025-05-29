@@ -50,6 +50,9 @@ import SpecialOffersPage from './components/pages/SpecialOffersPage';
 import ProfilePage from './components/pages/ProfilePage';
 import OrdersPage from './components/pages/OrdersPage';
 
+// Dashboard components
+import { Dashboard } from './components/dashboard';
+
 // Context Providers
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
@@ -76,6 +79,9 @@ createRoot(document.getElementById('root')).render(
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="orders" element={<OrdersPage />} />
                 <Route path="orders/:id" element={<OrdersPage />} />
+                
+                {/* Dashboard routes */}
+                <Route path="dashboard/*" element={<Dashboard />} />
               </Route>
             </Routes>
           </HashRouter>
