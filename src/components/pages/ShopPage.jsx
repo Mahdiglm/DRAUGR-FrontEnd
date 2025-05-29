@@ -255,8 +255,10 @@ const ShopPage = () => {
       try {
         // Fetch categories first
         const categoriesData = await productService.getCategories();
-        setCategories(categoriesData);
-        setExpandedCategories(categoriesData);
+        // Ensure categoriesData is an array before setting state
+        const validCategories = Array.isArray(categoriesData) ? categoriesData : [];
+        setCategories(validCategories);
+        setExpandedCategories(validCategories);
         
         // Fetch products with filter parameters
         const filters = {
