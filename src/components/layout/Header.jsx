@@ -224,60 +224,47 @@ const Header = ({ cartItems, onCartClick }) => {
             }}
             whileTap={{ scale: 0.95 }}
             className="relative cursor-pointer"
-            onClick={toggleAuthMenu}
+            onClick={isAuthenticated ? toggleAuthMenu : () => navigate('/login')}
             ref={authMenuRef}
           >
             <img 
               src={user?.profileImage || pfpIcon} 
-              alt={user ? `${user.firstName} ${user.lastName}` : "Profile"} 
-              className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full object-cover border-2 border-draugr-600 transition-all duration-300"
+              alt={user ? `${user.firstName} ${user.lastName}` : "پروفایل"} 
+              className={`w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full object-cover border-2 ${isAuthenticated ? 'border-draugr-600' : 'border-gray-700'} transition-all duration-300`}
             />
             {isAuthenticated && (
               <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border border-black"></div>
             )}
             
-            {/* Auth dropdown menu */}
+            {/* Auth dropdown menu - only show for authenticated users */}
             <AnimatePresence>
-              {showAuthMenu && (
+              {showAuthMenu && isAuthenticated && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   className="absolute top-full right-0 mt-2 w-48 bg-gray-900 border border-draugr-900 rounded-md shadow-lg py-1 z-50"
                 >
-                  {isAuthenticated ? (
-                    <>
-                      <div className="px-4 py-2 border-b border-gray-800 text-sm">
-                        <p className="text-white font-semibold truncate">
-                          {user.firstName} {user.lastName}
-                        </p>
-                        <p className="text-gray-400 text-xs truncate">
-                          {user.email}
-                        </p>
-                      </div>
-                      <Link to="/profile" className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors">
-                        پروفایل کاربری
-                      </Link>
-                      <Link to="/orders" className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors">
-                        سفارشات من
-                      </Link>
-                      <button 
-                        onClick={handleLogout}
-                        className="block w-full text-right px-4 py-2 text-sm text-draugr-400 hover:bg-gray-800 transition-colors"
-                      >
-                        خروج از حساب کاربری
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <Link to="/login" className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors">
-                        ورود
-                      </Link>
-                      <Link to="/signup" className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors">
-                        ثبت نام
-                      </Link>
-                    </>
-                  )}
+                  <div className="px-4 py-2 border-b border-gray-800 text-sm">
+                    <p className="text-white font-semibold truncate">
+                      {user.firstName} {user.lastName}
+                    </p>
+                    <p className="text-gray-400 text-xs truncate">
+                      {user.email}
+                    </p>
+                  </div>
+                  <Link to="/profile" className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors">
+                    پروفایل کاربری
+                  </Link>
+                  <Link to="/orders" className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors">
+                    سفارشات من
+                  </Link>
+                  <button 
+                    onClick={handleLogout}
+                    className="block w-full text-right px-4 py-2 text-sm text-draugr-400 hover:bg-gray-800 transition-colors"
+                  >
+                    خروج از حساب کاربری
+                  </button>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -360,7 +347,7 @@ const Header = ({ cartItems, onCartClick }) => {
                       <div className="flex items-center px-4 py-2 mb-2">
                         <img 
                           src={user?.profileImage || pfpIcon} 
-                          alt="Profile" 
+                          alt="پروفایل" 
                           className="w-8 h-8 rounded-full object-cover border-2 border-draugr-600 mr-3" 
                         />
                         <div>
@@ -400,17 +387,22 @@ const Header = ({ cartItems, onCartClick }) => {
                     <>
                       <Link 
                         to="/login" 
-                        className="block px-4 py-3 font-medium text-sm text-gray-300 hover:bg-vampire-darker transition-colors"
+                        className="block px-4 py-3 font-medium text-sm text-gray-300 hover:bg-vampire-darker transition-colors flex items-center"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        ورود
+                        <img 
+                          src={pfpIcon} 
+                          alt="پروفایل" 
+                          className="w-7 h-7 rounded-full border border-gray-700 ml-2" 
+                        />
+                        ورود به حساب کاربری
                       </Link>
                       <Link 
                         to="/signup" 
                         className="block px-4 py-3 font-medium text-sm text-gray-300 hover:bg-vampire-darker transition-colors"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        ثبت نام
+                        ثبت نام در سایت
                       </Link>
                     </>
                   )}

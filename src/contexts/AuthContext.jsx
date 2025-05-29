@@ -87,7 +87,7 @@ export const AuthProvider = ({ children }) => {
       
       return response;
     } catch (err) {
-      setError(err.message || 'Login failed');
+      setError(err.message || 'خطا در ورود به سیستم');
       throw err;
     } finally {
       setLoading(false);
@@ -108,7 +108,7 @@ export const AuthProvider = ({ children }) => {
       
       return response;
     } catch (err) {
-      setError(err.message || 'Registration failed');
+      setError(err.message || 'خطا در ثبت نام');
       throw err;
     } finally {
       setLoading(false);
@@ -131,7 +131,7 @@ export const AuthProvider = ({ children }) => {
       setUser(response.user);
       return response;
     } catch (err) {
-      setError(err.message || 'Failed to update profile');
+      setError(err.message || 'خطا در بروزرسانی پروفایل');
       throw err;
     } finally {
       setLoading(false);

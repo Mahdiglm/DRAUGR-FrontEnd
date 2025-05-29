@@ -8,7 +8,7 @@ const handleResponse = async (response) => {
   try {
     // First check for unauthorized response
     if (response.status === 401) {
-      throw new Error('Unauthorized');
+      throw new Error('عدم دسترسی: نیاز به ورود مجدد به سیستم دارید');
     }
     
     // Try to parse JSON response
@@ -21,13 +21,44 @@ const handleResponse = async (response) => {
         data = JSON.parse(text);
       } catch (parseError) {
         console.error('Error parsing API response:', parseError);
-        throw new Error(`Invalid response format: ${text.substring(0, 100)}`);
+        throw new Error('خطا در دریافت پاسخ از سرور');
       }
     }
     
     if (!response.ok) {
-      // If the server response includes an error message, use it
-      const errorMessage = data.message || data.error || response.statusText;
+      // Translate common error messages to Persian
+      let errorMessage = data.message || data.error || response.statusText;
+      
+      // Common error message translations
+      const errorTranslations = {
+        'Email is already registered': 'این ایمیل قبلاً در سیستم ثبت شده است',
+        'Email already registered': 'این ایمیل قبلاً در سیستم ثبت شده است',
+        'Invalid credentials': 'نام کاربری یا رمز عبور نادرست است',
+        'User not found': 'کاربر یافت نشد',
+        'Invalid password': 'رمز عبور نادرست است',
+        'Email is required': 'ایمیل الزامی است',
+        'Password is required': 'رمز عبور الزامی است',
+        'Unauthorized': 'عدم دسترسی: لطفا مجددا وارد شوید',
+        'Invalid token': 'نشست شما منقضی شده است، لطفاً دوباره وارد شوید',
+        'Password too weak': 'رمز عبور انتخاب شده ضعیف است',
+        'Invalid email format': 'فرمت ایمیل نادرست است',
+        'Not Found': 'یافت نشد',
+        'Internal Server Error': 'خطای داخلی سرور'
+      };
+      
+      // Check for exact matches
+      if (errorTranslations[errorMessage]) {
+        errorMessage = errorTranslations[errorMessage];
+      } else {
+        // Check for partial matches
+        for (const [engText, persianText] of Object.entries(errorTranslations)) {
+          if (errorMessage.toLowerCase().includes(engText.toLowerCase())) {
+            errorMessage = persianText;
+            break;
+          }
+        }
+      }
+      
       throw new Error(errorMessage);
     }
     

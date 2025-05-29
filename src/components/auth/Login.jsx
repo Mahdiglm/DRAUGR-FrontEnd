@@ -57,20 +57,26 @@ const Login = () => {
       // Redirect to home page after successful login
       navigate('/');
     } catch (err) {
-      // Display error from auth context or set specific form errors
-      if (err.message.includes('email')) {
+      // Check for common error patterns and set Persian error messages
+      const errorMsg = err.message || '';
+      
+      if (errorMsg.toLowerCase().includes('email') || 
+          errorMsg.toLowerCase().includes('user') || 
+          errorMsg.toLowerCase().includes('کاربر')) {
         setErrors(prev => ({
           ...prev,
-          email: 'ایمیل نادرست است'
+          email: 'ایمیل نادرست یا ثبت نشده است'
         }));
-      } else if (err.message.includes('password')) {
+      } else if (errorMsg.toLowerCase().includes('password') || 
+                errorMsg.toLowerCase().includes('credentials') || 
+                errorMsg.toLowerCase().includes('رمز عبور')) {
         setErrors(prev => ({
           ...prev,
           password: 'رمز عبور نادرست است'
         }));
       } else {
         // General error (displayed by AuthContext)
-        console.error('Login error:', err);
+        console.error('خطا در ورود به سیستم:', err);
       }
     }
   };

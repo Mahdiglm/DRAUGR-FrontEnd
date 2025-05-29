@@ -119,15 +119,26 @@ const SignUp = () => {
       // Redirect to home page after successful registration
       navigate('/');
     } catch (err) {
-      // Handle specific errors
-      if (err.message.includes('email')) {
+      // Handle specific errors - translate them to Persian
+      const errorMsg = err.message || '';
+      if (errorMsg.toLowerCase().includes('email') && errorMsg.toLowerCase().includes('already registered')) {
         setErrors(prev => ({
           ...prev,
-          email: 'این ایمیل قبلا ثبت شده است'
+          email: 'این ایمیل قبلاً در سیستم ثبت شده است'
+        }));
+      } else if (errorMsg.toLowerCase().includes('email') && errorMsg.toLowerCase().includes('invalid')) {
+        setErrors(prev => ({
+          ...prev,
+          email: 'فرمت ایمیل نامعتبر است'
+        }));
+      } else if (errorMsg.toLowerCase().includes('password') && errorMsg.toLowerCase().includes('weak')) {
+        setErrors(prev => ({
+          ...prev,
+          password: 'رمز عبور باید حداقل ۸ کاراکتر با ترکیبی از حروف و اعداد باشد'
         }));
       } else {
         // General error (displayed by AuthContext)
-        console.error('Registration error:', err);
+        console.error('خطا در ثبت نام:', err);
       }
     }
   };
