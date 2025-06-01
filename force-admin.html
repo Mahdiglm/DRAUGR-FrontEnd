@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Force Admin Access</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .container {
+      background-color: #1e1e1e;
+      border-radius: 8px;
+      padding: 30px;
+      max-width: 500px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+    h1 {
+      color: #ff3e3e;
+      margin-top: 0;
+    }
+    .button {
+      background-color: #ff3e3e;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 0;
+      width: 100%;
+      transition: background-color 0.3s;
+    }
+    .button:hover {
+      background-color: #cf3232;
+    }
+    .button:disabled {
+      background-color: #555;
+      cursor: not-allowed;
+    }
+    .status {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 4px;
+    }
+    .success {
+      background-color: rgba(0, 128, 0, 0.2);
+      border: 1px solid #006400;
+      color: #00cc00;
+    }
+    .error {
+      background-color: rgba(255, 0, 0, 0.2);
+      border: 1px solid #8b0000;
+      color: #ff5555;
+    }
+    .warning {
+      background-color: rgba(255, 165, 0, 0.2);
+      border: 1px solid #b37400;
+      color: #ffaa00;
+    }
+    .hidden {
+      display: none;
+    }
+    .code {
+      background-color: #2a2a2a;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-family: monospace;
+      margin: 10px 0;
+    }
+    a {
+      color: #ff3e3e;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Admin Access Tools</h1>
+    
+    <p>These utilities help you troubleshoot admin access in the Draugr app.</p>
+    
+    <div id="userStatus" class="status warning">
+      Checking login status...
+    </div>
+    
+    <button id="makeAdminBtn" class="button" disabled>Make Current User Admin</button>
+    <button id="makeRegularBtn" class="button" disabled>Make Current User Regular</button>
+    
+    <div class="code">
+      // You can also run this in your browser console:<br>
+      const user = JSON.parse(localStorage.getItem('user'));<br>
+      user.role = 1; // 1 for admin, 0 for regular<br>
+      localStorage.setItem('user', JSON.stringify(user));<br>
+      window.location.reload();<br>
+    </div>
+    
+    <p>
+      <a href="/dashboard/admin" id="adminDashboardLink">Go to Admin Dashboard</a> |
+      <a href="/admin-login">Go to Admin Login</a> |
+      <a href="/">Back to Home</a>
+    </p>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const userStatusEl = document.getElementById('userStatus');
+      const makeAdminBtn = document.getElementById('makeAdminBtn');
+      const makeRegularBtn = document.getElementById('makeRegularBtn');
+      const adminDashboardLink = document.getElementById('adminDashboardLink');
+      
+      function updateUserStatus() {
+        try {
+          const userData = localStorage.getItem('user');
+          
+          if (!userData) {
+            userStatusEl.textContent = 'No user logged in. Please log in first.';
+            userStatusEl.className = 'status error';
+            makeAdminBtn.disabled = true;
+            makeRegularBtn.disabled = true;
+            adminDashboardLink.href = '/login';
+            return;
+          }
+          
+          const user = JSON.parse(userData);
+          const isAdmin = user.role === 1;
+          
+          if (isAdmin) {
+            userStatusEl.textContent = `Logged in as ${user.firstName} ${user.lastName} (${user.email}) - ADMIN ACCESS GRANTED`;
+            userStatusEl.className = 'status success';
+            makeAdminBtn.disabled = true;
+            makeRegularBtn.disabled = false;
+          } else {
+            userStatusEl.textContent = `Logged in as ${user.firstName} ${user.lastName} (${user.email}) - Regular user`;
+            userStatusEl.className = 'status warning';
+            makeAdminBtn.disabled = false;
+            makeRegularBtn.disabled = true;
+          }
+        } catch (error) {
+          userStatusEl.textContent = 'Error checking user status: ' + error.message;
+          userStatusEl.className = 'status error';
+          makeAdminBtn.disabled = true;
+          makeRegularBtn.disabled = true;
+        }
+      }
+      
+      makeAdminBtn.addEventListener('click', function() {
+        try {
+          const userData = localStorage.getItem('user');
+          
+          if (!userData) {
+            userStatusEl.textContent = 'No user logged in. Please log in first.';
+            userStatusEl.className = 'status error';
+            return;
+          }
+          
+          const user = JSON.parse(userData);
+          user.role = 1;
+          localStorage.setItem('user', JSON.stringify(user));
+          
+          updateUserStatus();
+          userStatusEl.textContent += ' - Role updated successfully!';
+        } catch (error) {
+          userStatusEl.textContent = 'Error updating user role: ' + error.message;
+          userStatusEl.className = 'status error';
+        }
+      });
+      
+      makeRegularBtn.addEventListener('click', function() {
+        try {
+          const userData = localStorage.getItem('user');
+          
+          if (!userData) {
+            userStatusEl.textContent = 'No user logged in. Please log in first.';
+            userStatusEl.className = 'status error';
+            return;
+          }
+          
+          const user = JSON.parse(userData);
+          user.role = 0;
+          localStorage.setItem('user', JSON.stringify(user));
+          
+          updateUserStatus();
+          userStatusEl.textContent += ' - Role updated successfully!';
+        } catch (error) {
+          userStatusEl.textContent = 'Error updating user role: ' + error.message;
+          userStatusEl.className = 'status error';
+        }
+      });
+      
+      // Initialize
+      updateUserStatus();
+    });
+  </script>
+</body>
+</html> 
