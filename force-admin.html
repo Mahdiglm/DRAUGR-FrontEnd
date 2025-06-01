@@ -109,9 +109,9 @@
     </div>
     
     <p>
-      <a href="/dashboard/admin" id="adminDashboardLink">Go to Admin Dashboard</a> |
-      <a href="/admin-login">Go to Admin Login</a> |
-      <a href="/">Back to Home</a>
+      <a href="#/dashboard/admin" id="adminDashboardLink">Go to Admin Dashboard</a> |
+      <a href="#/admin-login">Go to Admin Login</a> |
+      <a href="#/">Back to Home</a>
     </p>
   </div>
 
@@ -131,7 +131,7 @@
             userStatusEl.className = 'status error';
             makeAdminBtn.disabled = true;
             makeRegularBtn.disabled = true;
-            adminDashboardLink.href = '/login';
+            adminDashboardLink.href = '#/login';
             return;
           }
           
