@@ -255,10 +255,12 @@ const Header = ({ cartItems, onCartClick }) => {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -10, scale: 0.95 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
-                    className="absolute right-0 mt-2 w-48 bg-black bg-opacity-50 border border-draugr-900/30 rounded-lg shadow-xl z-50 text-right backdrop-blur-sm" 
+                    className="absolute mt-2 w-48 bg-black bg-opacity-50 border border-draugr-900/30 rounded-lg shadow-xl z-50 text-right backdrop-blur-sm" 
                     dir="rtl"
                     style={{ 
-                      boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3), 0 0 10px rgba(139, 0, 0, 0.15)'
+                      boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3), 0 0 10px rgba(139, 0, 0, 0.15)',
+                      right: '-75px',
+                      transformOrigin: 'top right'
                     }}
                   >
                     <div className="p-3 border-b border-gray-700">
@@ -426,8 +428,8 @@ const Header = ({ cartItems, onCartClick }) => {
               
               {/* Mobile Navigation Links with improved scrolling and touch targets */}
               <div className="flex-1 overflow-y-auto overscroll-contain scrollbar-thin scrollbar-track-draugr-950 scrollbar-thumb-draugr-800">
-                <div className="py-2 px-3 overflow-y-auto">
-                  <div className="flex flex-col">
+                <div className="py-2 px-4 overflow-y-auto">
+                  <div className="flex flex-col pr-1">
                     {navigationItems.map((item, index) => (
                       <MobileNavLink 
                         key={index}
