@@ -578,10 +578,10 @@ const NavLink = ({ to, label, isNested = false, navItem }) => {
       {/* Enhanced dropdown menu with premium minimal design */}
       {isNested && isHovering && (navItem.name === "فروشگاه" || navItem.name === "پیشنهادات ویژه") && (
         <motion.div
-          initial={{ opacity: 0, y: 5 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 5 }}
-          transition={{ duration: 0.15, ease: "easeOut" }}
+          initial={{ opacity: 0, y: 10, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 5, scale: 0.98 }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
           className="absolute top-full right-0 mt-1.5 py-4 bg-black border-[0.5px] border-draugr-800/70 shadow-xl rounded-md z-10 overflow-hidden min-w-fit text-right backdrop-blur-lg"
           style={{ 
             minWidth: navItem.name === "پیشنهادات ویژه" ? '550px' : '600px',
@@ -713,10 +713,10 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
       {/* Improved subcategories for mobile - better spacing and touch targets */}
       {isNested && isExpanded && navItem.subcategories && navItem.subcategories.length > 0 && (
         <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.25 }}
+          initial={{ opacity: 0, height: 0, scale: 0.98 }}
+          animate={{ opacity: 1, height: 'auto', scale: 1 }}
+          exit={{ opacity: 0, height: 0, scale: 0.98 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
           className="mx-2 mb-2 overflow-hidden rounded-md border-[0.5px] border-draugr-900/50 bg-gradient-to-b from-black/40 to-draugr-950/30"
         >
           {/* Mobile categories - improved touch targets */}
