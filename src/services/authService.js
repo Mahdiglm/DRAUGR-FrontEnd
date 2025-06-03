@@ -49,13 +49,14 @@ const authService = {
   },
   
   // Get current user data
-  getCurrentUser: () => {
+  getCurrentUser: async () => {
     try {
-      const user = localStorage.getItem('user');
-      return user ? JSON.parse(user) : null;
+      const token = localStorage.getItem('token');
+      if (!token) return null;
+      
+      return await api.get('/api/auth/user');
     } catch (error) {
-      console.error('Failed to parse user from localStorage', error);
-      return null;
+      throw error;
     }
   },
   
@@ -87,11 +88,11 @@ const authService = {
   // Change password
   changePassword: async (currentPassword, newPassword) => {
     try {
-      // Include the password change in the profile update
-      return await api.put('/api/auth/user', { 
-        currentPassword, 
-        password: newPassword 
+      const response = await api.put('/api/auth/user/password', {
+        currentPassword,
+        newPassword
       });
+      return response;
     } catch (error) {
       throw error;
     }
