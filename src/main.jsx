@@ -67,6 +67,11 @@ createRoot(document.getElementById('root')).render(
                 <Route path="special-offers/:id" element={<SpecialOffersPage />} />
                 <Route path="order-tracking" element={<OrderTrackingPage />} />
                 <Route path="dashboard" element={<UserDashboard />} />
+                <Route path="dashboard/orders" element={<UserDashboard />} />
+                <Route path="dashboard/profile" element={<UserDashboard />} />
+                <Route path="dashboard/wishlist" element={<UserDashboard />} />
+                <Route path="dashboard/addresses" element={<UserDashboard />} />
+                <Route path="dashboard/reviews" element={<UserDashboard />} />
                 <Route path="order/:id" element={<OrderTrackingPage />} />
               </Route>
             </Routes>
