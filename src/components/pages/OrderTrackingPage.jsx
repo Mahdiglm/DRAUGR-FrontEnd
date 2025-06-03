@@ -259,7 +259,7 @@ const OrderTrackingPage = () => {
                       <div className="relative">
                         {/* Timeline track */}
                         <div className="absolute top-1/2 right-0 left-0 h-1 bg-gray-700 transform -translate-y-1/2 z-0"
-                             style={{ top: 'calc(50% + 10px)' }}></div>
+                             style={{ top: 'calc(50% + 4px)' }}></div>
                         
                         {/* Completed track - Now starting from right for RTL */}
                         <motion.div 
@@ -269,7 +269,7 @@ const OrderTrackingPage = () => {
                             width: `${(getCurrentStepIndex(orderDetails.status) / (orderSteps.length - 1)) * 100}%` 
                           }}
                           transition={{ duration: 1, ease: "easeInOut" }}
-                          style={{ transformOrigin: 'right', top: 'calc(50% + 8px)' }}
+                          style={{ transformOrigin: 'right', top: 'calc(50% + 4px)' }}
                         />
                         
                         {/* Step indicators */}
