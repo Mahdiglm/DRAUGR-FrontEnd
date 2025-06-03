@@ -25,6 +25,7 @@ if (typeof document !== 'undefined') {
 // Components
 import ErrorBoundary from './components/shared/ErrorBoundary'
 import ProtectedRoute from './components/shared/ProtectedRoute'
+import AdminRoute from './components/shared/AdminRoute'
 
 // Layouts
 import MainLayout from './components/layout/MainLayout'
@@ -42,6 +43,7 @@ import SingleBlogPostPage from './components/pages/SingleBlogPostPage';
 import SpecialOffersPage from './components/pages/SpecialOffersPage';
 import OrderTrackingPage from './components/pages/OrderTrackingPage';
 import UserDashboard from './components/pages/UserDashboard';
+import AdminDashboard from './components/pages/AdminDashboard';
 
 // Context Providers
 import { AuthProvider } from './contexts/AuthContext';
@@ -98,6 +100,13 @@ createRoot(document.getElementById('root')).render(
                   <ProtectedRoute>
                     <UserDashboard />
                   </ProtectedRoute>
+                } />
+                
+                {/* Admin Dashboard Routes */}
+                <Route path="hidden" element={
+                  <AdminRoute>
+                    <AdminDashboard />
+                  </AdminRoute>
                 } />
                 
                 <Route path="order/:id" element={<OrderTrackingPage />} />
