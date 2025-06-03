@@ -33,7 +33,7 @@ const AdminProducts = () => {
       try {
         setIsLoading(true);
         const response = await api.get('/api/products');
-        setProducts(response.data);
+        setProducts(response.data || []);
         setIsLoading(false);
       } catch (err) {
         console.error('Error fetching products:', err);
@@ -45,7 +45,7 @@ const AdminProducts = () => {
     const fetchCategories = async () => {
       try {
         const response = await api.get('/api/categories');
-        setCategories(response.data);
+        setCategories(response.data || []);
       } catch (err) {
         console.error('Error fetching categories:', err);
       }
@@ -180,14 +180,16 @@ const AdminProducts = () => {
   };
   
   // Filter products based on search term and category filter
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         product.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
-    
-    return matchesSearch && matchesCategory;
-  });
+  const filteredProducts = products && products.length > 0 
+    ? products.filter(product => {
+        const matchesSearch = product.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                             product.description?.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
+        
+        return matchesSearch && matchesCategory;
+      })
+    : [];
   
   if (isLoading) {
     return (
