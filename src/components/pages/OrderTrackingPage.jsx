@@ -342,8 +342,8 @@ const OrderTrackingPage = () => {
                               transition={{ duration: 0.5, delay: index * 0.1 }}
                             >
                               <div className="relative flex items-start z-10">
-                                {/* Event dot/icon CONTAINER - Positioned absolutely for horizontal centering */}
-                                <div className="absolute left-0 transform -translate-x-1/2 flex items-center">
+                                {/* Event dot/icon CONTAINER - Added ml-4 and increased mr-8 to mr-10 */}
+                                <div className="ml-4 mr-10 relative">
                                   <motion.div 
                                     className={`w-6 h-6 rounded-full flex items-center justify-center 
                                       ${isCurrent 
@@ -373,8 +373,8 @@ const OrderTrackingPage = () => {
                                   </motion.div>
                                 </div>
                                 
-                                {/* Event details - Added proper left margin to accommodate circle position */}
-                                <div className={`ml-8 flex-1 bg-gray-800 bg-opacity-40 rounded-lg p-4 border 
+                                {/* Event details */}
+                                <div className={`flex-1 bg-gray-800 bg-opacity-40 rounded-lg p-4 border 
                                   ${isCurrent 
                                     ? 'border-draugr-500/50 shadow-[0_0_10px_rgba(255,0,0,0.1)]' 
                                     : 'border-gray-700'}`}
@@ -438,13 +438,13 @@ const OrderTrackingPage = () => {
                             transition={{ duration: 0.5, delay: orderDetails.shipmentEvents.length * 0.1 }}
                           >
                             <div className="relative flex items-start z-10">
-                              {/* Icon Container - Positioned absolutely for horizontal centering */}
-                              <div className="absolute left-0 transform -translate-x-1/2 flex items-center">
+                              {/* Icon Container - Added ml-4 and increased mr-8 to mr-10 */}
+                              <div className="ml-4 mr-10 relative">
                                 <div className="w-6 h-6 rounded-full flex items-center justify-center bg-gray-800 border border-dashed border-gray-600">
                                   <span className="text-gray-400 text-xs">🏁</span>
                                 </div>
                               </div>
-                              <div className="ml-8 flex-1 bg-gray-800/30 rounded-lg p-4 border border-dashed border-gray-700">
+                              <div className="flex-1 bg-gray-800/30 rounded-lg p-4 border border-dashed border-gray-700">
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
                                   <span className="text-gray-300">تحویل پیش‌بینی شده</span>
                                   <span className="text-sm text-draugr-400">{orderDetails.estimatedDelivery}</span>
