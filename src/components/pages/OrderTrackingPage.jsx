@@ -259,7 +259,7 @@ const OrderTrackingPage = () => {
                       <div className="relative">
                         {/* Timeline track */}
                         <div className="absolute top-1/2 right-0 left-0 h-1 bg-gray-700 transform -translate-y-1/2 z-0"
-                             style={{ top: 'calc(50% + 6px)' }}></div>
+                             style={{ top: 'calc(50% + 16px)' }}></div>
                         
                         {/* Completed track - Now starting from right for RTL */}
                         <motion.div 
@@ -269,7 +269,7 @@ const OrderTrackingPage = () => {
                             width: `${(getCurrentStepIndex(orderDetails.status) / (orderSteps.length - 1)) * 100}%` 
                           }}
                           transition={{ duration: 1, ease: "easeInOut" }}
-                          style={{ transformOrigin: 'right', top: 'calc(50% + 6px)' }}
+                          style={{ transformOrigin: 'right', top: 'calc(50% + 16px)' }}
                         />
                         
                         {/* Step indicators */}
@@ -324,7 +324,7 @@ const OrderTrackingPage = () => {
                     {/* Event cards with enhanced styling and animations */}
                     <div className="relative">
                       {/* Vertical line connecting all events - adjust position for new spacing */}
-                      <div className="absolute top-0 bottom-0 right-11 w-0.5 bg-gradient-to-b from-draugr-800 to-gray-700 z-0"></div>
+                      <div className="absolute top-0 bottom-0 left-7 w-0.5 bg-gradient-to-b from-draugr-800 to-gray-700 z-0"></div>
                       
                       {/* Timeline events */}
                       <div className="space-y-6">
@@ -342,8 +342,8 @@ const OrderTrackingPage = () => {
                               transition={{ duration: 0.5, delay: index * 0.1 }}
                             >
                               <div className="relative flex items-start z-10">
-                                {/* Event dot/icon */}
-                                <div className="mr-8 relative">
+                                {/* Event dot/icon CONTAINER - Added ml-4 and increased mr-8 to mr-10 */}
+                                <div className="ml-4 mr-10 relative">
                                   <motion.div 
                                     className={`w-6 h-6 rounded-full flex items-center justify-center 
                                       ${isCurrent 
@@ -438,7 +438,8 @@ const OrderTrackingPage = () => {
                             transition={{ duration: 0.5, delay: orderDetails.shipmentEvents.length * 0.1 }}
                           >
                             <div className="relative flex items-start z-10">
-                              <div className="mr-8 relative">
+                              {/* Icon Container - Added ml-4 and increased mr-8 to mr-10 */}
+                              <div className="ml-4 mr-10 relative">
                                 <div className="w-6 h-6 rounded-full flex items-center justify-center bg-gray-800 border border-dashed border-gray-600">
                                   <span className="text-gray-400 text-xs">🏁</span>
                                 </div>
