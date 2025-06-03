@@ -18,7 +18,7 @@ const UserDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -303,7 +303,7 @@ const UserDashboard = () => {
             <div className="mt-6 p-4 border-t border-gray-700">
               <button
                 onClick={() => {
-                  authService.logout();
+                  logout();
                   navigate('/');
                 }}
                 className="w-full py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition flex items-center justify-center"
