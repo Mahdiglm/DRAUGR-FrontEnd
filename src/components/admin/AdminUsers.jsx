@@ -23,8 +23,6 @@ const AdminUsers = () => {
     let isMounted = true;
     const fetchUsers = async () => {
       try {
-        if (isLoading) return; // Prevent multiple simultaneous requests
-        
         setIsLoading(true);
         const response = await api.get('/api/admin/users');
         
