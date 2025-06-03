@@ -24,7 +24,7 @@ const AdminUsers = () => {
       try {
         setIsLoading(true);
         const response = await api.get('/api/admin/users');
-        setUsers(response.data.data);
+        setUsers(response.data?.data || []);
         setIsLoading(false);
       } catch (err) {
         console.error('Error fetching users:', err);
@@ -132,10 +132,12 @@ const AdminUsers = () => {
   };
   
   // Filter users based on search term
-  const filteredUsers = users.filter(user => 
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = users && users.length > 0 
+    ? users.filter(user => 
+        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : [];
   
   if (isLoading) {
     return (
