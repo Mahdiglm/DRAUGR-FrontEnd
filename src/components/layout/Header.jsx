@@ -17,6 +17,19 @@ const Header = ({ cartItems, onCartClick }) => {
   const mobileMenuRef = useRef(null);
   const { user, isAuthenticated, logout } = useAuth();
 
+  // Helper function to blur email for privacy
+  const blurEmail = (email) => {
+    if (!email) return '';
+    const [username, domain] = email.split('@');
+    
+    if (username.length <= 3) {
+      return `${username[0]}${'•'.repeat(username.length - 1)}@${domain}`;
+    } else {
+      // Show first 2 characters and last character, blur the rest
+      return `${username.substring(0, 2)}${'•'.repeat(username.length - 3)}${username.slice(-1)}@${domain}`;
+    }
+  };
+
   // Updated navigation structure based on new requirements
   const navigationItems = [
     {
@@ -263,9 +276,9 @@ const Header = ({ cartItems, onCartClick }) => {
                       transformOrigin: 'top right'
                     }}
                   >
-                    <div className="p-3 border-b border-gray-700">
+                    <div className="p-3 border-b border-gray-700 text-center">
                       <p className="font-medium text-white truncate">{user?.name}</p>
-                      <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+                      <p className="text-xs text-gray-400 truncate">{blurEmail(user?.email)}</p>
                     </div>
                     <div className="py-1">
                       <Link
@@ -444,13 +457,13 @@ const Header = ({ cartItems, onCartClick }) => {
                     {/* User Account options in mobile menu */}
                     {isAuthenticated && (
                       <div className="mt-4 pt-4 border-t border-draugr-800/50">
-                        <div className="flex items-center px-3 py-2 mb-2">
+                        <div className="flex items-center px-3 py-2 mb-2 justify-center">
                           <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-lg font-bold mr-2">
                             {user?.name?.charAt(0) || 'ک'}
                           </div>
-                          <div>
+                          <div className="text-center">
                             <p className="text-sm font-medium">{user?.name || 'کاربر'}</p>
-                            <p className="text-xs text-gray-400">{user?.email || ''}</p>
+                            <p className="text-xs text-gray-400">{blurEmail(user?.email) || ''}</p>
                           </div>
                         </div>
                         
