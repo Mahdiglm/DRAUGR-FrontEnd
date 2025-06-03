@@ -5,17 +5,30 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // Helper for handling API responses and errors consistently
 const handleResponse = async (response) => {
-  const text = await response.text();
-  // Try to parse as JSON, but handle empty responses gracefully
-  const data = text ? JSON.parse(text) : {};
-  
-  if (!response.ok) {
-    // If the server response includes an error message, use it
-    const errorMessage = data.message || data.error || response.statusText;
-    throw new Error(errorMessage);
+  try {
+    const text = await response.text();
+    // Try to parse as JSON, but handle empty responses gracefully
+    const data = text ? JSON.parse(text) : {};
+    
+    if (!response.ok) {
+      // If the server response includes an error message, use it
+      const errorMessage = data.message || data.error || response.statusText;
+      
+      // If authentication error, clear token
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+      }
+      
+      throw new Error(errorMessage);
+    }
+    
+    return data;
+  } catch (error) {
+    if (error.name === 'SyntaxError') {
+      throw new Error('Invalid response from server');
+    }
+    throw error;
   }
-  
-  return data;
 };
 
 // Get JWT token from localStorage
