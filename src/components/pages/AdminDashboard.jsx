@@ -68,11 +68,20 @@ const AdminDashboard = () => {
       );
     }
     
-    if (!dashboardData) {
-      return null;
+    if (!dashboardData || !dashboardData.data) {
+      return (
+        <div className="bg-yellow-900/20 text-yellow-200 p-4 rounded-lg border border-yellow-800">
+          <p>اطلاعات داشبورد در دسترس نیست. لطفاً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.</p>
+        </div>
+      );
     }
     
-    const { counts, recentOrders, recentUsers } = dashboardData.data;
+    // Use default empty objects/arrays if data is missing
+    const { 
+      counts = { users: 0, orders: 0, products: 0, blogs: 0, revenue: 0 }, 
+      recentOrders = [], 
+      recentUsers = [] 
+    } = dashboardData.data;
     
     return (
       <div className="space-y-8">
@@ -150,7 +159,7 @@ const AdminDashboard = () => {
               </div>
               <div className="mr-4">
                 <h3 className="text-gray-400 text-sm">درآمد</h3>
-                <p className="text-2xl font-bold" dir="ltr">{counts.revenue.toLocaleString()} تومان</p>
+                <p className="text-2xl font-bold" dir="ltr">{(counts.revenue || 0).toLocaleString()} تومان</p>
               </div>
             </div>
           </div>
@@ -180,29 +189,37 @@ const AdminDashboard = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {recentOrders.map((order) => (
-                    <tr key={order._id} className="border-b border-gray-800 hover:bg-gray-900/30">
-                      <td className="py-3 px-2">
-                        <span className="text-sm font-medium">#{order._id.substring(0, 6)}</span>
-                      </td>
-                      <td className="py-3 px-2">
-                        <span className="text-sm">{order.user?.name || 'کاربر ناشناس'}</span>
-                      </td>
-                      <td className="py-3 px-2">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium
-                          ${order.status === 'تحویل شده' ? 'bg-green-900/40 text-green-200 border border-green-700' : 
-                            order.status === 'در حال پردازش' ? 'bg-blue-900/40 text-blue-200 border border-blue-700' :
-                            order.status === 'ارسال شده' ? 'bg-purple-900/40 text-purple-200 border border-purple-700' :
-                            'bg-red-900/40 text-red-200 border border-red-700'
-                          }`}>
-                          {order.status}
-                        </span>
-                      </td>
-                      <td className="py-3 px-2" dir="ltr">
-                        <span className="text-sm font-medium">{order.totalPrice.toLocaleString()} تومان</span>
+                  {recentOrders && recentOrders.length > 0 ? (
+                    recentOrders.map((order) => (
+                      <tr key={order._id} className="border-b border-gray-800 hover:bg-gray-900/30">
+                        <td className="py-3 px-2">
+                          <span className="text-sm font-medium">#{order._id.substring(0, 6)}</span>
+                        </td>
+                        <td className="py-3 px-2">
+                          <span className="text-sm">{order.user?.name || 'کاربر ناشناس'}</span>
+                        </td>
+                        <td className="py-3 px-2">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium
+                            ${order.status === 'تحویل شده' ? 'bg-green-900/40 text-green-200 border border-green-700' : 
+                              order.status === 'در حال پردازش' ? 'bg-blue-900/40 text-blue-200 border border-blue-700' :
+                              order.status === 'ارسال شده' ? 'bg-purple-900/40 text-purple-200 border border-purple-700' :
+                              'bg-red-900/40 text-red-200 border border-red-700'
+                            }`}>
+                            {order.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-2" dir="ltr">
+                          <span className="text-sm font-medium">{order.totalPrice.toLocaleString()} تومان</span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="py-3 px-2 text-center">
+                        <p>هیچ سفارشی یافت نشد.</p>
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
@@ -221,24 +238,28 @@ const AdminDashboard = () => {
             </div>
             
             <div className="space-y-4">
-              {recentUsers.map((user) => (
-                <div key={user._id} className="flex items-center justify-between p-3 rounded-lg bg-gray-900/30 hover:bg-gray-900/50">
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-md font-bold mr-3">
-                      {user.name.charAt(0)}
+              {recentUsers && recentUsers.length > 0 ? (
+                recentUsers.map((user) => (
+                  <div key={user._id} className="flex items-center justify-between p-3 rounded-lg bg-gray-900/30 hover:bg-gray-900/50">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-md font-bold mr-3">
+                        {user.name.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="font-medium">{user.name}</p>
+                        <p className="text-gray-400 text-sm">{user.email}</p>
+                      </div>
                     </div>
                     <div>
-                      <p className="font-medium">{user.name}</p>
-                      <p className="text-gray-400 text-sm">{user.email}</p>
+                      <span className="text-xs text-gray-500" dir="ltr">
+                        {new Date(user.createdAt).toLocaleDateString('fa-IR')}
+                      </span>
                     </div>
                   </div>
-                  <div>
-                    <span className="text-xs text-gray-500" dir="ltr">
-                      {new Date(user.createdAt).toLocaleDateString('fa-IR')}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p>هیچ کاربر جدیدی یافت نشد.</p>
+              )}
             </div>
           </div>
         </div>
