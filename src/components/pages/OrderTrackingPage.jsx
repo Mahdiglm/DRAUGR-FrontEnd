@@ -258,7 +258,8 @@ const OrderTrackingPage = () => {
                     <div className="my-8 px-4">
                       <div className="relative">
                         {/* Timeline track */}
-                        <div className="absolute top-1/2 right-0 left-0 h-1 bg-gray-700 transform -translate-y-1/2 z-0"></div>
+                        <div className="absolute top-1/2 right-0 left-0 h-1 bg-gray-700 transform -translate-y-1/2 z-0"
+                             style={{ top: 'calc(50% + 16px)' }}></div>
                         
                         {/* Completed track - Now starting from right for RTL */}
                         <motion.div 
@@ -268,17 +269,22 @@ const OrderTrackingPage = () => {
                             width: `${(getCurrentStepIndex(orderDetails.status) / (orderSteps.length - 1)) * 100}%` 
                           }}
                           transition={{ duration: 1, ease: "easeInOut" }}
-                          style={{ transformOrigin: 'right' }}
+                          style={{ transformOrigin: 'right', top: 'calc(50% + 16px)' }}
                         />
                         
                         {/* Step indicators */}
-                        <div className="flex justify-between relative z-20">
+                        <div className="flex justify-between relative z-20 px-1">
                           {orderSteps.map((step, index) => {
                             const isCompleted = getCurrentStepIndex(orderDetails.status) >= index;
                             const isCurrent = orderDetails.status === step.id;
+                            const isLastStep = index === orderSteps.length - 1;
                             
                             return (
-                              <div key={step.id} className="flex flex-col items-center px-1">
+                              <div 
+                                key={step.id} 
+                                className={`flex flex-col items-center px-1 ${isLastStep ? 'mr-auto' : ''}`}
+                                style={isLastStep ? { marginRight: '1px' } : {}}
+                              >
                                 <motion.div 
                                   className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mb-2 ${
                                     isCompleted 
@@ -291,6 +297,7 @@ const OrderTrackingPage = () => {
                                     boxShadow: isCurrent ? '0 0 15px rgba(255, 0, 0, 0.3)' : 'none'
                                   }}
                                   transition={{ duration: 0.5 }}
+                                  style={{ marginTop: '32px' }}
                                 >
                                   <span className="text-base sm:text-xl">{step.icon}</span>
                                 </motion.div>
@@ -322,7 +329,7 @@ const OrderTrackingPage = () => {
                     {/* Event cards with enhanced styling and animations */}
                     <div className="relative">
                       {/* Vertical line connecting all events */}
-                      <div className="absolute top-0 bottom-0 right-7 w-0.5 bg-gradient-to-b from-draugr-800 to-gray-700 z-0"></div>
+                      <div className="absolute top-4 bottom-4 right-7 w-0.5 bg-gradient-to-b from-draugr-800 to-gray-700 z-0"></div>
                       
                       {/* Timeline events */}
                       <div className="space-y-6">
@@ -341,7 +348,7 @@ const OrderTrackingPage = () => {
                             >
                               <div className="relative flex items-start z-10">
                                 {/* Event dot/icon */}
-                                <div className="mr-4 relative">
+                                <div className="mr-4 relative flex justify-center items-start pt-2">
                                   <motion.div 
                                     className={`w-6 h-6 rounded-full flex items-center justify-center 
                                       ${isCurrent 
