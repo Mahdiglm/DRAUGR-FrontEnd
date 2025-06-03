@@ -51,8 +51,12 @@ const AdminUsers = () => {
         if (isMounted) {
           if (err.message === 'Too many requests to admin routes, please try again later.') {
             setError('تعداد درخواست‌های ارسالی بیش از حد مجاز است. لطفاً چند دقیقه صبر کنید و دوباره تلاش کنید.');
+          } else if (err.message === 'Not authorized, no token provided' || err.message === 'Not authorized, invalid token') {
+            setError('لطفاً مجدداً وارد شوید. دسترسی شما منقضی شده است.');
+          } else if (err.message === 'Not authorized as admin') {
+            setError('شما دسترسی مدیریت را ندارید.');
           } else {
-            setError('خطا در بارگذاری کاربران. لطفاً دوباره تلاش کنید.');
+            setError(`خطا در بارگذاری کاربران: ${err.message || 'خطای ناشناخته'}`);
           }
           setIsLoading(false);
         }
