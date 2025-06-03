@@ -6,26 +6,26 @@ const DashboardAddresses = () => {
     {
       id: '1',
       type: 'home',
-      name: 'Home Address',
-      address: '123 Main Street',
-      city: 'New York',
-      state: 'NY',
-      postalCode: '10001',
-      country: 'United States',
+      name: 'آدرس خانه',
+      address: 'خیابان ولیعصر، خیابان بهار شیراز، پلاک 142',
+      city: 'تهران',
+      state: 'تهران',
+      postalCode: '1541854187',
+      country: 'ایران',
       isDefault: true,
-      phone: '(555) 123-4567'
+      phone: '09121234567'
     },
     {
       id: '2',
       type: 'work',
-      name: 'Office Address',
-      address: '456 Park Avenue',
-      city: 'New York',
-      state: 'NY',
-      postalCode: '10022',
-      country: 'United States',
+      name: 'آدرس محل کار',
+      address: 'میدان آرژانتین، خیابان الوند، پلاک 37',
+      city: 'تهران',
+      state: 'تهران',
+      postalCode: '1516846133',
+      country: 'ایران',
       isDefault: false,
-      phone: '(555) 987-6543'
+      phone: '09361234567'
     }
   ]);
   
@@ -40,7 +40,7 @@ const DashboardAddresses = () => {
     city: '',
     state: '',
     postalCode: '',
-    country: 'United States',
+    country: 'ایران',
     phone: '',
     isDefault: false
   });
@@ -92,7 +92,7 @@ const DashboardAddresses = () => {
       city: '',
       state: '',
       postalCode: '',
-      country: 'United States',
+      country: 'ایران',
       phone: '',
       isDefault: false
     });
@@ -101,7 +101,7 @@ const DashboardAddresses = () => {
   
   // Delete address
   const handleDelete = (id) => {
-    if (confirm('Are you sure you want to delete this address?')) {
+    if (confirm('آیا از حذف این آدرس اطمینان دارید؟')) {
       setAddresses(addresses.filter(address => address.id !== id));
     }
   };
@@ -115,11 +115,11 @@ const DashboardAddresses = () => {
   };
   
   return (
-    <div>
+    <div className="text-right" dir="rtl">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
-          <h2 className="text-2xl font-bold mb-2">My Addresses</h2>
-          <p className="text-gray-400 text-sm">Manage your shipping and billing addresses</p>
+          <h2 className="text-2xl font-bold mb-2">آدرس‌های من</h2>
+          <p className="text-gray-400 text-sm">مدیریت آدرس‌های تحویل سفارش</p>
         </div>
         
         {!showAddForm && (
@@ -127,26 +127,26 @@ const DashboardAddresses = () => {
             onClick={() => setShowAddForm(true)}
             className="mt-4 md:mt-0 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            Add New Address
+            افزودن آدرس جدید
           </button>
         )}
       </div>
       
       {/* Add/Edit Form */}
       {showAddForm && (
-        <div className="bg-gray-750 rounded-xl p-6 mb-8">
+        <div className="bg-black bg-opacity-50 rounded-xl p-6 mb-8 border border-draugr-900/30">
           <h3 className="text-xl font-bold mb-4">
-            {editingAddress ? 'Edit Address' : 'Add New Address'}
+            {editingAddress ? 'ویرایش آدرس' : 'افزودن آدرس جدید'}
           </h3>
           
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-sm text-gray-400 mb-1" htmlFor="name">
-                  Address Name
+                  نام آدرس
                 </label>
                 <input
                   type="text"
@@ -154,33 +154,33 @@ const DashboardAddresses = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
-                  placeholder="Home, Office, etc."
+                  className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 text-right"
+                  placeholder="خانه، محل کار و ..."
                   required
                 />
               </div>
               <div>
                 <label className="block text-sm text-gray-400 mb-1" htmlFor="type">
-                  Address Type
+                  نوع آدرس
                 </label>
                 <select
                   id="type"
                   name="type"
                   value={formData.type}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 text-right"
                   required
                 >
-                  <option value="home">Home</option>
-                  <option value="work">Work</option>
-                  <option value="other">Other</option>
+                  <option value="home">خانه</option>
+                  <option value="work">محل کار</option>
+                  <option value="other">سایر</option>
                 </select>
               </div>
             </div>
             
             <div className="mb-4">
               <label className="block text-sm text-gray-400 mb-1" htmlFor="address">
-                Street Address
+                آدرس پستی
               </label>
               <input
                 type="text"
@@ -188,8 +188,8 @@ const DashboardAddresses = () => {
                 name="address"
                 value={formData.address}
                 onChange={handleInputChange}
-                className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
-                placeholder="123 Main St"
+                className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 text-right"
+                placeholder="آدرس کامل را وارد کنید"
                 required
               />
             </div>
@@ -197,7 +197,7 @@ const DashboardAddresses = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
               <div>
                 <label className="block text-sm text-gray-400 mb-1" htmlFor="city">
-                  City
+                  شهر
                 </label>
                 <input
                   type="text"
@@ -205,14 +205,14 @@ const DashboardAddresses = () => {
                   name="city"
                   value={formData.city}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
-                  placeholder="City"
+                  className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 text-right"
+                  placeholder="شهر"
                   required
                 />
               </div>
               <div>
                 <label className="block text-sm text-gray-400 mb-1" htmlFor="state">
-                  State/Province
+                  استان
                 </label>
                 <input
                   type="text"
@@ -220,14 +220,14 @@ const DashboardAddresses = () => {
                   name="state"
                   value={formData.state}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
-                  placeholder="State"
+                  className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 text-right"
+                  placeholder="استان"
                   required
                 />
               </div>
               <div>
                 <label className="block text-sm text-gray-400 mb-1" htmlFor="postalCode">
-                  ZIP/Postal Code
+                  کد پستی
                 </label>
                 <input
                   type="text"
@@ -235,9 +235,10 @@ const DashboardAddresses = () => {
                   name="postalCode"
                   value={formData.postalCode}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
-                  placeholder="Postal Code"
+                  className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 text-right"
+                  placeholder="کد پستی ۱۰ رقمی"
                   required
+                  dir="ltr"
                 />
               </div>
             </div>
@@ -245,7 +246,7 @@ const DashboardAddresses = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-sm text-gray-400 mb-1" htmlFor="country">
-                  Country
+                  کشور
                 </label>
                 <input
                   type="text"
@@ -253,14 +254,14 @@ const DashboardAddresses = () => {
                   name="country"
                   value={formData.country}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
-                  placeholder="Country"
+                  className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 text-right"
+                  placeholder="کشور"
                   required
                 />
               </div>
               <div>
                 <label className="block text-sm text-gray-400 mb-1" htmlFor="phone">
-                  Phone Number
+                  شماره تماس
                 </label>
                 <input
                   type="tel"
@@ -268,9 +269,10 @@ const DashboardAddresses = () => {
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
-                  placeholder="(123) 456-7890"
+                  className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 text-right"
+                  placeholder="09123456789"
                   required
+                  dir="ltr"
                 />
               </div>
             </div>
@@ -284,11 +286,11 @@ const DashboardAddresses = () => {
                   onChange={handleInputChange}
                   className="rounded text-red-500 focus:ring-2 focus:ring-red-500 bg-gray-700 border-gray-600"
                 />
-                <span className="ml-2 text-sm text-gray-300">Set as default address</span>
+                <span className="mr-2 text-sm text-gray-300">تنظیم به عنوان آدرس پیش‌فرض</span>
               </label>
             </div>
             
-            <div className="flex justify-end space-x-4">
+            <div className="flex justify-end space-x-4 space-x-reverse">
               <button
                 type="button"
                 onClick={() => {
@@ -301,20 +303,20 @@ const DashboardAddresses = () => {
                     city: '',
                     state: '',
                     postalCode: '',
-                    country: 'United States',
+                    country: 'ایران',
                     phone: '',
                     isDefault: false
                   });
                 }}
                 className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition"
               >
-                Cancel
+                انصراف
               </button>
               <button
                 type="submit"
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
               >
-                {editingAddress ? 'Update Address' : 'Save Address'}
+                {editingAddress ? 'بروزرسانی آدرس' : 'ذخیره آدرس'}
               </button>
             </div>
           </form>
@@ -331,53 +333,53 @@ const DashboardAddresses = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-gray-300">No addresses found</h3>
+            <h3 className="text-lg font-medium text-gray-300">آدرسی یافت نشد</h3>
             <p className="text-gray-400 mt-2">
-              Add an address to make checkout faster.
+              برای تسریع در فرآیند خرید، آدرس‌های خود را اضافه کنید.
             </p>
           </div>
         ) : (
           addresses.map(address => (
             <div 
               key={address.id} 
-              className={`bg-gray-750 rounded-xl p-6 border ${address.isDefault ? 'border-red-500' : 'border-gray-700'}`}
+              className={`bg-black bg-opacity-50 rounded-xl p-6 border ${address.isDefault ? 'border-red-500' : 'border-gray-700'}`}
             >
               {address.isDefault && (
                 <div className="flex items-center text-red-500 text-sm mb-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Default Address
+                  آدرس پیش‌فرض
                 </div>
               )}
               
               <div className="flex justify-between items-start mb-3">
                 <h3 className="text-lg font-medium">{address.name}</h3>
-                <span className="capitalize px-3 py-1 rounded-full bg-gray-700 text-xs">
-                  {address.type}
+                <span className="px-3 py-1 rounded-full bg-gray-700 text-xs">
+                  {address.type === 'home' ? 'خانه' : address.type === 'work' ? 'محل کار' : 'سایر'}
                 </span>
               </div>
               
               <div className="text-gray-300 space-y-1 mb-4">
                 <p>{address.address}</p>
-                <p>{address.city}, {address.state} {address.postalCode}</p>
+                <p>{address.city}، {address.state}، کد پستی: {address.postalCode}</p>
                 <p>{address.country}</p>
-                <p className="mt-2">{address.phone}</p>
+                <p className="mt-2" dir="ltr">{address.phone}</p>
               </div>
               
               <div className="flex justify-between">
-                <div className="flex space-x-2">
+                <div className="flex space-x-2 space-x-reverse">
                   <button
                     onClick={() => handleEdit(address)}
                     className="px-3 py-1 bg-gray-700 text-white rounded hover:bg-gray-600 transition text-sm"
                   >
-                    Edit
+                    ویرایش
                   </button>
                   <button
                     onClick={() => handleDelete(address.id)}
                     className="px-3 py-1 bg-gray-700 text-white rounded hover:bg-gray-600 transition text-sm"
                   >
-                    Delete
+                    حذف
                   </button>
                 </div>
                 
@@ -386,7 +388,7 @@ const DashboardAddresses = () => {
                     onClick={() => handleSetDefault(address.id)}
                     className="px-3 py-1 bg-transparent text-red-500 border border-red-500 rounded hover:bg-red-900/20 transition text-sm"
                   >
-                    Set as Default
+                    انتخاب به عنوان پیش‌فرض
                   </button>
                 )}
               </div>
