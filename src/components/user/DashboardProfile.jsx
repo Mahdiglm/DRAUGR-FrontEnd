@@ -61,7 +61,7 @@ const DashboardProfile = () => {
         setSuccess(false);
       }, 3000);
     } catch (err) {
-      setError(err.message || 'Failed to update profile');
+      setError(err.message || 'خطا در بروزرسانی پروفایل');
     } finally {
       setLoading(false);
     }
@@ -73,7 +73,7 @@ const DashboardProfile = () => {
     
     // Validate passwords
     if (newPassword !== confirmPassword) {
-      setError('New passwords do not match');
+      setError('رمز عبور جدید با تکرار آن مطابقت ندارد');
       return;
     }
     
@@ -98,20 +98,20 @@ const DashboardProfile = () => {
         setSuccess(false);
       }, 3000);
     } catch (err) {
-      setError(err.message || 'Failed to change password');
+      setError(err.message || 'خطا در تغییر رمز عبور');
     } finally {
       setLoading(false);
     }
   };
   
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-6">Profile Settings</h2>
+    <div className="text-right" dir="rtl">
+      <h2 className="text-2xl font-bold mb-6">تنظیمات پروفایل</h2>
       
       {error && (
         <div className="mb-6 p-4 bg-red-900/50 border border-red-500 rounded-lg text-white">
           <p className="flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             {error}
@@ -122,10 +122,10 @@ const DashboardProfile = () => {
       {success && (
         <div className="mb-6 p-4 bg-green-900/50 border border-green-500 rounded-lg text-white">
           <p className="flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
-            Profile updated successfully!
+            پروفایل با موفقیت بروزرسانی شد!
           </p>
         </div>
       )}
@@ -133,47 +133,48 @@ const DashboardProfile = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Personal Information */}
         <div>
-          <h3 className="text-xl font-medium mb-4">Personal Information</h3>
+          <h3 className="text-xl font-medium mb-4">اطلاعات شخصی</h3>
           <form onSubmit={handleProfileUpdate} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm text-gray-400 mb-1" htmlFor="firstName">
-                  First Name
+                  نام
                 </label>
                 <input
                   type="text"
                   id="firstName"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 text-right"
                   required
                 />
               </div>
               <div>
                 <label className="block text-sm text-gray-400 mb-1" htmlFor="lastName">
-                  Last Name
+                  نام خانوادگی
                 </label>
                 <input
                   type="text"
                   id="lastName"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 text-right"
                 />
               </div>
             </div>
             
             <div>
               <label className="block text-sm text-gray-400 mb-1" htmlFor="email">
-                Email Address
+                آدرس ایمیل
               </label>
               <input
                 type="email"
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 text-right"
                 required
+                dir="ltr"
               />
             </div>
             
@@ -183,7 +184,7 @@ const DashboardProfile = () => {
                 className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50"
                 disabled={loading}
               >
-                {loading ? 'Updating...' : 'Update Profile'}
+                {loading ? 'در حال بروزرسانی...' : 'بروزرسانی پروفایل'}
               </button>
             </div>
           </form>
@@ -191,49 +192,52 @@ const DashboardProfile = () => {
         
         {/* Change Password */}
         <div>
-          <h3 className="text-xl font-medium mb-4">Change Password</h3>
+          <h3 className="text-xl font-medium mb-4">تغییر رمز عبور</h3>
           <form onSubmit={handlePasswordChange} className="space-y-4">
             <div>
               <label className="block text-sm text-gray-400 mb-1" htmlFor="currentPassword">
-                Current Password
+                رمز عبور فعلی
               </label>
               <input
                 type="password"
                 id="currentPassword"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 text-right"
                 required
+                dir="ltr"
               />
             </div>
             
             <div>
               <label className="block text-sm text-gray-400 mb-1" htmlFor="newPassword">
-                New Password
+                رمز عبور جدید
               </label>
               <input
                 type="password"
                 id="newPassword"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 text-right"
                 required
                 minLength={6}
+                dir="ltr"
               />
-              <p className="text-xs text-gray-400 mt-1">Password must be at least 6 characters</p>
+              <p className="text-xs text-gray-400 mt-1">رمز عبور باید حداقل ۶ کاراکتر باشد</p>
             </div>
             
             <div>
               <label className="block text-sm text-gray-400 mb-1" htmlFor="confirmPassword">
-                Confirm New Password
+                تکرار رمز عبور جدید
               </label>
               <input
                 type="password"
                 id="confirmPassword"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 text-right"
                 required
+                dir="ltr"
               />
             </div>
             
@@ -243,7 +247,7 @@ const DashboardProfile = () => {
                 className="px-6 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50"
                 disabled={loading}
               >
-                {loading ? 'Changing...' : 'Change Password'}
+                {loading ? 'در حال تغییر...' : 'تغییر رمز عبور'}
               </button>
             </div>
           </form>
@@ -252,17 +256,17 @@ const DashboardProfile = () => {
       
       {/* Delete Account - Add with caution */}
       <div className="mt-12 pt-6 border-t border-gray-700">
-        <h3 className="text-xl font-medium text-red-500 mb-4">Danger Zone</h3>
+        <h3 className="text-xl font-medium text-red-500 mb-4">منطقه خطر</h3>
         <p className="text-gray-400 mb-4">
-          Once you delete your account, there is no going back. Please be certain.
+          بعد از حذف حساب کاربری، امکان بازگرداندن آن وجود ندارد. لطفاً مطمئن شوید.
         </p>
         <button
           type="button"
           className="px-6 py-2 bg-red-900/50 border border-red-500 text-white rounded-lg hover:bg-red-900 transition focus:outline-none"
           // Add delete account functionality here
-          onClick={() => alert('Delete account functionality not implemented')}
+          onClick={() => alert('قابلیت حذف حساب کاربری هنوز اضافه نشده است')}
         >
-          Delete Account
+          حذف حساب کاربری
         </button>
       </div>
     </div>
