@@ -18,26 +18,33 @@ export const AuthProvider = ({ children }) => {
     const initializeAuth = async () => {
       setIsLoading(true);
       try {
-        const currentUser = authService.getCurrentUser();
+        // Get user data from localStorage
+        const storedUser = authService.getCurrentUser();
+        const hasToken = localStorage.getItem('token');
         
-        if (currentUser) {
-          // If token exists, try to get a fresh user profile
+        if (hasToken && storedUser) {
+          // Set initial state with stored user data
+          setUser(storedUser);
+          setIsAuthenticated(true);
+          
+          // Try to get a fresh user profile in the background
           try {
             const userProfile = await authService.getUserProfile();
             setUser(userProfile);
-            setIsAuthenticated(true);
           } catch (profileError) {
             console.error('Error fetching user profile:', profileError);
+            
             // If token is invalid, log the user out
-            if (profileError.message.includes('Invalid token')) {
+            if (profileError.message && (
+              profileError.message.includes('Invalid token') || 
+              profileError.message.includes('Not authorized')
+            )) {
+              console.log('Token invalid, logging out');
               authService.logout();
               setUser(null);
               setIsAuthenticated(false);
-            } else {
-              // Otherwise, use the stored user data
-              setUser(currentUser);
-              setIsAuthenticated(true);
             }
+            // If it's just a network error but token is valid, keep user logged in with stored data
           }
           
           // Merge guest cart with user cart if needed
@@ -47,6 +54,7 @@ export const AuthProvider = ({ children }) => {
             console.error('Error merging cart:', cartError);
           }
         } else {
+          // No token or user data
           setUser(null);
           setIsAuthenticated(false);
         }
