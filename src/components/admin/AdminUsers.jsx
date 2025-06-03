@@ -72,7 +72,24 @@ const AdminUsers = () => {
     try {
       setIsDetailsLoading(true);
       const response = await api.get(`/api/admin/users/${userId}`);
-      setUserDetails(response.data.data);
+      
+      console.log('User details response:', response);
+      
+      // Handle different response structures
+      if (response.data && response.data.user) {
+        // Backend returns { success: true, data: { user, orders, wishlist } }
+        setUserDetails(response.data);
+      } else if (response.data) {
+        // Backend returns { success: true, data: userData }
+        setUserDetails(response.data);
+      } else if (response.user) {
+        // Backend might return { user, orders, wishlist } directly
+        setUserDetails(response);
+      } else {
+        console.error('Unexpected user details response structure:', response);
+        setUserDetails(null);
+      }
+      
       setIsDetailsLoading(false);
     } catch (err) {
       console.error('Error fetching user details:', err);
