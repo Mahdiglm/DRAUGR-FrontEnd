@@ -329,7 +329,9 @@ const OrderTrackingPage = () => {
                       {/* Timeline events */}
                       <div className="space-y-6">
                         {orderDetails.shipmentEvents.map((event, index) => {
+                          // Is this the current/latest event
                           const isCurrent = event.status === orderDetails.status;
+                          // Is this a past event
                           const isPast = getCurrentStepIndex(orderDetails.status) > getCurrentStepIndex(event.status);
                           
                           return (
@@ -340,24 +342,57 @@ const OrderTrackingPage = () => {
                               transition={{ duration: 0.5, delay: index * 0.1 }}
                             >
                               <div className="relative flex items-start z-10">
-                                {/* Event details CARD - now relative, circle will be inside */}
-                                <div className={`flex-1 bg-gray-800 bg-opacity-40 rounded-lg p-4 border relative 
+                                {/* Event dot/icon CONTAINER - Positioned absolutely for horizontal centering */}
+                                <div className="absolute left-0 transform -translate-x-1/2 flex items-center">
+                                  <motion.div 
+                                    className={`w-6 h-6 rounded-full flex items-center justify-center 
+                                      ${isCurrent 
+                                        ? 'bg-draugr-500 ring-4 ring-draugr-500/20' 
+                                        : isPast 
+                                          ? 'bg-draugr-700' 
+                                          : 'bg-gray-700'}`}
+                                    animate={isCurrent ? {
+                                      scale: [1, 1.2, 1],
+                                      boxShadow: ['0 0 0px rgba(255, 0, 0, 0)', '0 0 15px rgba(255, 0, 0, 0.5)', '0 0 0px rgba(255, 0, 0, 0)']
+                                    } : {}}
+                                    transition={{
+                                      repeat: Infinity,
+                                      duration: 3,
+                                    }}
+                                  >
+                                    {isCurrent && (
+                                      <span className="text-xs">
+                                        {orderSteps.find(step => step.id === event.status)?.icon || '•'}
+                                      </span>
+                                    )}
+                                    {!isCurrent && (
+                                      <motion.div 
+                                        className={`w-2 h-2 rounded-full ${isPast ? 'bg-draugr-400' : 'bg-gray-500'}`} 
+                                      />
+                                    )}
+                                  </motion.div>
+                                </div>
+                                
+                                {/* Event details - Added proper left margin to accommodate circle position */}
+                                <div className={`ml-8 flex-1 bg-gray-800 bg-opacity-40 rounded-lg p-4 border 
                                   ${isCurrent 
                                     ? 'border-draugr-500/50 shadow-[0_0_10px_rgba(255,0,0,0.1)]' 
                                     : 'border-gray-700'}`}
                                 >
-                                  {/* Original Card Content */}
                                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
                                     <div className="flex items-center">
                                       <span className={`font-medium ${isCurrent ? 'text-draugr-400' : ''}`}>
                                         {event.description}
                                       </span>
+                                      
+                                      {/* Status badge for current event */}
                                       {isCurrent && (
                                         <span className="mr-2 bg-draugr-900/70 text-draugr-400 text-xs px-2 py-0.5 rounded-full">
                                           وضعیت فعلی
                                         </span>
                                       )}
                                     </div>
+                                    
                                     <div className="text-sm text-gray-400 flex items-center gap-1">
                                       <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -365,6 +400,8 @@ const OrderTrackingPage = () => {
                                       <span>{event.date}</span>
                                     </div>
                                   </div>
+                                  
+                                  {/* Additional status details - show only for certain statuses */}
                                   {event.status === 'shipping' && (
                                     <div className="mt-3 pt-3 border-t border-gray-700/50 text-sm text-gray-300">
                                       <div className="flex items-center gap-1">
@@ -376,6 +413,7 @@ const OrderTrackingPage = () => {
                                       </div>
                                     </div>
                                   )}
+                                  
                                   {event.status === 'delivered' && (
                                     <div className="mt-3 pt-3 border-t border-gray-700/50 text-sm text-green-300">
                                       <div className="flex items-center gap-1">
@@ -386,42 +424,13 @@ const OrderTrackingPage = () => {
                                       </div>
                                     </div>
                                   )}
-                                  {/* Absolutely positioned Circle, centered within this card */}
-                                  <div className="absolute top-4 right-1/2 transform translate-x-1/2 z-20">
-                                    <motion.div 
-                                      className={`w-6 h-6 rounded-full flex items-center justify-center 
-                                        ${isCurrent 
-                                          ? 'bg-draugr-500 ring-4 ring-draugr-500/20' 
-                                          : isPast 
-                                            ? 'bg-draugr-700' 
-                                            : 'bg-gray-700'}`}
-                                      animate={isCurrent ? {
-                                        scale: [1, 1.2, 1],
-                                        boxShadow: ['0 0 0px rgba(255, 0, 0, 0)', '0 0 15px rgba(255, 0, 0, 0.5)', '0 0 0px rgba(255, 0, 0, 0)']
-                                      } : {}}
-                                      transition={{
-                                        repeat: Infinity,
-                                        duration: 3,
-                                      }}
-                                    >
-                                      {isCurrent && (
-                                        <span className="text-xs">
-                                          {orderSteps.find(step => step.id === event.status)?.icon || '•'}
-                                        </span>
-                                      )}
-                                      {!isCurrent && (
-                                        <motion.div 
-                                          className={`w-2 h-2 rounded-full ${isPast ? 'bg-draugr-400' : 'bg-gray-500'}`} 
-                                        />
-                                      )}
-                                    </motion.div>
-                                  </div>
                                 </div>
                               </div>
                             </motion.div>
                           );
                         })}
                         
+                        {/* Future delivery estimate - only show if not delivered */}
                         {orderDetails.status !== 'delivered' && (
                           <motion.div
                             initial={{ opacity: 0, y: 20 }}
@@ -429,19 +438,16 @@ const OrderTrackingPage = () => {
                             transition={{ duration: 0.5, delay: orderDetails.shipmentEvents.length * 0.1 }}
                           >
                             <div className="relative flex items-start z-10">
-                              {/* Future Delivery Estimate CARD - now relative, icon will be inside */}
-                              <div className="flex-1 bg-gray-800/30 rounded-lg p-4 border border-dashed border-gray-700 relative">
-                                {/* Original Card Content */}
+                              {/* Icon Container - Positioned absolutely for horizontal centering */}
+                              <div className="absolute left-0 transform -translate-x-1/2 flex items-center">
+                                <div className="w-6 h-6 rounded-full flex items-center justify-center bg-gray-800 border border-dashed border-gray-600">
+                                  <span className="text-gray-400 text-xs">🏁</span>
+                                </div>
+                              </div>
+                              <div className="ml-8 flex-1 bg-gray-800/30 rounded-lg p-4 border border-dashed border-gray-700">
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
                                   <span className="text-gray-300">تحویل پیش‌بینی شده</span>
                                   <span className="text-sm text-draugr-400">{orderDetails.estimatedDelivery}</span>
-                                </div>
-
-                                {/* Absolutely positioned Icon, centered within this card */}
-                                <div className="absolute top-4 right-1/2 transform translate-x-1/2 z-20">
-                                  <div className="w-6 h-6 rounded-full flex items-center justify-center bg-gray-800 border border-dashed border-gray-600">
-                                    <span className="text-gray-400 text-xs">🏁</span>
-                                  </div>
                                 </div>
                               </div>
                             </div>
