@@ -158,7 +158,10 @@ const Header = ({ cartItems, onCartClick }) => {
   // Handle clicks outside the user dropdown to close it
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
+      // Since we're using hover, we only want to close on click if we're clicking far away from the dropdown
+      // This prevents the dropdown from closing immediately when clicking inside it
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target) && 
+          !userDropdownRef.current.parentElement.contains(event.target)) {
         setShowUserDropdown(false);
       }
     };
@@ -217,7 +220,9 @@ const Header = ({ cartItems, onCartClick }) => {
         {/* Header right section: improved for mobile */}
         <div className="flex items-center">
           {/* User Account Button - Updated for authentication */}
-          <div className="relative" ref={userDropdownRef}>
+          <div className="relative" ref={userDropdownRef}
+               onMouseEnter={() => isAuthenticated && setShowUserDropdown(true)}
+               onMouseLeave={() => setShowUserDropdown(false)}>
             <motion.div 
               whileHover={{ scale: 1.1 }}
               initial={{ scale: 1 }}
@@ -227,7 +232,7 @@ const Header = ({ cartItems, onCartClick }) => {
               }}
               whileTap={{ scale: 0.95 }}
               className="relative cursor-pointer"
-              onClick={() => isAuthenticated ? setShowUserDropdown(!showUserDropdown) : navigate('/login')}
+              onClick={() => !isAuthenticated && navigate('/login')}
             >
               <img 
                 src={pfpIcon} 
@@ -259,30 +264,6 @@ const Header = ({ cartItems, onCartClick }) => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
                       </svg>
                       حساب کاربری
-                    </div>
-                  </Link>
-                  <Link
-                    to="/order-tracking"
-                    className="block px-4 py-2 text-gray-200 hover:bg-gray-700 hover:text-white"
-                    onClick={() => setShowUserDropdown(false)}
-                  >
-                    <div className="flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                      </svg>
-                      سفارشات
-                    </div>
-                  </Link>
-                  <Link
-                    to="/dashboard/wishlist"
-                    className="block px-4 py-2 text-gray-200 hover:bg-gray-700 hover:text-white"
-                    onClick={() => setShowUserDropdown(false)}
-                  >
-                    <div className="flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                      </svg>
-                      علاقه‌مندی‌ها
                     </div>
                   </Link>
                   <button
