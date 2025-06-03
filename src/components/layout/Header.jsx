@@ -235,7 +235,7 @@ const Header = ({ cartItems, onCartClick }) => {
           {/* User Account Button - Updated for authentication */}
           <div className="relative" ref={userDropdownRef}
                onMouseEnter={() => isAuthenticated && setShowUserDropdown(true)}
-               onMouseLeave={() => setShowUserDropdown(false)}>
+               onMouseLeave={() => isAuthenticated && setShowUserDropdown(false)}>
             <motion.div 
               whileHover={{ scale: 1.1 }}
               initial={{ scale: 1 }}
