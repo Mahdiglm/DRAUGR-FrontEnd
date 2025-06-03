@@ -259,7 +259,7 @@ const OrderTrackingPage = () => {
                       <div className="relative">
                         {/* Timeline track */}
                         <div className="absolute top-1/2 right-0 left-0 h-1 bg-gray-700 transform -translate-y-1/2 z-0"
-                             style={{ top: 'calc(50% + 16px)' }}></div>
+                             style={{ top: 'calc(50% + 6px)' }}></div>
                         
                         {/* Completed track - Now starting from right for RTL */}
                         <motion.div 
@@ -269,7 +269,7 @@ const OrderTrackingPage = () => {
                             width: `${(getCurrentStepIndex(orderDetails.status) / (orderSteps.length - 1)) * 100}%` 
                           }}
                           transition={{ duration: 1, ease: "easeInOut" }}
-                          style={{ transformOrigin: 'right', top: 'calc(50% + 16px)' }}
+                          style={{ transformOrigin: 'right', top: 'calc(50% + 6px)' }}
                         />
                         
                         {/* Step indicators */}
@@ -323,11 +323,11 @@ const OrderTrackingPage = () => {
                     
                     {/* Event cards with enhanced styling and animations */}
                     <div className="relative">
-                      {/* Vertical line connecting all events */}
-                      <div className="absolute top-6 bottom-0 right-7 w-0.5 bg-gradient-to-b from-draugr-800 to-gray-700 z-0"></div>
+                      {/* Vertical line connecting all events - adjust position for new spacing */}
+                      <div className="absolute top-0 bottom-0 right-11 w-0.5 bg-gradient-to-b from-draugr-800 to-gray-700 z-0"></div>
                       
                       {/* Timeline events */}
-                      <div className="space-y-8">
+                      <div className="space-y-6">
                         {orderDetails.shipmentEvents.map((event, index) => {
                           // Is this the current/latest event
                           const isCurrent = event.status === orderDetails.status;
@@ -343,7 +343,7 @@ const OrderTrackingPage = () => {
                             >
                               <div className="relative flex items-start z-10">
                                 {/* Event dot/icon */}
-                                <div className="mr-4 relative">
+                                <div className="mr-8 relative">
                                   <motion.div 
                                     className={`w-6 h-6 rounded-full flex items-center justify-center 
                                       ${isCurrent 
@@ -359,7 +359,6 @@ const OrderTrackingPage = () => {
                                       repeat: Infinity,
                                       duration: 3,
                                     }}
-                                    style={{ marginTop: "6px" }}
                                   >
                                     {isCurrent && (
                                       <span className="text-xs">
@@ -381,20 +380,20 @@ const OrderTrackingPage = () => {
                                     : 'border-gray-700'}`}
                                 >
                                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
-                                    <div className="flex items-center flex-wrap gap-2">
+                                    <div className="flex items-center">
                                       <span className={`font-medium ${isCurrent ? 'text-draugr-400' : ''}`}>
                                         {event.description}
                                       </span>
                                       
                                       {/* Status badge for current event */}
                                       {isCurrent && (
-                                        <span className="bg-draugr-900/70 text-draugr-400 text-xs px-2 py-0.5 rounded-full">
+                                        <span className="mr-2 bg-draugr-900/70 text-draugr-400 text-xs px-2 py-0.5 rounded-full">
                                           وضعیت فعلی
                                         </span>
                                       )}
                                     </div>
                                     
-                                    <div className="text-sm text-gray-400 flex items-center gap-1 mt-1 sm:mt-0">
+                                    <div className="text-sm text-gray-400 flex items-center gap-1">
                                       <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                       </svg>
@@ -439,16 +438,15 @@ const OrderTrackingPage = () => {
                             transition={{ duration: 0.5, delay: orderDetails.shipmentEvents.length * 0.1 }}
                           >
                             <div className="relative flex items-start z-10">
-                              <div className="mr-4">
-                                <div className="w-6 h-6 rounded-full flex items-center justify-center bg-gray-800 border border-dashed border-gray-600"
-                                     style={{ marginTop: "6px" }}>
+                              <div className="mr-8 relative">
+                                <div className="w-6 h-6 rounded-full flex items-center justify-center bg-gray-800 border border-dashed border-gray-600">
                                   <span className="text-gray-400 text-xs">🏁</span>
                                 </div>
                               </div>
                               <div className="flex-1 bg-gray-800/30 rounded-lg p-4 border border-dashed border-gray-700">
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
                                   <span className="text-gray-300">تحویل پیش‌بینی شده</span>
-                                  <span className="text-sm text-draugr-400 mt-1 sm:mt-0">{orderDetails.estimatedDelivery}</span>
+                                  <span className="text-sm text-draugr-400">{orderDetails.estimatedDelivery}</span>
                                 </div>
                               </div>
                             </div>
