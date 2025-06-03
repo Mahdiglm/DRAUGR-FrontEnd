@@ -247,38 +247,52 @@ const Header = ({ cartItems, onCartClick }) => {
             </motion.div>
             
             {/* User Dropdown */}
-            {isAuthenticated && showUserDropdown && (
-              <div className="absolute right-0 mt-2 w-48 bg-black bg-opacity-50 border border-draugr-900/30 rounded-lg shadow-xl z-50 text-right" dir="rtl">
-                <div className="p-3 border-b border-gray-700">
-                  <p className="font-medium text-white truncate">{user?.name}</p>
-                  <p className="text-xs text-gray-400 truncate">{user?.email}</p>
-                </div>
-                <div className="py-1">
-                  <Link
-                    to="/dashboard"
-                    className="block px-4 py-2 text-gray-200 hover:bg-gray-700 hover:text-white"
-                    onClick={() => setShowUserDropdown(false)}
+            {isAuthenticated && (
+              <AnimatePresence>
+                {showUserDropdown && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="absolute right-0 mt-2 w-48 bg-black bg-opacity-50 border border-draugr-900/30 rounded-lg shadow-xl z-50 text-right backdrop-blur-sm" 
+                    dir="rtl"
+                    style={{ 
+                      boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3), 0 0 10px rgba(139, 0, 0, 0.15)'
+                    }}
                   >
-                    <div className="flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
-                      </svg>
-                      حساب کاربری
+                    <div className="p-3 border-b border-gray-700">
+                      <p className="font-medium text-white truncate">{user?.name}</p>
+                      <p className="text-xs text-gray-400 truncate">{user?.email}</p>
                     </div>
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="w-full text-right px-4 py-2 text-gray-200 hover:bg-gray-700 hover:text-white"
-                  >
-                    <div className="flex items-center text-red-500">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                      </svg>
-                      خروج
+                    <div className="py-1">
+                      <Link
+                        to="/dashboard"
+                        className="block px-4 py-2 text-gray-200 hover:bg-gray-700 hover:text-white"
+                        onClick={() => setShowUserDropdown(false)}
+                      >
+                        <div className="flex items-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+                          </svg>
+                          حساب کاربری
+                        </div>
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-right px-4 py-2 text-gray-200 hover:bg-gray-700 hover:text-white"
+                      >
+                        <div className="flex items-center text-red-500">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                          </svg>
+                          خروج
+                        </div>
+                      </button>
                     </div>
-                  </button>
-                </div>
-              </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             )}
           </div>
 
@@ -377,6 +391,7 @@ const Header = ({ cartItems, onCartClick }) => {
               exit={{ opacity: 0, x: '100%' }}
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
               className="md:hidden fixed top-0 right-0 h-screen w-[85%] xs:w-[75%] sm:w-[60%] bg-gradient-to-b from-black to-draugr-950 shadow-[-10px_0px_30px_rgba(0,0,0,0.5)] z-50 overflow-hidden flex flex-col"
+              style={{ maxWidth: 'calc(100vw - 20px)' }}
             >
               {/* Menu Header with improved UX */}
               <div className="p-3 sm:p-4 flex justify-between items-center border-b border-draugr-800 shrink-0">
