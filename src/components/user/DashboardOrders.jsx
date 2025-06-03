@@ -113,8 +113,8 @@ const DashboardOrders = ({ orders, isLoading, error }) => {
         <div>
           <h2 className="text-2xl font-bold mb-2">سفارشات من</h2>
           <p className="text-gray-400 text-sm">
-            {showExamples 
-              ? 'نمونه سفارشات با وضعیت‌های مختلف (برای نمایش)' 
+            {(sortedOrders.length > 0 && sortedOrders[0].isExample) 
+              ? 'نمونه سفارشات برای نمایش (دسترسی API مخصوص ادمین است)' 
               : 'مشاهده و پیگیری تمام سفارشات'}
           </p>
         </div>
@@ -159,13 +159,16 @@ const DashboardOrders = ({ orders, isLoading, error }) => {
         </div>
       ) : (
         <div className="overflow-x-auto">
-          {showExamples && (
-            <div className="mb-4 bg-black/20 border border-draugr-900/30 rounded-lg p-4 text-sm text-gray-400">
+          {sortedOrders[0].isExample && (
+            <div className="mb-4 bg-black/30 border border-draugr-900/50 rounded-lg p-4 text-gray-300 text-sm">
               <div className="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-draugr-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 text-draugr-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                این نمونه‌ها فقط برای نمایش هستند. پس از ثبت اولین سفارش، سفارشات واقعی شما در اینجا نمایش داده خواهند شد.
+                <div>
+                  <p className="font-medium">نمونه سفارشات</p>
+                  <p className="text-gray-400 text-xs mt-1">این سفارشات فقط برای نمایش هستند. دسترسی به API سفارشات نیازمند مجوز مدیریت است.</p>
+                </div>
               </div>
             </div>
           )}
