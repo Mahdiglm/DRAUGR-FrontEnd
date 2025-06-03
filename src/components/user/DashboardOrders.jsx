@@ -18,13 +18,13 @@ const DashboardOrders = ({ orders, isLoading, error }) => {
   // Get order status style
   const getStatusStyle = (status) => {
     switch (status.toLowerCase()) {
-      case 'delivered':
+      case 'تحویل شده':
         return 'bg-green-900 text-green-200';
-      case 'processing':
+      case 'در حال پردازش':
         return 'bg-blue-900 text-blue-200';
-      case 'shipped':
+      case 'ارسال شده':
         return 'bg-purple-900 text-purple-200';
-      case 'cancelled':
+      case 'لغو شده':
         return 'bg-red-900 text-red-200';
       default:
         return 'bg-gray-700 text-gray-200';
@@ -56,11 +56,11 @@ const DashboardOrders = ({ orders, isLoading, error }) => {
   }
   
   return (
-    <div>
+    <div className="text-right">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
-          <h2 className="text-2xl font-bold mb-2">My Orders</h2>
-          <p className="text-gray-400 text-sm">View and track all your orders</p>
+          <h2 className="text-2xl font-bold mb-2">سفارشات من</h2>
+          <p className="text-gray-400 text-sm">مشاهده و پیگیری تمام سفارشات</p>
         </div>
         
         <div className="mt-4 md:mt-0">
@@ -69,11 +69,11 @@ const DashboardOrders = ({ orders, isLoading, error }) => {
             onChange={handleFilterChange}
             className="bg-gray-700 text-gray-200 rounded-lg px-4 py-2 border border-gray-600 focus:ring-2 focus:ring-red-500 focus:border-transparent"
           >
-            <option value="all">All Orders</option>
-            <option value="processing">Processing</option>
-            <option value="shipped">Shipped</option>
-            <option value="delivered">Delivered</option>
-            <option value="cancelled">Cancelled</option>
+            <option value="all">همه سفارشات</option>
+            <option value="در حال پردازش">در حال پردازش</option>
+            <option value="ارسال شده">ارسال شده</option>
+            <option value="تحویل شده">تحویل شده</option>
+            <option value="لغو شده">لغو شده</option>
           </select>
         </div>
       </div>
@@ -85,60 +85,60 @@ const DashboardOrders = ({ orders, isLoading, error }) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-300">No orders found</h3>
+          <h3 className="text-lg font-medium text-gray-300">سفارشی یافت نشد</h3>
           {filter !== 'all' ? (
-            <p className="text-gray-400 mt-2">No {filter} orders. Try a different filter.</p>
+            <p className="text-gray-400 mt-2">سفارشی با وضعیت {filter} یافت نشد. فیلتر دیگری را امتحان کنید.</p>
           ) : (
             <div>
-              <p className="text-gray-400 mt-2">You haven't placed any orders yet.</p>
+              <p className="text-gray-400 mt-2">شما هنوز سفارشی ثبت نکرده‌اید.</p>
               <button 
                 onClick={() => navigate('/shop')} 
                 className="mt-4 px-6 py-2 bg-red-600 rounded-lg hover:bg-red-700 transition"
               >
-                Start Shopping
+                شروع خرید
               </button>
             </div>
           )}
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full">
+          <table className="w-full">
             <thead className="border-b border-gray-700">
               <tr>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">Order ID</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">Date</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">Status</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">Items</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">Total</th>
-                <th className="text-right py-3 px-4 text-sm font-medium text-gray-400">Actions</th>
+                <th className="text-right py-3 px-4 text-sm font-medium text-gray-400">شناسه سفارش</th>
+                <th className="text-right py-3 px-4 text-sm font-medium text-gray-400">تاریخ</th>
+                <th className="text-right py-3 px-4 text-sm font-medium text-gray-400">وضعیت</th>
+                <th className="text-right py-3 px-4 text-sm font-medium text-gray-400">تعداد محصول</th>
+                <th className="text-right py-3 px-4 text-sm font-medium text-gray-400">مبلغ کل</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">عملیات</th>
               </tr>
             </thead>
             <tbody>
               {sortedOrders.map(order => (
-                <tr key={order._id} className="border-b border-gray-700 hover:bg-gray-750">
+                <tr key={order._id} className="border-b border-gray-700 hover:bg-black/20">
                   <td className="py-4 px-4">#{order._id.substring(0, 8)}</td>
-                  <td className="py-4 px-4">{new Date(order.createdAt).toLocaleDateString()}</td>
+                  <td className="py-4 px-4" dir="ltr">{new Date(order.createdAt).toLocaleDateString('fa-IR')}</td>
                   <td className="py-4 px-4">
                     <span className={`inline-block px-3 py-1 rounded-full text-xs ${getStatusStyle(order.status)}`}>
                       {order.status}
                     </span>
                   </td>
-                  <td className="py-4 px-4">{order.orderItems.length} {order.orderItems.length === 1 ? 'item' : 'items'}</td>
-                  <td className="py-4 px-4">${order.totalPrice.toFixed(2)}</td>
-                  <td className="py-4 px-4 text-right">
+                  <td className="py-4 px-4">{order.orderItems.length} محصول</td>
+                  <td className="py-4 px-4" dir="ltr">{order.totalPrice.toLocaleString()} تومان</td>
+                  <td className="py-4 px-4 text-left">
                     <div className="flex justify-end space-x-2">
                       <button
                         onClick={() => navigate(`/order/${order._id}`)}
-                        className="px-3 py-1 bg-gray-700 text-gray-200 rounded hover:bg-gray-600 transition"
+                        className="px-3 py-1 bg-gray-700 text-gray-200 rounded hover:bg-gray-600 transition mr-2"
                       >
-                        Details
+                        جزئیات
                       </button>
-                      {order.status !== 'Delivered' && order.status !== 'Cancelled' && (
+                      {order.status !== 'تحویل شده' && order.status !== 'لغو شده' && (
                         <button
                           onClick={() => navigate(`/order-tracking?id=${order._id}`)}
                           className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition"
                         >
-                          Track
+                          پیگیری
                         </button>
                       )}
                     </div>
