@@ -323,8 +323,8 @@ const OrderTrackingPage = () => {
                     
                     {/* Event cards with enhanced styling and animations */}
                     <div className="relative">
-                      {/* Vertical line connecting all events - Shifting right */}
-                      <div className="absolute top-0 bottom-0 left-11 w-0.5 bg-gradient-to-b from-draugr-800 to-gray-700 z-0"></div>
+                      {/* Vertical line connecting all events - adjust position for better alignment */}
+                      <div className="absolute top-0 bottom-0 left-[42px] w-0.5 bg-gradient-to-b from-draugr-800 to-gray-700 z-0"></div>
                       
                       {/* Timeline events */}
                       <div className="space-y-6">
@@ -342,8 +342,8 @@ const OrderTrackingPage = () => {
                               transition={{ duration: 0.5, delay: index * 0.1 }}
                             >
                               <div className="relative flex items-start z-10">
-                                {/* Event dot/icon CONTAINER - Increased ml from ml-4 to ml-8 */}
-                                <div className="ml-8 mr-10 relative">
+                                {/* Event dot/icon CONTAINER - Added ml-4 and increased mr-8 to mr-10 */}
+                                <div className="ml-4 mr-10 relative">
                                   <motion.div 
                                     className={`w-6 h-6 rounded-full flex items-center justify-center 
                                       ${isCurrent 
@@ -438,8 +438,8 @@ const OrderTrackingPage = () => {
                             transition={{ duration: 0.5, delay: orderDetails.shipmentEvents.length * 0.1 }}
                           >
                             <div className="relative flex items-start z-10">
-                              {/* Icon Container - Increased ml from ml-4 to ml-8 */}
-                              <div className="ml-8 mr-10 relative">
+                              {/* Icon Container - Added ml-4 and increased mr-8 to mr-10 */}
+                              <div className="ml-4 mr-10 relative">
                                 <div className="w-6 h-6 rounded-full flex items-center justify-center bg-gray-800 border border-dashed border-gray-600">
                                   <span className="text-gray-400 text-xs">🏁</span>
                                 </div>
