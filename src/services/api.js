@@ -7,6 +7,8 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const handleResponse = async (response) => {
   try {
     const text = await response.text();
+    console.log('Raw API response:', text); // Log raw response for debugging
+    
     // Try to parse as JSON, but handle empty responses gracefully
     const data = text ? JSON.parse(text) : {};
     
@@ -19,12 +21,14 @@ const handleResponse = async (response) => {
         localStorage.removeItem('token');
       }
       
+      console.error('API error:', { status: response.status, message: errorMessage });
       throw new Error(errorMessage);
     }
     
     return data;
   } catch (error) {
     if (error.name === 'SyntaxError') {
+      console.error('JSON parse error:', error);
       throw new Error('Invalid response from server');
     }
     throw error;
