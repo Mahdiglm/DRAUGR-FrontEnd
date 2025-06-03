@@ -25,7 +25,7 @@ const AdminBlogs = () => {
         setIsLoading(true);
         // This should be replaced with the actual API endpoint for blogs
         const response = await api.get('/api/blogs');
-        setBlogs(response.data);
+        setBlogs(response.data || []);
         setIsLoading(false);
       } catch (err) {
         console.error('Error fetching blogs:', err);
@@ -180,11 +180,11 @@ const AdminBlogs = () => {
                 <h3 className="text-lg font-bold mb-2 line-clamp-1">{blog.title}</h3>
                 <p className="text-gray-400 text-sm mb-3 line-clamp-2">{blog.excerpt}</p>
                 <div className="flex flex-wrap gap-1 mb-3">
-                  {blog.tags.map((tag, index) => (
+                  {blog.tags && blog.tags.map ? blog.tags.map((tag, index) => (
                     <span key={index} className="bg-gray-800 text-gray-300 px-2 py-0.5 rounded-full text-xs">
                       {tag}
                     </span>
-                  ))}
+                  )) : null}
                 </div>
                 <div className="text-xs text-gray-500">
                   {new Date(blog.createdAt).toLocaleDateString('fa-IR')} | {blog.views} بازدید
