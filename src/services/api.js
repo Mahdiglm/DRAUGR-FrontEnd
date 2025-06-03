@@ -1,7 +1,7 @@
 // Base API configuration for the Draugr Shop frontend
 
 // API Base URL - use environment variable in production, fallback to local dev server
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://draugr-backend.onrender.com';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // Helper for handling API responses and errors consistently
 const handleResponse = async (response) => {

@@ -5,7 +5,7 @@ const authService = {
   // Login user
   login: async (email, password) => {
     try {
-      const response = await api.post('/api/users/authenticate', { email, password });
+      const response = await api.post('/api/auth/login', { email, password });
       
       // Store token and user info in local storage
       if (response.token) {
@@ -22,7 +22,7 @@ const authService = {
   // Register a new user
   register: async (userData) => {
     try {
-      const response = await api.post('/api/users/register', userData);
+      const response = await api.post('/api/auth/register', userData);
       
       // Store token and user info if registration leads directly to login
       if (response.token) {
@@ -62,7 +62,7 @@ const authService = {
   // Get current user profile from API
   getUserProfile: async () => {
     try {
-      return await api.get('/api/users/profile');
+      return await api.get('/api/auth/user');
     } catch (error) {
       throw error;
     }
@@ -71,7 +71,7 @@ const authService = {
   // Update user profile
   updateProfile: async (userData) => {
     try {
-      const response = await api.put('/api/users/profile', userData);
+      const response = await api.put('/api/auth/user', userData);
       
       // Update stored user data if successful
       if (response.user) {
@@ -87,9 +87,10 @@ const authService = {
   // Change password
   changePassword: async (currentPassword, newPassword) => {
     try {
-      return await api.put('/api/users/change-password', { 
+      // Include the password change in the profile update
+      return await api.put('/api/auth/user', { 
         currentPassword, 
-        newPassword 
+        password: newPassword 
       });
     } catch (error) {
       throw error;
