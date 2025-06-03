@@ -96,10 +96,18 @@ const UserDashboard = () => {
         // Try to get real orders, but fallback to examples if there's an error
         try {
           const response = await orderService.getOrders();
-          setOrders(response);
-          setRecentOrders(response.slice(0, 3));
+          // Only use real orders if we got some
+          if (response && response.length > 0) {
+            setOrders(response);
+            setRecentOrders(response.slice(0, 3));
+          } else {
+            // Use example orders if the API returned an empty array
+            console.log('No orders returned from API, using examples');
+            setOrders(exampleOrders);
+            setRecentOrders(exampleOrders.slice(0, 3));
+          }
         } catch (apiError) {
-          console.log('Using example orders due to API restrictions:', apiError.message);
+          console.error('Error fetching orders, using examples:', apiError.message);
           // Use example orders instead
           setOrders(exampleOrders);
           setRecentOrders(exampleOrders.slice(0, 3));
