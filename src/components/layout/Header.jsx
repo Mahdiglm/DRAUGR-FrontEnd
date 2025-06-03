@@ -2,16 +2,20 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import pfpIcon from '../../assets/pfp-icon.png';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Header = ({ cartItems, onCartClick }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [typedText, setTypedText] = useState("");
   const [isTyping, setIsTyping] = useState(true);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const userDropdownRef = useRef(null);
   const brandName = "DRAUGR";
   const navigate = useNavigate();
   const location = useLocation();
   const mobileMenuRef = useRef(null);
+  const { user, isAuthenticated, logout } = useAuth();
 
   // Updated navigation structure based on new requirements
   const navigationItems = [
@@ -151,6 +155,27 @@ const Header = ({ cartItems, onCartClick }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Handle clicks outside the user dropdown to close it
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
+        setShowUserDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Handle user logout
+  const handleLogout = () => {
+    logout();
+    setShowUserDropdown(false);
+    navigate('/');
+  };
+
   return (
     <motion.header 
       initial={{ opacity: 0, y: -50 }}
@@ -191,24 +216,78 @@ const Header = ({ cartItems, onCartClick }) => {
         
         {/* Header right section: improved for mobile */}
         <div className="flex items-center">
-          {/* Login button - With improved mobile sizing */}
-          <motion.div 
-            whileHover={{ scale: 1.1 }}
-            initial={{ scale: 1 }}
-            animate={{ scale: 1 }}
-            transition={{ 
-              scale: { duration: 0.3, ease: "easeOut" } 
-            }}
-            whileTap={{ scale: 0.95 }}
-            className="relative cursor-pointer"
-            onClick={() => navigate('/login')}
-          >
-            <img 
-              src={pfpIcon} 
-              alt="Profile" 
-              className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full object-cover border-2 border-draugr-600 transition-all duration-300"
-            />
-          </motion.div>
+          {/* User Account Button - Updated for authentication */}
+          <div className="relative" ref={userDropdownRef}>
+            <motion.div 
+              whileHover={{ scale: 1.1 }}
+              initial={{ scale: 1 }}
+              animate={{ scale: 1 }}
+              transition={{ 
+                scale: { duration: 0.3, ease: "easeOut" } 
+              }}
+              whileTap={{ scale: 0.95 }}
+              className="relative cursor-pointer"
+              onClick={() => isAuthenticated ? setShowUserDropdown(!showUserDropdown) : navigate('/login')}
+            >
+              <img 
+                src={pfpIcon} 
+                alt={isAuthenticated ? `${user?.name || 'User'} Profile` : "Login"} 
+                className={`w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full object-cover transition-all duration-300 ${
+                  isAuthenticated ? 'border-2 border-green-500' : 'border-2 border-draugr-600'
+                }`}
+              />
+              {isAuthenticated && (
+                <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-black rounded-full"></span>
+              )}
+            </motion.div>
+            
+            {/* User Dropdown */}
+            {isAuthenticated && showUserDropdown && (
+              <div className="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
+                <div className="p-3 border-b border-gray-700">
+                  <p className="font-medium text-white truncate">{user?.name}</p>
+                  <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+                </div>
+                <div className="py-1">
+                  <Link
+                    to="/dashboard"
+                    className="block px-4 py-2 text-gray-200 hover:bg-gray-700 hover:text-white"
+                    onClick={() => setShowUserDropdown(false)}
+                  >
+                    <div className="flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+                      </svg>
+                      Dashboard
+                    </div>
+                  </Link>
+                  <Link
+                    to="/order-tracking"
+                    className="block px-4 py-2 text-gray-200 hover:bg-gray-700 hover:text-white"
+                    onClick={() => setShowUserDropdown(false)}
+                  >
+                    <div className="flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                      </svg>
+                      Orders
+                    </div>
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2 text-gray-200 hover:bg-gray-700 hover:text-white"
+                  >
+                    <div className="flex items-center text-red-500">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      Logout
+                    </div>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Spacer div with adjusted spacing for mobile */}
           <div className="w-5 sm:w-4 md:w-4"></div>
