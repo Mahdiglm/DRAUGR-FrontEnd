@@ -342,8 +342,8 @@ const OrderTrackingPage = () => {
                               transition={{ duration: 0.5, delay: index * 0.1 }}
                             >
                               <div className="relative flex items-start z-10">
-                                {/* Event dot/icon CONTAINER - Added ml-4 and increased mr-8 to mr-10 */}
-                                <div className="ml-4 mr-10 relative">
+                                {/* Event dot/icon - Centered horizontally */}
+                                <div className="flex justify-center items-center w-[50px] mr-8 relative">
                                   <motion.div 
                                     className={`w-6 h-6 rounded-full flex items-center justify-center 
                                       ${isCurrent 
@@ -438,8 +438,8 @@ const OrderTrackingPage = () => {
                             transition={{ duration: 0.5, delay: orderDetails.shipmentEvents.length * 0.1 }}
                           >
                             <div className="relative flex items-start z-10">
-                              {/* Icon Container - Added ml-4 and increased mr-8 to mr-10 */}
-                              <div className="ml-4 mr-10 relative">
+                              {/* Icon Container - Centered horizontally */}
+                              <div className="flex justify-center items-center w-[50px] mr-8 relative">
                                 <div className="w-6 h-6 rounded-full flex items-center justify-center bg-gray-800 border border-dashed border-gray-600">
                                   <span className="text-gray-400 text-xs">🏁</span>
                                 </div>
