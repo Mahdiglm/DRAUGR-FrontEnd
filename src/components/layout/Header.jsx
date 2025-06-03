@@ -231,7 +231,7 @@ const Header = ({ cartItems, onCartClick }) => {
             >
               <img 
                 src={pfpIcon} 
-                alt={isAuthenticated ? `${user?.name || 'User'} Profile` : "Login"} 
+                alt={isAuthenticated ? `پروفایل ${user?.name || 'کاربر'}` : "ورود"} 
                 className={`w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full object-cover transition-all duration-300 ${
                   isAuthenticated ? 'border-2 border-green-500' : 'border-2 border-draugr-600'
                 }`}
