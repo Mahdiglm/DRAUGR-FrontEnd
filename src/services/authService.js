@@ -49,14 +49,17 @@ const authService = {
   },
   
   // Get current user data
-  getCurrentUser: async () => {
+  getCurrentUser: () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) return null;
       
-      return await api.get('/api/auth/user');
+      // Return the stored user data if available
+      const userData = localStorage.getItem('user');
+      return userData ? JSON.parse(userData) : null;
     } catch (error) {
-      throw error;
+      console.error('Error getting current user:', error);
+      return null;
     }
   },
   
