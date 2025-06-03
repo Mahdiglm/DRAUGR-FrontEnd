@@ -26,8 +26,22 @@ const AdminUsers = () => {
         setIsLoading(true);
         const response = await api.get('/api/admin/users');
         
+        console.log('API Response:', response); // Debug response
+        
         if (isMounted) {
-          setUsers(response.data?.data || []);
+          // Check both possible response structures
+          if (Array.isArray(response)) {
+            setUsers(response);
+          } else if (response.data) {
+            setUsers(response.data);
+          } else if (response.success && response.data) {
+            // Backend returns { success: true, data: [...] }
+            setUsers(response.data);
+          } else {
+            console.error('Unexpected API response structure:', response);
+            setUsers([]);
+          }
+          
           setIsLoading(false);
           setError(null); // Clear any previous errors
         }
