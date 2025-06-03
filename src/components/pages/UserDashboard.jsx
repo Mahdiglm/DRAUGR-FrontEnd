@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import orderService from '../../services/orderService';
 import authService from '../../services/authService';
@@ -20,6 +20,23 @@ const UserDashboard = () => {
   
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Check for tab in URL path (for direct links to specific tabs)
+  useEffect(() => {
+    const path = location.pathname;
+    const tabNames = {
+      '/dashboard/orders': 'orders',
+      '/dashboard/profile': 'profile',
+      '/dashboard/wishlist': 'wishlist',
+      '/dashboard/addresses': 'addresses',
+      '/dashboard/reviews': 'reviews'
+    };
+    
+    if (tabNames[path]) {
+      setActiveTab(tabNames[path]);
+    }
+  }, [location.pathname]);
   
   // Fetch user's orders when component mounts
   useEffect(() => {
