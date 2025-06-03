@@ -39,7 +39,7 @@ const AdminDashboard = () => {
         
         const response = await api.get('/api/admin/dashboard');
         console.log('Dashboard API response:', response);
-        setDashboardData(response.data);
+        setDashboardData(response);
         setIsLoading(false);
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
@@ -84,24 +84,12 @@ const AdminDashboard = () => {
       );
     }
     
-    if (!dashboardData.data) {
-      console.error('Dashboard data.data is undefined or null', dashboardData);
-      return (
-        <div className="bg-yellow-900/20 text-yellow-200 p-4 rounded-lg border border-yellow-800">
-          <p>اطلاعات داشبورد در دسترس نیست. لطفاً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.</p>
-          <pre className="mt-2 text-xs overflow-auto">
-            {JSON.stringify(dashboardData, null, 2)}
-          </pre>
-        </div>
-      );
-    }
-    
     // Use default empty objects/arrays if data is missing
     const { 
       counts = { users: 0, orders: 0, products: 0, blogs: 0, revenue: 0 }, 
       recentOrders = [], 
       recentUsers = [] 
-    } = dashboardData.data;
+    } = dashboardData;
     
     return (
       <div className="space-y-8">
