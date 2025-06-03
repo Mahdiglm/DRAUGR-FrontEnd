@@ -324,7 +324,7 @@ const OrderTrackingPage = () => {
                     {/* Event cards with enhanced styling and animations */}
                     <div className="relative">
                       {/* Vertical line connecting all events - using RIGHT positioning instead of LEFT */}
-                      <div className="absolute top-0 bottom-0 right-8 w-0.5 bg-gradient-to-b from-draugr-800 to-gray-700 z-0"></div>
+                      <div className="absolute top-0 bottom-0 right-[51px] w-0.5 bg-gradient-to-b from-draugr-800 to-gray-700 z-0"></div>
                       
                       {/* Timeline events */}
                       <div className="space-y-6">
