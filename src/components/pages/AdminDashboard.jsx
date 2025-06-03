@@ -32,11 +32,18 @@ const AdminDashboard = () => {
     const fetchDashboardData = async () => {
       try {
         setIsLoading(true);
+        console.log('Fetching dashboard data...');
+        const token = localStorage.getItem('token');
+        console.log('Current auth token:', token ? 'Token exists' : 'No token');
+        console.log('User data:', user);
+        
         const response = await api.get('/api/admin/dashboard');
+        console.log('Dashboard API response:', response);
         setDashboardData(response.data);
         setIsLoading(false);
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
+        console.error('Error details:', err.message);
         setError('Failed to load dashboard data. Please try again later.');
         setIsLoading(false);
       }
@@ -68,10 +75,23 @@ const AdminDashboard = () => {
       );
     }
     
-    if (!dashboardData || !dashboardData.data) {
+    if (!dashboardData) {
+      console.error('Dashboard data is undefined or null');
       return (
         <div className="bg-yellow-900/20 text-yellow-200 p-4 rounded-lg border border-yellow-800">
           <p>اطلاعات داشبورد در دسترس نیست. لطفاً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.</p>
+        </div>
+      );
+    }
+    
+    if (!dashboardData.data) {
+      console.error('Dashboard data.data is undefined or null', dashboardData);
+      return (
+        <div className="bg-yellow-900/20 text-yellow-200 p-4 rounded-lg border border-yellow-800">
+          <p>اطلاعات داشبورد در دسترس نیست. لطفاً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.</p>
+          <pre className="mt-2 text-xs overflow-auto">
+            {JSON.stringify(dashboardData, null, 2)}
+          </pre>
         </div>
       );
     }
