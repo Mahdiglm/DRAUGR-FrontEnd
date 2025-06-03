@@ -442,6 +442,57 @@ const Header = ({ cartItems, onCartClick }) => {
                         onClick={toggleMobileMenu}
                       />
                     ))}
+                    
+                    {/* User Account options in mobile menu */}
+                    {isAuthenticated && (
+                      <div className="mt-4 pt-4 border-t border-draugr-800/50">
+                        <div className="flex items-center px-3 py-2 mb-2">
+                          <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-lg font-bold mr-2">
+                            {user?.name?.charAt(0) || 'ک'}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">{user?.name || 'کاربر'}</p>
+                            <p className="text-xs text-gray-400">{user?.email || ''}</p>
+                          </div>
+                        </div>
+                        
+                        <Link 
+                          to="/dashboard" 
+                          className="flex items-center px-3 py-2.5 text-sm text-gray-300 hover:bg-black/40 hover:text-white rounded-md transition-all duration-200"
+                          onClick={toggleMobileMenu}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+                          </svg>
+                          حساب کاربری
+                        </Link>
+                        
+                        <Link 
+                          to="/order-tracking" 
+                          className="flex items-center px-3 py-2.5 text-sm text-gray-300 hover:bg-black/40 hover:text-white rounded-md transition-all duration-200"
+                          onClick={toggleMobileMenu}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                          </svg>
+                          سفارشات
+                        </Link>
+                        
+                        <button 
+                          onClick={() => {
+                            logout();
+                            toggleMobileMenu();
+                            navigate('/');
+                          }}
+                          className="flex items-center px-3 py-2.5 text-sm text-red-500 hover:bg-black/40 hover:text-red-400 rounded-md transition-all duration-200 w-full text-right"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                          </svg>
+                          خروج
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
