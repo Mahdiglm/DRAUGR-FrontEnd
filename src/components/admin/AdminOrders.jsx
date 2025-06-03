@@ -144,17 +144,19 @@ const AdminOrders = () => {
   };
   
   // Filter orders based on search term and status filter
-  const filteredOrders = orders.filter(order => {
-    const matchesSearch = (
-      order._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (order.user?.name && order.user.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (order.user?.email && order.user.email.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-    
-    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
+  const filteredOrders = orders && orders.length > 0 
+    ? orders.filter(order => {
+        const matchesSearch = (
+          order._id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (order.user?.name && order.user.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (order.user?.email && order.user.email.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
+        
+        const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+        
+        return matchesSearch && matchesStatus;
+      })
+    : [];
   
   if (isLoading) {
     return (
@@ -234,7 +236,7 @@ const AdminOrders = () => {
                   </div>
                   <div className="flex justify-between mt-2">
                     <p className="text-gray-400 text-xs">{new Date(order.createdAt).toLocaleDateString('fa-IR')}</p>
-                    <p className="text-xs" dir="ltr">{order.totalPrice.toLocaleString()} تومان</p>
+                    <p className="text-xs" dir="ltr">{(order.totalPrice || 0).toLocaleString()} تومان</p>
                   </div>
                 </div>
               ))}
