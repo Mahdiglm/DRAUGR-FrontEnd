@@ -62,9 +62,9 @@ const DashboardWishlist = () => {
   }
   
   return (
-    <div>
+    <div className="text-right" dir="rtl">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-        <h2 className="text-2xl font-bold mb-2">My Wishlist</h2>
+        <h2 className="text-2xl font-bold mb-2">علاقه‌مندی‌های من</h2>
         
         {wishlist.length > 0 && (
           <button
@@ -77,7 +77,7 @@ const DashboardWishlist = () => {
             }}
             className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition mt-2 md:mt-0"
           >
-            Add All to Cart
+            افزودن همه به سبد خرید
           </button>
         )}
       </div>
@@ -89,21 +89,21 @@ const DashboardWishlist = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-300">Your wishlist is empty</h3>
+          <h3 className="text-lg font-medium text-gray-300">لیست علاقه‌مندی‌های شما خالی است</h3>
           <p className="text-gray-400 mt-2 mb-6">
-            Find products you love and add them to your wishlist to save them for later.
+            محصولات مورد علاقه‌تان را به این لیست اضافه کنید تا برای خرید آتی ذخیره شوند.
           </p>
           <button 
             onClick={() => navigate('/shop')} 
             className="px-6 py-2 bg-red-600 rounded-lg hover:bg-red-700 transition"
           >
-            Explore Products
+            مشاهده محصولات
           </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {wishlist.map(product => (
-            <div key={product._id} className="bg-gray-750 rounded-xl overflow-hidden">
+            <div key={product._id} className="bg-black bg-opacity-50 rounded-xl overflow-hidden border border-draugr-900/30">
               <div className="relative">
                 <img
                   src={product.images[0]?.url || '/placeholder.jpg'}
@@ -113,7 +113,7 @@ const DashboardWishlist = () => {
                 <button
                   onClick={() => removeFromWishlist(product._id)}
                   className="absolute top-2 right-2 w-8 h-8 bg-gray-800/80 rounded-full flex items-center justify-center hover:bg-red-600 transition"
-                  aria-label="Remove from wishlist"
+                  aria-label="حذف از علاقه‌مندی‌ها"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -124,28 +124,28 @@ const DashboardWishlist = () => {
               <div className="p-4">
                 <h3 className="font-medium text-lg mb-1 line-clamp-1">{product.name}</h3>
                 <div className="flex items-center mb-3">
-                  <span className="text-red-500 font-bold">${product.price.toFixed(2)}</span>
+                  <span className="text-red-500 font-bold">{product.price.toLocaleString()} تومان</span>
                   {product.discountPrice > 0 && (
-                    <span className="text-gray-400 text-sm line-through ml-2">
-                      ${product.discountPrice.toFixed(2)}
+                    <span className="text-gray-400 text-sm line-through mr-2">
+                      {product.discountPrice.toLocaleString()} تومان
                     </span>
                   )}
                 </div>
                 
-                <div className="flex space-x-2">
+                <div className="flex space-x-2 space-x-reverse">
                   <button
                     onClick={() => handleAddToCart(product)}
                     className="flex-1 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center justify-center"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                     </svg>
-                    Add to Cart
+                    افزودن به سبد خرید
                   </button>
                   <button
                     onClick={() => navigate(`/product/${product._id}`)}
                     className="py-2 px-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition"
-                    aria-label="View details"
+                    aria-label="نمایش جزئیات"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
