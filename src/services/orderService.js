@@ -5,7 +5,7 @@ const orderService = {
   // Get all orders for current user
   getOrders: async () => {
     try {
-      return await api.get('/api/orders');
+      return await api.get('/api/orders/user');
     } catch (error) {
       throw error;
     }
