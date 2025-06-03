@@ -376,10 +376,10 @@ const UserDashboard = () => {
                   logout();
                   navigate('/');
                 }}
-                className="w-full py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition flex items-center justify-center"
+                className="w-full py-2.5 bg-gradient-to-r from-draugr-900 to-draugr-800 hover:from-draugr-800 hover:to-draugr-700 rounded-lg transition-all duration-200 flex items-center justify-center"
               >
-                <span className="ml-2">خروج از حساب</span>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <span>خروج از حساب</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-draugr-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
               </button>
