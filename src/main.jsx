@@ -40,6 +40,7 @@ import BlogPage from './components/pages/BlogPage';
 import SingleBlogPostPage from './components/pages/SingleBlogPostPage';
 import SpecialOffersPage from './components/pages/SpecialOffersPage';
 import OrderTrackingPage from './components/pages/OrderTrackingPage';
+import UserDashboard from './components/pages/UserDashboard';
 
 // Context Providers
 import { AuthProvider } from './contexts/AuthContext';
@@ -65,6 +66,8 @@ createRoot(document.getElementById('root')).render(
                 <Route path="special-offers" element={<SpecialOffersPage />} />
                 <Route path="special-offers/:id" element={<SpecialOffersPage />} />
                 <Route path="order-tracking" element={<OrderTrackingPage />} />
+                <Route path="dashboard" element={<UserDashboard />} />
+                <Route path="order/:id" element={<OrderTrackingPage />} />
               </Route>
             </Routes>
           </HashRouter>
