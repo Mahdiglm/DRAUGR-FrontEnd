@@ -1,12 +1,16 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import AuthLayout from './AuthLayout';
 import { useAuth } from '../../contexts/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, error: authError, loading: authLoading } = useAuth();
+  
+  // Get the redirect path from location state (if coming from ProtectedRoute)
+  const from = location.state?.from || '/';
   
   const [formData, setFormData] = useState({
     email: '',
@@ -54,16 +58,16 @@ const Login = () => {
       // Use the login function from AuthContext
       await login(formData.email, formData.password);
       
-      // Redirect to home page after successful login
-      navigate('/');
+      // Redirect to the originally requested page or home page after successful login
+      navigate(from, { replace: true });
     } catch (err) {
       // Display error from auth context or set specific form errors
-      if (err.message.includes('email')) {
+      if (err.message?.includes('email')) {
         setErrors(prev => ({
           ...prev,
           email: 'ایمیل نادرست است'
         }));
-      } else if (err.message.includes('password')) {
+      } else if (err.message?.includes('password')) {
         setErrors(prev => ({
           ...prev,
           password: 'رمز عبور نادرست است'
