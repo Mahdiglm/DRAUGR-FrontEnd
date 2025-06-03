@@ -20,20 +20,39 @@ const AdminUsers = () => {
   
   // Fetch all users
   useEffect(() => {
+    let isMounted = true;
     const fetchUsers = async () => {
       try {
+        if (isLoading) return; // Prevent multiple simultaneous requests
+        
         setIsLoading(true);
         const response = await api.get('/api/admin/users');
-        setUsers(response.data?.data || []);
-        setIsLoading(false);
+        
+        if (isMounted) {
+          setUsers(response.data?.data || []);
+          setIsLoading(false);
+          setError(null); // Clear any previous errors
+        }
       } catch (err) {
         console.error('Error fetching users:', err);
-        setError('Failed to load users. Please try again later.');
-        setIsLoading(false);
+        
+        if (isMounted) {
+          if (err.message === 'Too many requests to admin routes, please try again later.') {
+            setError('تعداد درخواست‌های ارسالی بیش از حد مجاز است. لطفاً چند دقیقه صبر کنید و دوباره تلاش کنید.');
+          } else {
+            setError('خطا در بارگذاری کاربران. لطفاً دوباره تلاش کنید.');
+          }
+          setIsLoading(false);
+        }
       }
     };
     
     fetchUsers();
+    
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
   }, []);
   
   // Fetch user details
