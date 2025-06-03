@@ -748,10 +748,10 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
                   
                 {category.items && category.items.length > 0 && activeCategory === idx && (
                   <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
+                    initial={{ opacity: 0, height: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, height: 'auto', scale: 1 }}
+                    exit={{ opacity: 0, height: 0, scale: 0.98 }}
+                    transition={{ duration: 0.25, ease: "easeOut" }}
                     className="py-1 px-2 bg-black/20 rounded-b-md"
                   >
                     {category.items.map((item, itemIdx) => (
