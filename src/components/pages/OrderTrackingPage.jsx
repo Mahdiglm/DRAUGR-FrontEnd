@@ -282,8 +282,8 @@ const OrderTrackingPage = () => {
                             return (
                               <div 
                                 key={step.id} 
-                                className={`flex flex-col items-center px-1 ${isLastStep ? 'mr-auto' : ''}`}
-                                style={isLastStep ? { marginRight: '1px' } : {}}
+                                className={`flex flex-col items-center px-1 ${isLastStep ? 'mr-auto ml-0' : ''}`}
+                                style={isLastStep ? { marginRight: '0px' } : {}}
                               >
                                 <motion.div 
                                   className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mb-2 ${
