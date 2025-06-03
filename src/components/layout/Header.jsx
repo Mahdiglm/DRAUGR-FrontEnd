@@ -391,7 +391,7 @@ const Header = ({ cartItems, onCartClick }) => {
               exit={{ opacity: 0, x: '100%' }}
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
               className="md:hidden fixed top-0 right-0 h-screen w-[85%] xs:w-[75%] sm:w-[60%] bg-gradient-to-b from-black to-draugr-950 shadow-[-10px_0px_30px_rgba(0,0,0,0.5)] z-50 overflow-hidden flex flex-col"
-              style={{ maxWidth: 'calc(100vw - 20px)' }}
+              style={{ maxWidth: 'calc(100vw - 20px)', right: '0', left: 'auto' }}
             >
               {/* Menu Header with improved UX */}
               <div className="p-3 sm:p-4 flex justify-between items-center border-b border-draugr-800 shrink-0">
@@ -761,12 +761,12 @@ const MobileNavLink = ({ to, label, isNested = false, navItem, onClick }) => {
                           ? `/shop/${category.name.toLowerCase().replace(/\s+/g, '-')}/${item.toLowerCase().replace(/\s+/g, '-')}`
                           : `/special-offers/${item.toLowerCase().replace(/\s+/g, '-')}`
                         }
-                        className="block py-2.5 px-2 text-xs text-gray-400 hover:text-white hover:bg-black/20 rounded-md transition-all duration-200 flex items-center justify-between"
+                        className="block py-2.5 px-3 text-xs text-gray-400 hover:text-white hover:bg-black/20 rounded-md transition-all duration-200 flex items-center justify-between mx-1 my-1"
                         onClick={onClick}
                       >
-                        <span>{item}</span>
+                        <span className="truncate">{item}</span>
                         {navItem.name === "پیشنهادات ویژه" && (
-                          <span className="text-[0.6rem] bg-draugr-600 px-1.5 py-0.5 rounded text-white">ویژه</span>
+                          <span className="text-[0.6rem] bg-draugr-600 px-1.5 py-0.5 rounded text-white flex-shrink-0 mr-1">ویژه</span>
                         )}
                       </Link>
                     ))}
