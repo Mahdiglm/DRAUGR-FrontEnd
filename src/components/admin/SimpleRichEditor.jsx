@@ -4,7 +4,7 @@ import '../../styles/quill-dark.css';
 const SimpleRichEditor = ({ value, onChange, placeholder }) => {
   const editorRef = useRef(null);
   const [focus, setFocus] = useState(false);
-  const [selection, setSelection] = useState(null);
+  const [editorContent, setEditorContent] = useState(value || '');
   const [activeFormats, setActiveFormats] = useState({
     bold: false,
     italic: false,
@@ -15,41 +15,29 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
     ol: false
   });
   
-  // Sync the value prop with the contentEditable element
+  // Only update the content from props when it's explicitly changed from outside
   useEffect(() => {
-    if (editorRef.current && value !== editorRef.current.innerHTML && !focus) {
-      editorRef.current.innerHTML = value || '';
+    if (!focus && value !== editorContent) {
+      setEditorContent(value || '');
+      if (editorRef.current) {
+        editorRef.current.innerHTML = value || '';
+      }
     }
   }, [value, focus]);
   
   // Handle content changes
   const handleInput = () => {
-    if (editorRef.current && onChange) {
-      onChange(editorRef.current.innerHTML);
-    }
-    
-    // Check active formats after content changes
-    checkActiveFormats();
-  };
-  
-  // Save selection before any action
-  const saveSelection = () => {
-    if (window.getSelection) {
-      const sel = window.getSelection();
-      if (sel.getRangeAt && sel.rangeCount) {
-        return sel.getRangeAt(0);
+    if (editorRef.current) {
+      const newContent = editorRef.current.innerHTML;
+      setEditorContent(newContent);
+      // Only trigger onChange if the content actually changed
+      if (newContent !== value && onChange) {
+        onChange(newContent);
       }
     }
-    return null;
-  };
-  
-  // Restore selection after action
-  const restoreSelection = (range) => {
-    if (range && window.getSelection) {
-      const sel = window.getSelection();
-      sel.removeAllRanges();
-      sel.addRange(range);
-    }
+    
+    // Check active formats
+    checkActiveFormats();
   };
   
   // Apply formatting with proper selection handling
@@ -57,28 +45,17 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
     // Focus the editor first
     editorRef.current.focus();
     
-    // If we have a saved selection, restore it
-    if (selection) {
-      restoreSelection(selection);
-    }
-    
-    // Execute the command
+    // Use the browser's built-in formatting command
     document.execCommand(command, false, value);
     
-    // Update the content
+    // Update our state after formatting
     handleInput();
-    
-    // Keep focus on the editor
-    editorRef.current.focus();
   };
 
   // Special handler for headings that works better
   const formatHeading = (level) => {
+    // Focus the editor first
     editorRef.current.focus();
-    
-    if (selection) {
-      restoreSelection(selection);
-    }
 
     // Check if we're already using this heading level
     const isActive = activeFormats[level];
@@ -91,8 +68,8 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
       document.execCommand('formatBlock', false, level);
     }
     
+    // Update our state after formatting
     handleInput();
-    editorRef.current.focus();
   };
 
   // Check which formats are currently active
@@ -131,23 +108,6 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
     }
     return false;
   };
-  
-  // Handle selection change to track it
-  const handleSelectionChange = () => {
-    if (document.activeElement === editorRef.current) {
-      setSelection(saveSelection());
-      // Also check formatting when selection changes
-      checkActiveFormats();
-    }
-  };
-  
-  // Add event listener for selection changes
-  useEffect(() => {
-    document.addEventListener('selectionchange', handleSelectionChange);
-    return () => {
-      document.removeEventListener('selectionchange', handleSelectionChange);
-    };
-  }, []);
   
   return (
     <div className="rich-editor-container">
@@ -261,6 +221,7 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
       <div
         ref={editorRef}
         contentEditable
+        suppressContentEditableWarning={true}
         className="ql-editor bg-gray-800 text-gray-200 border border-gray-700 rounded-b-lg p-4 min-h-[250px]"
         onInput={handleInput}
         onFocus={() => {
@@ -269,12 +230,11 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
         }}
         onBlur={() => {
           setFocus(false);
-          setSelection(null);
+          // Last chance to make sure content is synced
+          handleInput();
         }}
-        style={{ minHeight: '250px' }}
-        dangerouslySetInnerHTML={{ __html: value || '' }}
-        placeholder={placeholder}
         data-placeholder={placeholder}
+        dangerouslySetInnerHTML={{ __html: editorContent }}
       />
     </div>
   );
