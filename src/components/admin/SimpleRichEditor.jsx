@@ -5,6 +5,15 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
   const editorRef = useRef(null);
   const [focus, setFocus] = useState(false);
   const [selection, setSelection] = useState(null);
+  const [activeFormats, setActiveFormats] = useState({
+    bold: false,
+    italic: false,
+    underline: false,
+    h1: false,
+    h2: false,
+    ul: false,
+    ol: false
+  });
   
   // Sync the value prop with the contentEditable element
   useEffect(() => {
@@ -18,6 +27,9 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
     if (editorRef.current && onChange) {
       onChange(editorRef.current.innerHTML);
     }
+    
+    // Check active formats after content changes
+    checkActiveFormats();
   };
   
   // Save selection before any action
@@ -67,21 +79,65 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
     if (selection) {
       restoreSelection(selection);
     }
+
+    // Check if we're already using this heading level
+    const isActive = activeFormats[level];
     
     // First clear any existing format
     document.execCommand('formatBlock', false, 'div');
     
-    // Then apply heading format
-    document.execCommand('formatBlock', false, level);
+    // Then apply heading format (only if not already active)
+    if (!isActive) {
+      document.execCommand('formatBlock', false, level);
+    }
     
     handleInput();
     editorRef.current.focus();
+  };
+
+  // Check which formats are currently active
+  const checkActiveFormats = () => {
+    if (!document.queryCommandEnabled('bold')) {
+      return; // Editor not focused or not available
+    }
+    
+    setActiveFormats({
+      bold: document.queryCommandState('bold'),
+      italic: document.queryCommandState('italic'),
+      underline: document.queryCommandState('underline'),
+      ul: document.queryCommandState('insertUnorderedList'),
+      ol: document.queryCommandState('insertOrderedList'),
+      // For headings, we need a different approach
+      h1: isFormatActive('h1'),
+      h2: isFormatActive('h2'),
+    });
+  };
+
+  // Helper to check if a specific block format is active
+  const isFormatActive = (format) => {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const node = selection.getRangeAt(0).commonAncestorContainer;
+      const element = node.nodeType === 3 ? node.parentNode : node;
+      
+      // Walk up from the selection to check for the format
+      let current = element;
+      while (current && current !== editorRef.current) {
+        if (current.nodeName.toLowerCase() === format) {
+          return true;
+        }
+        current = current.parentNode;
+      }
+    }
+    return false;
   };
   
   // Handle selection change to track it
   const handleSelectionChange = () => {
     if (document.activeElement === editorRef.current) {
       setSelection(saveSelection());
+      // Also check formatting when selection changes
+      checkActiveFormats();
     }
   };
   
@@ -102,7 +158,9 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
             type="button"
             title="Heading 1" 
             onClick={() => formatHeading('h1')}
-            className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded text-sm"
+            className={`px-3 py-1.5 rounded text-sm ${activeFormats.h1 
+              ? 'bg-red-900 text-white' 
+              : 'bg-gray-800 hover:bg-gray-700'}`}
           >
             H1
           </button>
@@ -110,7 +168,9 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
             type="button"
             title="Heading 2" 
             onClick={() => formatHeading('h2')}
-            className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded text-sm"
+            className={`px-3 py-1.5 rounded text-sm ${activeFormats.h2 
+              ? 'bg-red-900 text-white' 
+              : 'bg-gray-800 hover:bg-gray-700'}`}
           >
             H2
           </button>
@@ -118,7 +178,9 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
             type="button"
             title="Bold" 
             onClick={() => execFormatCommand('bold')}
-            className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded"
+            className={`px-3 py-1.5 rounded ${activeFormats.bold 
+              ? 'bg-red-900 text-white' 
+              : 'bg-gray-800 hover:bg-gray-700'}`}
           >
             <strong>B</strong>
           </button>
@@ -126,7 +188,9 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
             type="button"
             title="Italic" 
             onClick={() => execFormatCommand('italic')}
-            className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded"
+            className={`px-3 py-1.5 rounded ${activeFormats.italic 
+              ? 'bg-red-900 text-white' 
+              : 'bg-gray-800 hover:bg-gray-700'}`}
           >
             <em>I</em>
           </button>
@@ -134,7 +198,9 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
             type="button"
             title="Underline" 
             onClick={() => execFormatCommand('underline')}
-            className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded"
+            className={`px-3 py-1.5 rounded ${activeFormats.underline 
+              ? 'bg-red-900 text-white' 
+              : 'bg-gray-800 hover:bg-gray-700'}`}
           >
             <u>U</u>
           </button>
@@ -142,7 +208,9 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
             type="button"
             title="Bullet List" 
             onClick={() => execFormatCommand('insertUnorderedList')}
-            className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded"
+            className={`px-3 py-1.5 rounded ${activeFormats.ul 
+              ? 'bg-red-900 text-white' 
+              : 'bg-gray-800 hover:bg-gray-700'}`}
           >
             • List
           </button>
@@ -150,7 +218,9 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
             type="button"
             title="Numbered List" 
             onClick={() => execFormatCommand('insertOrderedList')}
-            className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded"
+            className={`px-3 py-1.5 rounded ${activeFormats.ol 
+              ? 'bg-red-900 text-white' 
+              : 'bg-gray-800 hover:bg-gray-700'}`}
           >
             1. List
           </button>
@@ -193,7 +263,10 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
         contentEditable
         className="ql-editor bg-gray-800 text-gray-200 border border-gray-700 rounded-b-lg p-4 min-h-[250px]"
         onInput={handleInput}
-        onFocus={() => setFocus(true)}
+        onFocus={() => {
+          setFocus(true);
+          checkActiveFormats();
+        }}
         onBlur={() => {
           setFocus(false);
           setSelection(null);
