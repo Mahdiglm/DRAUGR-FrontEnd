@@ -282,27 +282,4 @@
   height: auto;
   margin: 1rem 0;
   border-radius: 0.375rem;
-}
-
-/* Additional paragraph and spacing styles */
-.rich-editor-container .ql-editor p {
-  margin-bottom: 1em;
-  min-height: 1.2em;
-}
-
-.rich-editor-container .ql-editor br {
-  display: block;
-  content: "";
-  margin-top: 0.5em;
-}
-
-/* Fix cursor visibility */
-.rich-editor-container .ql-editor:focus {
-  caret-color: white;
-}
-
-/* Fix selection highlighting */
-.rich-editor-container .ql-editor::selection,
-.rich-editor-container .ql-editor *::selection {
-  background-color: rgba(96, 165, 250, 0.4) !important;
 } 

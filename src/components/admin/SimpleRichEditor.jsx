@@ -5,7 +5,6 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
   const editorRef = useRef(null);
   const [focus, setFocus] = useState(false);
   const [selection, setSelection] = useState(null);
-  const [internalValue, setInternalValue] = useState(value || '');
   const [activeFormats, setActiveFormats] = useState({
     bold: false,
     italic: false,
@@ -16,57 +15,21 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
     ol: false
   });
   
-  // Sync from props to internal state only when not focused
+  // Sync the value prop with the contentEditable element
   useEffect(() => {
-    if (!focus && value !== internalValue) {
-      setInternalValue(value || '');
+    if (editorRef.current && value !== editorRef.current.innerHTML && !focus) {
+      editorRef.current.innerHTML = value || '';
     }
   }, [value, focus]);
   
-  // Sync internal content with contentEditable div
-  useEffect(() => {
-    if (editorRef.current && editorRef.current.innerHTML !== internalValue && !focus) {
-      editorRef.current.innerHTML = internalValue;
-    }
-  }, [internalValue, focus]);
-
-  // When user types or edits
+  // Handle content changes
   const handleInput = () => {
-    if (editorRef.current) {
-      const newContent = editorRef.current.innerHTML;
-      setInternalValue(newContent);
-      
-      if (onChange) {
-        onChange(newContent);
-      }
+    if (editorRef.current && onChange) {
+      onChange(editorRef.current.innerHTML);
     }
     
     // Check active formats after content changes
     checkActiveFormats();
-  };
-  
-  // Add proper paragraph handling
-  const handleKeyDown = (e) => {
-    // Handle Tab key to prevent focus loss
-    if (e.key === 'Tab') {
-      e.preventDefault();
-      document.execCommand('insertHTML', false, '&nbsp;&nbsp;&nbsp;&nbsp;');
-      handleInput();
-    }
-    
-    // Ensure proper paragraph handling for Enter key
-    if (e.key === 'Enter' && !e.shiftKey) {
-      // Check if we're in a special block like list
-      const inList = document.queryCommandState('insertOrderedList') || 
-                    document.queryCommandState('insertUnorderedList');
-                    
-      if (!inList) {
-        // In normal text, use standard paragraph creation
-        e.preventDefault();
-        document.execCommand('insertParagraph', false, null);
-        handleInput();
-      }
-    }
   };
   
   // Save selection before any action
@@ -74,7 +37,7 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
     if (window.getSelection) {
       const sel = window.getSelection();
       if (sel.getRangeAt && sel.rangeCount) {
-        return sel.getRangeAt(0).cloneRange();
+        return sel.getRangeAt(0);
       }
     }
     return null;
@@ -105,9 +68,8 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
     // Update the content
     handleInput();
     
-    // Keep focus on the editor and save the new selection
+    // Keep focus on the editor
     editorRef.current.focus();
-    setSelection(saveSelection());
   };
 
   // Special handler for headings that works better
@@ -129,10 +91,8 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
       document.execCommand('formatBlock', false, level);
     }
     
-    // Update content and selection
     handleInput();
     editorRef.current.focus();
-    setSelection(saveSelection());
   };
 
   // Check which formats are currently active
@@ -189,26 +149,6 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
     };
   }, []);
   
-  // Handle initial paragraph structure
-  useEffect(() => {
-    if (editorRef.current && editorRef.current.innerHTML === '') {
-      editorRef.current.innerHTML = '<p><br></p>';
-    }
-  }, []);
-  
-  // Prepare initial content for proper paragraph structure
-  const getInitialContent = () => {
-    if (!internalValue) return '<p><br></p>';
-    
-    // Check if the content already has block elements
-    if (/<\/?[p|div|h1|h2|h3|h4|h5|h6|ul|ol|li|blockquote]/.test(internalValue)) {
-      return internalValue;
-    }
-    
-    // Wrap plain text in paragraph
-    return `<p>${internalValue}</p>`;
-  };
-
   return (
     <div className="rich-editor-container">
       {/* Formatting Toolbar */}
@@ -323,20 +263,17 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
         contentEditable
         className="ql-editor bg-gray-800 text-gray-200 border border-gray-700 rounded-b-lg p-4 min-h-[250px]"
         onInput={handleInput}
-        onKeyDown={handleKeyDown}
         onFocus={() => {
           setFocus(true);
           checkActiveFormats();
         }}
         onBlur={() => {
           setFocus(false);
-          // Keep selection for a short while to allow button clicks to work
-          setTimeout(() => {
-            setSelection(null);
-          }, 100);
+          setSelection(null);
         }}
         style={{ minHeight: '250px' }}
-        dangerouslySetInnerHTML={{ __html: getInitialContent() }}
+        dangerouslySetInnerHTML={{ __html: value || '' }}
+        placeholder={placeholder}
         data-placeholder={placeholder}
       />
     </div>
