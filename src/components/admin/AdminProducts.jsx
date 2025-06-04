@@ -337,50 +337,62 @@ const AdminProducts = () => {
             onClick={async () => {
               try {
                 setIsLoading(true);
-                // Create 10 test products
+                // Create test products one at a time instead of all at once
                 const testCategories = categories.map(cat => cat._id);
+                let createdCount = 0;
                 
-                // Create promises for all product creations
-                const productPromises = [];
-                for (let i = 0; i < 10; i++) {
-                  const randomCategoryIndex = Math.floor(Math.random() * testCategories.length);
-                  const productName = `محصول آزمایشی ${i + 1}`;
-                  // Create URL-friendly slug based on name
-                  const slug = `test-product-${i + 1}`;
+                for (let i = 0; i < 5; i++) { // Reduce to 5 instead of 10 to avoid overloading
+                  try {
+                    const randomCategoryIndex = Math.floor(Math.random() * testCategories.length);
+                    const productName = `محصول آزمایشی ${i + 1}`;
+                    // Create URL-friendly slug based on name
+                    const slug = `test-product-${i + 1}-${Date.now()}`;
+                    
+                    const testProduct = {
+                      name: productName,
+                      slug: slug, // Add unique slug with timestamp
+                      description: `توضیحات برای محصول آزمایشی شماره ${i + 1}`,
+                      price: Math.floor(Math.random() * 1000) + 100,
+                      images: [{
+                        url: `http://localhost:5000/static/images/products/Product_${(i % 13) + 1}.jpg`,
+                        alt: `محصول آزمایشی ${i + 1}`
+                      }],
+                      category: testCategories[randomCategoryIndex], // Send category ID directly
+                      stock: Math.floor(Math.random() * 50) + 10, // Try stock as an alternative to countInStock
+                      countInStock: Math.floor(Math.random() * 50) + 10,
+                      features: ['ویژگی تست ۱', 'ویژگی تست ۲'],
+                      sale: {
+                        isSale: Math.random() > 0.7,
+                        salePrice: Math.floor(Math.random() * 100) + 50
+                      }
+                    };
+                    
+                    console.log('Creating test product:', testProduct);
+                    const response = await adminService.createProduct(testProduct);
+                    console.log('Product creation response:', response);
+                    createdCount++;
+                  } catch (productError) {
+                    console.error(`Error creating product ${i + 1}:`, productError);
+                  }
                   
-                  const testProduct = {
-                    name: productName,
-                    slug: slug, // Add slug field
-                    description: `توضیحات برای محصول آزمایشی شماره ${i + 1}`,
-                    price: Math.floor(Math.random() * 1000) + 100,
-                    images: [{
-                      url: `http://localhost:5000/static/images/products/Product_${(i % 13) + 1}.jpg`,
-                      alt: `محصول آزمایشی ${i + 1}`
-                    }],
-                    category: testCategories[randomCategoryIndex], // Send category ID directly
-                    countInStock: Math.floor(Math.random() * 50) + 10,
-                    features: ['ویژگی تست ۱', 'ویژگی تست ۲'],
-                    sale: {
-                      isSale: Math.random() > 0.7,
-                      salePrice: Math.floor(Math.random() * 100) + 50
-                    }
-                  };
-                  
-                  console.log('Creating test product:', testProduct);
-                  productPromises.push(adminService.createProduct(testProduct));
+                  // Add small delay between requests to avoid overwhelming server
+                  await new Promise(resolve => setTimeout(resolve, 500));
                 }
-                
-                await Promise.all(productPromises);
                 
                 // Refresh products
                 const response = await adminService.getAllProducts(1, 1000);
                 if (response.data && response.data.data) {
                   setProducts(response.data.data);
                 }
-                toast.success('محصولات آزمایشی با موفقیت اضافه شدند');
+                
+                if (createdCount > 0) {
+                  toast.success(`${createdCount} محصول آزمایشی با موفقیت اضافه شدند`);
+                } else {
+                  toast.error('هیچ محصولی ایجاد نشد، لطفاً کنسول را برای اطلاعات بیشتر بررسی کنید');
+                }
               } catch (error) {
-                console.error('Error creating test products:', error);
-                toast.error('خطا در ایجاد محصولات آزمایشی');
+                console.error('Error in test product creation flow:', error);
+                toast.error(`خطا در ایجاد محصولات آزمایشی: ${error.message}`);
               } finally {
                 setIsLoading(false);
               }
