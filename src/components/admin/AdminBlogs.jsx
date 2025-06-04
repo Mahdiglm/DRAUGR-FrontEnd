@@ -2,6 +2,25 @@ import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css'; // Import Quill styles
+import '../../styles/quill-dark.css'; // Import custom dark theme styles
+
+// Custom CSS for dark-themed editor
+const darkEditorStyles = {
+  editor: {
+    backgroundColor: '#1f2937', // Dark background
+    color: '#e5e7eb', // Light text
+    minHeight: '250px', // Taller editor
+    borderRadius: '0.5rem',
+  },
+  toolbar: {
+    backgroundColor: '#111827', // Darker toolbar
+    color: '#e5e7eb', // Light text
+    borderRadius: '0.5rem 0.5rem 0 0',
+    borderBottom: '1px solid #374151'
+  }
+};
 
 const AdminBlogs = () => {
   const [blogs, setBlogs] = useState([]);
@@ -19,6 +38,41 @@ const AdminBlogs = () => {
   const [isCreateMode, setIsCreateMode] = useState(true);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [blogToDelete, setBlogToDelete] = useState(null);
+  const [activeTab, setActiveTab] = useState('edit'); // 'edit' or 'preview'
+  
+  // Rich text editor modules and formats configuration
+  const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+      ['bold', 'italic', 'underline', 'strike'], 
+      [{'color': []}, {'background': []}],
+      [{'align': []}],
+      [{'list': 'ordered'}, {'list': 'bullet'}],
+      [{'script': 'sub'}, {'script': 'super'}],
+      ['blockquote', 'code-block'],
+      ['link', 'image', 'video'],
+      ['clean']
+    ],
+  };
+
+  const formats = [
+    'header',
+    'bold', 'italic', 'underline', 'strike',
+    'color', 'background',
+    'align',
+    'list', 'bullet',
+    'script',
+    'blockquote', 'code-block',
+    'link', 'image', 'video'
+  ];
+
+  // Handle rich text editor content change
+  const handleContentChange = (content) => {
+    setCurrentBlog({
+      ...currentBlog,
+      content
+    });
+  };
   
   // Check existing blog format
   const checkExistingBlogFormat = () => {
@@ -96,6 +150,7 @@ const AdminBlogs = () => {
     });
     setIsCreateMode(true);
     setIsModalOpen(true);
+    setActiveTab('edit');
   };
   
   // Handle opening the edit modal
@@ -110,6 +165,13 @@ const AdminBlogs = () => {
     });
     setIsCreateMode(false);
     setIsModalOpen(true);
+    setActiveTab('edit');
+  };
+  
+  // Handle modal close with cleanup
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setActiveTab('edit');
   };
   
   // Handle delete confirmation
@@ -321,94 +383,186 @@ const AdminBlogs = () => {
                 {isCreateMode ? 'ایجاد مقاله جدید' : 'ویرایش مقاله'}
               </h3>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 max-h-[80vh] overflow-y-auto">
-              <div className="mb-4">
-                <label className="block text-gray-400 mb-1 text-sm">عنوان</label>
-                <input
-                  type="text"
-                  name="title"
-                  value={currentBlog.title}
-                  onChange={handleInputChange}
-                  className="w-full bg-gray-800 rounded-lg px-4 py-2 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-draugr-500"
-                  required
-                />
-              </div>
-              
-              <div className="mb-4">
-                <label className="block text-gray-400 mb-1 text-sm">چکیده</label>
-                <textarea
-                  name="excerpt"
-                  value={currentBlog.excerpt}
-                  onChange={handleInputChange}
-                  className="w-full bg-gray-800 rounded-lg px-4 py-2 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-draugr-500 h-20"
-                  required
-                ></textarea>
-              </div>
-              
-              <div className="mb-4">
-                <label className="block text-gray-400 mb-1 text-sm">محتوا</label>
-                <textarea
-                  name="content"
-                  value={currentBlog.content}
-                  onChange={handleInputChange}
-                  className="w-full bg-gray-800 rounded-lg px-4 py-2 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-draugr-500 h-32"
-                  required
-                ></textarea>
-              </div>
-              
-              <div className="mb-4">
-                <label className="block text-gray-400 mb-1 text-sm">آدرس تصویر</label>
-                <input
-                  type="text"
-                  name="image"
-                  value={currentBlog.image}
-                  onChange={handleInputChange}
-                  className="w-full bg-gray-800 rounded-lg px-4 py-2 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-draugr-500"
-                  required
-                />
-              </div>
-              
-              <div className="mb-4">
-                <label className="block text-gray-400 mb-1 text-sm">برچسب‌ها (با کاما جدا کنید)</label>
-                <input
-                  type="text"
-                  name="tags"
-                  value={currentBlog.tags}
-                  onChange={handleInputChange}
-                  placeholder="مثال: گیمینگ, تکنولوژی, راهنما"
-                  className="w-full bg-gray-800 rounded-lg px-4 py-2 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-draugr-500"
-                />
-              </div>
-              
-              <div className="mb-6">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="isPublished"
-                    checked={currentBlog.isPublished}
-                    onChange={handleInputChange}
-                    className="rounded text-draugr-500 focus:ring-draugr-500 h-5 w-5 bg-gray-800 border-gray-700"
-                  />
-                  <span className="mr-2">انتشار مقاله</span>
-                </label>
-              </div>
-              
-              <div className="flex justify-end gap-3">
+            
+            <div className="border-b border-gray-800">
+              <div className="flex">
                 <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
+                  className={`px-4 py-2 ${activeTab === 'edit' ? 'bg-draugr-700 text-white' : 'bg-transparent text-gray-400'}`}
+                  onClick={() => setActiveTab('edit')}
                 >
-                  انصراف
+                  <span className="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    ویرایش
+                  </span>
                 </button>
                 <button
-                  type="submit"
-                  className="px-4 py-2 bg-draugr-700 hover:bg-draugr-600 rounded-lg transition-colors"
+                  className={`px-4 py-2 ${activeTab === 'preview' ? 'bg-draugr-700 text-white' : 'bg-transparent text-gray-400'}`}
+                  onClick={() => setActiveTab('preview')}
                 >
-                  {isCreateMode ? 'ایجاد مقاله' : 'بروزرسانی مقاله'}
+                  <span className="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    پیش‌نمایش
+                  </span>
                 </button>
               </div>
-            </form>
+            </div>
+            
+            <div className="p-6 max-h-[80vh] overflow-y-auto">
+              {activeTab === 'edit' ? (
+                <form onSubmit={handleSubmit} id="blog-form">
+                  <div className="mb-4">
+                    <label className="block text-gray-400 mb-1 text-sm">عنوان</label>
+                    <input
+                      type="text"
+                      name="title"
+                      value={currentBlog.title}
+                      onChange={handleInputChange}
+                      className="w-full bg-gray-800 rounded-lg px-4 py-2 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-draugr-500"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="mb-4">
+                    <label className="block text-gray-400 mb-1 text-sm">چکیده</label>
+                    <textarea
+                      name="excerpt"
+                      value={currentBlog.excerpt}
+                      onChange={handleInputChange}
+                      className="w-full bg-gray-800 rounded-lg px-4 py-2 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-draugr-500 h-20"
+                      required
+                    ></textarea>
+                  </div>
+                  
+                  <div className="mb-4">
+                    <label className="block text-gray-400 mb-1 text-sm">محتوا</label>
+                    <div className="quill-editor-dark">
+                      <ReactQuill
+                        value={currentBlog.content}
+                        onChange={handleContentChange}
+                        modules={modules}
+                        formats={formats}
+                        theme="snow"
+                        style={darkEditorStyles.editor}
+                        className="rounded-lg focus:outline-none focus:ring-2 focus:ring-draugr-500 mb-6"
+                        placeholder="محتوای مقاله خود را بنویسید... (متن، تصویر، لینک و...)"
+                      />
+                    </div>
+                    <div className="mt-1 text-xs text-gray-400">
+                      <p>از ابزارهای بالا برای قالب‌بندی متن استفاده کنید. شما می‌توانید:</p>
+                      <ul className="list-disc list-inside mt-1 space-y-1">
+                        <li>متن را <strong>پررنگ</strong>، <em>مورب</em> یا <u>زیرخط‌دار</u> کنید</li>
+                        <li>تصاویر را به متن اضافه کنید</li>
+                        <li>لیست‌های منظم یا نامنظم بسازید</li>
+                        <li>لینک اضافه کنید</li>
+                        <li>رنگ متن و پس‌زمینه را تغییر دهید</li>
+                        <li>ویدیو اضافه کنید</li>
+                      </ul>
+                    </div>
+                  </div>
+                  
+                  <div className="mb-4">
+                    <label className="block text-gray-400 mb-1 text-sm">آدرس تصویر</label>
+                    <input
+                      type="text"
+                      name="image"
+                      value={currentBlog.image}
+                      onChange={handleInputChange}
+                      className="w-full bg-gray-800 rounded-lg px-4 py-2 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-draugr-500"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="mb-4">
+                    <label className="block text-gray-400 mb-1 text-sm">برچسب‌ها (با کاما جدا کنید)</label>
+                    <input
+                      type="text"
+                      name="tags"
+                      value={currentBlog.tags}
+                      onChange={handleInputChange}
+                      placeholder="مثال: گیمینگ, تکنولوژی, راهنما"
+                      className="w-full bg-gray-800 rounded-lg px-4 py-2 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-draugr-500"
+                    />
+                  </div>
+                  
+                  <div className="mb-6">
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        name="isPublished"
+                        checked={currentBlog.isPublished}
+                        onChange={handleInputChange}
+                        className="rounded text-draugr-500 focus:ring-draugr-500 h-5 w-5 bg-gray-800 border-gray-700"
+                      />
+                      <span className="mr-2">انتشار مقاله</span>
+                    </label>
+                  </div>
+                </form>
+              ) : (
+                <div className="preview-container">
+                  <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                    <h1 className="text-2xl font-bold mb-4 text-red-400">{currentBlog.title || 'عنوان مقاله'}</h1>
+                    
+                    {currentBlog.image && (
+                      <div className="mb-6 rounded-lg overflow-hidden">
+                        <img
+                          src={currentBlog.image}
+                          alt={currentBlog.title}
+                          className="w-full h-auto object-cover"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = 'https://via.placeholder.com/800x400/1a1a1a/666666?text=تصویر+مقاله';
+                          }}
+                        />
+                      </div>
+                    )}
+                    
+                    <div className="text-sm text-gray-400 mb-6">
+                      <p className="mb-2">{currentBlog.excerpt || 'چکیده مقاله در این قسمت نمایش داده می‌شود...'}</p>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {currentBlog.tags && currentBlog.tags.split(',').map((tag, index) => (
+                          tag.trim() ? (
+                            <span key={index} className="bg-gray-700 text-gray-300 px-2 py-0.5 rounded-full text-xs">
+                              #{tag.trim()}
+                            </span>
+                          ) : null
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div 
+                      className="prose prose-invert max-w-none"
+                      dangerouslySetInnerHTML={{ __html: currentBlog.content || '<p>محتوای مقاله در این قسمت نمایش داده می‌شود...</p>' }}
+                    />
+                  </div>
+                  
+                  <div className="mt-4 text-center p-2 bg-gray-900/50 rounded-lg">
+                    <p className="text-sm text-gray-400">این پیش‌نمایش است. برای ویرایش بیشتر به تب "ویرایش" بازگردید.</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <div className="border-t border-gray-800 p-4 flex justify-end">
+              <button
+                type="button"
+                onClick={handleModalClose}
+                className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors ml-2"
+              >
+                انصراف
+              </button>
+              <button
+                type="submit"
+                form="blog-form"
+                className="px-4 py-2 bg-draugr-700 hover:bg-draugr-600 rounded-lg transition-colors"
+              >
+                {isCreateMode ? 'ایجاد مقاله' : 'بروزرسانی مقاله'}
+              </button>
+            </div>
           </div>
         </div>
       )}
