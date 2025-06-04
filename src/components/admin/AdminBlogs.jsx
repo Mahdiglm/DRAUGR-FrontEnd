@@ -56,7 +56,7 @@ const AdminBlogs = () => {
     ],
   }), []);
 
-  const formats = [
+  const formats = useMemo(() => [
     'header',
     'bold', 'italic', 'underline', 'strike',
     'color', 'background',
@@ -65,7 +65,7 @@ const AdminBlogs = () => {
     'script',
     'blockquote', 'code-block',
     'link', 'image', 'video'
-  ];
+  ], []);
 
   // Handle rich text editor content change
   const handleContentChange = (content) => {
