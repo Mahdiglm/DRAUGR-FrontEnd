@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ProductCard from './ProductCard';
 import { motion } from 'framer-motion';
-import productBackground from '../../assets/BackGround-Product.jpg';
+import { getAssetUrl } from '../../utils/assetUtils';
 
 const ProductList = ({ products = [], onAddToCart, title = "محصولات", backgroundType = null }) => {
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -34,7 +34,7 @@ const ProductList = ({ products = [], onAddToCart, title = "محصولات", bac
     if (backgroundType === 'product') {
       return {
         style: {
-          backgroundImage: `url(${productBackground})`,
+          backgroundImage: `url(${getAssetUrl('BackGround-Product.jpg')})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'
