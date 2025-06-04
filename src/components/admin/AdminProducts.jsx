@@ -344,15 +344,20 @@ const AdminProducts = () => {
                 const productPromises = [];
                 for (let i = 0; i < 10; i++) {
                   const randomCategoryIndex = Math.floor(Math.random() * testCategories.length);
+                  const productName = `محصول آزمایشی ${i + 1}`;
+                  // Create URL-friendly slug based on name
+                  const slug = `test-product-${i + 1}`;
+                  
                   const testProduct = {
-                    name: `محصول آزمایشی ${i + 1}`,
+                    name: productName,
+                    slug: slug, // Add slug field
                     description: `توضیحات برای محصول آزمایشی شماره ${i + 1}`,
                     price: Math.floor(Math.random() * 1000) + 100,
                     images: [{
                       url: `http://localhost:5000/static/images/products/Product_${(i % 13) + 1}.jpg`,
                       alt: `محصول آزمایشی ${i + 1}`
                     }],
-                    category: testCategories[randomCategoryIndex],
+                    category: testCategories[randomCategoryIndex], // Send category ID directly
                     countInStock: Math.floor(Math.random() * 50) + 10,
                     features: ['ویژگی تست ۱', 'ویژگی تست ۲'],
                     sale: {
@@ -361,6 +366,7 @@ const AdminProducts = () => {
                     }
                   };
                   
+                  console.log('Creating test product:', testProduct);
                   productPromises.push(adminService.createProduct(testProduct));
                 }
                 
