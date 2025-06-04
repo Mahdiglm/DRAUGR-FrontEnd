@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { getAssetUrl } from '../../utils/assetUtils';
 
 // Assets
-// Replaced local import with backend URL
-// Using API_BASE_URL from environment or default to localhost
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const backgroundImage = `${API_BASE_URL}/api/assets/BackGround-Login.jpg`;
+const backgroundImage = getAssetUrl('BackGround-Login.jpg');
 
 const AuthLayout = ({ children, title }) => {
   // Ensure menu-open class is removed when the auth pages are mounted
