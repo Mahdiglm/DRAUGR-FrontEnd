@@ -187,7 +187,7 @@ const AdminProducts = () => {
       description: '',
       price: 0,
       images: [],
-      category: categories.length > 0 ? categories[0]._id : '',
+      category: categories && categories.length > 0 ? categories[0]._id : '',
       countInStock: 0,
       features: [],
       sale: {
@@ -429,7 +429,7 @@ const AdminProducts = () => {
                 
                 // Get first category from the list for testing
                 if (!categories || categories.length === 0) {
-                  toast.error("لطفاً منتظر بمانید تا دسته‌بندی‌ها بارگذاری شوند");
+                  toast.error("لطفاً منتظر بمانید تا دسته‌بندی‌ها بارگذاری شوند یا دسته‌بندی جدید ایجاد کنید");
                   setIsLoading(false);
                   return;
                 }
@@ -533,7 +533,7 @@ const AdminProducts = () => {
               className="bg-gray-900 rounded-lg px-4 py-2 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-draugr-500"
             >
               <option value="all">همه دسته‌ها</option>
-              {categories.map(category => (
+              {categories && categories.length > 0 && categories.map(category => (
                 <option key={category._id} value={category._id}>{category.name}</option>
               ))}
             </select>
@@ -674,9 +674,11 @@ const AdminProducts = () => {
                     className="w-full bg-gray-800 rounded-lg px-4 py-2 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-draugr-500"
                     required
                   >
-                    {categories.map(category => (
+                    {categories && categories.length > 0 ? categories.map(category => (
                       <option key={category._id} value={category._id}>{category.name}</option>
-                    ))}
+                    )) : (
+                      <option value="">دسته‌بندی‌ها در حال بارگذاری...</option>
+                    )}
                   </select>
                 </div>
                 
