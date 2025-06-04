@@ -153,12 +153,12 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
     <div className="rich-editor-container">
       {/* Formatting Toolbar */}
       <div className="ql-toolbar">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-3 justify-center">
           <button 
             type="button"
             title="Heading 1" 
             onClick={() => formatHeading('h1')}
-            className={`px-3 py-1.5 rounded text-sm ${activeFormats.h1 
+            className={`px-4 py-1.5 rounded text-sm ${activeFormats.h1 
               ? 'bg-red-900 text-white' 
               : 'bg-gray-800 hover:bg-gray-700'}`}
           >
@@ -168,7 +168,7 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
             type="button"
             title="Heading 2" 
             onClick={() => formatHeading('h2')}
-            className={`px-3 py-1.5 rounded text-sm ${activeFormats.h2 
+            className={`px-4 py-1.5 rounded text-sm ${activeFormats.h2 
               ? 'bg-red-900 text-white' 
               : 'bg-gray-800 hover:bg-gray-700'}`}
           >
@@ -178,7 +178,7 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
             type="button"
             title="Bold" 
             onClick={() => execFormatCommand('bold')}
-            className={`px-3 py-1.5 rounded ${activeFormats.bold 
+            className={`px-4 py-1.5 rounded ${activeFormats.bold 
               ? 'bg-red-900 text-white' 
               : 'bg-gray-800 hover:bg-gray-700'}`}
           >
@@ -188,7 +188,7 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
             type="button"
             title="Italic" 
             onClick={() => execFormatCommand('italic')}
-            className={`px-3 py-1.5 rounded ${activeFormats.italic 
+            className={`px-4 py-1.5 rounded ${activeFormats.italic 
               ? 'bg-red-900 text-white' 
               : 'bg-gray-800 hover:bg-gray-700'}`}
           >
@@ -198,7 +198,7 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
             type="button"
             title="Underline" 
             onClick={() => execFormatCommand('underline')}
-            className={`px-3 py-1.5 rounded ${activeFormats.underline 
+            className={`px-4 py-1.5 rounded ${activeFormats.underline 
               ? 'bg-red-900 text-white' 
               : 'bg-gray-800 hover:bg-gray-700'}`}
           >
@@ -208,7 +208,7 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
             type="button"
             title="Bullet List" 
             onClick={() => execFormatCommand('insertUnorderedList')}
-            className={`px-3 py-1.5 rounded ${activeFormats.ul 
+            className={`px-4 py-1.5 rounded ${activeFormats.ul 
               ? 'bg-red-900 text-white' 
               : 'bg-gray-800 hover:bg-gray-700'}`}
           >
@@ -218,7 +218,7 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
             type="button"
             title="Numbered List" 
             onClick={() => execFormatCommand('insertOrderedList')}
-            className={`px-3 py-1.5 rounded ${activeFormats.ol 
+            className={`px-4 py-1.5 rounded ${activeFormats.ol 
               ? 'bg-red-900 text-white' 
               : 'bg-gray-800 hover:bg-gray-700'}`}
           >
@@ -231,7 +231,7 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
               const url = prompt('Enter URL:');
               if (url) execFormatCommand('createLink', url);
             }}
-            className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded"
+            className="px-4 py-1.5 bg-gray-800 hover:bg-gray-700 rounded"
           >
             Link
           </button>
@@ -242,7 +242,7 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
               const url = prompt('Enter image URL:');
               if (url) execFormatCommand('insertImage', url);
             }}
-            className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded"
+            className="px-4 py-1.5 bg-gray-800 hover:bg-gray-700 rounded"
           >
             Image
           </button>
@@ -250,7 +250,7 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
             type="button"
             title="Clear Formatting" 
             onClick={() => execFormatCommand('removeFormat')}
-            className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded"
+            className="px-4 py-1.5 bg-gray-800 hover:bg-gray-700 rounded"
           >
             Clear
           </button>
