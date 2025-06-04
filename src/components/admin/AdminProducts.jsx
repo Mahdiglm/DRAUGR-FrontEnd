@@ -423,7 +423,7 @@ const AdminProducts = () => {
                 {isCreateMode ? 'افزودن محصول جدید' : 'ویرایش محصول'}
               </h3>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 max-h-[80vh] overflow-y-auto">
+            <form onSubmit={handleSubmit} className="p-6 max-h-[80vh] overflow-y-auto" id="product-form">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="block text-gray-400 mb-1 text-sm">نام محصول</label>
@@ -610,7 +610,7 @@ const AdminProducts = () => {
                 انصراف
               </button>
               <button
-                form="product-form" // Connect to the form
+                form="product-form"
                 type="submit"
                 className="px-4 py-2 bg-draugr-600 hover:bg-draugr-500 rounded-lg shadow-sm transition-colors"
               >
