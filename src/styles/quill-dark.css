@@ -222,7 +222,7 @@
 
 /* Placeholder style */
 .rich-editor-container .ql-editor[contenteditable="true"]:empty:before {
-  content: attr(placeholder);
+  content: attr(data-placeholder);
   color: #6b7280;
   pointer-events: none;
   display: block;
