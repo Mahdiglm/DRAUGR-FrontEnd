@@ -8,9 +8,6 @@ import CategoryGrid from '../shared/CategoryGrid';
 import { products } from '../../utils/mockData';
 import { safeBlur, safeFilterTransition, isLowPerformanceDevice, getOptimizedAnimationSettings } from '../../utils/animationHelpers';
 import { getAssetUrl } from '../../utils/assetUtils';
-// Try with relative path to asset folder
-import heroBackground from '../../assets/Background-Hero.jpg';
-import mainBackground from '../../assets/BackGround-Main.jpg';
 
 const HomePage = () => {
   const { addToCart } = useOutletContext();
@@ -50,7 +47,10 @@ const HomePage = () => {
 
   // Preload all images immediately
   useEffect(() => {
-    const preloadImages = [heroBackground, mainBackground];
+    const preloadImages = [
+      getAssetUrl('Background-Hero.jpg'), 
+      getAssetUrl('BackGround-Main.jpg')
+    ];
     preloadImages.forEach((image) => {
       const img = new Image();
       img.src = image;
