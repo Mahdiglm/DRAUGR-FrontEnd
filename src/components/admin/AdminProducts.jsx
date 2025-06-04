@@ -201,16 +201,59 @@ const AdminProducts = () => {
     setIsModalOpen(true);
   };
   
+  // Refresh categories and products
+  const refreshData = async () => {
+    try {
+      // First fetch categories
+      const categoriesResponse = await api.get('/api/categories');
+      setCategories(categoriesResponse.data || []);
+      
+      // Then fetch products
+      const adminResponse = await adminService.getAllProducts(1, 1000);
+      console.log('Admin products API response:', adminResponse);
+      
+      let productsData = [];
+      if (adminResponse.data && adminResponse.data.data) {
+        productsData = adminResponse.data.data;
+      } else if (Array.isArray(adminResponse.data)) {
+        productsData = adminResponse.data;
+      } else if (adminResponse.data && adminResponse.data._id) {
+        productsData = [adminResponse.data];
+      }
+      
+      setProducts(productsData);
+    } catch (err) {
+      console.error('Error refreshing data:', err);
+      toast.error(`خطا در بارگذاری اطلاعات: ${err.message}`);
+    }
+  };
+  
   // Handle opening the edit modal
   const handleEditClick = (product) => {
-    setCurrentProduct({
-      ...product,
-      features: product.features || [],
-      images: product.images || [],
-      sale: product.sale || { isSale: false, salePrice: 0 }
-    });
-    setIsCreateMode(false);
-    setIsModalOpen(true);
+    // Ensure categories are loaded
+    if (!categories || categories.length === 0) {
+      refreshData().then(() => {
+        setCurrentProduct({
+          ...product,
+          features: product.features || [],
+          images: product.images || [],
+          category: product.category || '',
+          sale: product.sale || { isSale: false, salePrice: 0 }
+        });
+        setIsCreateMode(false);
+        setIsModalOpen(true);
+      });
+    } else {
+      setCurrentProduct({
+        ...product,
+        features: product.features || [],
+        images: product.images || [],
+        category: product.category || '',
+        sale: product.sale || { isSale: false, salePrice: 0 }
+      });
+      setIsCreateMode(false);
+      setIsModalOpen(true);
+    }
   };
   
   // Handle delete confirmation
