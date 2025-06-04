@@ -399,12 +399,27 @@ const AdminProducts = () => {
         <h2 className="text-xl font-bold">مدیریت محصولات</h2>
         <div className="flex gap-2">
           <Link 
+            to="/admin/categories" 
+            className="px-4 py-2 bg-purple-800 hover:bg-purple-700 rounded-lg shadow-sm transition-colors"
+          >
+            مدیریت دسته‌بندی‌ها
+          </Link>
+          <Link 
             to="/shop" 
             target="_blank" 
             className="px-4 py-2 bg-purple-700 hover:bg-purple-600 rounded-lg shadow-sm transition-colors"
           >
             مشاهده فروشگاه
           </Link>
+          <button 
+            onClick={refreshData}
+            className="px-4 py-2 bg-green-800 hover:bg-green-700 rounded-lg shadow-sm transition-colors"
+            title="بارگذاری مجدد اطلاعات"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
           <button 
             onClick={async () => {
               try {
