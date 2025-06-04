@@ -5,9 +5,10 @@ import { Link } from 'react-router-dom';
 import ReactQuill from 'react-quill';
 // Basic styles if the Quill CSS fails to load
 import '../../styles/quill-basic.css';
-// Try to load from node_modules (may or may not work depending on bundler)
-import '../../../node_modules/react-quill/dist/quill.snow.css';
-import '../../styles/quill-dark.css'; // Import custom dark theme styles
+// Local copy of Quill Snow theme
+import '../../assets/quill/quill.snow.css';
+// Import custom dark theme styles
+import '../../styles/quill-dark.css';
 import DOMPurify from 'dompurify'; // Import DOMPurify for sanitizing HTML
 
 // Custom CSS for dark-themed editor
