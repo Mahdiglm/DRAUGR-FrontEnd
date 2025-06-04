@@ -307,7 +307,9 @@ const AdminProducts = () => {
         const matchesSearch = product.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
                              product.description?.toLowerCase().includes(searchTerm.toLowerCase());
         
-        const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
+        const matchesCategory = categoryFilter === 'all' || 
+                               product.category === categoryFilter ||
+                               (product.category?._id && product.category._id === categoryFilter);
         
         return matchesSearch && matchesCategory;
       })
