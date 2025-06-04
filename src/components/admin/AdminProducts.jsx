@@ -3,6 +3,7 @@ import { api } from '../../services/api';
 import { toast } from 'react-toastify';
 import adminService from '../../services/adminService';
 import { getProductImageUrl } from '../../utils/assetUtils';
+import { Link } from 'react-router-dom';
 
 const AdminProducts = () => {
   const [products, setProducts] = useState([]);
@@ -45,71 +46,60 @@ const AdminProducts = () => {
     const fetchProducts = async () => {
       try {
         setIsLoading(true);
-        // Use a much larger pageSize to ensure all products are fetched
-        const response = await adminService.getAllProducts(1, 1000);
         
-        // Debug the API response
-        console.log('Admin products API response:', response);
+        // Try direct call to public product API to see all products
+        try {
+          console.log('Trying direct public products API call');
+          const response = await fetch('http://localhost:5000/api/products?limit=100');
+          const data = await response.json();
+          console.log('Public products API response:', data);
+          
+          // Extract products based on response structure
+          let productsData = [];
+          if (data && data.data) {
+            productsData = data.data;
+          } else if (Array.isArray(data)) {
+            productsData = data;
+          }
+          
+          console.log(`Found ${productsData.length} products from public API`);
+          if (productsData.length > 0) {
+            setProducts(productsData);
+            setIsLoading(false);
+            return;
+          }
+        } catch (publicError) {
+          console.error('Error with public API:', publicError);
+        }
+        
+        // If public API fails, try the admin endpoint
+        console.log('Trying admin products API call');
+        const adminResponse = await adminService.getAllProducts(1, 1000);
+        console.log('Admin products API response:', adminResponse);
         
         // Check the structure of the response and extract the correct data
         let productsData = [];
         
-        if (response.data && response.data.data) {
+        if (adminResponse.data && adminResponse.data.data) {
           // Structure: { data: { data: [...] } }
-          productsData = response.data.data;
-        } else if (Array.isArray(response.data)) {
+          productsData = adminResponse.data.data;
+        } else if (Array.isArray(adminResponse.data)) {
           // Structure: { data: [...] }
-          productsData = response.data;
-        } else if (response.data) {
+          productsData = adminResponse.data;
+        } else if (adminResponse.data) {
           // Structure: { data: { ... } } - check if it's an object with product fields
-          if (response.data._id) {
-            productsData = [response.data];
+          if (adminResponse.data._id) {
+            productsData = [adminResponse.data];
           }
         }
         
-        // If we haven't found products yet, try direct API call as a fallback
-        if (productsData.length === 0) {
-          try {
-            console.log('Attempting direct API call as fallback');
-            const directResponse = await api.get('/api/products?limit=100');
-            if (directResponse.data && directResponse.data.data) {
-              productsData = directResponse.data.data;
-            } else if (Array.isArray(directResponse.data)) {
-              productsData = directResponse.data;
-            }
-          } catch (directErr) {
-            console.error('Direct API fallback failed:', directErr);
-          }
-        }
-        
-        console.log(`Found ${productsData.length} products`);
+        console.log(`Found ${productsData.length} products from admin API`);
         setProducts(productsData);
         setIsLoading(false);
       } catch (err) {
         console.error('Error fetching products:', err);
         setError(`Failed to load products: ${err.message}. Please try again later.`);
         setIsLoading(false);
-        
-        // Try direct API call as a final fallback
-        try {
-          console.log('Attempting direct API call after error');
-          const fallbackResponse = await api.get('/api/products?limit=100');
-          let productsData = [];
-          
-          if (fallbackResponse.data && fallbackResponse.data.data) {
-            productsData = fallbackResponse.data.data;
-          } else if (Array.isArray(fallbackResponse.data)) {
-            productsData = fallbackResponse.data;
-          }
-          
-          if (productsData.length > 0) {
-            console.log(`Found ${productsData.length} products from fallback API`);
-            setProducts(productsData);
-            setError(null);
-          }
-        } catch (fallbackErr) {
-          console.error('Final fallback attempt failed:', fallbackErr);
-        }
       }
     };
     
@@ -288,28 +278,42 @@ const AdminProducts = () => {
   
   // Function to get product image URL
   const getProductImage = (product) => {
-    // First check for images array
-    if (product.images && product.images.length > 0) {
-      if (typeof product.images[0] === 'object' && product.images[0].url) {
-        return product.images[0].url;
-      } else if (typeof product.images[0] === 'string') {
-        return product.images[0];
+    try {
+      // Debug product image structure
+      console.log('Product image data:', {
+        hasImages: !!product.images,
+        imagesLength: product.images?.length,
+        firstImageType: product.images && product.images.length > 0 ? typeof product.images[0] : 'none',
+        hasImageUrl: !!product.imageUrl,
+        imageUrl: product.imageUrl
+      });
+    
+      // First check for images array
+      if (product.images && product.images.length > 0) {
+        if (typeof product.images[0] === 'object' && product.images[0].url) {
+          return product.images[0].url;
+        } else if (typeof product.images[0] === 'string') {
+          return product.images[0];
+        }
       }
+      
+      // Then check for imageUrl field
+      if (product.imageUrl) {
+        return product.imageUrl;
+      }
+      
+      // If product name is available, try to generate a URL based on name
+      if (product.name) {
+        const imageName = product.name.toLowerCase().replace(/\s+/g, '_');
+        return getProductImageUrl(`${imageName}.jpg`);
+      }
+      
+      // Fallback to a placeholder
+      return "https://via.placeholder.com/100x100/1a1a1a/666666?text=تصویر";
+    } catch (error) {
+      console.error('Error getting product image:', error);
+      return "https://via.placeholder.com/100x100/1a1a1a/666666?text=خطا";
     }
-    
-    // Then check for imageUrl field
-    if (product.imageUrl) {
-      return product.imageUrl;
-    }
-    
-    // If product name is available, try to generate a URL based on name
-    if (product.name) {
-      const imageName = product.name.toLowerCase().replace(/\s+/g, '_');
-      return getProductImageUrl(`${imageName}.jpg`);
-    }
-    
-    // Fallback to a placeholder
-    return "https://via.placeholder.com/100x100/1a1a1a/666666?text=تصویر";
   };
   
   if (isLoading) {
@@ -333,6 +337,70 @@ const AdminProducts = () => {
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold">مدیریت محصولات</h2>
         <div className="flex gap-2">
+          <Link 
+            to="/shop" 
+            target="_blank" 
+            className="px-4 py-2 bg-purple-700 hover:bg-purple-600 rounded-lg shadow-sm transition-colors"
+          >
+            مشاهده فروشگاه
+          </Link>
+          <button 
+            onClick={async () => {
+              try {
+                setIsLoading(true);
+                
+                // Try all possible product APIs to get the actual count
+                const apis = [
+                  'http://localhost:5000/api/products?limit=1000',
+                  'http://localhost:5000/api/admin/products?page=1&pageSize=1000',
+                  'http://localhost:5000/api/products/all'
+                ];
+                
+                let maxProducts = [];
+                
+                for (const apiUrl of apis) {
+                  try {
+                    const response = await fetch(apiUrl, {
+                      headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                      }
+                    });
+                    const data = await response.json();
+                    console.log(`API ${apiUrl} response:`, data);
+                    
+                    let productsFromApi = [];
+                    if (data && data.data) {
+                      productsFromApi = data.data;
+                    } else if (Array.isArray(data)) {
+                      productsFromApi = data;
+                    }
+                    
+                    if (productsFromApi.length > maxProducts.length) {
+                      maxProducts = productsFromApi;
+                      console.log(`Found ${productsFromApi.length} products from ${apiUrl}`);
+                    }
+                  } catch (apiError) {
+                    console.error(`Error with ${apiUrl}:`, apiError);
+                  }
+                }
+                
+                if (maxProducts.length > 0) {
+                  setProducts(maxProducts);
+                  toast.success(`نمایش ${maxProducts.length} محصول`);
+                } else {
+                  toast.error("هیچ محصولی یافت نشد");
+                }
+              } catch (error) {
+                console.error('Error:', error);
+                toast.error(`خطا: ${error.message}`);
+              } finally {
+                setIsLoading(false);
+              }
+            }}
+            className="px-4 py-2 bg-blue-700 hover:bg-blue-600 rounded-lg shadow-sm transition-colors"
+          >
+            نمایش همه محصولات
+          </button>
           <button 
             onClick={handleCreateClick}
             className="px-4 py-2 bg-draugr-600 hover:bg-draugr-500 rounded-lg shadow-sm transition-colors flex items-center"
@@ -477,6 +545,10 @@ const AdminProducts = () => {
         </div>
       ) : (
         <div className="overflow-x-auto">
+          <div className="bg-gray-900 text-gray-300 p-3 mb-4 rounded-lg">
+            <p>تعداد محصولات یافت شده: {filteredProducts.length}</p>
+            <p>تعداد محصولات کل: {products.length}</p>
+          </div>
           <table className="w-full bg-black bg-opacity-40 rounded-xl border border-gray-800">
             <thead>
               <tr className="border-b border-gray-800 text-gray-400">
@@ -507,6 +579,7 @@ const AdminProducts = () => {
                   <td className="py-3 px-4">
                     <div className="font-medium">{product.name}</div>
                     <div className="text-xs text-gray-400 max-w-xs truncate">{product.description}</div>
+                    {product._id && <div className="text-xs text-gray-500">ID: {product._id}</div>}
                   </td>
                   <td className="py-3 px-4" dir="ltr">
                     {product.sale && product.sale.isSale ? (
