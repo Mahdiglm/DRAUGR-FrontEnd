@@ -1,13 +1,69 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useParams, Link } from 'react-router-dom';
-import { blogPosts } from '../../utils/mockData';
+import api from '../../services/api';
 
 const SingleBlogPostPage = () => {
   const { slug } = useParams();
-  const post = blogPosts.find(p => p.slug === slug);
+  const [post, setPost] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  // Fetch blog post by slug
+  useEffect(() => {
+    const fetchBlogPost = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        // Use the slug endpoint to get blog post
+        const response = await api.get(`/api/blogs/slug/${slug}`);
+        console.log('Blog post response:', response.data);
+        
+        if (response.data) {
+          setPost(response.data);
+        } else {
+          setError('مقاله مورد نظر یافت نشد');
+        }
+      } catch (err) {
+        console.error('Error fetching blog post:', err);
+        setError('خطا در بارگذاری مقاله');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchBlogPost();
+  }, [slug]);
+  
+  // Format date for display
+  const formatDate = (dateString) => {
+    if (!dateString) return 'تاریخ نامشخص';
+    
+    try {
+      // For Persian date display
+      const date = new Date(dateString);
+      return date.toLocaleDateString('fa-IR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    } catch (err) {
+      console.error('Error formatting date:', err);
+      return dateString;
+    }
+  };
 
-  if (!post) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-draugr-dark to-draugr-deepcharcoal text-draugr-light p-8 flex flex-col items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-red-500"></div>
+        <p className="mt-4 text-gray-400">در حال بارگذاری مقاله...</p>
+      </div>
+    );
+  }
+
+  if (error || !post) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -25,7 +81,7 @@ const SingleBlogPostPage = () => {
           خطا: ۴۰۴
         </motion.h1>
         <p className="text-xl text-gray-300 mb-8">
-          مقاله مورد نظر با آدرس <span className="font-mono text-red-400">{slug}</span> یافت نشد.
+          {error || `مقاله مورد نظر با آدرس ${slug} یافت نشد.`}
         </p>
         <Link
           to="/blog"
@@ -36,34 +92,6 @@ const SingleBlogPostPage = () => {
       </motion.div>
     );
   }
-
-  // Use post data if found
-  const postTitle = post.title;
-  const postAuthor = post.author;
-  const postDate = post.date;
-  const postContent = post.content;
-  const postFeaturedImageUrl = post.featuredImageUrl;
-
-  // Example of placeholder content that would be used for reference
-  /* 
-  Template content example:
-  <p>این پاراگراف اول متن کامل مقاله است. می‌تواند شامل چندین جمله باشد و به معرفی موضوع بپردازد. لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است.</p>
-  <br />
-  <h2>زیرعنوان بخش اول</h2>
-  <p>چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد. کتابهای زیادی در شصت و سه درصد گذشته، حال و آینده شناخت فراوان جامعه و متخصصان را می طلبد تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی و فرهنگ پیشرو در زبان فارسی ایجاد کرد.</p>
-  <br />
-  <p>در این صورت می توان امید داشت که تمام و دشواری موجود در ارائه راهکارها و شرایط سخت تایپ به پایان رسد وزمان مورد نیاز شامل حروفچینی دستاوردهای اصلی و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساسا مورد استفاده قرار گیرد.</p>
-  <br />
-  <h3>زیرعنوان بخش دوم: جزئیات بیشتر</h3>
-  <p>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است. چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد.</p>
-  <ul>
-    <li>نکته اول: توضیحات مربوط به این نکته.</li>
-    <li>نکته دوم: جزئیات بیشتر در مورد این مسئله.</li>
-    <li>نکته سوم: بررسی عمیق‌تر این موضوع.</li>
-  </ul>
-  <br />
-  <p>امید است که این مطلب برای خوانندگان مفید واقع شود و بتواند به سوالات آن‌ها پاسخ دهد. نظرات و پیشنهادات خود را با ما در میان بگذارید.</p>
-  */
 
   return (
     <motion.div
@@ -81,7 +109,7 @@ const SingleBlogPostPage = () => {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
-          {postTitle}
+          {post.title}
         </motion.h1>
         <motion.div 
           className="text-sm text-gray-400"
@@ -93,20 +121,32 @@ const SingleBlogPostPage = () => {
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
             </svg>
-            نویسنده: {postAuthor}
+            نویسنده: {post.author?.name || 'نویسنده Draugr'}
           </span>
           <span className="mx-2 text-red-700 opacity-50">|</span>
           <span className="inline-flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
             </svg>
-            {postDate}
+            {formatDate(post.createdAt)}
           </span>
+          {post.views !== undefined && (
+            <>
+              <span className="mx-2 text-red-700 opacity-50">|</span>
+              <span className="inline-flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                  <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                </svg>
+                {post.views} بازدید
+              </span>
+            </>
+          )}
         </motion.div>
       </header>
 
       {/* Featured Image */}
-      {postFeaturedImageUrl && (
+      {post.image && (
         <motion.div 
           className="mb-8 rounded-lg overflow-hidden shadow-xl shadow-red-900/40 hover:shadow-red-700/60 transition-all duration-300"
           initial={{ height: 0, opacity: 0 }}
@@ -114,9 +154,13 @@ const SingleBlogPostPage = () => {
           transition={{ delay: 0.5, duration: 0.7, type: 'spring', stiffness:100 }}
         >
           <img
-            src={postFeaturedImageUrl}
-            alt={postTitle}
-            className="w-full h-auto object-cover max-h-[500px]" // Added max-h for large images
+            src={post.image}
+            alt={post.title}
+            className="w-full h-auto object-cover max-h-[500px]"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = 'https://via.placeholder.com/1200x600/1a1a1a/666666?text=Draugr+Blog';
+            }}
           />
         </motion.div>
       )}
@@ -124,21 +168,39 @@ const SingleBlogPostPage = () => {
       {/* Post Content */}
       <motion.article
         className="prose prose-sm sm:prose-base lg:prose-lg xl:prose-xl prose-invert max-w-none leading-loose" 
-        // Adjusted prose classes for responsiveness and leading-loose for more spacing
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.7, duration: 0.5 }}
         style={{ 
-            textAlign: 'justify', 
-            // lineHeight: '1.9', // Using prose leading-loose now
-            // fontSize: '1.1rem', // Controlled by prose classes
-            '--tw-prose-bullets': 'var(--draugr-accent, #ff3333)', // Customize bullet color
-            '--tw-prose-links': 'var(--draugr-primary, #ff0000)',
-            '--tw-prose-bold': 'var(--draugr-light, #e0e0e0)',
-            '--tw-prose-headings': 'var(--draugr-accent, #ff3333)',
+          textAlign: 'justify', 
+          '--tw-prose-bullets': 'var(--draugr-accent, #ff3333)',
+          '--tw-prose-links': 'var(--draugr-primary, #ff0000)',
+          '--tw-prose-bold': 'var(--draugr-light, #e0e0e0)',
+          '--tw-prose-headings': 'var(--draugr-accent, #ff3333)',
         }}
-        dangerouslySetInnerHTML={{ __html: postContent }}
+        dangerouslySetInnerHTML={{ __html: post.content }}
       />
+
+      {/* Tags Section */}
+      {post.tags && post.tags.length > 0 && (
+        <motion.div
+          className="mt-8 pt-4 border-t border-draugr-700/50"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8, duration: 0.5 }}
+        >
+          <div className="flex flex-wrap gap-2">
+            {post.tags.map((tag, index) => (
+              <span 
+                key={index} 
+                className="inline-block bg-draugr-700/60 hover:bg-draugr-700/80 text-gray-300 px-3 py-1 text-sm rounded-full transition-colors"
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
       {/* Comments Section Placeholder */}
       <motion.div
@@ -149,11 +211,26 @@ const SingleBlogPostPage = () => {
       >
         <h2 className="text-2xl md:text-3xl font-semibold mb-6 text-red-400">بخش نظرات</h2>
         <div className="max-w-2xl mx-auto bg-draugr-charcoal/40 p-6 sm:p-8 rounded-xl shadow-xl border border-draugr-700/30">
-          <p className="text-gray-400 mb-4 text-sm sm:text-base">
-            بخش نظرات به زودی فعال خواهد شد. مشتاقانه منتظر دیدگاه‌های ارزشمند و مخوف شما هستیم!
-          </p>
+          {post.comments && post.comments.length > 0 ? (
+            <div className="space-y-4">
+              {post.comments.map((comment, index) => (
+                <div key={index} className="bg-draugr-dark/60 p-4 rounded-lg border border-draugr-700/30">
+                  <div className="flex justify-between mb-2">
+                    <span className="font-semibold text-gray-300">{comment.name || 'ناشناس'}</span>
+                    <span className="text-xs text-gray-500">{formatDate(comment.createdAt)}</span>
+                  </div>
+                  <p className="text-gray-400">{comment.text}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-400 mb-4 text-sm sm:text-base">
+              بخش نظرات به زودی فعال خواهد شد. مشتاقانه منتظر دیدگاه‌های ارزشمند و مخوف شما هستیم!
+            </p>
+          )}
+          
           <div className="mt-6 p-4 bg-draugr-dark/50 rounded-lg shadow-inner border border-draugr-700/50">
-              <p className="italic text-gray-500 text-xs sm:text-sm">فرم ارسال نظر در اینجا قرار خواهد گرفت...</p>
+            <p className="italic text-gray-500 text-xs sm:text-sm">فرم ارسال نظر در اینجا قرار خواهد گرفت...</p>
           </div>
         </div>
       </motion.div>
