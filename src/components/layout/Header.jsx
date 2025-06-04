@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import pfpIcon from '../../assets/pfp-icon.png';
+import { getAssetUrl } from '../../utils/assetUtils';
 import { useAuth } from '../../contexts/AuthContext';
 
 const Header = ({ cartItems, onCartClick }) => {
@@ -16,6 +16,7 @@ const Header = ({ cartItems, onCartClick }) => {
   const location = useLocation();
   const mobileMenuRef = useRef(null);
   const { user, isAuthenticated, logout } = useAuth();
+  const pfpIcon = getAssetUrl('pfp-icon.png');
 
   // Helper function to blur email for privacy
   const blurEmail = (email) => {
