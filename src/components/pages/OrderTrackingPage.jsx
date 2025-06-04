@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useOutletContext } from 'react-router-dom';
-import orderBackground from '../../assets/BackGround-Main.jpg';
+import { getAssetUrl } from '../../utils/assetUtils';
 
 // OrderTrackingPage component
 const OrderTrackingPage = () => {
@@ -11,6 +11,8 @@ const OrderTrackingPage = () => {
   const [showError, setShowError] = useState(false);
   const { showTemporaryMessage } = useOutletContext();
   const navigate = useNavigate();
+  
+  const orderBackground = getAssetUrl('BackGround-Main.jpg');
   
   // Step definitions
   const orderSteps = [
