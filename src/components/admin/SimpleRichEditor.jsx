@@ -59,6 +59,24 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
     // Keep focus on the editor
     editorRef.current.focus();
   };
+
+  // Special handler for headings that works better
+  const formatHeading = (level) => {
+    editorRef.current.focus();
+    
+    if (selection) {
+      restoreSelection(selection);
+    }
+    
+    // First clear any existing format
+    document.execCommand('formatBlock', false, 'div');
+    
+    // Then apply heading format
+    document.execCommand('formatBlock', false, level);
+    
+    handleInput();
+    editorRef.current.focus();
+  };
   
   // Handle selection change to track it
   const handleSelectionChange = () => {
@@ -83,7 +101,7 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
           <button 
             type="button"
             title="Heading 1" 
-            onClick={() => execFormatCommand('formatBlock', 'h1')}
+            onClick={() => formatHeading('h1')}
             className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded text-sm"
           >
             H1
@@ -91,7 +109,7 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
           <button 
             type="button"
             title="Heading 2" 
-            onClick={() => execFormatCommand('formatBlock', 'h2')}
+            onClick={() => formatHeading('h2')}
             className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded text-sm"
           >
             H2
