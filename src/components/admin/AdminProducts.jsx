@@ -347,96 +347,61 @@ const AdminProducts = () => {
               try {
                 setIsLoading(true);
                 
-                // Check existing product format
-                const existingProduct = checkExistingProductFormat();
-                console.log('Using existing product as template:', existingProduct);
+                // Get first category from the list for testing
+                if (!categories || categories.length === 0) {
+                  toast.error("لطفاً منتظر بمانید تا دسته‌بندی‌ها بارگذاری شوند");
+                  setIsLoading(false);
+                  return;
+                }
                 
-                // Create test products one at a time instead of all at once
-                const testCategories = categories.map(cat => cat._id);
-                let createdCount = 0;
+                const firstCategory = categories[0];
                 
-                for (let i = 0; i < 3; i++) { // Just create a few products to test
-                  try {
-                    const randomCategoryIndex = Math.floor(Math.random() * testCategories.length);
-                    const categoryId = testCategories[randomCategoryIndex];
-                    const categoryObj = categories.find(cat => cat._id === categoryId);
-                    const productName = `محصول آزمایشی ${Date.now()}-${i + 1}`;
-                    // Create URL-friendly slug based on name with timestamp to ensure uniqueness
-                    const slug = productName
-                      .toLowerCase()
-                      .replace(/\s+/g, '-')
-                      .replace(/[^\w\-]+/g, '');
-                    
-                    let testProduct = {
-                      name: productName,
-                      slug: slug,
-                      description: `توضیحات برای محصول آزمایشی شماره ${i + 1}`,
-                      price: Math.floor(Math.random() * 1000) + 100,
-                      category: categoryId,
-                      stock: Math.floor(Math.random() * 50) + 10,
-                      countInStock: Math.floor(Math.random() * 50) + 10,
-                      images: [{
-                        url: `http://localhost:5000/static/images/products/Product_${(i % 13) + 1}.jpg`,
-                        alt: productName
-                      }],
-                      features: ['ویژگی تست ۱', 'ویژگی تست ۲'],
-                      sale: {
-                        isSale: Math.random() > 0.7,
-                        salePrice: Math.floor(Math.random() * 100) + 50
-                      }
-                    };
-                    
-                    // If we have an existing product, use its structure as a template
-                    if (existingProduct) {
-                      // Keep only the fields that exist in the original product
-                      const templateFields = {};
-                      Object.keys(existingProduct).forEach(key => {
-                        if (key !== '_id' && key !== 'createdAt' && key !== 'updatedAt' && key !== '__v') {
-                          if (key === 'category' && typeof existingProduct.category === 'object') {
-                            templateFields.category = categoryId;
-                          } else if (testProduct[key] !== undefined) {
-                            templateFields[key] = testProduct[key];
-                          } else {
-                            templateFields[key] = existingProduct[key];
-                          }
-                        }
-                      });
-                      testProduct = templateFields;
+                // Create a single simple product with exact structure matching existing products
+                const testProduct = {
+                  name: `محصول تست ${Date.now()}`,
+                  slug: `test-product-${Date.now()}`,
+                  description: "این یک محصول تست است",
+                  price: 150,
+                  category: firstCategory._id,
+                  stock: 50,
+                  countInStock: 50,
+                  images: [
+                    {
+                      url: "http://localhost:5000/static/images/products/Product_1.jpg",
+                      alt: "تصویر محصول تست"
                     }
-                    
-                    console.log('Creating test product:', testProduct);
-                    const response = await adminService.createProduct(testProduct);
-                    console.log('Product creation response:', response);
-                    createdCount++;
-                  } catch (productError) {
-                    console.error(`Error creating product ${i + 1}:`, productError);
-                  }
+                  ],
+                  featured: false
+                };
+                
+                // Log the exact product we're sending
+                console.log("Trying to create product with:", JSON.stringify(testProduct, null, 2));
+                
+                try {
+                  const response = await adminService.createProduct(testProduct);
+                  console.log("Product creation successful:", response);
+                  toast.success("محصول تست با موفقیت ایجاد شد");
                   
-                  // Add small delay between requests to avoid overwhelming server
-                  await new Promise(resolve => setTimeout(resolve, 500));
+                  // Refresh product list
+                  const listResponse = await adminService.getAllProducts(1, 1000);
+                  if (listResponse.data && listResponse.data.data) {
+                    setProducts(listResponse.data.data);
+                  }
+                } catch (err) {
+                  console.error("Error in product creation:", err);
+                  toast.error(`خطا در ایجاد محصول: ${err.message}`);
                 }
                 
-                // Refresh products
-                const response = await adminService.getAllProducts(1, 1000);
-                if (response.data && response.data.data) {
-                  setProducts(response.data.data);
-                }
-                
-                if (createdCount > 0) {
-                  toast.success(`${createdCount} محصول آزمایشی با موفقیت اضافه شدند`);
-                } else {
-                  toast.error('هیچ محصولی ایجاد نشد، لطفاً کنسول را برای اطلاعات بیشتر بررسی کنید');
-                }
               } catch (error) {
-                console.error('Error in test product creation flow:', error);
-                toast.error(`خطا در ایجاد محصولات آزمایشی: ${error.message}`);
+                console.error('Error in test flow:', error);
+                toast.error(`خطا: ${error.message}`);
               } finally {
                 setIsLoading(false);
               }
             }}
             className="px-4 py-2 bg-green-700 hover:bg-green-600 rounded-lg shadow-sm transition-colors"
           >
-            ایجاد محصولات آزمایشی
+            ایجاد محصول آزمایشی
           </button>
         </div>
       </div>
