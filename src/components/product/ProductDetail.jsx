@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { products } from '../../utils/mockData';
-import productBackground from '../../assets/BackGround-Product.jpg';
+import { getAssetUrl } from '../../utils/assetUtils';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -48,6 +48,8 @@ const ProductDetail = () => {
     'potions': 'معجون‌ها',
     'magic': 'اقلام جادویی'
   };
+  
+  const productBackground = getAssetUrl('BackGround-Product.jpg');
   
   return (
     <div 
