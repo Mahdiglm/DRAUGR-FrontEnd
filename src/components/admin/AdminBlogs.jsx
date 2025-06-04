@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
-// Remove ReactQuill and import our custom editor
+// Import our custom editor
 import SimpleRichEditor from './SimpleRichEditor';
 // Keep our styling imports
 import '../../styles/quill-basic.css';
@@ -42,50 +42,6 @@ const AdminBlogs = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [blogToDelete, setBlogToDelete] = useState(null);
   const [activeTab, setActiveTab] = useState('edit'); // 'edit' or 'preview'
-  const quillRef = useRef(null);
-  
-  // Rich text editor modules and formats configuration
-  const modules = useMemo(() => ({
-    toolbar: [
-      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-      ['bold', 'italic', 'underline', 'strike'], 
-      [{'color': []}, {'background': []}],
-      [{'align': []}],
-      [{'list': 'ordered'}, {'list': 'bullet'}],
-      [{'script': 'sub'}, {'script': 'super'}],
-      ['blockquote', 'code-block'],
-      ['link', 'image', 'video'],
-      ['clean']
-    ],
-  }), []);
-
-  const formats = useMemo(() => [
-    'header',
-    'bold', 'italic', 'underline', 'strike',
-    'color', 'background',
-    'align',
-    'list', 'bullet',
-    'script',
-    'blockquote', 'code-block',
-    'link', 'image', 'video'
-  ], []);
-
-  // Handle rich text editor content change
-  const handleContentChange = (content) => {
-    setCurrentBlog({
-      ...currentBlog,
-      content
-    });
-  };
-  
-  // Check existing blog format
-  const checkExistingBlogFormat = () => {
-    if (blogs && blogs.length > 0) {
-      console.log('Existing blog format:', blogs[0]);
-      return blogs[0];
-    }
-    return null;
-  };
   
   // Refresh blogs data
   const refreshBlogs = async () => {
@@ -447,7 +403,7 @@ const AdminBlogs = () => {
                     <div className="quill-editor-dark">
                       <SimpleRichEditor
                         value={currentBlog.content}
-                        onChange={handleContentChange}
+                        onChange={(content) => setCurrentBlog({ ...currentBlog, content })}
                         placeholder="محتوای مقاله خود را بنویسید... (متن، تصویر، لینک و...)"
                       />
                     </div>
