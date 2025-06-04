@@ -355,31 +355,61 @@ const AdminProducts = () => {
                 }
                 
                 const firstCategory = categories[0];
+                // Timestamp to make the product unique
+                const timestamp = Date.now();
                 
-                // Create a single simple product with exact structure matching existing products
+                // Create a product with EXACTLY the fields the backend route uses
+                // From the backend: const { name, description, price, category, countInStock, imageUrl, features, sale } = req.body;
                 const testProduct = {
-                  name: `محصول تست ${Date.now()}`,
-                  slug: `test-product-${Date.now()}`,
+                  name: `محصول تست ${timestamp}`,
+                  slug: `test-product-${timestamp}`,
                   description: "این یک محصول تست است",
                   price: 150,
                   category: firstCategory._id,
-                  stock: 50,
                   countInStock: 50,
+                  stock: 50,  // Also include stock as it's in the model
+                  imageUrl: "http://localhost:5000/static/images/products/Product_1.jpg",
                   images: [
                     {
                       url: "http://localhost:5000/static/images/products/Product_1.jpg",
                       alt: "تصویر محصول تست"
                     }
                   ],
-                  featured: false
+                  features: ["ویژگی تست ۱", "ویژگی تست ۲"],
+                  sale: {
+                    isSale: false,
+                    salePrice: 0
+                  }
                 };
                 
                 // Log the exact product we're sending
                 console.log("Trying to create product with:", JSON.stringify(testProduct, null, 2));
                 
                 try {
-                  const response = await adminService.createProduct(testProduct);
-                  console.log("Product creation successful:", response);
+                  // Modify the createProduct method to use fetch directly just for this test
+                  const token = localStorage.getItem('token');
+                  if (!token) {
+                    toast.error("شما مجوز لازم را ندارید");
+                    setIsLoading(false);
+                    return;
+                  }
+
+                  const response = await fetch('http://localhost:5000/api/admin/products', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(testProduct)
+                  });
+                  
+                  const data = await response.json();
+                  console.log("Raw API response:", data);
+                  
+                  if (!response.ok) {
+                    throw new Error(data.message || "خطا در ایجاد محصول");
+                  }
+                  
                   toast.success("محصول تست با موفقیت ایجاد شد");
                   
                   // Refresh product list
