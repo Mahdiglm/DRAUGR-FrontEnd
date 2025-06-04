@@ -181,6 +181,7 @@
   flex-direction: column;
   border-radius: 0.5rem;
   overflow: hidden;
+  width: 100%;
 }
 
 .rich-editor-container .ql-toolbar {
@@ -193,6 +194,13 @@
   border-bottom: none;
   border-top-left-radius: 0.5rem;
   border-top-right-radius: 0.5rem;
+  justify-content: center;
+}
+
+.rich-editor-container .ql-toolbar .flex {
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
 }
 
 .rich-editor-container .ql-editor {
@@ -206,6 +214,7 @@
   line-height: 1.6;
   font-size: 1rem;
   transition: border-color 0.15s ease-in-out;
+  width: 100%;
 }
 
 .rich-editor-container .ql-editor:focus {
