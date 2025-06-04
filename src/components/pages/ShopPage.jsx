@@ -4,9 +4,7 @@ import { useOutletContext, useLocation, useSearchParams } from 'react-router-dom
 
 import ProductCard from '../product/ProductCard';
 import { products, categories } from '../../utils/mockData';
-
-// Import background image
-import shopBgImage from '../../assets/Background-Hero.jpg';
+import { getAssetUrl } from '../../utils/assetUtils';
 
 // Custom CSS for glowing effects and enhanced styling
 const enhancedStyles = `
@@ -251,6 +249,8 @@ const ShopPage = () => {
   const [sortBy, setSortBy] = useState('newest');
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  
+  const shopBgImage = getAssetUrl('Background-Hero.jpg');
   
   // Filter products based on criteria
   const filteredProducts = products.filter(product => {
