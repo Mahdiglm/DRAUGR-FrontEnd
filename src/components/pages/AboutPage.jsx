@@ -1,8 +1,10 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { motion, useScroll, useTransform, useSpring, useInView } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { getAssetUrl } from '../../utils/assetUtils';
 
 // Import skull image
-import skullImg from '../../assets/skull.jpg';
+const skullImg = getAssetUrl('skull.jpg');
 
 // Section component with fade-in and parallax effects
 const StorySection = ({ children, className, overlayOpacity = 0.7, dark = true }) => {
