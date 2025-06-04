@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
+import { toast } from 'react-toastify';
+import { Link } from 'react-router-dom';
 
 const AdminBlogs = () => {
   const [blogs, setBlogs] = useState([]);
@@ -18,24 +20,60 @@ const AdminBlogs = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [blogToDelete, setBlogToDelete] = useState(null);
   
-  // Fetch all blogs
-  useEffect(() => {
-    const fetchBlogs = async () => {
-      try {
-        setIsLoading(true);
-        // This should be replaced with the actual API endpoint for blogs
-        const response = await api.get('/api/blogs');
-        setBlogs(response.data || []);
-        setIsLoading(false);
-      } catch (err) {
-        console.error('Error fetching blogs:', err);
-        setError('Failed to load blogs. Please try again later.');
-        setIsLoading(false);
+  // Check existing blog format
+  const checkExistingBlogFormat = () => {
+    if (blogs && blogs.length > 0) {
+      console.log('Existing blog format:', blogs[0]);
+      return blogs[0];
+    }
+    return null;
+  };
+  
+  // Refresh blogs data
+  const refreshBlogs = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      // Try to fetch admin blogs
+      const adminResponse = await api.get('/api/admin/blogs');
+      console.log('Admin blogs response:', adminResponse);
+      
+      if (adminResponse.data && (adminResponse.data.data || Array.isArray(adminResponse.data))) {
+        const blogsData = adminResponse.data.data || adminResponse.data;
+        setBlogs(blogsData);
+        console.log(`Found ${blogsData.length} blogs from admin API`);
+      } else {
+        // Fallback to public blogs API if admin API returns unexpected data
+        const publicResponse = await api.get('/api/blogs');
+        console.log('Public blogs response:', publicResponse);
+        
+        if (publicResponse.data && Array.isArray(publicResponse.data)) {
+          setBlogs(publicResponse.data);
+          console.log(`Found ${publicResponse.data.length} blogs from public API`);
+        } else {
+          setError('No blogs found or unexpected data format');
+        }
       }
-    };
-    
-    fetchBlogs();
+      
+      setIsLoading(false);
+    } catch (err) {
+      console.error('Error fetching blogs:', err);
+      setError('Failed to load blogs. Please try again later.');
+      setIsLoading(false);
+      toast.error('خطا در بارگذاری مقالات');
+    }
+  };
+  
+  // Fetch blogs on component mount
+  useEffect(() => {
+    refreshBlogs();
   }, []);
+  
+  // Store successful blog changes to localStorage to trigger updates in other components
+  const notifyBlogChanges = () => {
+    localStorage.setItem('blogsUpdated', Date.now().toString());
+  };
   
   // Handle form input changes
   const handleInputChange = (e) => {
@@ -62,9 +100,13 @@ const AdminBlogs = () => {
   
   // Handle opening the edit modal
   const handleEditClick = (blog) => {
+    // Process tags for edit form - handle array or string formats
+    const tags = blog.tags ? 
+      (Array.isArray(blog.tags) ? blog.tags.join(', ') : blog.tags) : '';
+    
     setCurrentBlog({
       ...blog,
-      tags: blog.tags.join(', ')
+      tags: tags
     });
     setIsCreateMode(false);
     setIsModalOpen(true);
@@ -81,6 +123,7 @@ const AdminBlogs = () => {
     e.preventDefault();
     
     try {
+      // Process tags into an array
       const blogData = {
         ...currentBlog,
         tags: currentBlog.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
@@ -90,18 +133,25 @@ const AdminBlogs = () => {
       
       if (isCreateMode) {
         response = await api.post('/api/admin/blogs', blogData);
-        setBlogs([response.data.data, ...blogs]);
+        if (response.data && response.data.data) {
+          setBlogs([response.data.data, ...blogs]);
+          toast.success('مقاله با موفقیت ایجاد شد');
+        }
       } else {
         response = await api.put(`/api/admin/blogs/${currentBlog._id}`, blogData);
-        setBlogs(blogs.map(blog => 
-          blog._id === currentBlog._id ? response.data.data : blog
-        ));
+        if (response.data && response.data.data) {
+          setBlogs(blogs.map(blog => 
+            blog._id === currentBlog._id ? response.data.data : blog
+          ));
+          toast.success('مقاله با موفقیت ویرایش شد');
+        }
       }
       
       setIsModalOpen(false);
+      notifyBlogChanges();
     } catch (err) {
       console.error('Error saving blog:', err);
-      alert(`Failed to ${isCreateMode ? 'create' : 'update'} blog. Please try again.`);
+      toast.error(`خطا در ${isCreateMode ? 'ایجاد' : 'ویرایش'} مقاله`);
     }
   };
   
@@ -112,9 +162,30 @@ const AdminBlogs = () => {
       setBlogs(blogs.filter(blog => blog._id !== blogToDelete._id));
       setDeleteConfirmOpen(false);
       setBlogToDelete(null);
+      toast.success('مقاله با موفقیت حذف شد');
+      notifyBlogChanges();
     } catch (err) {
       console.error('Error deleting blog:', err);
-      alert('Failed to delete blog. Please try again.');
+      toast.error('خطا در حذف مقاله');
+    }
+  };
+  
+  // Format date for display
+  const formatDate = (dateString) => {
+    if (!dateString) return 'تاریخ نامشخص';
+    
+    try {
+      // For Persian date display
+      const date = new Date(dateString);
+      // Try using toLocaleDateString with Persian options if supported
+      return date.toLocaleDateString('fa-IR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    } catch (err) {
+      console.error('Error formatting date:', err);
+      return dateString;
     }
   };
   
@@ -138,15 +209,47 @@ const AdminBlogs = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">مدیریت بلاگ</h2>
-        <button
-          onClick={handleCreateClick}
-          className="px-4 py-2 bg-draugr-700 hover:bg-draugr-600 rounded-lg transition-colors flex items-center"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-          ایجاد مقاله جدید
-        </button>
+        <div className="flex gap-2">
+          <Link 
+            to="/blog" 
+            target="_blank" 
+            className="px-4 py-2 bg-purple-700 hover:bg-purple-600 rounded-lg transition-colors"
+          >
+            مشاهده بلاگ
+          </Link>
+          <button
+            onClick={refreshBlogs}
+            className="px-4 py-2 bg-green-800 hover:bg-green-700 rounded-lg shadow-sm transition-colors"
+            title="بارگذاری مجدد مقالات"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+          <button
+            onClick={handleCreateClick}
+            className="px-4 py-2 bg-draugr-700 hover:bg-draugr-600 rounded-lg transition-colors flex items-center"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            ایجاد مقاله جدید
+          </button>
+        </div>
+      </div>
+      
+      <div className="bg-black bg-opacity-40 rounded-xl border border-gray-800 p-4 mb-4">
+        <div className="flex justify-between">
+          <div>
+            <p className="text-gray-300">تعداد مقالات: <span className="text-draugr-500 font-bold">{blogs.length}</span></p>
+            <p className="text-gray-400 text-sm">مقالات منتشر شده: <span className="text-green-500 font-bold">{blogs.filter(blog => blog.isPublished).length}</span></p>
+            <p className="text-gray-400 text-sm">پیش‌نویس‌ها: <span className="text-yellow-500 font-bold">{blogs.filter(blog => !blog.isPublished).length}</span></p>
+          </div>
+          <div className="text-right">
+            <p className="text-gray-300 text-sm">مقالات به سمت صفحه بلاگ به صورت خودکار همگام‌سازی می‌شوند</p>
+            <p className="text-gray-400 text-xs">نکته: فقط مقالات با وضعیت "منتشر شده" در صفحه بلاگ نمایش داده می‌شوند</p>
+          </div>
+        </div>
       </div>
       
       {blogs.length === 0 ? (
@@ -187,7 +290,7 @@ const AdminBlogs = () => {
                   )) : null}
                 </div>
                 <div className="text-xs text-gray-500">
-                  {new Date(blog.createdAt).toLocaleDateString('fa-IR')} | {blog.views} بازدید
+                  {formatDate(blog.createdAt)} | {blog.views || 0} بازدید
                 </div>
               </div>
               <div className="p-3 border-t border-gray-800 flex justify-between">
