@@ -346,7 +346,7 @@ const AdminBlogs = () => {
       {/* Create/Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-hidden" dir="rtl">
+          <div className="bg-gray-900 rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col" dir="rtl">
             <div className="border-b border-gray-800 p-4">
               <h3 className="text-xl font-bold">
                 {isCreateMode ? 'ایجاد مقاله جدید' : 'ویرایش مقاله'}
@@ -381,7 +381,7 @@ const AdminBlogs = () => {
               </div>
             </div>
             
-            <div className="p-6 max-h-[80vh] overflow-y-auto">
+            <div className="p-6 overflow-y-auto flex-grow">
               {activeTab === 'edit' ? (
                 <form onSubmit={handleSubmit} id="blog-form">
                   <div className="mb-4">
@@ -510,7 +510,7 @@ const AdminBlogs = () => {
               )}
             </div>
             
-            <div className="border-t border-gray-800 p-4 flex justify-end">
+            <div className="border-t border-gray-800 p-4 flex justify-end sticky bottom-0 bg-gray-900">
               <button
                 type="button"
                 onClick={handleModalClose}
