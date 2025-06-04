@@ -203,6 +203,8 @@ const AdminProducts = () => {
   const handleEditClick = (product) => {
     setCurrentProduct({
       ...product,
+      features: product.features || [],
+      images: product.images || [],
       sale: product.sale || { isSale: false, salePrice: 0 }
     });
     setIsCreateMode(false);
