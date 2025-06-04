@@ -344,6 +344,8 @@ const AdminProducts = () => {
                 for (let i = 0; i < 5; i++) { // Reduce to 5 instead of 10 to avoid overloading
                   try {
                     const randomCategoryIndex = Math.floor(Math.random() * testCategories.length);
+                    const categoryId = testCategories[randomCategoryIndex];
+                    const categoryObj = categories.find(cat => cat._id === categoryId);
                     const productName = `محصول آزمایشی ${i + 1}`;
                     // Create URL-friendly slug based on name
                     const slug = `test-product-${i + 1}-${Date.now()}`;
@@ -357,7 +359,10 @@ const AdminProducts = () => {
                         url: `http://localhost:5000/static/images/products/Product_${(i % 13) + 1}.jpg`,
                         alt: `محصول آزمایشی ${i + 1}`
                       }],
-                      category: testCategories[randomCategoryIndex], // Send category ID directly
+                      // Try different formats for category field
+                      category: categoryId,
+                      categoryId: categoryId,
+                      categoryName: categoryObj ? categoryObj.name : '',
                       stock: Math.floor(Math.random() * 50) + 10, // Try stock as an alternative to countInStock
                       countInStock: Math.floor(Math.random() * 50) + 10,
                       features: ['ویژگی تست ۱', 'ویژگی تست ۲'],
