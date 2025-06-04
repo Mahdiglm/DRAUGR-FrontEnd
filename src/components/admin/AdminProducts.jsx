@@ -166,7 +166,7 @@ const AdminProducts = () => {
     if (featureInput.trim()) {
       setCurrentProduct({
         ...currentProduct,
-        features: [...currentProduct.features, featureInput.trim()]
+        features: [...(currentProduct.features || []), featureInput.trim()]
       });
       setFeatureInput('');
     }
@@ -174,6 +174,8 @@ const AdminProducts = () => {
   
   // Handle feature deletion
   const handleRemoveFeature = (index) => {
+    if (!currentProduct.features) return;
+    
     setCurrentProduct({
       ...currentProduct,
       features: currentProduct.features.filter((_, i) => i !== index)
