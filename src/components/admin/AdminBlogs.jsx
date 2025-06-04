@@ -2,9 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import api from '../../services/api';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css'; // Import Quill styles
-import '../../styles/quill-dark.css'; // Import custom dark theme styles
+import { Editor } from '@tinymce/tinymce-react';
 import DOMPurify from 'dompurify'; // Import DOMPurify for sanitizing HTML
 
 // Custom CSS for dark-themed editor
@@ -443,10 +441,658 @@ const AdminBlogs = () => {
                   <div className="mb-4">
                     <label className="block text-gray-400 mb-1 text-sm">محتوا</label>
                     <div className="quill-editor-dark">
-                      <ReactQuill
+                      <Editor
                         ref={quillRef}
                         value={currentBlog.content}
                         onChange={handleContentChange}
+                        init={{
+                          toolbar: 'bold italic underline strikethrough | alignleft aligncenter alignright | outdent indent | link image',
+                          content_css: 'body { background-color: #1f2937; color: #e5e7eb; }',
+                          content_style: 'body { min-height: 250px; border-radius: 0.5rem; }',
+                          toolbar_mode: 'sliding',
+                          toolbar_location: 'top',
+                          menubar: false,
+                          plugins: 'link image',
+                          link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                            { title: 'External', value: 'external' },
+                          ],
+                          image_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_caption: true,
+                          image_dimensions: false,
+                          image_advtab: true,
+                          image_list: true,
+                          image_uploadtab: true,
+                          image_insert: true,
+                          image_editimage: true,
+                          image_delete: true,
+                          image_title: true,
+                          image_alt: true,
+                          image_align: true,
+                          image_align_left: true,
+                          image_align_center: true,
+                          image_align_right: true,
+                          image_align_top: true,
+                          image_align_middle: true,
+                          image_align_bottom: true,
+                          image_float_left: true,
+                          image_float_right: true,
+                          image_float_none: true,
+                          image_link_rel: false,
+                          image_link_target: '_blank',
+                          image_link_class: 'draugr-blog',
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_rel_list: [
+                            { title: 'Draugr Blog', value: 'draugr-blog' },
+                          ],
+                          image_link_target_list: [
+                            { title: '_blank', value: '_blank' },
+                          ],
+                          image_link_class_list: [
                         modules={modules}
                         formats={formats}
                         theme="snow"
