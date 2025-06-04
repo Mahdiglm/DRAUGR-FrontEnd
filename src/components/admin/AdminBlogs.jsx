@@ -43,6 +43,15 @@ const AdminBlogs = () => {
   const [blogToDelete, setBlogToDelete] = useState(null);
   const [activeTab, setActiveTab] = useState('edit'); // 'edit' or 'preview'
   
+  // Check existing blog format
+  const checkExistingBlogFormat = () => {
+    if (blogs && blogs.length > 0) {
+      console.log('Existing blog format:', blogs[0]);
+      return blogs[0];
+    }
+    return null;
+  };
+  
   // Refresh blogs data
   const refreshBlogs = async () => {
     try {
