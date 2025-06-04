@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useParams, Link } from 'react-router-dom';
 import api from '../../services/api';
+// Import basic styling for rich text content
+import '../../styles/quill-basic.css';
 // Import the styles for proper content rendering
 import '../../styles/quill-dark.css';
 // Import DOMPurify for sanitizing HTML (helps with security)
