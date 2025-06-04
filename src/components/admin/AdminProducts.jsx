@@ -151,10 +151,10 @@ const AdminProducts = () => {
       let response;
       
       if (isCreateMode) {
-        response = await api.post('/api/admin/products', currentProduct);
+        response = await adminService.createProduct(currentProduct);
         setProducts([response.data.data, ...products]);
       } else {
-        response = await api.put(`/api/admin/products/${currentProduct._id}`, currentProduct);
+        response = await adminService.updateProduct(currentProduct._id, currentProduct);
         setProducts(products.map(product => 
           product._id === currentProduct._id ? response.data.data : product
         ));
@@ -170,7 +170,7 @@ const AdminProducts = () => {
   // Handle product deletion
   const handleDeleteConfirm = async () => {
     try {
-      await api.delete(`/api/admin/products/${productToDelete._id}`);
+      await adminService.deleteProduct(productToDelete._id);
       setProducts(products.filter(product => product._id !== productToDelete._id));
       setDeleteConfirmOpen(false);
       setProductToDelete(null);
