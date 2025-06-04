@@ -36,25 +36,29 @@ const AdminProducts = () => {
     const fetchProducts = async () => {
       try {
         setIsLoading(true);
-        const response = await adminService.getAllProducts();
+        // Use a much larger pageSize to ensure all products are fetched
+        const response = await adminService.getAllProducts(1, 1000);
         
         // Debug the API response
         console.log('Admin products API response:', response);
         
         // Check the structure of the response and extract the correct data
         if (response.data && response.data.data) {
-          setProducts(response.data.data);
+          const productsData = response.data.data;
+          console.log(`Found ${productsData.length} products`);
+          setProducts(productsData);
         } else if (Array.isArray(response.data)) {
+          console.log(`Found ${response.data.length} products`);
           setProducts(response.data);
         } else {
           console.error('Unexpected API response structure:', response);
-          setError('Unexpected API response structure. Please check the console.');
+          setError(`Unexpected API response structure. API returned: ${JSON.stringify(response.data)}`);
         }
         
         setIsLoading(false);
       } catch (err) {
         console.error('Error fetching products:', err);
-        setError('Failed to load products. Please try again later.');
+        setError(`Failed to load products: ${err.message}. Please try again later.`);
         setIsLoading(false);
       }
     };
