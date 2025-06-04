@@ -1,240 +1,108 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import '../../styles/quill-dark.css';
 
 const SimpleRichEditor = ({ value, onChange, placeholder }) => {
   const editorRef = useRef(null);
-  const [focus, setFocus] = useState(false);
-  const [editorContent, setEditorContent] = useState(value || '');
-  const [activeFormats, setActiveFormats] = useState({
-    bold: false,
-    italic: false,
-    underline: false,
-    h1: false,
-    h2: false,
-    ul: false,
-    ol: false
-  });
   
-  // Only update the content from props when it's explicitly changed from outside
+  // Initialize with the value from props
   useEffect(() => {
-    if (!focus && value !== editorContent) {
-      setEditorContent(value || '');
-      if (editorRef.current) {
-        editorRef.current.innerHTML = value || '';
-      }
+    if (editorRef.current && value) {
+      editorRef.current.innerHTML = value;
     }
-  }, [value, focus]);
+  }, []);
   
-  // Handle content changes
-  const handleInput = () => {
-    if (editorRef.current) {
-      const newContent = editorRef.current.innerHTML;
-      setEditorContent(newContent);
-      // Only trigger onChange if the content actually changed
-      if (newContent !== value && onChange) {
-        onChange(newContent);
-      }
-    }
-    
-    // Check active formats
-    checkActiveFormats();
-  };
-  
-  // Apply formatting with proper selection handling
-  const execFormatCommand = (command, value = null) => {
-    // Focus the editor first
-    editorRef.current.focus();
-    
-    // Use the browser's built-in formatting command
+  // Simple formatting function
+  const handleFormat = (command, value = null) => {
     document.execCommand(command, false, value);
-    
-    // Update our state after formatting
-    handleInput();
-  };
-
-  // Special handler for headings that works better
-  const formatHeading = (level) => {
-    // Focus the editor first
     editorRef.current.focus();
-
-    // Check if we're already using this heading level
-    const isActive = activeFormats[level];
     
-    // First clear any existing format
-    document.execCommand('formatBlock', false, 'div');
-    
-    // Then apply heading format (only if not already active)
-    if (!isActive) {
-      document.execCommand('formatBlock', false, level);
+    // Notify parent of change
+    if (onChange) {
+      onChange(editorRef.current.innerHTML);
     }
-    
-    // Update our state after formatting
-    handleInput();
   };
 
-  // Check which formats are currently active
-  const checkActiveFormats = () => {
-    if (!document.queryCommandEnabled('bold')) {
-      return; // Editor not focused or not available
+  // Handle content changes
+  const handleChange = () => {
+    if (onChange && editorRef.current) {
+      onChange(editorRef.current.innerHTML);
     }
-    
-    setActiveFormats({
-      bold: document.queryCommandState('bold'),
-      italic: document.queryCommandState('italic'),
-      underline: document.queryCommandState('underline'),
-      ul: document.queryCommandState('insertUnorderedList'),
-      ol: document.queryCommandState('insertOrderedList'),
-      // For headings, we need a different approach
-      h1: isFormatActive('h1'),
-      h2: isFormatActive('h2'),
-    });
-  };
-
-  // Helper to check if a specific block format is active
-  const isFormatActive = (format) => {
-    const selection = window.getSelection();
-    if (selection && selection.rangeCount > 0) {
-      const node = selection.getRangeAt(0).commonAncestorContainer;
-      const element = node.nodeType === 3 ? node.parentNode : node;
-      
-      // Walk up from the selection to check for the format
-      let current = element;
-      while (current && current !== editorRef.current) {
-        if (current.nodeName.toLowerCase() === format) {
-          return true;
-        }
-        current = current.parentNode;
-      }
-    }
-    return false;
   };
   
   return (
-    <div className="rich-editor-container">
-      {/* Formatting Toolbar */}
-      <div className="ql-toolbar">
-        <div className="flex flex-wrap gap-3 justify-center">
-          <button 
-            type="button"
-            title="Heading 1" 
-            onClick={() => formatHeading('h1')}
-            className={`px-4 py-1.5 rounded text-sm ${activeFormats.h1 
-              ? 'bg-red-900 text-white' 
-              : 'bg-gray-800 hover:bg-gray-700'}`}
-          >
-            H1
-          </button>
-          <button 
-            type="button"
-            title="Heading 2" 
-            onClick={() => formatHeading('h2')}
-            className={`px-4 py-1.5 rounded text-sm ${activeFormats.h2 
-              ? 'bg-red-900 text-white' 
-              : 'bg-gray-800 hover:bg-gray-700'}`}
-          >
-            H2
-          </button>
-          <button 
-            type="button"
-            title="Bold" 
-            onClick={() => execFormatCommand('bold')}
-            className={`px-4 py-1.5 rounded ${activeFormats.bold 
-              ? 'bg-red-900 text-white' 
-              : 'bg-gray-800 hover:bg-gray-700'}`}
-          >
-            <strong>B</strong>
-          </button>
-          <button 
-            type="button"
-            title="Italic" 
-            onClick={() => execFormatCommand('italic')}
-            className={`px-4 py-1.5 rounded ${activeFormats.italic 
-              ? 'bg-red-900 text-white' 
-              : 'bg-gray-800 hover:bg-gray-700'}`}
-          >
-            <em>I</em>
-          </button>
-          <button 
-            type="button"
-            title="Underline" 
-            onClick={() => execFormatCommand('underline')}
-            className={`px-4 py-1.5 rounded ${activeFormats.underline 
-              ? 'bg-red-900 text-white' 
-              : 'bg-gray-800 hover:bg-gray-700'}`}
-          >
-            <u>U</u>
-          </button>
-          <button 
-            type="button"
-            title="Bullet List" 
-            onClick={() => execFormatCommand('insertUnorderedList')}
-            className={`px-4 py-1.5 rounded ${activeFormats.ul 
-              ? 'bg-red-900 text-white' 
-              : 'bg-gray-800 hover:bg-gray-700'}`}
-          >
-            • List
-          </button>
-          <button 
-            type="button"
-            title="Numbered List" 
-            onClick={() => execFormatCommand('insertOrderedList')}
-            className={`px-4 py-1.5 rounded ${activeFormats.ol 
-              ? 'bg-red-900 text-white' 
-              : 'bg-gray-800 hover:bg-gray-700'}`}
-          >
-            1. List
-          </button>
-          <button 
-            type="button"
-            title="Link" 
-            onClick={() => {
-              const url = prompt('Enter URL:');
-              if (url) execFormatCommand('createLink', url);
-            }}
-            className="px-4 py-1.5 bg-gray-800 hover:bg-gray-700 rounded"
-          >
-            Link
-          </button>
-          <button 
-            type="button"
-            title="Image" 
-            onClick={() => {
-              const url = prompt('Enter image URL:');
-              if (url) execFormatCommand('insertImage', url);
-            }}
-            className="px-4 py-1.5 bg-gray-800 hover:bg-gray-700 rounded"
-          >
-            Image
-          </button>
-          <button 
-            type="button"
-            title="Clear Formatting" 
-            onClick={() => execFormatCommand('removeFormat')}
-            className="px-4 py-1.5 bg-gray-800 hover:bg-gray-700 rounded"
-          >
-            Clear
-          </button>
-        </div>
+    <div className="editor-container border border-gray-700 rounded-lg overflow-hidden">
+      {/* Simple Toolbar */}
+      <div className="bg-gray-800 p-2 border-b border-gray-700 flex flex-wrap gap-2">
+        <button 
+          type="button"
+          onClick={() => handleFormat('bold')}
+          className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-white"
+        >
+          Bold
+        </button>
+        <button 
+          type="button"
+          onClick={() => handleFormat('italic')}
+          className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-white"
+        >
+          Italic
+        </button>
+        <button 
+          type="button"
+          onClick={() => handleFormat('underline')}
+          className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-white"
+        >
+          Underline
+        </button>
+        <button 
+          type="button"
+          onClick={() => handleFormat('formatBlock', '<h2>')}
+          className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-white"
+        >
+          Heading
+        </button>
+        <button 
+          type="button"
+          onClick={() => handleFormat('insertUnorderedList')}
+          className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-white"
+        >
+          List
+        </button>
+        <button 
+          type="button"
+          onClick={() => {
+            const url = prompt('Enter link URL:');
+            if (url) handleFormat('createLink', url);
+          }}
+          className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-white"
+        >
+          Link
+        </button>
+        <button 
+          type="button"
+          onClick={() => {
+            const url = prompt('Enter image URL:');
+            if (url) handleFormat('insertImage', url);
+          }}
+          className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-white"
+        >
+          Image
+        </button>
       </div>
       
-      {/* Editor */}
+      {/* Simple Editor */}
       <div
         ref={editorRef}
-        contentEditable
-        suppressContentEditableWarning={true}
-        className="ql-editor bg-gray-800 text-gray-200 border border-gray-700 rounded-b-lg p-4 min-h-[250px]"
-        onInput={handleInput}
-        onFocus={() => {
-          setFocus(true);
-          checkActiveFormats();
-        }}
-        onBlur={() => {
-          setFocus(false);
-          // Last chance to make sure content is synced
-          handleInput();
+        contentEditable="true"
+        onInput={handleChange}
+        onBlur={handleChange}
+        className="p-4 min-h-[250px] bg-gray-900 text-white outline-none"
+        style={{ 
+          direction: "ltr", // Force left-to-right to fix RTL issues
+          textAlign: "left" 
         }}
         data-placeholder={placeholder}
-        dangerouslySetInnerHTML={{ __html: editorContent }}
+        dangerouslySetInnerHTML={{ __html: value || '' }}
       />
     </div>
   );
