@@ -1,7 +1,10 @@
 import React from 'react';
-import footerBackground from '../../assets/Background-Footer.png';
+import { Link } from 'react-router-dom';
+import { getAssetUrl } from '../../utils/assetUtils';
 
 const Footer = () => {
+  const footerBackground = getAssetUrl('Background-Footer.png');
+
   return (
     <footer className="text-white py-12 sm:py-16 md:py-24 w-full relative bg-black min-h-[500px] sm:min-h-[600px] md:min-h-[700px] flex flex-col justify-center">
       {/* Background image */}
