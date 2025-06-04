@@ -270,8 +270,8 @@ const AdminProducts = () => {
                   <td className="py-3 px-4">
                     <div className="w-12 h-12 bg-gray-800 rounded-lg overflow-hidden">
                       <img 
-                        src={product.imageUrl} 
-                        alt={product.name} 
+                        src={product.images && product.images.length > 0 ? product.images[0].url : "https://via.placeholder.com/100x100/1a1a1a/666666?text=تصویر"}
+                        alt={product.images && product.images.length > 0 ? product.images[0].alt : product.name} 
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           e.target.onerror = null;
