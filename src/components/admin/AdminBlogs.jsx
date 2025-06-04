@@ -3,7 +3,9 @@ import api from '../../services/api';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 import ReactQuill from 'react-quill';
-// Direct import from node_modules
+// Basic styles if the Quill CSS fails to load
+import '../../styles/quill-basic.css';
+// Try to load from node_modules (may or may not work depending on bundler)
 import '../../../node_modules/react-quill/dist/quill.snow.css';
 import '../../styles/quill-dark.css'; // Import custom dark theme styles
 import DOMPurify from 'dompurify'; // Import DOMPurify for sanitizing HTML
