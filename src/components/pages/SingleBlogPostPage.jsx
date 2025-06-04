@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useParams, Link } from 'react-router-dom';
 import api from '../../services/api';
+// Import the styles for proper content rendering
+import '../../styles/quill-dark.css';
 
 const SingleBlogPostPage = () => {
   const { slug } = useParams();
@@ -167,7 +169,7 @@ const SingleBlogPostPage = () => {
 
       {/* Post Content */}
       <motion.article
-        className="prose prose-sm sm:prose-base lg:prose-lg xl:prose-xl prose-invert max-w-none leading-loose" 
+        className="prose prose-sm sm:prose-base lg:prose-lg xl:prose-xl prose-invert max-w-none leading-loose preview-container" 
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.7, duration: 0.5 }}
