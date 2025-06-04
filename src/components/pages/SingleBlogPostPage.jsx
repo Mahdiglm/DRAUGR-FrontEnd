@@ -4,6 +4,8 @@ import { useParams, Link } from 'react-router-dom';
 import api from '../../services/api';
 // Import the styles for proper content rendering
 import '../../styles/quill-dark.css';
+// Import DOMPurify for sanitizing HTML (helps with security)
+import DOMPurify from 'dompurify';
 
 const SingleBlogPostPage = () => {
   const { slug } = useParams();
@@ -180,7 +182,7 @@ const SingleBlogPostPage = () => {
           '--tw-prose-bold': 'var(--draugr-light, #e0e0e0)',
           '--tw-prose-headings': 'var(--draugr-accent, #ff3333)',
         }}
-        dangerouslySetInnerHTML={{ __html: post.content }}
+        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
       />
 
       {/* Tags Section */}
