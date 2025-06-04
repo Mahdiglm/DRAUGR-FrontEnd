@@ -182,6 +182,8 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
         }}
         style={{ minHeight: '250px' }}
         dangerouslySetInnerHTML={{ __html: value || '' }}
+        placeholder={placeholder}
+        data-placeholder={placeholder}
       />
     </div>
   );
