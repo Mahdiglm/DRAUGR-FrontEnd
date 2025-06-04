@@ -267,13 +267,28 @@ const AdminProducts = () => {
     e.preventDefault();
     
     try {
+      // Make sure category is included
+      if (!currentProduct.category && categories && categories.length > 0) {
+        setCurrentProduct({
+          ...currentProduct,
+          category: categories[0]._id
+        });
+      }
+      
+      // Prepare the product data for submission
+      const productData = {
+        ...currentProduct,
+        // Ensure category is properly set
+        category: currentProduct.category || (categories && categories.length > 0 ? categories[0]._id : '')
+      };
+      
       let response;
       
       if (isCreateMode) {
-        response = await adminService.createProduct(currentProduct);
+        response = await adminService.createProduct(productData);
         setProducts([response.data.data, ...products]);
       } else {
-        response = await adminService.updateProduct(currentProduct._id, currentProduct);
+        response = await adminService.updateProduct(currentProduct._id, productData);
         setProducts(products.map(product => 
           product._id === currentProduct._id ? response.data.data : product
         ));
@@ -281,6 +296,9 @@ const AdminProducts = () => {
       
       toast.success(`محصول با موفقیت ${isCreateMode ? 'ایجاد' : 'ویرایش'} شد.`);
       setIsModalOpen(false);
+      
+      // Notify other components that product data with categories has changed
+      notifyCategoryChanges();
     } catch (err) {
       console.error('Error saving product:', err);
       toast.error(`خطا در ${isCreateMode ? 'ایجاد' : 'ویرایش'} محصول`);
