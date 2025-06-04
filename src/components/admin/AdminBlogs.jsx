@@ -446,14 +446,8 @@ const AdminBlogs = () => {
                     <label className="block text-gray-400 mb-1 text-sm">محتوا</label>
                     <div className="quill-editor-dark">
                       <SimpleRichEditor
-                        ref={quillRef}
                         value={currentBlog.content}
                         onChange={handleContentChange}
-                        modules={modules}
-                        formats={formats}
-                        theme="snow"
-                        style={darkEditorStyles.editor}
-                        className="rounded-lg focus:outline-none focus:ring-2 focus:ring-draugr-500 mb-6"
                         placeholder="محتوای مقاله خود را بنویسید... (متن، تصویر، لینک و...)"
                       />
                     </div>
@@ -464,8 +458,7 @@ const AdminBlogs = () => {
                         <li>تصاویر را به متن اضافه کنید</li>
                         <li>لیست‌های منظم یا نامنظم بسازید</li>
                         <li>لینک اضافه کنید</li>
-                        <li>رنگ متن و پس‌زمینه را تغییر دهید</li>
-                        <li>ویدیو اضافه کنید</li>
+                        <li>قالب‌بندی متن را تغییر دهید</li>
                       </ul>
                     </div>
                   </div>
