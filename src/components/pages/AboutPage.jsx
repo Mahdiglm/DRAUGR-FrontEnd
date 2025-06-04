@@ -3,7 +3,7 @@ import { motion, useScroll, useTransform, useSpring, useInView } from 'framer-mo
 import { Link } from 'react-router-dom';
 import { getAssetUrl } from '../../utils/assetUtils';
 
-// Import skull image
+// Get skull image using assetUtils
 const skullImg = getAssetUrl('skull.jpg');
 
 // Section component with fade-in and parallax effects
