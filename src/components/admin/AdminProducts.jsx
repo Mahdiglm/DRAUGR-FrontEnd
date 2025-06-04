@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
+import adminService from '../../services/adminService';
 
 const AdminProducts = () => {
   const [products, setProducts] = useState([]);
@@ -32,8 +33,8 @@ const AdminProducts = () => {
     const fetchProducts = async () => {
       try {
         setIsLoading(true);
-        const response = await api.get('/api/products');
-        setProducts(response.data || []);
+        const response = await adminService.getAllProducts();
+        setProducts(response.data.data || []);
         setIsLoading(false);
       } catch (err) {
         console.error('Error fetching products:', err);
