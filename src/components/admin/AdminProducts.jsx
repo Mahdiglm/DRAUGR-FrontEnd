@@ -379,6 +379,27 @@ const AdminProducts = () => {
     }
   };
   
+  // Watch for category updates from other admin sections
+  useEffect(() => {
+    const handleStorageChange = (event) => {
+      if (event.key === 'categoriesUpdated') {
+        console.log('Categories were updated in another component, refreshing data');
+        refreshData();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+  
+  // Store successful changes to localStorage to trigger updates in other components
+  const notifyCategoryChanges = () => {
+    localStorage.setItem('categoriesUpdated', Date.now().toString());
+  };
+  
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
