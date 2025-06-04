@@ -443,6 +443,7 @@ const AdminBlogs = () => {
                     <label className="block text-gray-400 mb-1 text-sm">محتوا</label>
                     <div className="quill-editor-dark">
                       <ReactQuill
+                        ref={quillRef}
                         value={currentBlog.content}
                         onChange={handleContentChange}
                         modules={modules}
