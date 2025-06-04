@@ -1,15 +1,18 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
+import { toast } from 'react-toastify';
 import adminService from '../../services/adminService';
+import { getProductImageUrl } from '../../utils/assetUtils';
 
 const AdminProducts = () => {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
-  const [categories, setCategories] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreateMode, setIsCreateMode] = useState(true);
   const [currentProduct, setCurrentProduct] = useState({
     name: '',
     description: '',
@@ -23,10 +26,9 @@ const AdminProducts = () => {
       salePrice: 0
     }
   });
-  const [isCreateMode, setIsCreateMode] = useState(true);
+  const [featureInput, setFeatureInput] = useState('');
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
-  const [featureInput, setFeatureInput] = useState('');
   const [newImageUrl, setNewImageUrl] = useState('');
   
   // Fetch products and categories
@@ -35,7 +37,20 @@ const AdminProducts = () => {
       try {
         setIsLoading(true);
         const response = await adminService.getAllProducts();
-        setProducts(response.data.data || []);
+        
+        // Debug the API response
+        console.log('Admin products API response:', response);
+        
+        // Check the structure of the response and extract the correct data
+        if (response.data && response.data.data) {
+          setProducts(response.data.data);
+        } else if (Array.isArray(response.data)) {
+          setProducts(response.data);
+        } else {
+          console.error('Unexpected API response structure:', response);
+          setError('Unexpected API response structure. Please check the console.');
+        }
+        
         setIsLoading(false);
       } catch (err) {
         console.error('Error fetching products:', err);
@@ -161,10 +176,11 @@ const AdminProducts = () => {
         ));
       }
       
+      toast.success(`محصول با موفقیت ${isCreateMode ? 'ایجاد' : 'ویرایش'} شد.`);
       setIsModalOpen(false);
     } catch (err) {
       console.error('Error saving product:', err);
-      alert(`Failed to ${isCreateMode ? 'create' : 'update'} product. Please try again.`);
+      toast.error(`خطا در ${isCreateMode ? 'ایجاد' : 'ویرایش'} محصول`);
     }
   };
   
@@ -175,9 +191,10 @@ const AdminProducts = () => {
       setProducts(products.filter(product => product._id !== productToDelete._id));
       setDeleteConfirmOpen(false);
       setProductToDelete(null);
+      toast.success('محصول با موفقیت حذف شد.');
     } catch (err) {
       console.error('Error deleting product:', err);
-      alert('Failed to delete product. Please try again.');
+      toast.error('خطا در حذف محصول');
     }
   };
   
@@ -215,6 +232,32 @@ const AdminProducts = () => {
     });
   };
   
+  // Function to get product image URL
+  const getProductImage = (product) => {
+    // First check for images array
+    if (product.images && product.images.length > 0) {
+      if (typeof product.images[0] === 'object' && product.images[0].url) {
+        return product.images[0].url;
+      } else if (typeof product.images[0] === 'string') {
+        return product.images[0];
+      }
+    }
+    
+    // Then check for imageUrl field
+    if (product.imageUrl) {
+      return product.imageUrl;
+    }
+    
+    // If product name is available, try to generate a URL based on name
+    if (product.name) {
+      const imageName = product.name.toLowerCase().replace(/\s+/g, '_');
+      return getProductImageUrl(`${imageName}.jpg`);
+    }
+    
+    // Fallback to a placeholder
+    return "https://via.placeholder.com/100x100/1a1a1a/666666?text=تصویر";
+  };
+  
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -232,21 +275,25 @@ const AdminProducts = () => {
   }
   
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <h2 className="text-2xl font-bold">مدیریت محصولات</h2>
-        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-          <button
-            onClick={handleCreateClick}
-            className="px-4 py-2 bg-draugr-700 hover:bg-draugr-600 rounded-lg transition-colors flex items-center justify-center"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            افزودن محصول جدید
-          </button>
-          <div className="flex flex-1 gap-2">
-            <input
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-bold">مدیریت محصولات</h2>
+        <button 
+          onClick={handleCreateClick}
+          className="px-4 py-2 bg-draugr-600 hover:bg-draugr-500 rounded-lg shadow-sm transition-colors flex items-center"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+          افزودن محصول جدید
+        </button>
+      </div>
+      
+      <div className="bg-black bg-opacity-40 rounded-xl border border-gray-800 p-4 mb-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between">
+          <div className="w-full md:w-1/3 mb-2 md:mb-0">
+            <label className="block text-gray-400 mb-1 text-sm">جستجو</label>
+            <input 
               type="text"
               placeholder="جستجوی محصول..."
               value={searchTerm}
@@ -267,12 +314,19 @@ const AdminProducts = () => {
         </div>
       </div>
       
-      {filteredProducts.length === 0 ? (
+      {products.length === 0 ? (
         <div className="bg-black bg-opacity-40 rounded-xl border border-gray-800 p-8 text-center">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-gray-500 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
           </svg>
           <p className="text-gray-400">محصولی یافت نشد. برای افزودن محصول جدید روی دکمه "افزودن محصول جدید" کلیک کنید.</p>
+        </div>
+      ) : filteredProducts.length === 0 ? (
+        <div className="bg-black bg-opacity-40 rounded-xl border border-gray-800 p-8 text-center">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-gray-500 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <p className="text-gray-400">محصولی با معیارهای جستجوی شما یافت نشد.</p>
         </div>
       ) : (
         <div className="overflow-x-auto">
@@ -293,8 +347,8 @@ const AdminProducts = () => {
                   <td className="py-3 px-4">
                     <div className="w-12 h-12 bg-gray-800 rounded-lg overflow-hidden">
                       <img 
-                        src={product.images && product.images.length > 0 ? product.images[0].url : "https://via.placeholder.com/100x100/1a1a1a/666666?text=تصویر"}
-                        alt={product.images && product.images.length > 0 ? product.images[0].alt : product.name} 
+                        src={getProductImage(product)}
+                        alt={product.name} 
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           e.target.onerror = null;
@@ -542,23 +596,23 @@ const AdminProducts = () => {
                   </div>
                 </div>
               </div>
-              
-              <div className="flex justify-end gap-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
-                >
-                  انصراف
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-draugr-700 hover:bg-draugr-600 rounded-lg transition-colors"
-                >
-                  {isCreateMode ? 'افزودن محصول' : 'بروزرسانی محصول'}
-                </button>
-              </div>
             </form>
+            <div className="border-t border-gray-800 p-4 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg shadow-sm transition-colors ml-2"
+              >
+                انصراف
+              </button>
+              <button
+                form="product-form" // Connect to the form
+                type="submit"
+                className="px-4 py-2 bg-draugr-600 hover:bg-draugr-500 rounded-lg shadow-sm transition-colors"
+              >
+                {isCreateMode ? 'ایجاد' : 'ذخیره تغییرات'}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -566,26 +620,26 @@ const AdminProducts = () => {
       {/* Delete Confirmation Modal */}
       {deleteConfirmOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-xl shadow-xl max-w-md w-full" dir="rtl">
-            <div className="border-b border-gray-800 p-4">
-              <h3 className="text-xl font-bold text-red-500">حذف محصول</h3>
-            </div>
-            <div className="p-6">
-              <p className="mb-6">آیا از حذف محصول <span className="font-bold">{productToDelete.name}</span> اطمینان دارید؟ این عملیات غیرقابل بازگشت است.</p>
-              <div className="flex justify-end gap-3">
-                <button
-                  onClick={() => setDeleteConfirmOpen(false)}
-                  className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
-                >
-                  انصراف
-                </button>
-                <button
-                  onClick={handleDeleteConfirm}
-                  className="px-4 py-2 bg-red-700 hover:bg-red-600 rounded-lg transition-colors"
-                >
-                  حذف محصول
-                </button>
-              </div>
+          <div className="bg-gray-900 rounded-xl shadow-xl max-w-md w-full p-6" dir="rtl">
+            <h3 className="text-xl font-bold mb-4">تأیید حذف</h3>
+            <p className="text-gray-300 mb-6">
+              آیا از حذف محصول "{productToDelete?.name}" اطمینان دارید؟ این عملیات قابل بازگشت نیست.
+            </p>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmOpen(false)}
+                className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg shadow-sm transition-colors ml-2"
+              >
+                انصراف
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteConfirm}
+                className="px-4 py-2 bg-red-700 hover:bg-red-600 rounded-lg shadow-sm transition-colors"
+              >
+                حذف
+              </button>
             </div>
           </div>
         </div>
