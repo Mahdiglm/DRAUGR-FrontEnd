@@ -2,12 +2,10 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import api from '../../services/api';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
-import ReactQuill from 'react-quill';
-// Basic styles if the Quill CSS fails to load
+// Remove ReactQuill and import our custom editor
+import SimpleRichEditor from './SimpleRichEditor';
+// Keep our styling imports
 import '../../styles/quill-basic.css';
-// Local copy of Quill Snow theme
-import '../../assets/quill/quill.snow.css';
-// Import custom dark theme styles
 import '../../styles/quill-dark.css';
 import DOMPurify from 'dompurify'; // Import DOMPurify for sanitizing HTML
 
@@ -447,7 +445,7 @@ const AdminBlogs = () => {
                   <div className="mb-4">
                     <label className="block text-gray-400 mb-1 text-sm">محتوا</label>
                     <div className="quill-editor-dark">
-                      <ReactQuill
+                      <SimpleRichEditor
                         ref={quillRef}
                         value={currentBlog.content}
                         onChange={handleContentChange}
