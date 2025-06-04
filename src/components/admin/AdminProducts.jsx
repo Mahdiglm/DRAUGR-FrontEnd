@@ -579,7 +579,7 @@ const AdminProducts = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredProducts.map(product => (
+              {filteredProducts && filteredProducts.map(product => (
                 <tr key={product._id} className="border-b border-gray-800 hover:bg-gray-900/30">
                   <td className="py-3 px-4">
                     <div className="w-12 h-12 bg-gray-800 rounded-lg overflow-hidden">
