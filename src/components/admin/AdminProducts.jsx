@@ -41,8 +41,30 @@ const AdminProducts = () => {
     return null;
   };
   
+  // Function to check if categories are loaded before using them
+  const getCategoryName = (categoryId) => {
+    if (!categories || categories.length === 0) {
+      return 'نامشخص';
+    }
+    const category = categories.find(c => c._id === categoryId);
+    return category?.name || 'نامشخص';
+  };
+  
   // Fetch products and categories
   useEffect(() => {
+    // Fetch categories first to avoid undefined error
+    const fetchCategories = async () => {
+      try {
+        const response = await api.get('/api/categories');
+        setCategories(response.data || []);
+      } catch (err) {
+        console.error('Error fetching categories:', err);
+        setCategories([]); // Set as empty array instead of undefined
+      }
+    };
+
+    fetchCategories();
+    
     const fetchProducts = async () => {
       try {
         setIsLoading(true);
@@ -103,17 +125,7 @@ const AdminProducts = () => {
       }
     };
     
-    const fetchCategories = async () => {
-      try {
-        const response = await api.get('/api/categories');
-        setCategories(response.data || []);
-      } catch (err) {
-        console.error('Error fetching categories:', err);
-      }
-    };
-    
     fetchProducts();
-    fetchCategories();
   }, []);
   
   // Handle form input changes
@@ -598,7 +610,7 @@ const AdminProducts = () => {
                   </td>
                   <td className="py-3 px-4">
                     <span className="bg-gray-800 text-gray-300 px-2 py-1 rounded-full text-xs">
-                      {categories.find(c => c._id === product.category)?.name || 'نامشخص'}
+                      {getCategoryName(product.category)}
                     </span>
                   </td>
                   <td className="py-3 px-4">
