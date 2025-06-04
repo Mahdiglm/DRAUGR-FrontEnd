@@ -172,4 +172,105 @@
   background-color: #1a1a1a;
   padding: 0.2rem 0.4rem;
   border-radius: 0.25rem;
+}
+
+/* Additional styles for improved editor appearance */
+
+.rich-editor-container {
+  display: flex;
+  flex-direction: column;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.rich-editor-container .ql-toolbar {
+  background-color: #1a1e2b;
+  padding: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  border: 1px solid #374151;
+  border-bottom: none;
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+}
+
+.rich-editor-container .ql-editor {
+  padding: 1rem;
+  min-height: 250px;
+  background-color: #1f2937;
+  color: #e5e7eb;
+  border: 1px solid #374151;
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+  line-height: 1.6;
+  font-size: 1rem;
+  transition: border-color 0.15s ease-in-out;
+}
+
+.rich-editor-container .ql-editor:focus {
+  outline: none;
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+}
+
+/* Style for selected text */
+.rich-editor-container .ql-editor::selection,
+.rich-editor-container .ql-editor *::selection {
+  background-color: rgba(96, 165, 250, 0.3);
+}
+
+/* Placeholder style */
+.rich-editor-container .ql-editor[contenteditable="true"]:empty:before {
+  content: attr(placeholder);
+  color: #6b7280;
+  pointer-events: none;
+  display: block;
+}
+
+/* Format styles to match with the editor output */
+.rich-editor-container .ql-editor h1,
+.preview-container .prose h1 {
+  font-size: 1.875rem;
+  font-weight: bold;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  color: #f87171;
+}
+
+.rich-editor-container .ql-editor h2,
+.preview-container .prose h2 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-top: 1.25rem;
+  margin-bottom: 0.75rem;
+  color: #f87171;
+}
+
+.rich-editor-container .ql-editor ul,
+.preview-container .prose ul {
+  list-style-type: disc;
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.rich-editor-container .ql-editor ol,
+.preview-container .prose ol {
+  list-style-type: decimal;
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.rich-editor-container .ql-editor a,
+.preview-container .prose a {
+  color: #60a5fa;
+  text-decoration: underline;
+}
+
+.rich-editor-container .ql-editor img,
+.preview-container .prose img {
+  max-width: 100%;
+  height: auto;
+  margin: 1rem 0;
+  border-radius: 0.375rem;
 } 
