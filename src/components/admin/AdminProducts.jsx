@@ -815,7 +815,7 @@ const AdminProducts = () => {
                   </div>
                   
                   <div className="mt-2 space-y-2">
-                    {currentProduct.features.map((feature, index) => (
+                    {currentProduct.features && currentProduct.features.map((feature, index) => (
                       <div key={index} className="flex items-center justify-between bg-gray-800 rounded-lg px-3 py-2">
                         <span>{feature}</span>
                         <button
