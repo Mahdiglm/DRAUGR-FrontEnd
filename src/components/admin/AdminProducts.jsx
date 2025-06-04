@@ -286,6 +286,8 @@ const AdminProducts = () => {
   
   // Handle removing image
   const handleRemoveImage = (index) => {
+    if (!currentProduct.images) return;
+    
     setCurrentProduct({
       ...currentProduct,
       images: currentProduct.images.filter((_, i) => i !== index)
