@@ -3,7 +3,8 @@ import api from '../../services/api';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css'; // Import Quill styles
+// Direct import from node_modules
+import '../../../node_modules/react-quill/dist/quill.snow.css';
 import '../../styles/quill-dark.css'; // Import custom dark theme styles
 import DOMPurify from 'dompurify'; // Import DOMPurify for sanitizing HTML
 
