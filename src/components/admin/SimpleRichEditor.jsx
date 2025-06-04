@@ -1,32 +1,51 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../../styles/quill-dark.css';
 
 const SimpleRichEditor = ({ value, onChange, placeholder }) => {
-  const editorRef = useRef(null);
+  const [htmlContent, setHtmlContent] = useState(value || '');
+  const [isPreview, setIsPreview] = useState(false);
   
-  // Initialize with the value from props
+  // Update content when value prop changes
   useEffect(() => {
-    if (editorRef.current && value) {
-      editorRef.current.innerHTML = value;
+    if (value !== undefined) {
+      setHtmlContent(value);
     }
-  }, []);
+  }, [value]);
   
-  // Simple formatting function
-  const handleFormat = (command, value = null) => {
-    document.execCommand(command, false, value);
-    editorRef.current.focus();
+  // Handle textarea input
+  const handleChange = (e) => {
+    const newContent = e.target.value;
+    setHtmlContent(newContent);
     
-    // Notify parent of change
     if (onChange) {
-      onChange(editorRef.current.innerHTML);
+      onChange(newContent);
     }
   };
-
-  // Handle content changes
-  const handleChange = () => {
-    if (onChange && editorRef.current) {
-      onChange(editorRef.current.innerHTML);
+  
+  // Insert HTML tag at cursor position or wrap selection
+  const insertTag = (openTag, closeTag) => {
+    const textarea = document.getElementById('simple-editor');
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = htmlContent.substring(start, end);
+    const beforeSelection = htmlContent.substring(0, start);
+    const afterSelection = htmlContent.substring(end);
+    
+    // Create the new content with the tags
+    const newContent = beforeSelection + openTag + selectedText + closeTag + afterSelection;
+    setHtmlContent(newContent);
+    
+    if (onChange) {
+      onChange(newContent);
     }
+    
+    // Set focus back to textarea and restore cursor position
+    setTimeout(() => {
+      textarea.focus();
+      // Position cursor after the inserted content
+      const newCursorPos = start + openTag.length + selectedText.length + closeTag.length;
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
   };
   
   return (
@@ -35,44 +54,44 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
       <div className="bg-gray-800 p-2 border-b border-gray-700 flex flex-wrap gap-2">
         <button 
           type="button"
-          onClick={() => handleFormat('bold')}
+          onClick={() => insertTag('<strong>', '</strong>')}
           className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-white"
         >
           Bold
         </button>
         <button 
           type="button"
-          onClick={() => handleFormat('italic')}
+          onClick={() => insertTag('<em>', '</em>')}
           className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-white"
         >
           Italic
         </button>
         <button 
           type="button"
-          onClick={() => handleFormat('underline')}
+          onClick={() => insertTag('<u>', '</u>')}
           className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-white"
         >
           Underline
         </button>
         <button 
           type="button"
-          onClick={() => handleFormat('formatBlock', '<h2>')}
+          onClick={() => insertTag('<h2>', '</h2>')}
           className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-white"
         >
           Heading
         </button>
         <button 
           type="button"
-          onClick={() => handleFormat('insertUnorderedList')}
+          onClick={() => insertTag('<li>', '</li>')}
           className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-white"
         >
-          List
+          List Item
         </button>
         <button 
           type="button"
           onClick={() => {
             const url = prompt('Enter link URL:');
-            if (url) handleFormat('createLink', url);
+            if (url) insertTag(`<a href="${url}">`, '</a>');
           }}
           className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-white"
         >
@@ -82,28 +101,41 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
           type="button"
           onClick={() => {
             const url = prompt('Enter image URL:');
-            if (url) handleFormat('insertImage', url);
+            if (url) insertTag(`<img src="${url}" alt="Image" />`, '');
           }}
           className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-white"
         >
           Image
         </button>
+        <button 
+          type="button"
+          onClick={() => setIsPreview(!isPreview)}
+          className="px-3 py-1 bg-blue-700 hover:bg-blue-600 rounded text-white ml-auto"
+        >
+          {isPreview ? 'Edit' : 'Preview'}
+        </button>
       </div>
       
-      {/* Simple Editor */}
-      <div
-        ref={editorRef}
-        contentEditable="true"
-        onInput={handleChange}
-        onBlur={handleChange}
-        className="p-4 min-h-[250px] bg-gray-900 text-white outline-none"
-        style={{ 
-          direction: "ltr", // Force left-to-right to fix RTL issues
-          textAlign: "left" 
-        }}
-        data-placeholder={placeholder}
-        dangerouslySetInnerHTML={{ __html: value || '' }}
-      />
+      {/* Simple Textarea */}
+      {!isPreview ? (
+        <textarea
+          id="simple-editor"
+          value={htmlContent}
+          onChange={handleChange}
+          className="p-4 min-h-[250px] w-full bg-gray-900 text-white outline-none font-mono text-base"
+          style={{ 
+            direction: "ltr",
+            textAlign: "left",
+            resize: "vertical" 
+          }}
+          placeholder={placeholder}
+        />
+      ) : (
+        <div 
+          className="p-4 min-h-[250px] bg-gray-900 text-white"
+          dangerouslySetInnerHTML={{ __html: htmlContent }}
+        />
+      )}
     </div>
   );
 };
