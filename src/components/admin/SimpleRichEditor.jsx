@@ -3,7 +3,6 @@ import '../../styles/quill-dark.css';
 
 const SimpleRichEditor = ({ value, onChange, placeholder }) => {
   const [htmlContent, setHtmlContent] = useState(value || '');
-  const [isPreview, setIsPreview] = useState(false);
   
   // Update content when value prop changes
   useEffect(() => {
@@ -19,6 +18,38 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
     
     if (onChange) {
       onChange(newContent);
+    }
+  };
+  
+  // Handle key presses, especially for Enter key
+  const handleKeyDown = (e) => {
+    // Handle Enter key to insert proper line break tags
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      
+      const textarea = document.getElementById('simple-editor');
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      
+      const beforeSelection = htmlContent.substring(0, start);
+      const afterSelection = htmlContent.substring(end);
+      
+      // Insert <br> tag for HTML rendering
+      const newContent = beforeSelection + '<br>\n' + afterSelection;
+      setHtmlContent(newContent);
+      
+      if (onChange) {
+        onChange(newContent);
+      }
+      
+      // Set focus back to textarea and restore cursor position
+      setTimeout(() => {
+        textarea.focus();
+        const newCursorPos = start + 5; // 5 is the length of '<br>\n'
+        textarea.setSelectionRange(newCursorPos, newCursorPos);
+      }, 0);
+      
+      return false;
     }
   };
   
@@ -107,35 +138,22 @@ const SimpleRichEditor = ({ value, onChange, placeholder }) => {
         >
           Image
         </button>
-        <button 
-          type="button"
-          onClick={() => setIsPreview(!isPreview)}
-          className="px-3 py-1 bg-blue-700 hover:bg-blue-600 rounded text-white ml-auto"
-        >
-          {isPreview ? 'Edit' : 'Preview'}
-        </button>
       </div>
       
       {/* Simple Textarea */}
-      {!isPreview ? (
-        <textarea
-          id="simple-editor"
-          value={htmlContent}
-          onChange={handleChange}
-          className="p-4 min-h-[250px] w-full bg-gray-900 text-white outline-none font-mono text-base"
-          style={{ 
-            direction: "ltr",
-            textAlign: "left",
-            resize: "vertical" 
-          }}
-          placeholder={placeholder}
-        />
-      ) : (
-        <div 
-          className="p-4 min-h-[250px] bg-gray-900 text-white"
-          dangerouslySetInnerHTML={{ __html: htmlContent }}
-        />
-      )}
+      <textarea
+        id="simple-editor"
+        value={htmlContent}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        className="p-4 min-h-[250px] w-full bg-gray-900 text-white outline-none font-mono text-base"
+        style={{ 
+          direction: "ltr",
+          textAlign: "left",
+          resize: "vertical" 
+        }}
+        placeholder={placeholder}
+      />
     </div>
   );
 };
