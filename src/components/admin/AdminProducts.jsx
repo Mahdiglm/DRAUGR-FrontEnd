@@ -14,7 +14,7 @@ const AdminProducts = () => {
     name: '',
     description: '',
     price: 0,
-    imageUrl: '',
+    images: [],
     category: '',
     countInStock: 0,
     features: [],
@@ -27,6 +27,7 @@ const AdminProducts = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
   const [featureInput, setFeatureInput] = useState('');
+  const [newImageUrl, setNewImageUrl] = useState('');
   
   // Fetch products and categories
   useEffect(() => {
@@ -114,7 +115,7 @@ const AdminProducts = () => {
       name: '',
       description: '',
       price: 0,
-      imageUrl: '',
+      images: [],
       category: categories.length > 0 ? categories[0]._id : '',
       countInStock: 0,
       features: [],
@@ -191,6 +192,28 @@ const AdminProducts = () => {
         return matchesSearch && matchesCategory;
       })
     : [];
+  
+  // Handle adding new image
+  const handleAddImage = () => {
+    if (newImageUrl.trim()) {
+      setCurrentProduct({
+        ...currentProduct,
+        images: [
+          ...(currentProduct.images || []),
+          { url: newImageUrl.trim(), alt: currentProduct.name }
+        ]
+      });
+      setNewImageUrl('');
+    }
+  };
+  
+  // Handle removing image
+  const handleRemoveImage = (index) => {
+    setCurrentProduct({
+      ...currentProduct,
+      images: currentProduct.images.filter((_, i) => i !== index)
+    });
+  };
   
   if (isLoading) {
     return (
@@ -396,15 +419,53 @@ const AdminProducts = () => {
                 </div>
                 
                 <div className="md:col-span-2">
-                  <label className="block text-gray-400 mb-1 text-sm">آدرس تصویر</label>
-                  <input
-                    type="text"
-                    name="imageUrl"
-                    value={currentProduct.imageUrl}
-                    onChange={handleInputChange}
-                    className="w-full bg-gray-800 rounded-lg px-4 py-2 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-draugr-500"
-                    required
-                  />
+                  <label className="block text-gray-400 mb-1 text-sm">تصاویر محصول</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newImageUrl}
+                      onChange={(e) => setNewImageUrl(e.target.value)}
+                      placeholder="آدرس تصویر را وارد کنید..."
+                      className="w-full bg-gray-800 rounded-lg px-4 py-2 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-draugr-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddImage}
+                      className="px-4 py-2 bg-draugr-700 hover:bg-draugr-600 rounded-lg transition-colors"
+                    >
+                      افزودن
+                    </button>
+                  </div>
+                  
+                  <div className="mt-2 space-y-2">
+                    {currentProduct.images && currentProduct.images.map((image, index) => (
+                      <div key={index} className="flex items-center justify-between bg-gray-800 rounded-lg px-3 py-2">
+                        <div className="flex items-center">
+                          <div className="w-10 h-10 rounded overflow-hidden mr-2">
+                            <img 
+                              src={image.url}
+                              alt={image.alt || "تصویر محصول"}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = "https://via.placeholder.com/100x100/1a1a1a/666666?text=تصویر";
+                              }}
+                            />
+                          </div>
+                          <span className="truncate max-w-sm">{image.url}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(index)}
+                          className="text-red-500 hover:text-red-400"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
                 
                 <div className="md:col-span-2">
