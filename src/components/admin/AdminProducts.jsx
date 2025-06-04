@@ -43,23 +43,64 @@ const AdminProducts = () => {
         console.log('Admin products API response:', response);
         
         // Check the structure of the response and extract the correct data
+        let productsData = [];
+        
         if (response.data && response.data.data) {
-          const productsData = response.data.data;
-          console.log(`Found ${productsData.length} products`);
-          setProducts(productsData);
+          // Structure: { data: { data: [...] } }
+          productsData = response.data.data;
         } else if (Array.isArray(response.data)) {
-          console.log(`Found ${response.data.length} products`);
-          setProducts(response.data);
-        } else {
-          console.error('Unexpected API response structure:', response);
-          setError(`Unexpected API response structure. API returned: ${JSON.stringify(response.data)}`);
+          // Structure: { data: [...] }
+          productsData = response.data;
+        } else if (response.data) {
+          // Structure: { data: { ... } } - check if it's an object with product fields
+          if (response.data._id) {
+            productsData = [response.data];
+          }
         }
         
+        // If we haven't found products yet, try direct API call as a fallback
+        if (productsData.length === 0) {
+          try {
+            console.log('Attempting direct API call as fallback');
+            const directResponse = await api.get('/api/products?limit=100');
+            if (directResponse.data && directResponse.data.data) {
+              productsData = directResponse.data.data;
+            } else if (Array.isArray(directResponse.data)) {
+              productsData = directResponse.data;
+            }
+          } catch (directErr) {
+            console.error('Direct API fallback failed:', directErr);
+          }
+        }
+        
+        console.log(`Found ${productsData.length} products`);
+        setProducts(productsData);
         setIsLoading(false);
       } catch (err) {
         console.error('Error fetching products:', err);
         setError(`Failed to load products: ${err.message}. Please try again later.`);
         setIsLoading(false);
+        
+        // Try direct API call as a final fallback
+        try {
+          console.log('Attempting direct API call after error');
+          const fallbackResponse = await api.get('/api/products?limit=100');
+          let productsData = [];
+          
+          if (fallbackResponse.data && fallbackResponse.data.data) {
+            productsData = fallbackResponse.data.data;
+          } else if (Array.isArray(fallbackResponse.data)) {
+            productsData = fallbackResponse.data;
+          }
+          
+          if (productsData.length > 0) {
+            console.log(`Found ${productsData.length} products from fallback API`);
+            setProducts(productsData);
+            setError(null);
+          }
+        } catch (fallbackErr) {
+          console.error('Final fallback attempt failed:', fallbackErr);
+        }
       }
     };
     
@@ -282,15 +323,67 @@ const AdminProducts = () => {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold">مدیریت محصولات</h2>
-        <button 
-          onClick={handleCreateClick}
-          className="px-4 py-2 bg-draugr-600 hover:bg-draugr-500 rounded-lg shadow-sm transition-colors flex items-center"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-          افزودن محصول جدید
-        </button>
+        <div className="flex gap-2">
+          <button 
+            onClick={handleCreateClick}
+            className="px-4 py-2 bg-draugr-600 hover:bg-draugr-500 rounded-lg shadow-sm transition-colors flex items-center"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            افزودن محصول جدید
+          </button>
+          <button 
+            onClick={async () => {
+              try {
+                setIsLoading(true);
+                // Create 10 test products
+                const testCategories = categories.map(cat => cat._id);
+                
+                // Create promises for all product creations
+                const productPromises = [];
+                for (let i = 0; i < 10; i++) {
+                  const randomCategoryIndex = Math.floor(Math.random() * testCategories.length);
+                  const testProduct = {
+                    name: `محصول آزمایشی ${i + 1}`,
+                    description: `توضیحات برای محصول آزمایشی شماره ${i + 1}`,
+                    price: Math.floor(Math.random() * 1000) + 100,
+                    images: [{
+                      url: `http://localhost:5000/static/images/products/Product_${(i % 13) + 1}.jpg`,
+                      alt: `محصول آزمایشی ${i + 1}`
+                    }],
+                    category: testCategories[randomCategoryIndex],
+                    countInStock: Math.floor(Math.random() * 50) + 10,
+                    features: ['ویژگی تست ۱', 'ویژگی تست ۲'],
+                    sale: {
+                      isSale: Math.random() > 0.7,
+                      salePrice: Math.floor(Math.random() * 100) + 50
+                    }
+                  };
+                  
+                  productPromises.push(adminService.createProduct(testProduct));
+                }
+                
+                await Promise.all(productPromises);
+                
+                // Refresh products
+                const response = await adminService.getAllProducts(1, 1000);
+                if (response.data && response.data.data) {
+                  setProducts(response.data.data);
+                }
+                toast.success('محصولات آزمایشی با موفقیت اضافه شدند');
+              } catch (error) {
+                console.error('Error creating test products:', error);
+                toast.error('خطا در ایجاد محصولات آزمایشی');
+              } finally {
+                setIsLoading(false);
+              }
+            }}
+            className="px-4 py-2 bg-green-700 hover:bg-green-600 rounded-lg shadow-sm transition-colors"
+          >
+            ایجاد محصولات آزمایشی
+          </button>
+        </div>
       </div>
       
       <div className="bg-black bg-opacity-40 rounded-xl border border-gray-800 p-4 mb-4">
