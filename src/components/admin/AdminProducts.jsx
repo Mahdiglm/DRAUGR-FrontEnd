@@ -346,40 +346,63 @@ const AdminProducts = () => {
             onClick={async () => {
               try {
                 setIsLoading(true);
+                
+                // Check existing product format
+                const existingProduct = checkExistingProductFormat();
+                console.log('Using existing product as template:', existingProduct);
+                
                 // Create test products one at a time instead of all at once
                 const testCategories = categories.map(cat => cat._id);
                 let createdCount = 0;
                 
-                for (let i = 0; i < 5; i++) { // Reduce to 5 instead of 10 to avoid overloading
+                for (let i = 0; i < 3; i++) { // Just create a few products to test
                   try {
                     const randomCategoryIndex = Math.floor(Math.random() * testCategories.length);
                     const categoryId = testCategories[randomCategoryIndex];
                     const categoryObj = categories.find(cat => cat._id === categoryId);
-                    const productName = `محصول آزمایشی ${i + 1}`;
-                    // Create URL-friendly slug based on name
-                    const slug = `test-product-${i + 1}-${Date.now()}`;
+                    const productName = `محصول آزمایشی ${Date.now()}-${i + 1}`;
+                    // Create URL-friendly slug based on name with timestamp to ensure uniqueness
+                    const slug = productName
+                      .toLowerCase()
+                      .replace(/\s+/g, '-')
+                      .replace(/[^\w\-]+/g, '');
                     
-                    const testProduct = {
+                    let testProduct = {
                       name: productName,
-                      slug: slug, // Add unique slug with timestamp
+                      slug: slug,
                       description: `توضیحات برای محصول آزمایشی شماره ${i + 1}`,
                       price: Math.floor(Math.random() * 1000) + 100,
+                      category: categoryId,
+                      stock: Math.floor(Math.random() * 50) + 10,
+                      countInStock: Math.floor(Math.random() * 50) + 10,
                       images: [{
                         url: `http://localhost:5000/static/images/products/Product_${(i % 13) + 1}.jpg`,
-                        alt: `محصول آزمایشی ${i + 1}`
+                        alt: productName
                       }],
-                      // Try different formats for category field
-                      category: categoryId,
-                      categoryId: categoryId,
-                      categoryName: categoryObj ? categoryObj.name : '',
-                      stock: Math.floor(Math.random() * 50) + 10, // Try stock as an alternative to countInStock
-                      countInStock: Math.floor(Math.random() * 50) + 10,
                       features: ['ویژگی تست ۱', 'ویژگی تست ۲'],
                       sale: {
                         isSale: Math.random() > 0.7,
                         salePrice: Math.floor(Math.random() * 100) + 50
                       }
                     };
+                    
+                    // If we have an existing product, use its structure as a template
+                    if (existingProduct) {
+                      // Keep only the fields that exist in the original product
+                      const templateFields = {};
+                      Object.keys(existingProduct).forEach(key => {
+                        if (key !== '_id' && key !== 'createdAt' && key !== 'updatedAt' && key !== '__v') {
+                          if (key === 'category' && typeof existingProduct.category === 'object') {
+                            templateFields.category = categoryId;
+                          } else if (testProduct[key] !== undefined) {
+                            templateFields[key] = testProduct[key];
+                          } else {
+                            templateFields[key] = existingProduct[key];
+                          }
+                        }
+                      });
+                      testProduct = templateFields;
+                    }
                     
                     console.log('Creating test product:', testProduct);
                     const response = await adminService.createProduct(testProduct);
