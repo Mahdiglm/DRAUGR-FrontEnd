@@ -7,6 +7,7 @@ import FeaturedProductSlider from '../product/FeaturedProductSlider';
 import CategoryGrid from '../shared/CategoryGrid';
 import { products } from '../../utils/mockData';
 import { safeBlur, safeFilterTransition, isLowPerformanceDevice, getOptimizedAnimationSettings } from '../../utils/animationHelpers';
+import { getAssetUrl } from '../../utils/assetUtils';
 // Try with relative path to asset folder
 import heroBackground from '../../assets/Background-Hero.jpg';
 import mainBackground from '../../assets/BackGround-Main.jpg';
@@ -55,6 +56,9 @@ const HomePage = () => {
       img.src = image;
     });
   }, []);
+
+  const heroBackground = getAssetUrl('Background-Hero.jpg');
+  const mainBackground = getAssetUrl('BackGround-Main.jpg');
 
   return (
     <>
