@@ -346,7 +346,7 @@ const AdminBlogs = () => {
       {/* Create/Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-xl shadow-xl max-w-2xl w-full" dir="rtl">
+          <div className="bg-gray-900 rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-hidden" dir="rtl">
             <div className="border-b border-gray-800 p-4">
               <h3 className="text-xl font-bold">
                 {isCreateMode ? 'ایجاد مقاله جدید' : 'ویرایش مقاله'}
