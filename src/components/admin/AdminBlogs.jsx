@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css'; // Import Quill styles
 import '../../styles/quill-dark.css'; // Import custom dark theme styles
+import DOMPurify from 'dompurify'; // Import DOMPurify for sanitizing HTML
 
 // Custom CSS for dark-themed editor
 const darkEditorStyles = {
@@ -538,7 +539,7 @@ const AdminBlogs = () => {
                     
                     <div 
                       className="prose prose-invert max-w-none"
-                      dangerouslySetInnerHTML={{ __html: currentBlog.content || '<p>محتوای مقاله در این قسمت نمایش داده می‌شود...</p>' }}
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentBlog.content) || '<p>محتوای مقاله در این قسمت نمایش داده می‌شود...</p>' }}
                     />
                   </div>
                   
