@@ -1,0 +1,101 @@
+/* Basic styles for Quill rich text editor
+   This is a minimal set of styles in case the main Quill CSS fails to load */
+
+.ql-toolbar {
+  border: 1px solid #374151;
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+  padding: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.ql-toolbar button {
+  height: 28px;
+  width: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  cursor: pointer;
+  padding: 3px;
+  margin: 2px;
+}
+
+.ql-toolbar button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.ql-container {
+  border: 1px solid #374151;
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+  border-top: none;
+  min-height: 200px;
+}
+
+.ql-editor {
+  min-height: 200px;
+  padding: 12px 15px;
+  overflow-y: auto;
+}
+
+/* Basic formatting */
+.ql-editor p {
+  margin-bottom: 1em;
+}
+
+.ql-editor strong {
+  font-weight: bold;
+}
+
+.ql-editor em {
+  font-style: italic;
+}
+
+.ql-editor u {
+  text-decoration: underline;
+}
+
+.ql-editor h1, .ql-editor h2, .ql-editor h3, 
+.ql-editor h4, .ql-editor h5, .ql-editor h6 {
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+  font-weight: bold;
+}
+
+.ql-editor h1 { font-size: 2em; }
+.ql-editor h2 { font-size: 1.5em; }
+.ql-editor h3 { font-size: 1.17em; }
+.ql-editor h4 { font-size: 1em; }
+
+.ql-editor ul, .ql-editor ol {
+  padding-left: 2em;
+  margin-bottom: 1em;
+}
+
+.ql-editor ul > li {
+  list-style-type: disc;
+}
+
+.ql-editor ol > li {
+  list-style-type: decimal;
+}
+
+.ql-editor blockquote {
+  border-left: 4px solid #ccc;
+  padding-left: 16px;
+  margin-bottom: 1em;
+}
+
+.ql-editor img {
+  max-width: 100%;
+}
+
+.ql-editor a {
+  color: #2563eb;
+  text-decoration: underline;
+} 
