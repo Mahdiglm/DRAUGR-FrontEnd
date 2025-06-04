@@ -16,6 +16,7 @@
     "simple-deploy": "npm run build && node gh-deploy.js"
   },
   "dependencies": {
+    "@babel/runtime": "^7.27.4",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^7.1.1",
@@ -28,6 +29,7 @@
     "postprocessing": "^6.37.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-helmet": "^6.1.0",
     "react-intersection-observer": "^9.16.0",
     "react-router-dom": "^6.22.1",
     "three": "^0.176.0"
