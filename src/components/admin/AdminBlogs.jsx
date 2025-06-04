@@ -39,9 +39,10 @@ const AdminBlogs = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [blogToDelete, setBlogToDelete] = useState(null);
   const [activeTab, setActiveTab] = useState('edit'); // 'edit' or 'preview'
+  const quillRef = useRef(null);
   
   // Rich text editor modules and formats configuration
-  const modules = {
+  const modules = useMemo(() => ({
     toolbar: [
       [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
       ['bold', 'italic', 'underline', 'strike'], 
@@ -53,7 +54,7 @@ const AdminBlogs = () => {
       ['link', 'image', 'video'],
       ['clean']
     ],
-  };
+  }), []);
 
   const formats = [
     'header',
