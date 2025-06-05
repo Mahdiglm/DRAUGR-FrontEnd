@@ -12,6 +12,7 @@ const AdminProducts = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [shopFilter, setShopFilter] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreateMode, setIsCreateMode] = useState(true);
   const [currentProduct, setCurrentProduct] = useState({
@@ -25,7 +26,8 @@ const AdminProducts = () => {
     sale: {
       isSale: false,
       salePrice: 0
-    }
+    },
+    isShopConnected: true
   });
   const [featureInput, setFeatureInput] = useState('');
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -153,6 +155,11 @@ const AdminProducts = () => {
           isSale: checked
         }
       });
+    } else if (name === 'isShopConnected') {
+      setCurrentProduct({
+        ...currentProduct,
+        isShopConnected: checked
+      });
     } else {
       setCurrentProduct({
         ...currentProduct,
@@ -195,7 +202,8 @@ const AdminProducts = () => {
       sale: {
         isSale: false,
         salePrice: 0
-      }
+      },
+      isShopConnected: true
     });
     setIsCreateMode(true);
     setIsModalOpen(true);
@@ -238,7 +246,8 @@ const AdminProducts = () => {
           features: product.features || [],
           images: product.images || [],
           category: product.category || '',
-          sale: product.sale || { isSale: false, salePrice: 0 }
+          sale: product.sale || { isSale: false, salePrice: 0 },
+          isShopConnected: product.isShopConnected || true
         });
         setIsCreateMode(false);
         setIsModalOpen(true);
@@ -249,7 +258,8 @@ const AdminProducts = () => {
         features: product.features || [],
         images: product.images || [],
         category: product.category || '',
-        sale: product.sale || { isSale: false, salePrice: 0 }
+        sale: product.sale || { isSale: false, salePrice: 0 },
+        isShopConnected: product.isShopConnected || true
       });
       setIsCreateMode(false);
       setIsModalOpen(true);
@@ -319,7 +329,7 @@ const AdminProducts = () => {
     }
   };
   
-  // Filter products based on search term and category filter
+  // Filter products based on search term, category filter, and shop connection filter
   const filteredProducts = products && products.length > 0 
     ? products.filter(product => {
         const matchesSearch = product.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -329,7 +339,12 @@ const AdminProducts = () => {
                                product.category === categoryFilter ||
                                (product.category?._id && product.category._id === categoryFilter);
         
-        return matchesSearch && matchesCategory;
+        const matchesShopFilter = 
+          shopFilter === 'all' || 
+          (shopFilter === 'connected' && product.isShopConnected) || 
+          (shopFilter === 'disconnected' && !product.isShopConnected);
+        
+        return matchesSearch && matchesCategory && matchesShopFilter;
       })
     : [];
   
@@ -632,18 +647,33 @@ const AdminProducts = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full bg-gray-900 rounded-lg px-4 py-2 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-draugr-500 mb-2"
             />
-            <div className="flex items-center">
-              <label className="block text-gray-400 mr-2 text-sm">دسته‌بندی:</label>
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="bg-gray-900 rounded-lg px-4 py-2 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-draugr-500 flex-grow"
-              >
-                <option value="all">همه دسته‌ها</option>
-                {categories && categories.length > 0 && categories.map(category => (
-                  <option key={category._id} value={category._id}>{category.name}</option>
-                ))}
-              </select>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center flex-1">
+                <label className="block text-gray-400 mr-2 text-sm">دسته‌بندی:</label>
+                <select
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className="bg-gray-900 rounded-lg px-4 py-2 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-draugr-500 flex-grow"
+                >
+                  <option value="all">همه دسته‌ها</option>
+                  {categories && categories.length > 0 && categories.map(category => (
+                    <option key={category._id} value={category._id}>{category.name}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="flex items-center">
+                <label className="block text-gray-400 mr-2 text-sm">نمایش:</label>
+                <select
+                  value={shopFilter}
+                  onChange={(e) => setShopFilter(e.target.value)}
+                  className="bg-gray-900 rounded-lg px-4 py-2 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-draugr-500"
+                >
+                  <option value="all">همه محصولات</option>
+                  <option value="connected">فقط محصولات فروشگاه</option>
+                  <option value="disconnected">محصولات خارج از فروشگاه</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -876,6 +906,22 @@ const AdminProducts = () => {
                 </div>
                 
                 <div className="md:col-span-2">
+                  <div className="flex items-center mb-4">
+                    <input
+                      type="checkbox"
+                      name="isShopConnected"
+                      checked={currentProduct.isShopConnected}
+                      onChange={handleInputChange}
+                      className="rounded text-green-500 focus:ring-green-500 h-5 w-5 bg-gray-800 border-gray-700 ml-2"
+                    />
+                    <label className="text-gray-300 font-medium">نمایش در فروشگاه</label>
+                    <div className="mr-4 bg-gray-800 px-3 py-1 rounded-lg text-xs text-gray-400">
+                      {currentProduct.isShopConnected ? 
+                        'این محصول در فروشگاه نمایش داده می‌شود' : 
+                        'این محصول در فروشگاه نمایش داده نمی‌شود'}
+                    </div>
+                  </div>
+                  
                   <div className="flex items-center">
                     <input
                       type="checkbox"
