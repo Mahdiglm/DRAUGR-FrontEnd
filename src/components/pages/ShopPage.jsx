@@ -196,15 +196,6 @@ const SearchIcon = () => (
   </svg>
 );
 
-// Expanded category options for the demo
-const expandedCategories = [
-  ...categories,
-  { id: 9, name: "کتاب‌های نادر", slug: "rare-books" },
-  { id: 10, name: "جواهرات", slug: "jewelry" },
-  { id: 11, name: "ابزارها", slug: "tools" },
-  { id: 12, name: "گیاهان", slug: "herbs" }
-];
-
 // Animation variants for product grid
 const productContainerVariants = {
   hidden: { opacity: 0 },
@@ -637,7 +628,7 @@ const ShopPage = () => {
                   <span className="text-xs text-gray-500">{selectedCategories.length} مورد</span>
                 </h4>
                 <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-draugr-600/40 scrollbar-track-transparent">
-                  {expandedCategories.map(category => (
+                  {categories.map(category => (
                     <div key={category.id} className="flex items-center">
                       <label htmlFor={`category-filter-${category.slug}`} className="flex items-center text-sm text-gray-300 cursor-pointer py-1.5 px-1 hover:text-white transition-colors w-full category-item">
                         <input
@@ -662,7 +653,7 @@ const ShopPage = () => {
                     <h4 className="font-medium text-gradient mb-2">فیلترهای فعال</h4>
                     <div className="flex flex-wrap gap-1.5">
                       {selectedCategories.map(categorySlug => {
-                        const categoryName = expandedCategories.find(c => c.slug === categorySlug)?.name;
+                        const categoryName = categories.find(c => c.slug === categorySlug)?.name;
                         return (
                           <motion.span 
                             key={categorySlug}
@@ -778,7 +769,7 @@ const ShopPage = () => {
                   
                   <AnimatePresence>
                     {selectedCategories.map(categorySlug => {
-                      const categoryName = expandedCategories.find(c => c.slug === categorySlug)?.name;
+                      const categoryName = categories.find(c => c.slug === categorySlug)?.name;
                       return (
                         <motion.span 
                           key={categorySlug}
@@ -1105,7 +1096,7 @@ const ShopPage = () => {
                 <div>
                   <h4 className="text-lg font-semibold text-draugr-200 mb-2.5">دسته‌بندی‌های مرموز</h4>
                   <div className="space-y-3 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-draugr-600 scrollbar-track-draugr-800/50 pr-1.5">
-                    {expandedCategories.map(category => (
+                    {categories.map(category => (
                       <motion.label
                         key={category.id}
                         htmlFor={`modal-category-${category.slug}`}
