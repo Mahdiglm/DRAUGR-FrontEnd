@@ -251,15 +251,20 @@ const ShopPage = () => {
         // Fetch categories
         const categoriesResponse = await productService.getCategories();
         console.log('Categories response:', categoriesResponse);
-        if (categoriesResponse.data) {
+        if (categoriesResponse && Array.isArray(categoriesResponse)) {
+          setCategories(categoriesResponse);
+        } else if (categoriesResponse && Array.isArray(categoriesResponse.data)) {
           setCategories(categoriesResponse.data);
+        } else {
+          console.error('Invalid categories data format:', categoriesResponse);
+          setCategories([]);
         }
         
         // Fetch products with shop filter
         const filters = {
-          sortBy: sortBy,
-          page: currentPage,
-          perPage: 50
+          sortBy: 'newest',
+          page: 1,
+          perPage: 100 // Get more products to ensure we have enough data
         };
         
         if (selectedCategories.length === 1) {
@@ -274,19 +279,25 @@ const ShopPage = () => {
         const productsResponse = await productService.getProducts(filters);
         console.log('Products response:', productsResponse);
         
-        if (productsResponse && productsResponse.products) {
-          console.log('Setting products from response.products:', productsResponse.products);
+        // Check different possible response structures
+        if (productsResponse && Array.isArray(productsResponse.products)) {
+          console.log('Setting products from response.products array');
           setProducts(productsResponse.products);
-        } else if (productsResponse && productsResponse.data && productsResponse.data.products) {
-          console.log('Setting products from response.data.products:', productsResponse.data.products);
+        } else if (productsResponse && productsResponse.data && Array.isArray(productsResponse.data.products)) {
+          console.log('Setting products from response.data.products array');
           setProducts(productsResponse.data.products);
+        } else if (Array.isArray(productsResponse)) {
+          console.log('Setting products from direct array response');
+          setProducts(productsResponse);
         } else {
-          console.error('No products data found in response:', productsResponse);
+          console.error('No valid products array found in response');
           setProducts([]);
         }
       } catch (error) {
         console.error('Error fetching shop data:', error);
         console.error('Error details:', error.message);
+        setProducts([]);
+        setCategories([]);
       } finally {
         setIsLoading(false);
       }
