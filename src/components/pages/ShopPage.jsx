@@ -3,8 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useOutletContext, useLocation, useSearchParams } from 'react-router-dom';
 
 import ProductCard from '../product/ProductCard';
-import { products, categories } from '../../utils/mockData';
 import { getAssetUrl } from '../../utils/assetUtils';
+import productService from '../../services/productService';
+import categoryService from '../../services/categoryService';
 
 // Custom CSS for glowing effects and enhanced styling
 const enhancedStyles = `
@@ -249,6 +250,38 @@ const ShopPage = () => {
   const [sortBy, setSortBy] = useState('newest');
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  
+  // Real data states
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  
+  // Fetch real products and categories from API
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch categories
+        const categoryResponse = await categoryService.getCategories();
+        if (categoryResponse.data) {
+          setCategories(categoryResponse.data);
+        }
+        
+        // Fetch products
+        const productResponse = await productService.getProducts({ limit: 100 });
+        if (productResponse.data && productResponse.data.products) {
+          setProducts(productResponse.data.products);
+        } else if (Array.isArray(productResponse.data)) {
+          setProducts(productResponse.data);
+        }
+      } catch (error) {
+        console.error('Error fetching shop data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, []);
   
   const shopBgImage = getAssetUrl('Background-Hero.jpg');
   
