@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useOutletContext, useLocation, useSearchParams } from 'react-router-dom';
 
 import ProductCard from '../product/ProductCard';
-import { products, categories } from '../../utils/mockData';
+import productService from '../../services/productService';
 import { getAssetUrl } from '../../utils/assetUtils';
 
 // Custom CSS for glowing effects and enhanced styling
@@ -238,10 +238,8 @@ const ShopPage = () => {
   
   // NEW: skeleton loading state
   const [isLoading, setIsLoading] = useState(true);
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 700); // artificial delay for demo
-    return () => clearTimeout(timer);
-  }, []);
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   
   // States for filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -252,16 +250,56 @@ const ShopPage = () => {
   
   const shopBgImage = getAssetUrl('Background-Hero.jpg');
   
+  // Fetch products and categories from API
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch categories
+        const categoriesResponse = await productService.getCategories();
+        if (categoriesResponse.data) {
+          setCategories(categoriesResponse.data);
+        }
+        
+        // Fetch products with shop filter
+        const filters = {
+          sortBy: sortBy,
+          page: currentPage,
+          perPage: 50
+        };
+        
+        if (selectedCategories.length === 1) {
+          filters.category = selectedCategories[0];
+        }
+        
+        if (searchTerm) {
+          filters.search = searchTerm;
+        }
+        
+        const productsResponse = await productService.getProducts(filters);
+        if (productsResponse.data && productsResponse.data.products) {
+          setProducts(productsResponse.data.products);
+        }
+      } catch (error) {
+        console.error('Error fetching shop data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, [sortBy, currentPage, selectedCategories.length === 1 ? selectedCategories[0] : null, searchTerm]);
+  
   // Filter products based on criteria
   const filteredProducts = products.filter(product => {
-    // Search term filter
+    // Search term filter (client-side filtering for additional flexibility)
     const matchesSearch = searchTerm === '' || 
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchTerm.toLowerCase());
+      product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.description?.toLowerCase().includes(searchTerm.toLowerCase());
       
-    // Category filter
+    // Category filter (when using multiple categories)
     const matchesCategory = selectedCategories.length === 0 || 
-      selectedCategories.includes(product.category);
+      (product.category && selectedCategories.includes(product.category.slug));
     
     return matchesSearch && matchesCategory;
   });
