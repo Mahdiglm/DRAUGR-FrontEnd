@@ -571,27 +571,62 @@ const AdminProducts = () => {
               try {
                 setIsLoading(true);
                 
-                // Get first category from the list for testing
+                // Check if categories exist
+                let categoryId;
                 if (!categories || categories.length === 0) {
-                  toast.error("لطفاً منتظر بمانید تا دسته‌بندی‌ها بارگذاری شوند یا دسته‌بندی جدید ایجاد کنید");
-                  setIsLoading(false);
-                  return;
+                  // Create a new category first
+                  try {
+                    const token = localStorage.getItem('token');
+                    const timestamp = Date.now();
+                    
+                    const categoryData = {
+                      name: `دسته‌بندی تست ${timestamp}`,
+                      description: "دسته‌بندی آزمایشی برای محصولات تست",
+                      image: "http://localhost:5000/static/images/products/category_default.jpg"
+                    };
+                    
+                    const catResponse = await fetch('http://localhost:5000/api/categories', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                      },
+                      body: JSON.stringify(categoryData)
+                    });
+                    
+                    if (!catResponse.ok) {
+                      throw new Error("خطا در ایجاد دسته‌بندی");
+                    }
+                    
+                    const newCategory = await catResponse.json();
+                    categoryId = newCategory._id;
+                    
+                    // Update categories state
+                    setCategories([newCategory]);
+                    
+                    toast.success("دسته‌بندی تست ایجاد شد");
+                  } catch (catError) {
+                    console.error("Error creating category:", catError);
+                    toast.error(`خطا در ایجاد دسته‌بندی: ${catError.message}`);
+                    setIsLoading(false);
+                    return;
+                  }
+                } else {
+                  categoryId = categories[0]._id;
                 }
                 
-                const firstCategory = categories[0];
                 // Timestamp to make the product unique
                 const timestamp = Date.now();
                 
                 // Create a product with EXACTLY the fields the backend route uses
-                // From the backend: const { name, description, price, category, countInStock, imageUrl, features, sale } = req.body;
                 const testProduct = {
                   name: `محصول تست ${timestamp}`,
                   slug: `test-product-${timestamp}`,
                   description: "این یک محصول تست است",
                   price: 150,
-                  category: firstCategory._id,
+                  category: categoryId,
                   countInStock: 50,
-                  stock: 50,  // Also include stock as it's in the model
+                  stock: 50,
                   imageUrl: "http://localhost:5000/static/images/products/Product_1.jpg",
                   images: [
                     {
@@ -603,7 +638,8 @@ const AdminProducts = () => {
                   sale: {
                     isSale: false,
                     salePrice: 0
-                  }
+                  },
+                  isShopConnected: true
                 };
                 
                 // Log the exact product we're sending
@@ -637,10 +673,7 @@ const AdminProducts = () => {
                   toast.success("محصول تست با موفقیت ایجاد شد");
                   
                   // Refresh product list
-                  const listResponse = await adminService.getAllProducts(1, 1000);
-                  if (listResponse.data && listResponse.data.data) {
-                    setProducts(listResponse.data.data);
-                  }
+                  await refreshData();
                 } catch (err) {
                   console.error("Error in product creation:", err);
                   toast.error(`خطا در ایجاد محصول: ${err.message}`);
