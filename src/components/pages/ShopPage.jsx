@@ -197,15 +197,6 @@ const SearchIcon = () => (
   </svg>
 );
 
-// Expanded category options for the demo
-const expandedCategories = [
-  ...categories,
-  { id: 9, name: "کتاب‌های نادر", slug: "rare-books" },
-  { id: 10, name: "جواهرات", slug: "jewelry" },
-  { id: 11, name: "ابزارها", slug: "tools" },
-  { id: 12, name: "گیاهان", slug: "herbs" }
-];
-
 // Animation variants for product grid
 const productContainerVariants = {
   hidden: { opacity: 0 },
@@ -375,98 +366,6 @@ const ShopPage = () => {
     }, 50);
   };
   
-  // Render development page content
-  const renderDevelopmentPage = () => {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="py-32 px-4 flex flex-col items-center justify-center bg-ash bg-opacity-30 rounded-lg"
-      >
-        <motion.div
-          className="relative"
-          animate={{ 
-            rotate: [0, 2, 0, -2, 0],
-            scale: [1, 1.02, 1, 0.98, 1]
-          }}
-          transition={{ 
-            duration: 4,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        >
-          <motion.div
-            className="absolute inset-0 bg-draugr-500 blur-xl opacity-20 rounded-full"
-            animate={{ 
-              scale: [1, 1.2, 1],
-            }}
-            transition={{ 
-              duration: 3,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          />
-          <svg 
-            className="h-32 w-32 text-draugr-500 relative z-10 opacity-70" 
-            xmlns="http://www.w3.org/2000/svg" 
-            fill="none" 
-            viewBox="0 0 24 24" 
-            stroke="currentColor"
-          >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth={1} 
-              d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" 
-            />
-          </svg>
-        </motion.div>
-        
-        <motion.h2 
-          className="mt-8 text-3xl font-bold text-white text-center"
-          animate={{ 
-            textShadow: ['0 0 8px rgba(239,35,60,0.3)', '0 0 16px rgba(239,35,60,0.7)', '0 0 8px rgba(239,35,60,0.3)']
-          }}
-          transition={{ 
-            duration: 3, 
-            repeat: Infinity,
-          }}
-        >
-          در حال توسعه...
-        </motion.h2>
-        
-        <motion.p 
-          className="mt-4 text-gray-300 text-center max-w-md"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          این صفحه در حال ساخت است و به زودی با محصولات جدید و شگفت‌انگیز تکمیل خواهد شد
-        </motion.p>
-        
-        <motion.div 
-          className="mt-10"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-        >
-          <motion.button
-            className="bg-vampire-dark text-white py-2 px-6 rounded-md border border-draugr-500 hover:bg-vampire-primary transition-all"
-            whileHover={{ 
-              scale: 1.05,
-              boxShadow: "0 0 15px rgba(239,35,60,0.5)"
-            }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => handlePageChange(1)}
-          >
-            بازگشت به صفحه اصلی
-          </motion.button>
-        </motion.div>
-      </motion.div>
-    );
-  };
-  
   // Initialize filters from URL parameters on component mount
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -632,7 +531,7 @@ const ShopPage = () => {
                   <span className="text-xs text-gray-500">{selectedCategories.length} مورد</span>
                 </h4>
                 <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-draugr-600/40 scrollbar-track-transparent">
-                  {expandedCategories.map(category => (
+                  {categories.map(category => (
                     <div key={category.id} className="flex items-center">
                       <label htmlFor={`category-filter-${category.slug}`} className="flex items-center text-sm text-gray-300 cursor-pointer py-1.5 px-1 hover:text-white transition-colors w-full category-item">
                         <input
@@ -657,7 +556,7 @@ const ShopPage = () => {
                     <h4 className="font-medium text-gradient mb-2">فیلترهای فعال</h4>
                     <div className="flex flex-wrap gap-1.5">
                       {selectedCategories.map(categorySlug => {
-                        const categoryName = expandedCategories.find(c => c.slug === categorySlug)?.name;
+                        const categoryName = categories.find(c => c.slug === categorySlug)?.name;
                         return (
                           <motion.span 
                             key={categorySlug}
@@ -773,7 +672,7 @@ const ShopPage = () => {
                   
                   <AnimatePresence>
                     {selectedCategories.map(categorySlug => {
-                      const categoryName = expandedCategories.find(c => c.slug === categorySlug)?.name;
+                      const categoryName = categories.find(c => c.slug === categorySlug)?.name;
                       return (
                         <motion.span 
                           key={categorySlug}
@@ -1100,7 +999,7 @@ const ShopPage = () => {
                 <div>
                   <h4 className="text-lg font-semibold text-draugr-200 mb-2.5">دسته‌بندی‌های مرموز</h4>
                   <div className="space-y-3 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-draugr-600 scrollbar-track-draugr-800/50 pr-1.5">
-                    {expandedCategories.map(category => (
+                    {categories.map(category => (
                       <motion.label
                         key={category.id}
                         htmlFor={`modal-category-${category.slug}`}
