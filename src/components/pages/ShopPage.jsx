@@ -257,8 +257,8 @@ const ShopPage = () => {
           setCategories(categoryResponse.data);
         }
         
-        // Fetch products
-        const productResponse = await productService.getProducts({ limit: 100 });
+        // Fetch products with a high limit to get all available products
+        const productResponse = await productService.getProducts({ limit: 1000 });
         if (productResponse.data && productResponse.data.products) {
           setProducts(productResponse.data.products);
         } else if (Array.isArray(productResponse.data)) {
