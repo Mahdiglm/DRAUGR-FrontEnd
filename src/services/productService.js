@@ -13,7 +13,6 @@ const productService = {
       if (filters.sortBy) queryParams.append('sortBy', filters.sortBy);
       if (filters.page) queryParams.append('page', filters.page);
       if (filters.perPage) queryParams.append('perPage', filters.perPage);
-      if (filters.limit) queryParams.append('limit', filters.limit);
       
       const queryString = queryParams.toString();
       const endpoint = `/api/products${queryString ? `?${queryString}` : ''}`;

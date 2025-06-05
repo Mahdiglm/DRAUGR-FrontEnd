@@ -71,77 +71,54 @@ const AdminProducts = () => {
       try {
         setIsLoading(true);
         
-        // Try multiple endpoints to get all products
-        const endpoints = [
-          'http://localhost:5000/api/admin/products?page=1&pageSize=1000',
-          'http://localhost:5000/api/products?limit=1000',
-          'http://localhost:5000/api/products/all'
-        ];
+        // Try direct call to public product API to see all products
+        try {
+          console.log('Trying direct public products API call');
+          const response = await fetch('http://localhost:5000/api/products?limit=100');
+          const data = await response.json();
+          console.log('Public products API response:', data);
+          
+          // Extract products based on response structure
+          let productsData = [];
+          if (data && data.data) {
+            productsData = data.data;
+          } else if (Array.isArray(data)) {
+            productsData = data;
+          }
+          
+          console.log(`Found ${productsData.length} products from public API`);
+          if (productsData.length > 0) {
+            setProducts(productsData);
+            setIsLoading(false);
+            return;
+          }
+        } catch (publicError) {
+          console.error('Error with public API:', publicError);
+        }
         
-        let maxProducts = [];
+        // If public API fails, try the admin endpoint
+        console.log('Trying admin products API call');
+        const adminResponse = await adminService.getAllProducts(1, 1000);
+        console.log('Admin products API response:', adminResponse);
         
-        for (const endpoint of endpoints) {
-          try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(endpoint, {
-              headers: {
-                'Authorization': token ? `Bearer ${token}` : ''
-              }
-            });
-            
-            if (!response.ok) continue;
-            
-            const data = await response.json();
-            console.log(`API ${endpoint} response:`, data);
-            
-            let productsFromApi = [];
-            if (data && data.data) {
-              productsFromApi = data.data;
-            } else if (data && data.products) {
-              productsFromApi = data.products;
-            } else if (Array.isArray(data)) {
-              productsFromApi = data;
-            }
-            
-            if (productsFromApi.length > maxProducts.length) {
-              maxProducts = productsFromApi;
-              console.log(`Found ${productsFromApi.length} products from ${endpoint}`);
-            }
-          } catch (endpointError) {
-            console.error(`Error with ${endpoint}:`, endpointError);
+        // Check the structure of the response and extract the correct data
+        let productsData = [];
+        
+        if (adminResponse.data && adminResponse.data.data) {
+          // Structure: { data: { data: [...] } }
+          productsData = adminResponse.data.data;
+        } else if (Array.isArray(adminResponse.data)) {
+          // Structure: { data: [...] }
+          productsData = adminResponse.data;
+        } else if (adminResponse.data) {
+          // Structure: { data: { ... } } - check if it's an object with product fields
+          if (adminResponse.data._id) {
+            productsData = [adminResponse.data];
           }
         }
         
-        if (maxProducts.length > 0) {
-          setProducts(maxProducts);
-          console.log(`Total products loaded: ${maxProducts.length}`);
-        } else {
-          // If all endpoints fail, try the admin service
-          try {
-            const adminResponse = await adminService.getAllProducts(1, 1000);
-            console.log('Admin service response:', adminResponse);
-            
-            let productsData = [];
-            if (adminResponse.data && adminResponse.data.data) {
-              productsData = adminResponse.data.data;
-            } else if (Array.isArray(adminResponse.data)) {
-              productsData = adminResponse.data;
-            } else if (adminResponse.data && adminResponse.data._id) {
-              productsData = [adminResponse.data];
-            }
-            
-            if (productsData.length > 0) {
-              setProducts(productsData);
-              console.log(`Found ${productsData.length} products from admin service`);
-            } else {
-              setError('No products found from any endpoint');
-            }
-          } catch (serviceError) {
-            console.error('Error with admin service:', serviceError);
-            setError(`Failed to load products: ${serviceError.message}`);
-          }
-        }
-        
+        console.log(`Found ${productsData.length} products from admin API`);
+        setProducts(productsData);
         setIsLoading(false);
       } catch (err) {
         console.error('Error fetching products:', err);
@@ -239,74 +216,20 @@ const AdminProducts = () => {
       const categoriesResponse = await api.get('/api/categories');
       setCategories(categoriesResponse.data || []);
       
-      // Fetch products from multiple possible endpoints to get the maximum count
-      const endpoints = [
-        'http://localhost:5000/api/admin/products?page=1&pageSize=1000',
-        'http://localhost:5000/api/products?limit=1000',
-        'http://localhost:5000/api/products/all'
-      ];
+      // Then fetch products
+      const adminResponse = await adminService.getAllProducts(1, 1000);
+      console.log('Admin products API response:', adminResponse);
       
-      let maxProducts = [];
-      
-      for (const endpoint of endpoints) {
-        try {
-          const token = localStorage.getItem('token');
-          const response = await fetch(endpoint, {
-            headers: {
-              'Authorization': token ? `Bearer ${token}` : ''
-            }
-          });
-          
-          if (!response.ok) continue;
-          
-          const data = await response.json();
-          let productsFromApi = [];
-          
-          if (data && data.data) {
-            productsFromApi = data.data;
-          } else if (data && data.products) {
-            productsFromApi = data.products;
-          } else if (Array.isArray(data)) {
-            productsFromApi = data;
-          }
-          
-          if (productsFromApi.length > maxProducts.length) {
-            maxProducts = productsFromApi;
-            console.log(`Found ${productsFromApi.length} products from ${endpoint}`);
-          }
-        } catch (err) {
-          console.error(`Error with ${endpoint}:`, err);
-        }
+      let productsData = [];
+      if (adminResponse.data && adminResponse.data.data) {
+        productsData = adminResponse.data.data;
+      } else if (Array.isArray(adminResponse.data)) {
+        productsData = adminResponse.data;
+      } else if (adminResponse.data && adminResponse.data._id) {
+        productsData = [adminResponse.data];
       }
       
-      if (maxProducts.length > 0) {
-        setProducts(maxProducts);
-        toast.success(`${maxProducts.length} محصول بارگذاری شد`);
-      } else {
-        // Fall back to adminService if direct endpoints fail
-        try {
-          const adminResponse = await adminService.getAllProducts(1, 1000);
-          
-          let productsData = [];
-          if (adminResponse.data && adminResponse.data.data) {
-            productsData = adminResponse.data.data;
-          } else if (Array.isArray(adminResponse.data)) {
-            productsData = adminResponse.data;
-          } else if (adminResponse.data && adminResponse.data._id) {
-            productsData = [adminResponse.data];
-          }
-          
-          if (productsData.length > 0) {
-            setProducts(productsData);
-            toast.success(`${productsData.length} محصول بارگذاری شد`);
-          } else {
-            toast.error("هیچ محصولی یافت نشد");
-          }
-        } catch (serviceError) {
-          console.error('Error with admin service:', serviceError);
-          toast.error(`خطا در بارگذاری محصولات: ${serviceError.message}`);
-        }
-      }
+      setProducts(productsData);
     } catch (err) {
       console.error('Error refreshing data:', err);
       toast.error(`خطا در بارگذاری اطلاعات: ${err.message}`);
