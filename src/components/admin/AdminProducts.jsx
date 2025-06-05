@@ -71,57 +71,86 @@ const AdminProducts = () => {
       try {
         setIsLoading(true);
         
-        // Try direct call to public product API to see all products
+        // Try admin endpoint first which should get ALL products regardless of isShopConnected
         try {
-          console.log('Trying direct public products API call');
-          const response = await fetch('http://localhost:5000/api/products?limit=100');
-          const data = await response.json();
-          console.log('Public products API response:', data);
+          console.log('Fetching products from admin API');
+          const adminResponse = await adminService.getAllProducts(1, 1000);
+          console.log('Admin products API response:', adminResponse);
           
-          // Extract products based on response structure
+          // Check the structure of the response and extract the correct data
           let productsData = [];
-          if (data && data.data) {
-            productsData = data.data;
-          } else if (Array.isArray(data)) {
-            productsData = data;
+          
+          if (adminResponse.data && adminResponse.data.data) {
+            // Structure: { data: { data: [...] } }
+            productsData = adminResponse.data.data;
+          } else if (Array.isArray(adminResponse.data)) {
+            // Structure: { data: [...] }
+            productsData = adminResponse.data;
+          } else if (adminResponse.data) {
+            // Structure: { data: { ... } } - check if it's an object with product fields
+            if (adminResponse.data._id) {
+              productsData = [adminResponse.data];
+            }
           }
           
-          console.log(`Found ${productsData.length} products from public API`);
           if (productsData.length > 0) {
+            console.log(`Found ${productsData.length} products from admin API`);
             setProducts(productsData);
             setIsLoading(false);
             return;
           }
-        } catch (publicError) {
-          console.error('Error with public API:', publicError);
+        } catch (adminError) {
+          console.error('Error with admin API:', adminError);
         }
         
-        // If public API fails, try the admin endpoint
-        console.log('Trying admin products API call');
-        const adminResponse = await adminService.getAllProducts(1, 1000);
-        console.log('Admin products API response:', adminResponse);
-        
-        // Check the structure of the response and extract the correct data
-        let productsData = [];
-        
-        if (adminResponse.data && adminResponse.data.data) {
-          // Structure: { data: { data: [...] } }
-          productsData = adminResponse.data.data;
-        } else if (Array.isArray(adminResponse.data)) {
-          // Structure: { data: [...] }
-          productsData = adminResponse.data;
-        } else if (adminResponse.data) {
-          // Structure: { data: { ... } } - check if it's an object with product fields
-          if (adminResponse.data._id) {
-            productsData = [adminResponse.data];
+        // Fallback to using multiple API calls to ensure we get ALL products
+        try {
+          console.log('Trying multiple API calls to get all products');
+          
+          // First try to fetch from /api/products/all which should return all products
+          const allProductsResponse = await fetch('http://localhost:5000/api/products/all', {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+          });
+          
+          if (allProductsResponse.ok) {
+            const allProductsData = await allProductsResponse.json();
+            console.log(`Found ${Array.isArray(allProductsData) ? allProductsData.length : 'unknown'} products from /api/products/all`);
+            
+            if (Array.isArray(allProductsData) && allProductsData.length > 0) {
+              setProducts(allProductsData);
+              setIsLoading(false);
+              return;
+            }
           }
+          
+          // As a last resort, try the public products API
+          console.log('Trying public products API as last resort');
+          const publicResponse = await fetch('http://localhost:5000/api/products?limit=100');
+          const publicData = await publicResponse.json();
+          
+          let publicProducts = [];
+          if (publicData && publicData.products) {
+            publicProducts = publicData.products;
+          } else if (Array.isArray(publicData)) {
+            publicProducts = publicData;
+          }
+          
+          console.log(`Found ${publicProducts.length} products from public API`);
+          if (publicProducts.length > 0) {
+            setProducts(publicProducts);
+          } else {
+            setError("Could not load products from any API endpoint");
+          }
+        } catch (fallbackError) {
+          console.error('All fallback attempts failed:', fallbackError);
+          setError(`Failed to load products: ${fallbackError.message}. Please try again later.`);
         }
         
-        console.log(`Found ${productsData.length} products from admin API`);
-        setProducts(productsData);
         setIsLoading(false);
       } catch (err) {
-        console.error('Error fetching products:', err);
+        console.error('Error in main fetchProducts flow:', err);
         setError(`Failed to load products: ${err.message}. Please try again later.`);
         setIsLoading(false);
       }
