@@ -246,8 +246,11 @@ const ShopPage = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
+        console.log('Fetching shop data...');
+        
         // Fetch categories
         const categoriesResponse = await productService.getCategories();
+        console.log('Categories response:', categoriesResponse);
         if (categoriesResponse.data) {
           setCategories(categoriesResponse.data);
         }
@@ -267,12 +270,23 @@ const ShopPage = () => {
           filters.search = searchTerm;
         }
         
+        console.log('Fetching products with filters:', filters);
         const productsResponse = await productService.getProducts(filters);
-        if (productsResponse.data && productsResponse.data.products) {
+        console.log('Products response:', productsResponse);
+        
+        if (productsResponse && productsResponse.products) {
+          console.log('Setting products from response.products:', productsResponse.products);
+          setProducts(productsResponse.products);
+        } else if (productsResponse && productsResponse.data && productsResponse.data.products) {
+          console.log('Setting products from response.data.products:', productsResponse.data.products);
           setProducts(productsResponse.data.products);
+        } else {
+          console.error('No products data found in response:', productsResponse);
+          setProducts([]);
         }
       } catch (error) {
         console.error('Error fetching shop data:', error);
+        console.error('Error details:', error.message);
       } finally {
         setIsLoading(false);
       }
