@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { products } from '../../utils/mockData';
+import productService from '../../services/productService';
 import { getAssetUrl } from '../../utils/assetUtils';
 
 const ProductDetail = () => {
@@ -9,15 +9,98 @@ const ProductDetail = () => {
   const navigate = useNavigate();
   const { addToCart, showTemporaryMessage } = useOutletContext();
   const [quantity, setQuantity] = useState(1);
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
-  // Find the product by ID
-  const product = products.find(p => p.id === parseInt(id));
+  // Fetch product data from API
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        console.log('Fetching product with ID:', id);
+        const response = await productService.getProductById(id);
+        console.log('Product API response:', response);
+        
+        if (response && response.data) {
+          setProduct(response.data);
+        } else if (response) {
+          setProduct(response);
+        } else {
+          setError('محصول مورد نظر یافت نشد');
+        }
+      } catch (err) {
+        console.error('Error fetching product:', err);
+        setError(err.message || 'خطا در بارگذاری محصول');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchProduct();
+  }, [id]);
+  
+  const handleAddToCart = () => {
+    if (!product) return;
+    
+    // Create a copy of the product with the selected quantity
+    const productWithQuantity = { ...product, quantity: quantity };
+    
+    // Add to cart with the specified quantity
+    addToCart(productWithQuantity);
+    
+    // Show confirmation message
+    showTemporaryMessage(`${quantity} عدد ${product.name} به سبد خرید اضافه شد`);
+  };
+  
+  // Get product image URL 
+  const getProductImage = (product) => {
+    if (!product) return '';
+    
+    if (product.images && product.images.length > 0) {
+      return product.images[0].url || '';
+    } else if (product.imageUrl) {
+      return product.imageUrl;
+    }
+    return '';
+  };
+  
+  // Category translations
+  const categoryTranslations = {
+    'weapons': 'سلاح‌ها',
+    'armor': 'زره‌ها',
+    'potions': 'معجون‌ها',
+    'magic': 'اقلام جادویی'
+  };
+  
+  const getCategoryName = (category) => {
+    if (!category) return '';
+    
+    if (typeof category === 'object') {
+      return category.name;
+    }
+    
+    return categoryTranslations[category] || category;
+  };
+  
+  const productBackground = getAssetUrl('BackGround-Product.jpg');
+  
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-black">
+        <div className="animate-pulse w-16 h-16 border-4 border-draugr-500 border-t-transparent rounded-full"></div>
+        <p className="mt-4 text-draugr-300">در حال بارگذاری محصول...</p>
+      </div>
+    );
+  }
   
   // If product is not found
-  if (!product) {
+  if (error || !product) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
         <h2 className="text-2xl font-bold text-center mb-4">محصول مورد نظر یافت نشد</h2>
+        <p className="text-gray-400 mb-6">{error || 'محصول درخواستی در سیستم موجود نیست.'}</p>
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -29,27 +112,6 @@ const ProductDetail = () => {
       </div>
     );
   }
-  
-  const handleAddToCart = () => {
-    // Create a copy of the product with the selected quantity
-    const productWithQuantity = { ...product, quantity: quantity };
-    
-    // Add to cart with the specified quantity
-    addToCart(productWithQuantity);
-    
-    // Show confirmation message
-    showTemporaryMessage(`${quantity} عدد ${product.name} به سبد خرید اضافه شد`);
-  };
-  
-  // Category translations
-  const categoryTranslations = {
-    'weapons': 'سلاح‌ها',
-    'armor': 'زره‌ها',
-    'potions': 'معجون‌ها',
-    'magic': 'اقلام جادویی'
-  };
-  
-  const productBackground = getAssetUrl('BackGround-Product.jpg');
   
   return (
     <div 
@@ -119,9 +181,13 @@ const ProductDetail = () => {
               className="relative aspect-square rounded-lg overflow-hidden shadow-horror"
             >
               <img 
-                src={product.imageUrl} 
+                src={getProductImage(product)} 
                 alt={product.name} 
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "https://via.placeholder.com/400x400?text=No+Image";
+                }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-50"></div>
             </motion.div>
@@ -135,7 +201,7 @@ const ProductDetail = () => {
             >
               {/* Category Badge */}
               <span className="text-sm bg-draugr-900 text-draugr-400 px-3 py-1 rounded-full w-fit mb-2">
-                {categoryTranslations[product.category] || product.category}
+                {getCategoryName(product.category)}
               </span>
               
               {/* Product Name */}
@@ -147,16 +213,38 @@ const ProductDetail = () => {
               {/* Description */}
               <p className="text-gray-300 mb-6">{product.description}</p>
               
-              {/* Features or Specifications - example */}
-              <div className="mb-6">
-                <h3 className="text-xl font-semibold mb-3">ویژگی‌های محصول</h3>
-                <ul className="list-disc text-gray-300 pr-5 space-y-1">
-                  <li>ساخته شده با مواد با کیفیت</li>
-                  <li>طراحی بی‌نظیر</li>
-                  <li>مناسب برای ماجراجویی</li>
-                  <li>محدود در نوع خود</li>
-                </ul>
-              </div>
+              {/* Features */}
+              {product.features && product.features.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-xl font-semibold mb-3">ویژگی‌های محصول</h3>
+                  <ul className="list-disc text-gray-300 pr-5 space-y-1">
+                    {product.features.map((feature, index) => (
+                      <li key={index}>{feature}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              {/* Default features if none specified */}
+              {(!product.features || product.features.length === 0) && (
+                <div className="mb-6">
+                  <h3 className="text-xl font-semibold mb-3">ویژگی‌های محصول</h3>
+                  <ul className="list-disc text-gray-300 pr-5 space-y-1">
+                    <li>ساخته شده با مواد با کیفیت</li>
+                    <li>طراحی بی‌نظیر</li>
+                    <li>مناسب برای ماجراجویی</li>
+                    <li>محدود در نوع خود</li>
+                  </ul>
+                </div>
+              )}
+              
+              {/* Custom Page Content */}
+              {product.customPageContent && (
+                <div className="mb-6">
+                  <h3 className="text-xl font-semibold mb-3">درباره این محصول</h3>
+                  <div className="text-gray-300">{product.customPageContent}</div>
+                </div>
+              )}
               
               {/* Quantity Selector and Add to Cart */}
               <div className="mt-auto">
@@ -217,11 +305,11 @@ const ProductDetail = () => {
                   <tbody>
                     <tr className="border-b border-gray-700">
                       <td className="py-2 font-semibold">دسته‌بندی</td>
-                      <td className="py-2">{categoryTranslations[product.category] || product.category}</td>
+                      <td className="py-2">{getCategoryName(product.category)}</td>
                     </tr>
                     <tr className="border-b border-gray-700">
                       <td className="py-2 font-semibold">شناسه محصول</td>
-                      <td className="py-2">{product.id}</td>
+                      <td className="py-2">{product._id || product.id}</td>
                     </tr>
                     <tr>
                       <td className="py-2 font-semibold">قابلیت بازگشت</td>
