@@ -433,6 +433,30 @@ const AdminProducts = () => {
     localStorage.setItem('categoriesUpdated', Date.now().toString());
   };
   
+  // Handle shop connection toggle
+  const handleToggleShopConnection = async (product) => {
+    try {
+      const updatedProduct = {
+        ...product,
+        isShopConnected: !product.isShopConnected
+      };
+      
+      const response = await adminService.updateProduct(product._id, updatedProduct);
+      
+      if (response.data && response.data.data) {
+        // Update product in the list
+        setProducts(products.map(p => 
+          p._id === product._id ? response.data.data : p
+        ));
+        
+        toast.success(`محصول ${updatedProduct.isShopConnected ? 'به فروشگاه اضافه' : 'از فروشگاه حذف'} شد.`);
+      }
+    } catch (err) {
+      console.error('Error toggling shop connection:', err);
+      toast.error('خطا در تغییر وضعیت نمایش محصول');
+    }
+  };
+  
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
