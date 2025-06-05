@@ -730,7 +730,7 @@ const AdminProducts = () => {
                 <th className="py-3 px-4 text-right">نام محصول</th>
                 <th className="py-3 px-4 text-right">قیمت</th>
                 <th className="py-3 px-4 text-right">موجودی</th>
-                <th className="py-3 px-4 text-right">دسته</th>
+                <th className="py-3 px-4 text-right">دسته و وضعیت</th>
                 <th className="py-3 px-4 text-right">عملیات</th>
               </tr>
             </thead>
