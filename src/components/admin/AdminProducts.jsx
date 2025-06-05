@@ -200,6 +200,7 @@ const AdminProducts = () => {
       category: categories && categories.length > 0 ? categories[0]._id : '',
       countInStock: 0,
       features: [],
+      customPageContent: '',
       sale: {
         isSale: false,
         salePrice: 0
