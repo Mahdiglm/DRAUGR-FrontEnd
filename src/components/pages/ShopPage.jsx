@@ -260,39 +260,23 @@ const ShopPage = () => {
           setCategories([]);
         }
         
-        // Fetch products with shop filter
-        const filters = {
-          sortBy: 'newest',
-          page: 1,
-          perPage: 100 // Get more products to ensure we have enough data
-        };
-        
-        if (selectedCategories.length === 1) {
-          filters.category = selectedCategories[0];
+        // DIRECT FETCH FOR DEBUGGING - BYPASSING ALL FILTERS
+        try {
+          console.log('DIRECT FETCH: Calling /api/products/all endpoint');
+          const response = await fetch('http://localhost:5000/api/products/all');
+          const allProductsData = await response.json();
+          console.log('DIRECT FETCH RESULT:', allProductsData);
+          
+          if (Array.isArray(allProductsData)) {
+            console.log(`Setting ${allProductsData.length} products from direct fetch`);
+            setProducts(allProductsData);
+          } else {
+            console.error('Direct fetch did not return an array:', allProductsData);
+          }
+        } catch (directError) {
+          console.error('Direct fetch error:', directError);
         }
         
-        if (searchTerm) {
-          filters.search = searchTerm;
-        }
-        
-        console.log('Fetching products with filters:', filters);
-        const productsResponse = await productService.getProducts(filters);
-        console.log('Products response:', productsResponse);
-        
-        // Check different possible response structures
-        if (productsResponse && Array.isArray(productsResponse.products)) {
-          console.log('Setting products from response.products array');
-          setProducts(productsResponse.products);
-        } else if (productsResponse && productsResponse.data && Array.isArray(productsResponse.data.products)) {
-          console.log('Setting products from response.data.products array');
-          setProducts(productsResponse.data.products);
-        } else if (Array.isArray(productsResponse)) {
-          console.log('Setting products from direct array response');
-          setProducts(productsResponse);
-        } else {
-          console.error('No valid products array found in response');
-          setProducts([]);
-        }
       } catch (error) {
         console.error('Error fetching shop data:', error);
         console.error('Error details:', error.message);
@@ -304,7 +288,7 @@ const ShopPage = () => {
     };
     
     fetchData();
-  }, [sortBy, currentPage, selectedCategories.length === 1 ? selectedCategories[0] : null, searchTerm]);
+  }, []);
   
   // Filter products based on criteria
   const filteredProducts = products.filter(product => {
