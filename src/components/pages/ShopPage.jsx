@@ -304,6 +304,13 @@ const ShopPage = () => {
     return matchesSearch && matchesCategory;
   });
   
+  // Log products for debugging
+  useEffect(() => {
+    console.log('Total products:', products.length);
+    console.log('Filtered products:', filteredProducts.length);
+    console.log('First few products:', products.slice(0, 3));
+  }, [products, filteredProducts]);
+  
   // Sort products
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch(sortBy) {
@@ -315,7 +322,7 @@ const ShopPage = () => {
         return a.name.localeCompare(b.name);
       case 'newest':
       default:
-        return b.id - a.id; // Using ID as a proxy for newness
+        return new Date(b.createdAt || 0) - new Date(a.createdAt || 0); // Using createdAt instead of ID
     }
   });
   
@@ -885,7 +892,7 @@ const ShopPage = () => {
                     <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-5">
                       {sortedProducts.map(product => (
                         <motion.div 
-                          key={product.id} 
+                          key={product._id || product.id} 
                           variants={productItemVariants}
                           className="h-full" 
                         >
