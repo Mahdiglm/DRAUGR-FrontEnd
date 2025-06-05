@@ -259,6 +259,7 @@ const AdminProducts = () => {
         features: product.features || [],
         images: product.images || [],
         category: product.category || '',
+        customPageContent: product.customPageContent || '',
         sale: product.sale || { isSale: false, salePrice: 0 },
         isShopConnected: product.isShopConnected || true
       });
