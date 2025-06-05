@@ -6,31 +6,51 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 // Helper for handling API responses and errors consistently
 const handleResponse = async (response) => {
   try {
+    // First try to get response as text
     const text = await response.text();
-    console.log('Raw API response:', text); // Log raw response for debugging
+    console.log('Raw API response text:', text);
     
-    // Try to parse as JSON, but handle empty responses gracefully
-    const data = text ? JSON.parse(text) : {};
+    let data;
+    
+    // Try to parse as JSON if there's content
+    if (text && text.trim()) {
+      try {
+        data = JSON.parse(text);
+        console.log('Parsed JSON data:', data);
+      } catch (jsonError) {
+        console.error('Failed to parse JSON:', jsonError);
+        console.error('Raw text was:', text);
+        data = { rawText: text };
+      }
+    } else {
+      console.log('Empty response received');
+      data = {}; // Empty response
+    }
     
     if (!response.ok) {
       // If the server response includes an error message, use it
-      const errorMessage = data.message || data.error || response.statusText;
+      const errorMessage = 
+        (data && (data.message || data.error)) || 
+        response.statusText || 
+        `HTTP Error ${response.status}`;
       
       // If authentication error, clear token
       if (response.status === 401) {
         localStorage.removeItem('token');
       }
       
-      console.error('API error:', { status: response.status, message: errorMessage });
+      console.error('API error:', { 
+        status: response.status, 
+        message: errorMessage,
+        data
+      });
+      
       throw new Error(errorMessage);
     }
     
     return data;
   } catch (error) {
-    if (error.name === 'SyntaxError') {
-      console.error('JSON parse error:', error);
-      throw new Error('Invalid response from server');
-    }
+    console.error('Error handling API response:', error);
     throw error;
   }
 };
