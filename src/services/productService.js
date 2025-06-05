@@ -17,6 +17,7 @@ const productService = {
       const queryString = queryParams.toString();
       const endpoint = `/api/products${queryString ? `?${queryString}` : ''}`;
       
+      console.log('Calling API endpoint:', endpoint);
       return await api.get(endpoint);
     } catch (error) {
       throw error;
