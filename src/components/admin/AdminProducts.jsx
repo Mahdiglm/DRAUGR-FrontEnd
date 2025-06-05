@@ -783,6 +783,15 @@ const AdminProducts = () => {
                   <td className="py-3 px-4">
                     <div className="flex gap-2">
                       <button
+                        onClick={() => handleToggleShopConnection(product)}
+                        className={`p-1.5 ${product.isShopConnected ? 'bg-purple-700 hover:bg-purple-600' : 'bg-green-700 hover:bg-green-600'} rounded-lg text-sm transition-colors`}
+                        title={product.isShopConnected ? 'حذف از فروشگاه' : 'افزودن به فروشگاه'}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={product.isShopConnected ? "M6 18L18 6M6 6l12 12" : "M12 4v16m8-8H4"} />
+                        </svg>
+                      </button>
+                      <button
                         onClick={() => handleEditClick(product)}
                         className="p-1.5 bg-blue-700 hover:bg-blue-600 rounded-lg text-sm transition-colors"
                         title="ویرایش"
