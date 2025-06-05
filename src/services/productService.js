@@ -18,8 +18,11 @@ const productService = {
       const endpoint = `/api/products${queryString ? `?${queryString}` : ''}`;
       
       console.log('Calling API endpoint:', endpoint);
-      return await api.get(endpoint);
+      const response = await api.get(endpoint);
+      console.log('Raw API response for products:', response);
+      return response;
     } catch (error) {
+      console.error('Error in getProducts:', error);
       throw error;
     }
   },
@@ -27,8 +30,11 @@ const productService = {
   // Get featured products
   getFeaturedProducts: async () => {
     try {
-      return await api.get('/api/products/featured');
+      const response = await api.get('/api/products/featured');
+      console.log('Raw API response for featured products:', response);
+      return response;
     } catch (error) {
+      console.error('Error in getFeaturedProducts:', error);
       throw error;
     }
   },
@@ -36,8 +42,13 @@ const productService = {
   // Get a single product by ID
   getProductById: async (id) => {
     try {
-      return await api.get(`/api/products/${id}`);
+      const endpoint = `/api/products/${id}`;
+      console.log('Calling API endpoint:', endpoint);
+      const response = await api.get(endpoint);
+      console.log('Raw API response for product by ID:', response);
+      return response;
     } catch (error) {
+      console.error('Error in getProductById:', error);
       throw error;
     }
   },
@@ -45,8 +56,13 @@ const productService = {
   // Get all categories
   getCategories: async () => {
     try {
-      return await api.get('/api/categories');
+      const endpoint = '/api/categories';
+      console.log('Calling API endpoint:', endpoint);
+      const response = await api.get(endpoint);
+      console.log('Raw API response for categories:', response);
+      return response;
     } catch (error) {
+      console.error('Error in getCategories:', error);
       throw error;
     }
   },
@@ -54,8 +70,13 @@ const productService = {
   // Get a single category by slug
   getCategoryBySlug: async (slug) => {
     try {
-      return await api.get(`/api/categories/${slug}`);
+      const endpoint = `/api/categories/${slug}`;
+      console.log('Calling API endpoint:', endpoint);
+      const response = await api.get(endpoint);
+      console.log('Raw API response for category by slug:', response);
+      return response;
     } catch (error) {
+      console.error('Error in getCategoryBySlug:', error);
       throw error;
     }
   },
@@ -63,8 +84,13 @@ const productService = {
   // Search products
   searchProducts: async (query) => {
     try {
-      return await api.get(`/api/products/search?q=${encodeURIComponent(query)}`);
+      const endpoint = `/api/products/search?q=${encodeURIComponent(query)}`;
+      console.log('Calling API endpoint:', endpoint);
+      const response = await api.get(endpoint);
+      console.log('Raw API response for search products:', response);
+      return response;
     } catch (error) {
+      console.error('Error in searchProducts:', error);
       throw error;
     }
   }
