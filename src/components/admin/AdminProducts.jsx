@@ -23,6 +23,7 @@ const AdminProducts = () => {
     category: '',
     countInStock: 0,
     features: [],
+    customPageContent: '',
     sale: {
       isSale: false,
       salePrice: 0
@@ -1053,6 +1054,22 @@ const AdminProducts = () => {
                       </div>
                     ))}
                   </div>
+                </div>
+                
+                <div className="md:col-span-2">
+                  <label className="block text-gray-400 mb-1 text-sm">محتوای اختصاصی صفحه محصول</label>
+                  <div className="bg-gray-900 rounded-lg p-2 mb-2">
+                    <p className="text-xs text-gray-400 mb-2">
+                      در این قسمت می‌توانید متن اختصاصی برای نمایش در صفحه محصول وارد کنید. این متن در بخش "درباره این محصول" نمایش داده خواهد شد.
+                    </p>
+                  </div>
+                  <textarea
+                    name="customPageContent"
+                    value={currentProduct.customPageContent || ''}
+                    onChange={handleInputChange}
+                    placeholder="محتوای اختصاصی صفحه محصول را وارد کنید..."
+                    className="w-full bg-gray-800 rounded-lg px-4 py-2 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-draugr-500 h-40"
+                  ></textarea>
                 </div>
               </div>
             </form>
