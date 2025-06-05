@@ -747,9 +747,14 @@ const AdminProducts = () => {
                     </span>
                   </td>
                   <td className="py-3 px-4">
-                    <span className="bg-gray-800 text-gray-300 px-2 py-1 rounded-full text-xs">
-                      {getCategoryName(product.category)}
-                    </span>
+                    <div className="flex flex-col gap-1">
+                      <span className="bg-gray-800 text-gray-300 px-2 py-1 rounded-full text-xs">
+                        {getCategoryName(product.category)}
+                      </span>
+                      <span className={`px-2 py-1 rounded-full text-xs ${product.isShopConnected ? 'bg-green-900/50 text-green-300' : 'bg-red-900/50 text-red-300'}`}>
+                        {product.isShopConnected ? 'در فروشگاه' : 'خارج از فروشگاه'}
+                      </span>
+                    </div>
                   </td>
                   <td className="py-3 px-4">
                     <div className="flex gap-2">
