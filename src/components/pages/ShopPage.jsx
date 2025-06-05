@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOutletContext, useLocation, useSearchParams } from 'react-router-dom';
-import { toast } from 'react-toastify';
 
 import ProductCard from '../product/ProductCard';
-import { categories } from '../../utils/mockData'; // Keep categories from mockData for now
+import { products, categories } from '../../utils/mockData';
 import { getAssetUrl } from '../../utils/assetUtils';
-import productService from '../../services/productService'; // Import the product service
 
 // Custom CSS for glowing effects and enhanced styling
 const enhancedStyles = `
@@ -238,11 +236,12 @@ const ShopPage = () => {
   const [searchParams] = useSearchParams();
   const [isEnteringFromTransition, setIsEnteringFromTransition] = useState(false);
   
-  // State for products and categories
-  const [products, setProducts] = useState([]);
-  const [allCategories, setAllCategories] = useState([]);
+  // NEW: skeleton loading state
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 700); // artificial delay for demo
+    return () => clearTimeout(timer);
+  }, []);
   
   // States for filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -253,60 +252,18 @@ const ShopPage = () => {
   
   const shopBgImage = getAssetUrl('Background-Hero.jpg');
   
-  // Fetch products and categories from API
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        // Fetch categories
-        const categoriesResponse = await productService.getCategories();
-        setAllCategories(categoriesResponse.data || []);
-        
-        // Fetch products with isShopConnected=true only
-        const productsResponse = await productService.getProducts({
-          perPage: 100, // Get more products to display
-          page: 1
-        });
-        
-        let productsData = [];
-        if (productsResponse.data && productsResponse.data.products) {
-          productsData = productsResponse.data.products;
-        } else if (Array.isArray(productsResponse.data)) {
-          productsData = productsResponse.data;
-        }
-        
-        console.log(`Loaded ${productsData.length} products for shop`);
-        setProducts(productsData);
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        setError('Failed to load shop data. Please try again later.');
-        toast.error('خطا در بارگذاری اطلاعات فروشگاه');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchData();
-  }, []);
-  
   // Filter products based on criteria
   const filteredProducts = products.filter(product => {
     // Search term filter
     const matchesSearch = searchTerm === '' || 
-      product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.description.toLowerCase().includes(searchTerm.toLowerCase());
       
     // Category filter
     const matchesCategory = selectedCategories.length === 0 || 
-      (product.category && (
-        selectedCategories.includes(product.category._id) || 
-        (typeof product.category === 'string' && selectedCategories.includes(product.category))
-      ));
+      selectedCategories.includes(product.category);
     
-    // Only show products that should be connected to the shop
-    const isShopProduct = product.isShopConnected !== false; // Default to true if not specified
-    
-    return matchesSearch && matchesCategory && isShopProduct;
+    return matchesSearch && matchesCategory;
   });
   
   // Sort products
@@ -317,14 +274,10 @@ const ShopPage = () => {
       case 'price-high':
         return b.price - a.price;
       case 'name':
-        return a.name?.localeCompare(b.name);
+        return a.name.localeCompare(b.name);
       case 'newest':
       default:
-        // If we have createdAt, use it; otherwise, fall back to ID
-        if (a.createdAt && b.createdAt) {
-          return new Date(b.createdAt) - new Date(a.createdAt);
-        }
-        return b._id?.localeCompare(a._id);
+        return b.id - a.id; // Using ID as a proxy for newness
     }
   });
   
@@ -337,11 +290,11 @@ const ShopPage = () => {
   };
   
   // Toggle category selection
-  const toggleCategory = (categoryId) => {
-    if (selectedCategories.includes(categoryId)) {
-      setSelectedCategories(selectedCategories.filter(cat => cat !== categoryId));
+  const toggleCategory = (categorySlug) => {
+    if (selectedCategories.includes(categorySlug)) {
+      setSelectedCategories(selectedCategories.filter(cat => cat !== categorySlug));
     } else {
-      setSelectedCategories([...selectedCategories, categoryId]);
+      setSelectedCategories([...selectedCategories, categorySlug]);
     }
     setCurrentPage(1); // Reset to first page when filters change
   };
