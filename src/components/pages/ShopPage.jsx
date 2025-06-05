@@ -278,16 +278,23 @@ const ShopPage = () => {
   
   // Filter products based on criteria
   const filteredProducts = products.filter(product => {
+    // Only show products that are connected to the shop
+    const isConnectedToShop = product.isShopConnected !== false; // default to true if property is missing
+    
     // Search term filter
     const matchesSearch = searchTerm === '' || 
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchTerm.toLowerCase());
+      product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.description?.toLowerCase().includes(searchTerm.toLowerCase());
       
     // Category filter
     const matchesCategory = selectedCategories.length === 0 || 
-      selectedCategories.includes(product.category);
+      (product.category && (
+        selectedCategories.includes(product.category) || 
+        (product.category._id && selectedCategories.includes(product.category._id)) ||
+        (product.category.slug && selectedCategories.includes(product.category.slug))
+      ));
     
-    return matchesSearch && matchesCategory;
+    return isConnectedToShop && matchesSearch && matchesCategory;
   });
   
   // Sort products
