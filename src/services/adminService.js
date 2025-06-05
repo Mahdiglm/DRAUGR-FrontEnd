@@ -97,18 +97,11 @@ const adminService = {
   // Products
   getAllProducts: async (page = 1, pageSize = 100) => {
     try {
-      // First try the admin endpoint
-      const adminResponse = await api.get(`/api/admin/products?page=${page}&pageSize=${pageSize}`);
-      return adminResponse;
+      // Only use the admin endpoint to get ALL products including those not connected to the shop
+      return await api.get(`/api/admin/products?page=${page}&pageSize=${pageSize}`);
     } catch (error) {
-      console.log('Admin products endpoint failed, trying public products API as fallback');
-      // If admin endpoint fails, try the public products endpoint
-      try {
-        const publicResponse = await api.get(`/api/products?page=${page}&limit=${pageSize}`);
-        return publicResponse;
-      } catch (fallbackError) {
-        throw fallbackError;
-      }
+      console.error('Error fetching admin products:', error);
+      throw error;
     }
   },
   
