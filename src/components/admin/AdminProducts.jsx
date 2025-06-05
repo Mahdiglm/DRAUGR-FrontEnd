@@ -239,20 +239,74 @@ const AdminProducts = () => {
       const categoriesResponse = await api.get('/api/categories');
       setCategories(categoriesResponse.data || []);
       
-      // Then fetch products
-      const adminResponse = await adminService.getAllProducts(1, 1000);
-      console.log('Admin products API response:', adminResponse);
+      // Fetch products from multiple possible endpoints to get the maximum count
+      const endpoints = [
+        'http://localhost:5000/api/admin/products?page=1&pageSize=1000',
+        'http://localhost:5000/api/products?limit=1000',
+        'http://localhost:5000/api/products/all'
+      ];
       
-      let productsData = [];
-      if (adminResponse.data && adminResponse.data.data) {
-        productsData = adminResponse.data.data;
-      } else if (Array.isArray(adminResponse.data)) {
-        productsData = adminResponse.data;
-      } else if (adminResponse.data && adminResponse.data._id) {
-        productsData = [adminResponse.data];
+      let maxProducts = [];
+      
+      for (const endpoint of endpoints) {
+        try {
+          const token = localStorage.getItem('token');
+          const response = await fetch(endpoint, {
+            headers: {
+              'Authorization': token ? `Bearer ${token}` : ''
+            }
+          });
+          
+          if (!response.ok) continue;
+          
+          const data = await response.json();
+          let productsFromApi = [];
+          
+          if (data && data.data) {
+            productsFromApi = data.data;
+          } else if (data && data.products) {
+            productsFromApi = data.products;
+          } else if (Array.isArray(data)) {
+            productsFromApi = data;
+          }
+          
+          if (productsFromApi.length > maxProducts.length) {
+            maxProducts = productsFromApi;
+            console.log(`Found ${productsFromApi.length} products from ${endpoint}`);
+          }
+        } catch (err) {
+          console.error(`Error with ${endpoint}:`, err);
+        }
       }
       
-      setProducts(productsData);
+      if (maxProducts.length > 0) {
+        setProducts(maxProducts);
+        toast.success(`${maxProducts.length} محصول بارگذاری شد`);
+      } else {
+        // Fall back to adminService if direct endpoints fail
+        try {
+          const adminResponse = await adminService.getAllProducts(1, 1000);
+          
+          let productsData = [];
+          if (adminResponse.data && adminResponse.data.data) {
+            productsData = adminResponse.data.data;
+          } else if (Array.isArray(adminResponse.data)) {
+            productsData = adminResponse.data;
+          } else if (adminResponse.data && adminResponse.data._id) {
+            productsData = [adminResponse.data];
+          }
+          
+          if (productsData.length > 0) {
+            setProducts(productsData);
+            toast.success(`${productsData.length} محصول بارگذاری شد`);
+          } else {
+            toast.error("هیچ محصولی یافت نشد");
+          }
+        } catch (serviceError) {
+          console.error('Error with admin service:', serviceError);
+          toast.error(`خطا در بارگذاری محصولات: ${serviceError.message}`);
+        }
+      }
     } catch (err) {
       console.error('Error refreshing data:', err);
       toast.error(`خطا در بارگذاری اطلاعات: ${err.message}`);
