@@ -27,6 +27,20 @@ const productService = {
     }
   },
   
+  // Get all products from the all endpoint (ignores isShopConnected)
+  getAllProducts: async () => {
+    try {
+      const endpoint = '/api/products/all';
+      console.log('Calling API endpoint:', endpoint);
+      const response = await api.get(endpoint);
+      console.log('Raw API response for all products:', response);
+      return response;
+    } catch (error) {
+      console.error('Error in getAllProducts:', error);
+      throw error;
+    }
+  },
+  
   // Get featured products
   getFeaturedProducts: async () => {
     try {
