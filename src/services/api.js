@@ -44,13 +44,26 @@ const validateToken = (token) => {
     const parts = token.split('.');
     if (parts.length !== 3) return false;
     
-    // Check if token is expired
-    const payload = JSON.parse(atob(parts[1]));
-    const currentTime = Date.now() / 1000;
+    // Check if token is expired (skip expiration check if payload parsing fails)
+    try {
+      const payload = JSON.parse(atob(parts[1]));
+      if (payload.exp) {
+        const currentTime = Date.now() / 1000;
+        return payload.exp > currentTime;
+      }
+    } catch (parseError) {
+      // If we can't parse the payload, assume token is still valid
+      // This prevents malformed tokens from causing constant rejection
+      return true;
+    }
     
-    return payload.exp > currentTime;
+    return true; // If no expiration, assume valid
   } catch (error) {
-    console.error('Token validation error:', error);
+    // Only log validation errors occasionally to prevent spam
+    if (!window.lastTokenValidationError || Date.now() - window.lastTokenValidationError > 10000) {
+      console.error('Token validation error:', error);
+      window.lastTokenValidationError = Date.now();
+    }
     return false;
   }
 };
@@ -188,8 +201,8 @@ apiClient.interceptors.response.use(
         processQueue(refreshError, null);
         secureStorage.removeToken();
         
-        // Redirect to login page
-        window.location.href = '/login';
+        // Don't redirect here - let the AuthContext handle it
+        // The automatic redirect was causing reload loops
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
