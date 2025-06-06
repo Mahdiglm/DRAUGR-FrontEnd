@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import secureApi from '../services/api';
-import { inputValidation, secureFormHelpers, csrfProtection } from '../utils/security';
+import { inputValidation, securityHelpers, csrfProtection } from '../utils/security';
 
 // Create Auth Context
 const AuthContext = createContext();
