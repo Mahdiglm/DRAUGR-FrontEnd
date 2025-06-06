@@ -64,8 +64,11 @@ const fetchAssetMap = async () => {
       console.log('Asset map loaded from API');
     }
   } catch (error) {
-    console.error('Error fetching asset map:', error);
-    console.log('Using fallback asset URLs');
+    // Only log once to avoid spam
+    if (!window.assetServiceErrorLogged) {
+      console.error('Asset service: Using fallback URLs (backend not available)');
+      window.assetServiceErrorLogged = true;
+    }
   }
 };
 
