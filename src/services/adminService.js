@@ -1,4 +1,4 @@
-import { api } from './api';
+import secureApi from './api';
 
 // Admin Service - Handles admin operations
 const adminService = {
