@@ -1,5 +1,5 @@
 {
-  "name": "draugr-shop",
+  "name": "draugr-frontend",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -9,6 +9,9 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "security:test": "node security-test.js",
+    "security:audit": "npm audit --audit-level moderate",
+    "test:headers": "node test-security-headers.js",
     "setup-deploy": "git config --global user.email \"mahdiglm@users.noreply.github.com\" ; git config --global user.name \"Mahdiglm\"",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist --repo=https://github.com/Mahdiglm/DRAUGR-FrontEnd.git --branch=gh-pages",
@@ -35,7 +38,8 @@
     "react-quill": "^2.0.0",
     "react-router-dom": "^6.22.1",
     "react-toastify": "^11.0.5",
-    "three": "^0.176.0"
+    "three": "^0.176.0",
+    "lucide-react": "^0.446.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
