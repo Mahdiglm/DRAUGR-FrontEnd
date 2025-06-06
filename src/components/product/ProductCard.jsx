@@ -26,7 +26,7 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
   
   // Debug log only in development mode with throttling
   if (import.meta.env.DEV && Math.random() < 0.01) {
-    console.log('Product card:', productName);
+    // Debug logging removed to prevent console spam
   }
 
   const handleViewDetails = () => {
