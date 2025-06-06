@@ -32,7 +32,7 @@ const orderService = {
   // Cancel an order
   cancelOrder: async (orderId) => {
     try {
-      return await api.put(`/api/orders/${orderId}/cancel`);
+      return await secureApi.put(`/api/orders/${orderId}/cancel`);
     } catch (error) {
       throw error;
     }
