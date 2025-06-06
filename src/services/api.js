@@ -130,10 +130,14 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     
-    // Handle network errors
+    // Handle network errors with throttling
     if (!error.response) {
-      console.error('Network error:', error.message);
-      return Promise.reject(new Error('Conexão com o servidor falhada. Verifique sua internet.'));
+      // Only log network errors periodically to avoid spam
+      if (!window.lastNetworkErrorLog || Date.now() - window.lastNetworkErrorLog > 10000) {
+        console.error('Network error: Backend server not available');
+        window.lastNetworkErrorLog = Date.now();
+      }
+      return Promise.reject(new Error('Backend server not available'));
     }
     
     // Handle 401 unauthorized
