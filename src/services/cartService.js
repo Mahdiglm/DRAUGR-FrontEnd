@@ -8,7 +8,7 @@ const cartService = {
     try {
       // For authenticated users, get cart from API
       if (authService.isAuthenticated()) {
-        return await api.get('/api/cart');
+        return await secureApi.get('/api/cart');
       } else {
         // For guests, get cart from localStorage
         const cartItems = localStorage.getItem('cart');
