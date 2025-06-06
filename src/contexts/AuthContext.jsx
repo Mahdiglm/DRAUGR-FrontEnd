@@ -221,7 +221,7 @@ export const AuthProvider = ({ children }) => {
         throw new Error(passwordValidation.errors[0]);
       }
 
-      const response = await secureApi.put('/auth/change-password', {
+      const response = await secureApi.put('/api/auth/change-password', {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword
       });
