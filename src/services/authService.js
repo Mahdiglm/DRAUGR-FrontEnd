@@ -75,7 +75,7 @@ const authService = {
   // Update user profile
   updateProfile: async (userData) => {
     try {
-      const response = await api.put('/api/auth/user', userData);
+      const response = await secureApi.put('/api/auth/user', userData);
       
       // Update stored user data if successful
       if (response.user) {
