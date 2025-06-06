@@ -1,4 +1,4 @@
-import { api } from './api';
+import secureApi from './api';
 import authService from './authService';
 
 // Cart Service - Handles shopping cart operations
