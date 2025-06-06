@@ -18,7 +18,7 @@ const productService = {
       const endpoint = `/api/products${queryString ? `?${queryString}` : ''}`;
       
       console.log('Calling API endpoint:', endpoint);
-      const response = await api.get(endpoint);
+      const response = await secureApi.get(endpoint);
       console.log('Raw API response for products:', response);
       return response;
     } catch (error) {
