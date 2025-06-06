@@ -14,7 +14,7 @@ const adminService = {
   // Users
   getUsers: async () => {
     try {
-      return await api.get('/api/admin/users');
+      return await secureApi.get('/api/admin/users');
     } catch (error) {
       throw error;
     }
