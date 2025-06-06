@@ -66,7 +66,7 @@ const authService = {
   // Get current user profile from API
   getUserProfile: async () => {
     try {
-      return await secureApi.get('/api/auth/me');
+      return await secureApi.get('/api/auth/user');
     } catch (error) {
       throw error;
     }
@@ -75,7 +75,7 @@ const authService = {
   // Update user profile
   updateProfile: async (userData) => {
     try {
-      const response = await secureApi.put('/api/auth/profile', userData);
+      const response = await secureApi.put('/api/auth/user', userData);
       
       // Update stored user data if successful
       if (response.user) {
@@ -91,9 +91,8 @@ const authService = {
   // Change password
   changePassword: async (currentPassword, newPassword) => {
     try {
-      const response = await secureApi.put('/api/auth/change-password', {
-        currentPassword,
-        newPassword
+      const response = await secureApi.put('/api/auth/user', {
+        password: newPassword
       });
       return response;
     } catch (error) {

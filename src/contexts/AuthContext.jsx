@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
         csrfProtection.setToken(csrfToken);
 
         // Check if user is already authenticated
-        const userData = await secureApi.get('/api/auth/me');
+        const userData = await secureApi.get('/api/auth/user');
         if (userData) {
           setUser(userData);
         }
@@ -150,7 +150,7 @@ export const AuthProvider = ({ children }) => {
     
     try {
       // Call logout endpoint to invalidate token on server
-      await secureApi.post('/api/auth/logout');
+      await secureApi.get('/api/auth/logout');
     } catch (error) {
       console.log('خطا در خروج از سمت سرور:', error.message);
     } finally {
@@ -184,7 +184,7 @@ export const AuthProvider = ({ children }) => {
         email: profileData.email.trim().toLowerCase()
       };
 
-      const response = await secureApi.put('/api/auth/profile', sanitizedData);
+      const response = await secureApi.put('/api/auth/user', sanitizedData);
       
       if (response.success && response.data) {
         setUser(response.data.user);
@@ -221,9 +221,8 @@ export const AuthProvider = ({ children }) => {
         throw new Error(passwordValidation.errors[0]);
       }
 
-      const response = await secureApi.put('/api/auth/change-password', {
-        currentPassword: passwordData.currentPassword,
-        newPassword: passwordData.newPassword
+      const response = await secureApi.put('/api/auth/user', {
+        password: passwordData.newPassword
       });
       
       if (response.success) {
