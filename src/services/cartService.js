@@ -130,7 +130,7 @@ const cartService = {
           // Only proceed if there are items to merge
           if (items && items.length > 0) {
             // Send items to backend for merging
-            await api.post('/api/cart/merge', { items });
+            await secureApi.post('/api/cart/merge', { items });
             
             // Clear guest cart from localStorage
             localStorage.removeItem('cart');
