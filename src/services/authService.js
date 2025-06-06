@@ -66,7 +66,7 @@ const authService = {
   // Get current user profile from API
   getUserProfile: async () => {
     try {
-      return await secureApi.get('/api/auth/user');
+      return await secureApi.get('/api/auth/me');
     } catch (error) {
       throw error;
     }
