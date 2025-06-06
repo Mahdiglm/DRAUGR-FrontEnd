@@ -22,7 +22,7 @@ const authService = {
   // Register a new user
   register: async (userData) => {
     try {
-      const response = await api.post('/api/auth/register', userData);
+      const response = await secureApi.post('/api/auth/register', userData);
       
       // Store token and user info if registration leads directly to login
       if (response.token) {
