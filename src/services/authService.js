@@ -5,7 +5,7 @@ const authService = {
   // Login user
   login: async (email, password) => {
     try {
-      const response = await api.post('/api/auth/login', { email, password });
+      const response = await secureApi.post('/api/auth/login', { email, password });
       
       // Store token and user info in local storage
       if (response.token) {
