@@ -14,7 +14,7 @@ const orderService = {
   // Get order by ID
   getOrder: async (orderId) => {
     try {
-      return await api.get(`/api/orders/${orderId}`);
+      return await secureApi.get(`/api/orders/${orderId}`);
     } catch (error) {
       throw error;
     }
