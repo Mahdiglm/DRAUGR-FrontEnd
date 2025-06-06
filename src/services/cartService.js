@@ -107,7 +107,7 @@ const cartService = {
     try {
       // For authenticated users, use API
       if (authService.isAuthenticated()) {
-        return await api.delete('/api/cart');
+        return await secureApi.delete('/api/cart');
       } else {
         // For guests, clear localStorage
         localStorage.setItem('cart', JSON.stringify({ items: [] }));
