@@ -22,7 +22,7 @@ const adminService = {
   
   getUserDetails: async (userId) => {
     try {
-      return await api.get(`/api/admin/users/${userId}`);
+      return await secureApi.get(`/api/admin/users/${userId}`);
     } catch (error) {
       throw error;
     }
@@ -30,7 +30,7 @@ const adminService = {
   
   updateUser: async (userId, userData) => {
     try {
-      return await api.put(`/api/admin/users/${userId}`, userData);
+      return await secureApi.put(`/api/admin/users/${userId}`, userData);
     } catch (error) {
       throw error;
     }
@@ -38,7 +38,7 @@ const adminService = {
   
   deleteUser: async (userId) => {
     try {
-      return await api.delete(`/api/admin/users/${userId}`);
+      return await secureApi.delete(`/api/admin/users/${userId}`);
     } catch (error) {
       throw error;
     }
@@ -47,7 +47,7 @@ const adminService = {
   // Blog posts
   getBlogs: async () => {
     try {
-      return await api.get('/api/blogs');
+      return await secureApi.get('/api/blogs');
     } catch (error) {
       throw error;
     }
@@ -55,7 +55,7 @@ const adminService = {
   
   createBlog: async (blogData) => {
     try {
-      return await api.post('/api/admin/blogs', blogData);
+      return await secureApi.post('/api/admin/blogs', blogData);
     } catch (error) {
       throw error;
     }
@@ -63,7 +63,7 @@ const adminService = {
   
   updateBlog: async (blogId, blogData) => {
     try {
-      return await api.put(`/api/admin/blogs/${blogId}`, blogData);
+      return await secureApi.put(`/api/admin/blogs/${blogId}`, blogData);
     } catch (error) {
       throw error;
     }
@@ -71,7 +71,7 @@ const adminService = {
   
   deleteBlog: async (blogId) => {
     try {
-      return await api.delete(`/api/admin/blogs/${blogId}`);
+      return await secureApi.delete(`/api/admin/blogs/${blogId}`);
     } catch (error) {
       throw error;
     }
@@ -80,7 +80,7 @@ const adminService = {
   // Orders
   getAllOrders: async (page = 1, pageSize = 10) => {
     try {
-      return await api.get(`/api/admin/orders?page=${page}&pageSize=${pageSize}`);
+      return await secureApi.get(`/api/admin/orders?page=${page}&pageSize=${pageSize}`);
     } catch (error) {
       throw error;
     }
@@ -88,7 +88,7 @@ const adminService = {
   
   updateOrderStatus: async (orderId, status) => {
     try {
-      return await api.put(`/api/admin/orders/${orderId}/status`, { status });
+      return await secureApi.put(`/api/admin/orders/${orderId}/status`, { status });
     } catch (error) {
       throw error;
     }
@@ -98,7 +98,7 @@ const adminService = {
   getAllProducts: async (page = 1, pageSize = 100) => {
     try {
       // Only use the admin endpoint to get ALL products including those not connected to the shop
-      return await api.get(`/api/admin/products?page=${page}&pageSize=${pageSize}`);
+      return await secureApi.get(`/api/admin/products?page=${page}&pageSize=${pageSize}`);
     } catch (error) {
       console.error('Error fetching admin products:', error);
       throw error;
@@ -108,7 +108,7 @@ const adminService = {
   createProduct: async (productData) => {
     try {
       console.log('Creating product with data:', JSON.stringify(productData, null, 2));
-      const response = await api.post('/api/admin/products', productData);
+      const response = await secureApi.post('/api/admin/products', productData);
       console.log('Product creation API response:', response);
       return response;
     } catch (error) {
@@ -119,7 +119,7 @@ const adminService = {
   
   updateProduct: async (productId, productData) => {
     try {
-      return await api.put(`/api/admin/products/${productId}`, productData);
+      return await secureApi.put(`/api/admin/products/${productId}`, productData);
     } catch (error) {
       throw error;
     }
@@ -127,7 +127,7 @@ const adminService = {
   
   deleteProduct: async (productId) => {
     try {
-      return await api.delete(`/api/admin/products/${productId}`);
+      return await secureApi.delete(`/api/admin/products/${productId}`);
     } catch (error) {
       throw error;
     }
