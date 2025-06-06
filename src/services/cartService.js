@@ -24,7 +24,7 @@ const cartService = {
     try {
       // For authenticated users, use API
       if (authService.isAuthenticated()) {
-        return await api.post('/api/cart/items', { productId, quantity });
+        return await secureApi.post('/api/cart/items', { productId, quantity });
       } else {
         // For guests, store in localStorage
         const cart = await cartService.getCart();
