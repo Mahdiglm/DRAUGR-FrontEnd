@@ -300,8 +300,31 @@ export const securityMiddleware = {
         }
       }
       
-      return <WrappedComponent {...secureProps} />;
+      // Return a function that creates the React element when called by React
+      return function createSecureElement() {
+        // This function should be used in a .jsx file like:
+        // const SecureComponent = securityMiddleware.withSecurityValidation(MyComponent);
+        // return React.createElement(WrappedComponent, secureProps);
+        throw new Error('This HOC should be used in a .jsx file with React.createElement or JSX syntax');
+      };
     };
+  },
+
+  // Alternative: Direct props validation without HOC
+  validateProps: (props, validation = {}) => {
+    const secureProps = {};
+    
+    for (const [key, value] of Object.entries(props)) {
+      if (validation[key]) {
+        secureProps[key] = validation[key](value);
+      } else if (typeof value === 'string') {
+        secureProps[key] = xssProtection.sanitizeInput(value);
+      } else {
+        secureProps[key] = value;
+      }
+    }
+    
+    return secureProps;
   }
 };
 
