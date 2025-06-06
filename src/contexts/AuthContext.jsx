@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
       // Validate input data
-      const validationResult = secureFormHelpers.validateLoginForm(credentials);
+      const validationResult = securityHelpers.validateLoginForm(credentials);
       if (!validationResult.isValid) {
         throw new Error(validationResult.errors[0]);
       }
