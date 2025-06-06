@@ -184,7 +184,7 @@ export const AuthProvider = ({ children }) => {
         email: profileData.email.trim().toLowerCase()
       };
 
-      const response = await secureApi.put('/auth/profile', sanitizedData);
+      const response = await secureApi.put('/api/auth/profile', sanitizedData);
       
       if (response.success && response.data) {
         setUser(response.data.user);
