@@ -22,7 +22,11 @@ export const CartProvider = ({ children }) => {
         const cartData = await cartService.getCart();
         setCart(cartData);
       } catch (err) {
-        console.error('Error loading cart:', err);
+        // Only log cart errors once to avoid spam
+        if (!window.cartErrorLogged) {
+          console.error('Cart service unavailable, using local storage');
+          window.cartErrorLogged = true;
+        }
         setError('Failed to load cart');
       } finally {
         setLoading(false);
