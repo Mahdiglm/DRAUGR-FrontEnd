@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
         csrfProtection.setToken(csrfToken);
 
         // Check if user is already authenticated
-        const userData = await secureApi.get('/auth/me');
+        const userData = await secureApi.get('/api/auth/me');
         if (userData) {
           setUser(userData);
         }
