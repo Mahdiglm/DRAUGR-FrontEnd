@@ -172,9 +172,9 @@ export const AuthProvider = ({ children }) => {
     try {
       // Sanitize profile data
       const sanitizedData = {
-        firstName: inputValidation.sanitizeName(profileData.firstName),
-        lastName: inputValidation.sanitizeName(profileData.lastName),
-        email: inputValidation.sanitizeEmail(profileData.email)
+        firstName: profileData.firstName.trim(),
+        lastName: profileData.lastName.trim(),
+        email: profileData.email.trim().toLowerCase()
       };
 
       const response = await secureApi.put('/auth/profile', sanitizedData);
