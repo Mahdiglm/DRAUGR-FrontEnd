@@ -1,4 +1,4 @@
-import { api } from './api';
+import secureApi from './api';
 
 // Order Service - Handles order operations
 const orderService = {
