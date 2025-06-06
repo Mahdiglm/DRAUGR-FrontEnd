@@ -6,6 +6,9 @@
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 
+// Load environment variables from .env file
+require('dotenv').config();
+
 // Test 1: Check if DOMPurify is available and working
 const testDOMPurify = () => {
   try {
