@@ -27,7 +27,11 @@ export const AuthProvider = ({ children }) => {
         }
       } catch (error) {
         // User is not authenticated or token is invalid
-        console.log('کاربر وارد نشده است یا توکن نامعتبر است');
+        // Only log once to avoid spam
+        if (!window.authErrorLogged) {
+          console.log('User not authenticated');
+          window.authErrorLogged = true;
+        }
       }
     };
 
