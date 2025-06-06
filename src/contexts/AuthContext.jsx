@@ -11,32 +11,60 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Initialize authentication state and CSRF protection
   useEffect(() => {
+    // Prevent multiple initializations
+    if (isInitialized) return;
+
     const initializeAuth = async () => {
       try {
         // Generate and set CSRF token
         const csrfToken = csrfProtection.generateToken();
         csrfProtection.setToken(csrfToken);
 
-        // Check if user is already authenticated
-        const userData = await secureApi.get('/api/auth/user');
-        if (userData) {
-          setUser(userData);
+        // Only check authentication if we have a token
+        const token = localStorage.getItem('token');
+        if (token) {
+          try {
+            const userData = await secureApi.get('/api/auth/user');
+            if (userData) {
+              setUser(userData);
+            }
+          } catch (error) {
+            // Check if it's a network error (backend not available)
+            if (!error.response) {
+              // Backend not available, keep the token and try again later
+              if (!window.authNetworkErrorLogged) {
+                console.log('Backend not available during auth check');
+                window.authNetworkErrorLogged = true;
+              }
+            } else {
+              // Token is invalid, clear it
+              localStorage.removeItem('token');
+              sessionStorage.removeItem('token');
+              // Only log once to avoid spam
+              if (!window.authErrorLogged) {
+                console.log('Token invalid, cleared');
+                window.authErrorLogged = true;
+              }
+            }
+          }
         }
       } catch (error) {
-        // User is not authenticated or token is invalid
-        // Only log once to avoid spam
-        if (!window.authErrorLogged) {
-          console.log('User not authenticated');
-          window.authErrorLogged = true;
+        // Initialization error
+        if (!window.authInitErrorLogged) {
+          console.log('Auth initialization error:', error);
+          window.authInitErrorLogged = true;
         }
+      } finally {
+        setIsInitialized(true);
       }
     };
 
     initializeAuth();
-  }, []);
+  }, [isInitialized]);
 
   // Helper function to translate error messages to Persian
   const translateError = (errorMessage) => {
