@@ -72,7 +72,7 @@ const productService = {
     try {
       const endpoint = '/api/categories';
       console.log('Calling API endpoint:', endpoint);
-      const response = await api.get(endpoint);
+      const response = await secureApi.get(endpoint);
       console.log('Raw API response for categories:', response);
       return response;
     } catch (error) {
