@@ -1,4 +1,4 @@
-import { api } from './api';
+import secureApi from './api';
 
 // Auth Service - Handles user authentication and user management
 const authService = {
