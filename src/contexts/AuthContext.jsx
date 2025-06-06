@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import authService from '../services/authService';
-import cartService from '../services/cartService';
+import secureApi from '../services/api';
+import { inputValidation, secureFormHelpers, csrfProtection } from '../utils/security';
 
 // Create Auth Context
 const AuthContext = createContext();
@@ -9,143 +9,247 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Initialize auth state from local storage
+  // Initialize authentication state and CSRF protection
   useEffect(() => {
     const initializeAuth = async () => {
-      setIsLoading(true);
       try {
-        // Get user data from localStorage
-        const storedUser = authService.getCurrentUser();
-        const hasToken = localStorage.getItem('token');
-        
-        if (hasToken && storedUser) {
-          // Set initial state with stored user data
-          setUser(storedUser);
-          setIsAuthenticated(true);
-          
-          // Try to get a fresh user profile in the background
-          try {
-            const userProfile = await authService.getUserProfile();
-            setUser(userProfile);
-          } catch (profileError) {
-            console.error('Error fetching user profile:', profileError);
-            
-            // If token is invalid, log the user out
-            if (profileError.message && (
-              profileError.message.includes('Invalid token') || 
-              profileError.message.includes('Not authorized')
-            )) {
-              console.log('Token invalid, logging out');
-              authService.logout();
-              setUser(null);
-              setIsAuthenticated(false);
-            }
-            // If it's just a network error but token is valid, keep user logged in with stored data
-          }
-          
-          // Merge guest cart with user cart if needed
-          try {
-            await cartService.mergeCart();
-          } catch (cartError) {
-            console.error('Error merging cart:', cartError);
-          }
-        } else {
-          // No token or user data
-          setUser(null);
-          setIsAuthenticated(false);
+        // Generate and set CSRF token
+        const csrfToken = csrfProtection.generateToken();
+        csrfProtection.setToken(csrfToken);
+
+        // Check if user is already authenticated
+        const userData = await secureApi.get('/auth/me');
+        if (userData) {
+          setUser(userData);
         }
-      } catch (err) {
-        console.error('Auth initialization error:', err);
-        setError(err.message);
-        setUser(null);
-        setIsAuthenticated(false);
-      } finally {
-        setIsLoading(false);
+      } catch (error) {
+        // User is not authenticated or token is invalid
+        console.log('کاربر وارد نشده است یا توکن نامعتبر است');
       }
     };
-    
+
     initializeAuth();
   }, []);
 
-  // Login handler
-  const login = async (email, password) => {
+  // Helper function to translate error messages to Persian
+  const translateError = (errorMessage) => {
+    if (typeof errorMessage !== 'string') return 'خطای ناشناخته';
+    
+    const errorMappings = {
+      'Invalid credentials': 'نام کاربری یا رمز عبور اشتباه است',
+      'User not found': 'کاربری با این مشخصات یافت نشد',
+      'Email already exists': 'این ایمیل قبلاً ثبت شده است',
+      'Invalid email': 'ایمیل نامعتبر است',
+      'Password too weak': 'رمز عبور بسیار ضعیف است',
+      'Account not activated': 'حساب کاربری فعال نشده است',
+      'Account suspended': 'حساب کاربری مسدود شده است',
+      'Too many attempts': 'تلاش‌های زیادی انجام شده، لطفاً بعداً تلاش کنید',
+      'Network error': 'خطا در اتصال به شبکه',
+      'Server error': 'خطا در سرور',
+      'Token expired': 'نشست کاری منقضی شده، لطفاً دوباره وارد شوید',
+      'Access denied': 'دسترسی مجاز نیست',
+      'Validation failed': 'اطلاعات وارد شده نامعتبر است'
+    };
+
+    // Check for partial matches
+    for (const [english, persian] of Object.entries(errorMappings)) {
+      if (errorMessage.toLowerCase().includes(english.toLowerCase())) {
+        return persian;
+      }
+    }
+
+    return errorMessage; // Return original if no mapping found
+  };
+
+  const login = async (credentials) => {
+    setLoading(true);
     setError(null);
+
     try {
-      const response = await authService.login(email, password);
-      localStorage.setItem('token', response.token);
-      setUser(response.user);
-      setIsAuthenticated(true);
+      // Validate input data
+      const validationResult = secureFormHelpers.validateLoginForm(credentials);
+      if (!validationResult.isValid) {
+        throw new Error(validationResult.errors[0]);
+      }
+
+      // Sanitize credentials
+      const sanitizedCredentials = {
+        email: inputValidation.sanitizeEmail(credentials.email),
+        password: credentials.password // Don't sanitize password
+      };
+
+      // Make secure login request
+      const response = await secureApi.post('/auth/login', sanitizedCredentials);
       
-      // Merge guest cart with user cart after login
-      await cartService.mergeCart();
-      
-      return response.user;
-    } catch (err) {
-      setError(err.message || 'Login failed');
-      throw err;
+      if (response.success && response.data) {
+        setUser(response.data.user);
+        return response.data;
+      } else {
+        throw new Error(response.message || 'خطا در ورود');
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message || 'خطا در ورود';
+      const persianError = translateError(errorMessage);
+      setError(persianError);
+      throw new Error(persianError);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Register handler
   const register = async (userData) => {
+    setLoading(true);
     setError(null);
+
     try {
-      const response = await authService.register(userData);
-      localStorage.setItem('token', response.token);
-      setUser(response.user);
-      setIsAuthenticated(true);
+      // Validate input data
+      const validationResult = secureFormHelpers.validateRegisterForm(userData);
+      if (!validationResult.isValid) {
+        throw new Error(validationResult.errors[0]);
+      }
+
+      // Sanitize user data
+      const sanitizedUserData = {
+        firstName: inputValidation.sanitizeName(userData.firstName),
+        lastName: inputValidation.sanitizeName(userData.lastName),
+        email: inputValidation.sanitizeEmail(userData.email),
+        password: userData.password // Don't sanitize password
+      };
+
+      // Remove confirmPassword before sending to API
+      delete sanitizedUserData.confirmPassword;
+
+      // Make secure register request
+      const response = await secureApi.post('/auth/register', sanitizedUserData);
       
-      // Merge guest cart with user cart after registration
-      await cartService.mergeCart();
-      
-      return response.user;
-    } catch (err) {
-      setError(err.message || 'Registration failed');
-      throw err;
+      if (response.success && response.data) {
+        setUser(response.data.user);
+        return response.data;
+      } else {
+        throw new Error(response.message || 'خطا در ثبت نام');
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message || 'خطا در ثبت نام';
+      const persianError = translateError(errorMessage);
+      setError(persianError);
+      throw new Error(persianError);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Logout handler
-  const logout = () => {
-    authService.logout();
-    setUser(null);
-    setIsAuthenticated(false);
-  };
-
-  // Update profile handler
-  const updateProfile = async (userData) => {
-    setError(null);
+  const logout = async () => {
+    setLoading(true);
     
     try {
-      const response = await authService.updateProfile(userData);
-      setUser(response.user);
-      return response;
-    } catch (err) {
-      setError(err.message || 'Failed to update profile');
-      throw err;
+      // Call logout endpoint to invalidate token on server
+      await secureApi.post('/auth/logout');
+    } catch (error) {
+      console.log('خطا در خروج از سمت سرور:', error.message);
+    } finally {
+      // Clear user state regardless of server response
+      setUser(null);
+      setError(null);
+      
+      // Clear stored tokens
+      localStorage.removeItem('token');
+      sessionStorage.removeItem('token');
+      
+      // Clear CSRF token
+      csrfProtection.clearToken();
+      
+      setLoading(false);
     }
   };
 
-  // Update user context after profile changes
-  const updateUserContext = (updatedUserData) => {
-    setUser(updatedUserData);
+  const updateProfile = async (profileData) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Sanitize profile data
+      const sanitizedData = {
+        firstName: inputValidation.sanitizeName(profileData.firstName),
+        lastName: inputValidation.sanitizeName(profileData.lastName),
+        email: inputValidation.sanitizeEmail(profileData.email)
+      };
+
+      const response = await secureApi.put('/auth/profile', sanitizedData);
+      
+      if (response.success && response.data) {
+        setUser(response.data.user);
+        return response.data;
+      } else {
+        throw new Error(response.message || 'خطا در به‌روزرسانی پروفایل');
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message || 'خطا در به‌روزرسانی پروفایل';
+      const persianError = translateError(errorMessage);
+      setError(persianError);
+      throw new Error(persianError);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Provide auth context
+  const changePassword = async (passwordData) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Validate passwords
+      if (!passwordData.currentPassword || !passwordData.newPassword) {
+        throw new Error('رمز عبور فعلی و جدید الزامی است');
+      }
+
+      if (passwordData.newPassword !== passwordData.confirmPassword) {
+        throw new Error('رمزهای عبور جدید یکسان نیستند');
+      }
+
+      const passwordValidation = inputValidation.validatePassword(passwordData.newPassword);
+      if (!passwordValidation.isValid) {
+        throw new Error(passwordValidation.errors[0]);
+      }
+
+      const response = await secureApi.put('/auth/change-password', {
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword
+      });
+      
+      if (response.success) {
+        return response.data;
+      } else {
+        throw new Error(response.message || 'خطا در تغییر رمز عبور');
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message || 'خطا در تغییر رمز عبور';
+      const persianError = translateError(errorMessage);
+      setError(persianError);
+      throw new Error(persianError);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const clearError = () => {
+    setError(null);
+  };
+
   const value = {
     user,
-    isAuthenticated,
-    isLoading,
+    loading,
     error,
     login,
     register,
     logout,
     updateProfile,
-    updateUserContext
+    changePassword,
+    clearError,
+    isAuthenticated: !!user,
+    isAdmin: user?.isAdmin || false
   };
 
   return (
