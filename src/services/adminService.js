@@ -5,7 +5,7 @@ const adminService = {
   // Dashboard data
   getDashboardData: async () => {
     try {
-      return await api.get('/api/admin/dashboard');
+      return await secureApi.get('/api/admin/dashboard');
     } catch (error) {
       throw error;
     }
