@@ -1,485 +1,453 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import AuthLayout from './AuthLayout';
 import { useAuth } from '../../contexts/AuthContext';
+import { inputValidation, xssProtection } from '../../utils/security';
 
 const SignUp = () => {
-  const navigate = useNavigate();
-  const { register, error: authError, loading: authLoading } = useAuth();
-  
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     password: '',
-    confirmPassword: '',
+    confirmPassword: ''
   });
-  const [errors, setErrors] = useState({});
+  const [validationErrors, setValidationErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState(0);
-  const [focusedInput, setFocusedInput] = useState(null);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState(null);
+  
+  const { register, error: authError, loading, clearError } = useAuth();
+  const navigate = useNavigate();
 
-  // Input change handler
+  // Clear validation errors when user starts typing
+  useEffect(() => {
+    if (Object.keys(validationErrors).length > 0) {
+      const timer = setTimeout(() => {
+        setValidationErrors({});
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [validationErrors]);
+
+  // Clear auth errors when component mounts
+  useEffect(() => {
+    clearError();
+  }, []);
+
+  // Calculate password strength
+  useEffect(() => {
+    if (formData.password) {
+      const validation = inputValidation.validatePassword(formData.password);
+      setPasswordStrength(validation);
+    } else {
+      setPasswordStrength(null);
+    }
+  }, [formData.password]);
+
+  const validateField = (name, value) => {
+    const errors = {};
+    
+    switch (name) {
+      case 'firstName':
+        if (!value) {
+          errors.firstName = 'نام الزامی است';
+        } else if (!inputValidation.validateName(value)) {
+          errors.firstName = 'نام باید فقط شامل حروف باشد و بین ۲-۵۰ کاراکتر باشد';
+        }
+        break;
+        
+      case 'lastName':
+        if (!value) {
+          errors.lastName = 'نام خانوادگی الزامی است';
+        } else if (!inputValidation.validateName(value)) {
+          errors.lastName = 'نام خانوادگی باید فقط شامل حروف باشد و بین ۲-۵۰ کاراکتر باشد';
+        }
+        break;
+        
+      case 'email':
+        if (!value) {
+          errors.email = 'ایمیل الزامی است';
+        } else if (!inputValidation.validateEmail(value)) {
+          errors.email = 'لطفاً یک ایمیل معتبر وارد کنید';
+        }
+        break;
+        
+      case 'password':
+        if (!value) {
+          errors.password = 'رمز عبور الزامی است';
+        } else {
+          const passwordValidation = inputValidation.validatePassword(value);
+          if (!passwordValidation.isValid) {
+            // Convert English error messages to Persian
+            const persianErrors = passwordValidation.errors.map(error => {
+              if (error.includes('at least 8 characters')) return 'رمز عبور باید حداقل ۸ کاراکتر باشد';
+              if (error.includes('less than 128 characters')) return 'رمز عبور باید کمتر از ۱۲۸ کاراکتر باشد';
+              if (error.includes('uppercase letter')) return 'رمز عبور باید حداقل یک حرف بزرگ داشته باشد';
+              if (error.includes('lowercase letter')) return 'رمز عبور باید حداقل یک حرف کوچک داشته باشد';
+              if (error.includes('number')) return 'رمز عبور باید حداقل یک عدد داشته باشد';
+              if (error.includes('special character')) return 'رمز عبور باید حداقل یک کاراکتر ویژه داشته باشد';
+              return error;
+            });
+            errors.password = persianErrors[0];
+          }
+        }
+        break;
+        
+      case 'confirmPassword':
+        if (!value) {
+          errors.confirmPassword = 'تأیید رمز عبور الزامی است';
+        } else if (value !== formData.password) {
+          errors.confirmPassword = 'رمزهای عبور یکسان نیستند';
+        }
+        break;
+        
+      default:
+        break;
+    }
+    
+    return errors;
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    
+    // Validate all fields
+    Object.keys(formData).forEach(field => {
+      const fieldErrors = validateField(field, formData[field]);
+      Object.assign(errors, fieldErrors);
+    });
+    
+    return errors;
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // Sanitize input to prevent XSS
+    const sanitizedValue = xssProtection.sanitizeInput(value);
+    
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: sanitizedValue
     }));
     
-    // Clear error when user types
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
+    // Clear any existing validation errors for this field
+    if (validationErrors[name]) {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
     }
     
-    // Calculate password strength
-    if (name === 'password') {
-      calculatePasswordStrength(value);
-    }
-  };
-  
-  // Calculate password strength (0-100)
-  const calculatePasswordStrength = (password) => {
-    if (!password) {
-      setPasswordStrength(0);
-      return;
+    // Also clear confirmPassword error if password is being changed
+    if (name === 'password' && validationErrors.confirmPassword) {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.confirmPassword;
+        return newErrors;
+      });
     }
     
-    let strength = 0;
-    
-    // Length check
-    strength += Math.min(password.length * 5, 25);
-    
-    // Character variety checks
-    if (/[A-Z]/.test(password)) strength += 15; // Uppercase
-    if (/[a-z]/.test(password)) strength += 10; // Lowercase
-    if (/[0-9]/.test(password)) strength += 20; // Numbers
-    if (/[^A-Za-z0-9]/.test(password)) strength += 30; // Special chars
-    
-    setPasswordStrength(strength);
-  };
-  
-  // Get password strength color
-  const getStrengthColor = () => {
-    if (passwordStrength < 30) return 'bg-draugr-900';
-    if (passwordStrength < 60) return 'bg-draugr-700';
-    return 'bg-draugr-500';
-  };
-  
-  // Get password strength label
-  const getStrengthLabel = () => {
-    if (passwordStrength < 30) return 'ضعیف';
-    if (passwordStrength < 60) return 'متوسط';
-    return 'قوی';
+    // Clear auth error when user starts typing
+    clearError();
   };
 
-  // Form submission handler
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    const fieldErrors = validateField(name, value);
+    
+    if (Object.keys(fieldErrors).length > 0) {
+      setValidationErrors(prev => ({
+        ...prev,
+        ...fieldErrors
+      }));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Comprehensive form validation
-    const newErrors = {};
+    // Prevent double submission
+    if (isSubmitting) return;
     
-    if (!formData.firstName) newErrors.firstName = 'نام الزامی است';
-    else if (formData.firstName.length < 2) newErrors.firstName = 'حداقل ۲ کاراکتر';
-    
-    if (!formData.lastName) newErrors.lastName = 'نام خانوادگی الزامی است';
-    else if (formData.lastName.length < 2) newErrors.lastName = 'حداقل ۲ کاراکتر';
-    
-    if (!formData.email) newErrors.email = 'ایمیل الزامی است';
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'فرمت نامعتبر';
-    
-    if (!formData.password) newErrors.password = 'رمز عبور الزامی است';
-    else if (formData.password.length < 8) newErrors.password = 'حداقل ۸ کاراکتر';
-    else if (passwordStrength < 40) newErrors.password = 'رمز عبور ضعیف است';
-    
-    if (!formData.confirmPassword) newErrors.confirmPassword = 'تایید رمز الزامی است';
-    else if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'عدم تطابق';
-    
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+    // Validate form
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
       return;
     }
     
+    setIsSubmitting(true);
+    
     try {
-      // Call registration endpoint
-      const userData = {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        password: formData.password,
-      };
+      await register(formData);
       
-      await register(userData);
-      
-      // Redirect to home page after successful registration
-      navigate('/');
-    } catch (err) {
-      // Handle specific errors
-      if (err.message.includes('email')) {
-        setErrors(prev => ({
-          ...prev,
-          email: 'این ایمیل قبلا ثبت شده است'
-        }));
-      } else {
-        // General error (displayed by AuthContext)
-        console.error('Registration error:', err);
-      }
+      // Redirect to home after successful registration
+      navigate('/', { replace: true });
+    } catch (error) {
+      // Error will be handled by AuthContext
+      console.error('Registration error:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // Animation variants
-  const formControls = {
-    hidden: { opacity: 0, y: 15 },
-    visible: (i) => ({
-      opacity: 1,
-      y: 0,
-      transition: {
-        delay: i * 0.08,
-        duration: 0.4,
-      }
-    })
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
-  
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
+
+  const getPasswordStrengthColor = () => {
+    if (!passwordStrength) return '';
+    
+    const errorCount = passwordStrength.errors.length;
+    if (errorCount === 0) return 'text-green-400';
+    if (errorCount <= 2) return 'text-yellow-400';
+    return 'text-red-400';
+  };
+
+  const getPasswordStrengthText = () => {
+    if (!passwordStrength) return '';
+    
+    const errorCount = passwordStrength.errors.length;
+    if (errorCount === 0) return 'رمز عبور قوی';
+    if (errorCount <= 2) return 'رمز عبور متوسط';
+    return 'رمز عبور ضعیف';
+  };
+
+  const convertPasswordErrorToPersian = (error) => {
+    if (error.includes('at least 8 characters')) return 'حداقل ۸ کاراکتر';
+    if (error.includes('less than 128 characters')) return 'حداکثر ۱۲۸ کاراکتر';
+    if (error.includes('uppercase letter')) return 'حداقل یک حرف بزرگ';
+    if (error.includes('lowercase letter')) return 'حداقل یک حرف کوچک';
+    if (error.includes('number')) return 'حداقل یک عدد';
+    if (error.includes('special character')) return 'حداقل یک کاراکتر ویژه';
+    return error;
+  };
+
   return (
-    <AuthLayout title="ثبت نام">
-      <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4 md:space-y-5">
-        {/* First Name field */}
-        <motion.div
-          custom={1}
-          initial="hidden"
-          animate="visible"
-          variants={formControls}
-        >
-          <div className="flex items-center justify-between mb-1 md:mb-2">
-            <label htmlFor="firstName" className="block text-xs md:text-sm font-medium text-gray-300">
-              نام
-            </label>
-            {errors.firstName && (
-              <motion.span 
-                initial={{ opacity: 0, x: -5 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="text-xs md:text-sm text-draugr-500"
-              >
-                {errors.firstName}
-              </motion.span>
-            )}
-          </div>
-          <div className="relative">
-            <input
-              id="firstName"
-              name="firstName"
-              type="text"
-              autoComplete="given-name"
-              value={formData.firstName}
-              onChange={handleChange}
-              onFocus={() => setFocusedInput('firstName')}
-              onBlur={() => setFocusedInput(null)}
-              className={`w-full px-8 md:px-10 py-2 md:py-3 lg:py-4 rounded-md bg-black/50 border ${
-                errors.firstName 
-                  ? 'border-draugr-500 text-draugr-200' 
-                  : focusedInput === 'firstName'
-                    ? 'border-draugr-800 text-white' 
-                    : 'border-gray-800 text-gray-300'
-              } focus:outline-none text-sm md:text-base transition-colors duration-200`}
-              placeholder="نام خود را وارد کنید"
-            />
-            <div className="absolute right-2.5 md:right-3 top-1/2 -translate-y-1/2 text-gray-500">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-              </svg>
-            </div>
-          </div>
-        </motion.div>
+    <div className="w-full max-w-md mx-auto">
+      <div className="bg-gray-900 border border-red-900 rounded-lg p-6">
+        <h2 className="text-2xl font-bold text-center text-red-500 mb-6">
+          ثبت نام
+        </h2>
         
-        {/* Last Name field */}
-        <motion.div
-          custom={2}
-          initial="hidden"
-          animate="visible"
-          variants={formControls}
-        >
-          <div className="flex items-center justify-between mb-1 md:mb-2">
-            <label htmlFor="lastName" className="block text-xs md:text-sm font-medium text-gray-300">
-              نام خانوادگی
-            </label>
-            {errors.lastName && (
-              <motion.span 
-                initial={{ opacity: 0, x: -5 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="text-xs md:text-sm text-draugr-500"
-              >
-                {errors.lastName}
-              </motion.span>
-            )}
-          </div>
-          <div className="relative">
-            <input
-              id="lastName"
-              name="lastName"
-              type="text"
-              autoComplete="family-name"
-              value={formData.lastName}
-              onChange={handleChange}
-              onFocus={() => setFocusedInput('lastName')}
-              onBlur={() => setFocusedInput(null)}
-              className={`w-full px-8 md:px-10 py-2 md:py-3 lg:py-4 rounded-md bg-black/50 border ${
-                errors.lastName 
-                  ? 'border-draugr-500 text-draugr-200' 
-                  : focusedInput === 'lastName'
-                    ? 'border-draugr-800 text-white' 
-                    : 'border-gray-800 text-gray-300'
-              } focus:outline-none text-sm md:text-base transition-colors duration-200`}
-              placeholder="نام خانوادگی خود را وارد کنید"
-            />
-            <div className="absolute right-2.5 md:right-3 top-1/2 -translate-y-1/2 text-gray-500">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-              </svg>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Email field */}
-        <motion.div
-          custom={3}
-          initial="hidden"
-          animate="visible"
-          variants={formControls}
-        >
-          <div className="flex items-center justify-between mb-1 md:mb-2">
-            <label htmlFor="email" className="block text-xs md:text-sm font-medium text-gray-300">
-              ایمیل
-            </label>
-            {errors.email && (
-              <motion.span 
-                initial={{ opacity: 0, x: -5 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="text-xs md:text-sm text-draugr-500"
-              >
-                {errors.email}
-              </motion.span>
-            )}
-          </div>
-          <div className="relative">
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              value={formData.email}
-              onChange={handleChange}
-              onFocus={() => setFocusedInput('email')}
-              onBlur={() => setFocusedInput(null)}
-              className={`w-full px-8 md:px-10 py-2 md:py-3 lg:py-4 rounded-md bg-black/50 border ${
-                errors.email 
-                  ? 'border-draugr-500 text-draugr-200' 
-                  : focusedInput === 'email'
-                    ? 'border-draugr-800 text-white' 
-                    : 'border-gray-800 text-gray-300'
-              } focus:outline-none text-sm md:text-base transition-colors duration-200`}
-              placeholder="ایمیل خود را وارد کنید"
-            />
-            <div className="absolute right-2.5 md:right-3 top-1/2 -translate-y-1/2 text-gray-500">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-              </svg>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Password field - with strength meter */}
-        <motion.div
-          custom={4}
-          initial="hidden"
-          animate="visible"
-          variants={formControls}
-        >
-          <div className="flex items-center justify-between mb-1 md:mb-2">
-            <label htmlFor="password" className="block text-xs md:text-sm font-medium text-gray-300">
-              رمز عبور
-            </label>
-            {errors.password && (
-              <motion.span 
-                initial={{ opacity: 0, x: -5 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="text-xs md:text-sm text-draugr-500"
-              >
-                {errors.password}
-              </motion.span>
-            )}
-          </div>
-          <div className="relative">
-            <input
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              autoComplete="new-password"
-              value={formData.password}
-              onChange={handleChange}
-              onFocus={() => setFocusedInput('password')}
-              onBlur={() => setFocusedInput(null)}
-              className={`w-full px-8 md:px-10 py-2 md:py-3 lg:py-4 rounded-md bg-black/50 border ${
-                errors.password 
-                  ? 'border-draugr-500 text-draugr-200' 
-                  : focusedInput === 'password'
-                    ? 'border-draugr-800 text-white' 
-                    : 'border-gray-800 text-gray-300'
-              } focus:outline-none text-sm md:text-base transition-colors duration-200`}
-              placeholder="رمز عبور خود را وارد کنید"
-            />
-            <div className="absolute right-2.5 md:right-3 top-1/2 -translate-y-1/2 text-gray-500">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute left-0.5 md:left-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 focus:outline-none"
-            >
-              {showPassword ? (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                  <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-                </svg>
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clipRule="evenodd" />
-                  <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
-                </svg>
-              )}
-            </button>
-          </div>
-          
-          {/* Password strength meter */}
-          {formData.password && (
-            <motion.div 
-              className="mt-1 md:mt-1.5"
-              initial={{ opacity: 0, y: -5 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <div className="flex items-center justify-between mb-1">
-                <div className="h-0.5 w-full bg-gray-800 rounded-full overflow-hidden">
-                  <motion.div 
-                    className={`h-full ${getStrengthColor()}`}
-                    initial={{ width: 0 }}
-                    animate={{ width: `${passwordStrength}%` }}
-                    transition={{ duration: 0.5 }}
-                  ></motion.div>
-                </div>
-                <span className="mx-2 text-xs text-gray-400">{getStrengthLabel()}</span>
-              </div>
-            </motion.div>
-          )}
-        </motion.div>
-
-        {/* Confirm Password field */}
-        <motion.div
-          custom={5}
-          initial="hidden"
-          animate="visible"
-          variants={formControls}
-        >
-          <div className="flex items-center justify-between mb-1 md:mb-2">
-            <label htmlFor="confirmPassword" className="block text-xs md:text-sm font-medium text-gray-300">
-              تکرار رمز عبور
-            </label>
-            {errors.confirmPassword && (
-              <motion.span 
-                initial={{ opacity: 0, x: -5 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="text-xs md:text-sm text-draugr-500"
-              >
-                {errors.confirmPassword}
-              </motion.span>
-            )}
-          </div>
-          <div className="relative">
-            <input
-              id="confirmPassword"
-              name="confirmPassword"
-              type={showPassword ? "text" : "password"}
-              autoComplete="new-password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              onFocus={() => setFocusedInput('confirmPassword')}
-              onBlur={() => setFocusedInput(null)}
-              className={`w-full px-8 md:px-10 py-2 md:py-3 lg:py-4 rounded-md bg-black/50 border ${
-                errors.confirmPassword 
-                  ? 'border-draugr-500 text-draugr-200' 
-                  : focusedInput === 'confirmPassword'
-                    ? 'border-draugr-800 text-white' 
-                    : 'border-gray-800 text-gray-300'
-              } focus:outline-none text-sm md:text-base transition-colors duration-200`}
-              placeholder="رمز عبور را مجددا وارد کنید"
-            />
-            <div className="absolute right-2.5 md:right-3 top-1/2 -translate-y-1/2 text-gray-500">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-              </svg>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Signup button */}
-        <motion.div
-          custom={6}
-          initial="hidden"
-          animate="visible"
-          variants={formControls}
-          className="mt-6"
-        >
-          <motion.button
-            type="submit"
-            disabled={authLoading}
-            className="w-full bg-gradient-to-r from-draugr-900 to-draugr-700 text-white py-2 md:py-3 lg:py-4 px-4 rounded-md text-sm md:text-base font-medium shadow-md focus:outline-none relative overflow-hidden"
-            whileHover={{ scale: 1.02, boxShadow: "0 0 10px rgba(255,0,0,0.3)" }}
-            whileTap={{ scale: 0.98 }}
-          >
-            {authLoading ? (
-              <div className="flex justify-center items-center">
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 md:h-5 md:w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                در حال ثبت نام...
-              </div>
-            ) : "ثبت نام"}
-          </motion.button>
-        </motion.div>
-
-        {/* Auth error message */}
+        {/* Display authentication error */}
         {authError && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-sm text-draugr-500 text-center mt-3"
-          >
+          <div className="mb-4 p-3 bg-red-800/20 border border-red-600 rounded text-red-400 text-sm">
             {authError}
-          </motion.div>
+          </div>
         )}
         
-        {/* Auth navigation buttons */}
-        <motion.div
-          custom={7}
-          initial="hidden"
-          animate="visible"
-          variants={formControls}
-          className="text-center mt-4 md:mt-6 text-xs md:text-sm text-gray-400"
-        >
-          قبلا ثبت نام کرده‌اید؟{' '}
-          <Link to="/login" className="text-draugr-400 hover:text-draugr-300 transition-colors duration-200 font-medium">
-            ورود
-          </Link>
-        </motion.div>
-      </form>
-    </AuthLayout>
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+          {/* First Name Field */}
+          <div>
+            <label htmlFor="firstName" className="block text-gray-300 mb-2">
+              نام
+            </label>
+            <input
+              type="text"
+              id="firstName"
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className={`w-full px-3 py-2 bg-gray-800 border rounded-lg focus:outline-none focus:ring-2 text-white ${
+                validationErrors.firstName 
+                  ? 'border-red-600 focus:ring-red-500' 
+                  : 'border-gray-700 focus:ring-red-500'
+              }`}
+              placeholder="نام خود را وارد کنید"
+              autoComplete="given-name"
+              disabled={loading || isSubmitting}
+              maxLength={50}
+            />
+            {validationErrors.firstName && (
+              <p className="mt-1 text-red-400 text-sm">{validationErrors.firstName}</p>
+            )}
+          </div>
+
+          {/* Last Name Field */}
+          <div>
+            <label htmlFor="lastName" className="block text-gray-300 mb-2">
+              نام خانوادگی
+            </label>
+            <input
+              type="text"
+              id="lastName"
+              name="lastName"
+              value={formData.lastName}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className={`w-full px-3 py-2 bg-gray-800 border rounded-lg focus:outline-none focus:ring-2 text-white ${
+                validationErrors.lastName 
+                  ? 'border-red-600 focus:ring-red-500' 
+                  : 'border-gray-700 focus:ring-red-500'
+              }`}
+              placeholder="نام خانوادگی خود را وارد کنید"
+              autoComplete="family-name"
+              disabled={loading || isSubmitting}
+              maxLength={50}
+            />
+            {validationErrors.lastName && (
+              <p className="mt-1 text-red-400 text-sm">{validationErrors.lastName}</p>
+            )}
+          </div>
+
+          {/* Email Field */}
+          <div>
+            <label htmlFor="email" className="block text-gray-300 mb-2">
+              ایمیل
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className={`w-full px-3 py-2 bg-gray-800 border rounded-lg focus:outline-none focus:ring-2 text-white ${
+                validationErrors.email 
+                  ? 'border-red-600 focus:ring-red-500' 
+                  : 'border-gray-700 focus:ring-red-500'
+              }`}
+              placeholder="ایمیل خود را وارد کنید"
+              autoComplete="email"
+              disabled={loading || isSubmitting}
+              maxLength={254}
+            />
+            {validationErrors.email && (
+              <p className="mt-1 text-red-400 text-sm">{validationErrors.email}</p>
+            )}
+          </div>
+
+          {/* Password Field */}
+          <div>
+            <label htmlFor="password" className="block text-gray-300 mb-2">
+              رمز عبور
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                className={`w-full px-3 py-2 bg-gray-800 border rounded-lg focus:outline-none focus:ring-2 text-white pr-10 ${
+                  validationErrors.password 
+                    ? 'border-red-600 focus:ring-red-500' 
+                    : 'border-gray-700 focus:ring-red-500'
+                }`}
+                placeholder="رمز عبور خود را وارد کنید"
+                autoComplete="new-password"
+                disabled={loading || isSubmitting}
+                maxLength={128}
+              />
+              <button
+                type="button"
+                onClick={togglePasswordVisibility}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-white"
+                disabled={loading || isSubmitting}
+              >
+                {showPassword ? '🙈' : '👁️'}
+              </button>
+            </div>
+            {validationErrors.password && (
+              <p className="mt-1 text-red-400 text-sm">{validationErrors.password}</p>
+            )}
+            {/* Password Strength Indicator */}
+            {formData.password && passwordStrength && (
+              <div className="mt-1">
+                <p className={`text-xs ${getPasswordStrengthColor()}`}>
+                  {getPasswordStrengthText()}
+                </p>
+                {passwordStrength.errors.length > 0 && (
+                  <ul className="text-xs text-gray-400 mt-1">
+                    {passwordStrength.errors.slice(0, 3).map((error, index) => (
+                      <li key={index}>• {convertPasswordErrorToPersian(error)}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Confirm Password Field */}
+          <div>
+            <label htmlFor="confirmPassword" className="block text-gray-300 mb-2">
+              تأیید رمز عبور
+            </label>
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                id="confirmPassword"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                className={`w-full px-3 py-2 bg-gray-800 border rounded-lg focus:outline-none focus:ring-2 text-white pr-10 ${
+                  validationErrors.confirmPassword 
+                    ? 'border-red-600 focus:ring-red-500' 
+                    : 'border-gray-700 focus:ring-red-500'
+                }`}
+                placeholder="رمز عبور خود را دوباره وارد کنید"
+                autoComplete="new-password"
+                disabled={loading || isSubmitting}
+                maxLength={128}
+              />
+              <button
+                type="button"
+                onClick={toggleConfirmPasswordVisibility}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-white"
+                disabled={loading || isSubmitting}
+              >
+                {showConfirmPassword ? '🙈' : '👁️'}
+              </button>
+            </div>
+            {validationErrors.confirmPassword && (
+              <p className="mt-1 text-red-400 text-sm">{validationErrors.confirmPassword}</p>
+            )}
+          </div>
+
+          {/* Register Button */}
+          <button
+            type="submit"
+            disabled={loading || isSubmitting || Object.keys(validationErrors).length > 0}
+            className={`w-full py-2 px-4 rounded-lg font-semibold transition-colors ${
+              loading || isSubmitting || Object.keys(validationErrors).length > 0
+                ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                : 'bg-red-600 hover:bg-red-700 text-white'
+            }`}
+          >
+            {loading || isSubmitting ? 'در حال ایجاد حساب...' : 'ثبت نام'}
+          </button>
+        </form>
+
+        {/* Links */}
+        <div className="mt-6 text-center">
+          <p className="text-gray-400">
+            قبلاً حساب کاربری دارید؟{' '}
+            <Link
+              to="/auth/login"
+              className="text-red-500 hover:text-red-400 font-semibold"
+            >
+              وارد شوید
+            </Link>
+          </p>
+        </div>
+
+        {/* Security Note */}
+        <div className="mt-4 text-xs text-gray-500 text-center">
+          <p>🔒 اتصال شما امن است و اطلاعات شما محافظت می‌شود</p>
+        </div>
+      </div>
+    </div>
   );
 };
 
