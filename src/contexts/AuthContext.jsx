@@ -113,9 +113,9 @@ export const AuthProvider = ({ children }) => {
 
       // Sanitize user data
       const sanitizedUserData = {
-        firstName: inputValidation.sanitizeName(userData.firstName),
-        lastName: inputValidation.sanitizeName(userData.lastName),
-        email: inputValidation.sanitizeEmail(userData.email),
+        firstName: userData.firstName.trim(),
+        lastName: userData.lastName.trim(),
+        email: userData.email.trim().toLowerCase(),
         password: userData.password // Don't sanitize password
       };
 
