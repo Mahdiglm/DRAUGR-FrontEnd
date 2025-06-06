@@ -23,7 +23,7 @@ const orderService = {
   // Create a new order
   createOrder: async (orderData) => {
     try {
-      return await api.post('/api/orders', orderData);
+      return await secureApi.post('/api/orders', orderData);
     } catch (error) {
       throw error;
     }
