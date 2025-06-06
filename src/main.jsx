@@ -56,7 +56,12 @@ createRoot(document.getElementById('root')).render(
     <ErrorBoundary>
       <AuthProvider>
         <CartProvider>
-          <HashRouter>
+          <HashRouter 
+            future={{ 
+              v7_startTransition: true,
+              v7_relativeSplatPath: true 
+            }}
+          >
             <Routes>
               <Route path="/" element={<MainLayout />}>
                 <Route index element={<HomePage />} />
