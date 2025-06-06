@@ -1,4 +1,4 @@
-import { api } from './api';
+import secureApi from './api';
 
 // Product Service - Handles product and category operations
 const productService = {
