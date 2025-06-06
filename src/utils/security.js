@@ -283,34 +283,9 @@ export const secureStorage = {
   }
 };
 
-// Security middleware for React components
-export const securityMiddleware = {
-  // HOC for securing component props
-  withSecurityValidation: (WrappedComponent, validation = {}) => {
-    return function SecurityValidatedComponent(props) {
-      const secureProps = {};
-      
-      for (const [key, value] of Object.entries(props)) {
-        if (validation[key]) {
-          secureProps[key] = validation[key](value);
-        } else if (typeof value === 'string') {
-          secureProps[key] = xssProtection.sanitizeInput(value);
-        } else {
-          secureProps[key] = value;
-        }
-      }
-      
-      // Return a function that creates the React element when called by React
-      return function createSecureElement() {
-        // This function should be used in a .jsx file like:
-        // const SecureComponent = securityMiddleware.withSecurityValidation(MyComponent);
-        // return React.createElement(WrappedComponent, secureProps);
-        throw new Error('This HOC should be used in a .jsx file with React.createElement or JSX syntax');
-      };
-    };
-  },
-
-  // Alternative: Direct props validation without HOC
+// Security utilities for React components
+export const securityHelpers = {
+  // Validate and sanitize component props
   validateProps: (props, validation = {}) => {
     const secureProps = {};
     
@@ -325,6 +300,81 @@ export const securityMiddleware = {
     }
     
     return secureProps;
+  },
+
+  // Create validation rules for common form fields
+  createValidationRules: () => ({
+    email: (value) => inputValidation.validateEmail(value) ? value : '',
+    name: (value) => inputValidation.validateName(value) ? value : '',
+    phone: (value) => inputValidation.validatePhone(value) ? value : '',
+    text: (value) => inputValidation.sanitizeAndValidateText(value),
+    html: (value) => xssProtection.sanitizeHtml(value),
+    url: (value) => xssProtection.sanitizeUrl(value)
+  }),
+
+  // Validate form data for login
+  validateLoginForm: (formData) => {
+    const errors = [];
+    
+    if (!formData.email) {
+      errors.push('ایمیل الزامی است');
+    } else if (!inputValidation.validateEmail(formData.email)) {
+      errors.push('فرمت ایمیل نامعتبر است');
+    }
+    
+    if (!formData.password) {
+      errors.push('رمز عبور الزامی است');
+    } else if (formData.password.length < 6) {
+      errors.push('رمز عبور باید حداقل ۶ کاراکتر باشد');
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  },
+
+  // Validate form data for registration
+  validateRegisterForm: (formData) => {
+    const errors = [];
+    
+    if (!formData.firstName) {
+      errors.push('نام الزامی است');
+    } else if (!inputValidation.validateName(formData.firstName)) {
+      errors.push('نام نامعتبر است');
+    }
+    
+    if (!formData.lastName) {
+      errors.push('نام خانوادگی الزامی است');
+    } else if (!inputValidation.validateName(formData.lastName)) {
+      errors.push('نام خانوادگی نامعتبر است');
+    }
+    
+    if (!formData.email) {
+      errors.push('ایمیل الزامی است');
+    } else if (!inputValidation.validateEmail(formData.email)) {
+      errors.push('فرمت ایمیل نامعتبر است');
+    }
+    
+    if (!formData.password) {
+      errors.push('رمز عبور الزامی است');
+    } else {
+      const passwordValidation = inputValidation.validatePassword(formData.password);
+      if (!passwordValidation.isValid) {
+        errors.push(...passwordValidation.errors);
+      }
+    }
+    
+    if (!formData.confirmPassword) {
+      errors.push('تأیید رمز عبور الزامی است');
+    } else if (formData.password !== formData.confirmPassword) {
+      errors.push('رمزهای عبور یکسان نیستند');
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
   }
 };
 
@@ -336,5 +386,5 @@ export default {
   rateLimiter,
   secureFormHelpers,
   secureStorage,
-  securityMiddleware
+  securityHelpers
 }; 
