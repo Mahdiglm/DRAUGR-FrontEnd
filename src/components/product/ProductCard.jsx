@@ -24,12 +24,10 @@ const ProductCard = ({ product, onAddToCart, isHighlighted = false, isDisabled =
     imageUrl = 'https://via.placeholder.com/400x400?text=No+Image';
   }
   
-  console.log('Rendering product card:', { 
-    id: productId, 
-    name: productName, 
-    price: productPrice,
-    imageUrl 
-  });
+  // Debug log only in development mode with throttling
+  if (import.meta.env.DEV && Math.random() < 0.01) {
+    console.log('Product card:', productName);
+  }
 
   const handleViewDetails = () => {
     if (isDisabled) return;
