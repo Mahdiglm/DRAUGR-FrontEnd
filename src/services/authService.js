@@ -91,7 +91,7 @@ const authService = {
   // Change password
   changePassword: async (currentPassword, newPassword) => {
     try {
-      const response = await secureApi.put('/api/auth/user/password', {
+      const response = await secureApi.put('/api/auth/change-password', {
         currentPassword,
         newPassword
       });
