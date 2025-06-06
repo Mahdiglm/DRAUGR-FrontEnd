@@ -150,7 +150,7 @@ export const AuthProvider = ({ children }) => {
     
     try {
       // Call logout endpoint to invalidate token on server
-      await secureApi.post('/auth/logout');
+      await secureApi.post('/api/auth/logout');
     } catch (error) {
       console.log('خطا در خروج از سمت سرور:', error.message);
     } finally {
