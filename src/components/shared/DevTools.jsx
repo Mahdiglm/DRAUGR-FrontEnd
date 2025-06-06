@@ -55,21 +55,30 @@ const DevTools = () => {
 
     console.log = (...args) => {
       try {
-        // Skip state updates if args include circular references or complex objects
+        const content = args.map(arg => {
+          try {
+            return typeof arg === 'object' ? JSON.stringify(arg) : String(arg);
+          } catch (e) {
+            return '[Complex Object]';
+          }
+        }).join(' ');
+        
+        // Skip repetitive logs and product card renders
+        if (content.includes('Rendering product card') || 
+            content.includes('Product card:') ||
+            content.includes('کاربر وارد نشده است')) {
+          originalConsoleLog(...args);
+          return;
+        }
+        
         const newLog = { 
           type: 'log', 
-          content: args.map(arg => {
-            try {
-              return typeof arg === 'object' ? JSON.stringify(arg) : String(arg);
-            } catch (e) {
-              return '[Complex Object]';
-            }
-          }).join(' '), 
+          content, 
           time: new Date() 
         };
         
-        // Limit to last 100 logs without creating new arrays constantly
-        if (logsRef.current.length >= 100) {
+        // Limit to last 50 logs instead of 100
+        if (logsRef.current.length >= 50) {
           logsRef.current.shift();
         }
         logsRef.current.push(newLog);
