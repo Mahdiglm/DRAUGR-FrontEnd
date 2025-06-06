@@ -77,7 +77,7 @@ export const AuthProvider = ({ children }) => {
 
       // Sanitize credentials
       const sanitizedCredentials = {
-        email: inputValidation.sanitizeEmail(credentials.email),
+        email: credentials.email.trim().toLowerCase(),
         password: credentials.password // Don't sanitize password
       };
 
@@ -106,7 +106,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
       // Validate input data
-      const validationResult = secureFormHelpers.validateRegisterForm(userData);
+      const validationResult = securityHelpers.validateRegisterForm(userData);
       if (!validationResult.isValid) {
         throw new Error(validationResult.errors[0]);
       }
