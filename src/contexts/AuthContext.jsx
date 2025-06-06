@@ -127,7 +127,7 @@ export const AuthProvider = ({ children }) => {
       delete sanitizedUserData.confirmPassword;
 
       // Make secure register request
-      const response = await secureApi.post('/auth/register', sanitizedUserData);
+      const response = await secureApi.post('/api/auth/register', sanitizedUserData);
       
       if (response.success && response.data) {
         setUser(response.data.user);
