@@ -86,7 +86,7 @@ export const AuthProvider = ({ children }) => {
       };
 
       // Make secure login request
-      const response = await secureApi.post('/auth/login', sanitizedCredentials);
+      const response = await secureApi.post('/api/auth/login', sanitizedCredentials);
       
       if (response.success && response.data) {
         setUser(response.data.user);
