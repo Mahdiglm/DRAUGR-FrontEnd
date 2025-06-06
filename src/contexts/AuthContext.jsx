@@ -159,7 +159,10 @@ export const AuthProvider = ({ children }) => {
       sessionStorage.removeItem('token');
       
       // Clear CSRF token
-      csrfProtection.clearToken();
+      const metaTag = document.querySelector('meta[name="csrf-token"]');
+      if (metaTag) {
+        metaTag.remove();
+      }
       
       setLoading(false);
     }
