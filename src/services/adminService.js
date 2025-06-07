@@ -107,9 +107,7 @@ const adminService = {
   
   createProduct: async (productData) => {
     try {
-      console.log('Creating product with data:', JSON.stringify(productData, null, 2));
       const response = await secureApi.post('/api/admin/products', productData);
-      console.log('Product creation API response:', response);
       return response;
     } catch (error) {
       console.error('Product creation error:', error);
