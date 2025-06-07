@@ -111,8 +111,8 @@ const CategoryGrid = ({ title = "دسته‌بندی‌ها", subtitle = "مجم
     setAnimationPhase(1);
     
     // Add a smooth page transition effect
-    document.body.style.transition = 'opacity 0.5s ease-out';
-    document.body.style.opacity = '0.8';
+    document.body.style.transition = 'opacity 0.6s ease-out';
+    document.body.style.opacity = '0.7';
     
     // Navigate after a short delay to allow animation
     setTimeout(() => {
@@ -120,12 +120,18 @@ const CategoryGrid = ({ title = "دسته‌بندی‌ها", subtitle = "مجم
       
       // Reset state and body opacity after navigation
       setTimeout(() => {
+        document.body.style.transition = 'opacity 0.4s ease-in';
         document.body.style.opacity = '1';
         setIsTransitioning(false);
         setSelectedCategory(null);
         setAnimationPhase(0);
-      }, 600);
-    }, 400);
+        
+        // Clean up body styles
+        setTimeout(() => {
+          document.body.style.transition = '';
+        }, 400);
+      }, 300);
+    }, 300);
   };
 
   return (
