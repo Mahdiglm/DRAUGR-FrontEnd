@@ -8,7 +8,7 @@
 import React, { useRef, useEffect, useState, useCallback, memo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { categories, additionalCategories } from '../../utils/mockData';
+import { mockData } from '../../utils/mockData';
 import { getOptimizedAnimationSettings } from '../../utils/animationHelpers';
 import CategoryItem from './CategoryItem';
 import TransitionOverlay from './TransitionOverlay';
@@ -92,7 +92,7 @@ const CategoryRows = memo(({ direction = "rtl", categoryItems: propCategories = 
   const nextIdRef = useRef(1);
   
   // Determine which categories to use
-  const categoriesData = propCategories || (direction === "rtl" ? categories : additionalCategories);
+      const categoriesData = propCategories || mockData.categories;
   
   // Reduce animation speed on low-performance devices
   const defaultSpeed = getOptimizedAnimationSettings(
