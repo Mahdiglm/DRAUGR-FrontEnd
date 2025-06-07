@@ -6,21 +6,7 @@ import { Link } from 'react-router-dom';
 import SimpleRichEditor from './SimpleRichEditor';
 import DOMPurify from 'dompurify'; // Import DOMPurify for sanitizing HTML
 
-// Custom CSS for dark-themed editor
-const darkEditorStyles = {
-  editor: {
-    backgroundColor: '#1f2937', // Dark background
-    color: '#e5e7eb', // Light text
-    minHeight: '250px', // Taller editor
-    borderRadius: '0.5rem',
-  },
-  toolbar: {
-    backgroundColor: '#111827', // Darker toolbar
-    color: '#e5e7eb', // Light text
-    borderRadius: '0.5rem 0.5rem 0 0',
-    borderBottom: '1px solid #374151'
-  }
-};
+
 
 const AdminBlogs = () => {
   const [blogs, setBlogs] = useState([]);
