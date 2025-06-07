@@ -69,6 +69,8 @@ createRoot(document.getElementById('root')).render(
                 <Route path="checkout" element={<CheckoutPage />} />
                 <Route path="product/:id" element={<ProductDetail />} />
                 <Route path="about" element={<AboutPage />} />
+                <Route path="auth/login" element={<Login />} />
+                <Route path="auth/register" element={<SignUp />} />
                 <Route path="login" element={<Login />} />
                 <Route path="signup" element={<SignUp />} />
                 <Route path="blog" element={<BlogPage />} />
