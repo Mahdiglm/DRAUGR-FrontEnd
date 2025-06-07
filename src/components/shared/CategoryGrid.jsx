@@ -104,23 +104,28 @@ const CategoryGrid = ({ title = "دسته‌بندی‌ها", subtitle = "مجم
     }
   }
   
-  // Handle category selection
+  // Handle category selection with enhanced transition
   const handleCategorySelect = (category) => {
     setSelectedCategory(category);
     setIsTransitioning(true);
     setAnimationPhase(1);
     
+    // Add a smooth page transition effect
+    document.body.style.transition = 'opacity 0.5s ease-out';
+    document.body.style.opacity = '0.8';
+    
     // Navigate after a short delay to allow animation
     setTimeout(() => {
       navigate(`/category/${category.slug}`);
       
-      // Reset state after navigation
+      // Reset state and body opacity after navigation
       setTimeout(() => {
+        document.body.style.opacity = '1';
         setIsTransitioning(false);
         setSelectedCategory(null);
         setAnimationPhase(0);
-      }, 500);
-    }, 800);
+      }, 600);
+    }, 400);
   };
 
   return (
