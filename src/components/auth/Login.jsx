@@ -41,8 +41,12 @@ const Login = () => {
       case 'email':
         if (!value) {
           errors.email = 'ایمیل الزامی است';
-        } else if (!inputValidation.validateEmail(value)) {
-          errors.email = 'لطفاً یک ایمیل معتبر وارد کنید';
+        } else {
+          // Simple but effective email validation
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(value.trim())) {
+            errors.email = 'لطفاً یک ایمیل معتبر وارد کنید';
+          }
         }
         break;
         
@@ -78,8 +82,10 @@ const Login = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     
-    // Sanitize input to prevent XSS
-    const sanitizedValue = xssProtection.sanitizeInput(value);
+    // Use basic sanitization that won't affect email format
+    const sanitizedValue = name === 'email' ? value.trim() : value;
+    
+    console.log(`Input changed - ${name}:`, sanitizedValue);
     
     setFormData(prev => ({
       ...prev,
@@ -117,17 +123,23 @@ const Login = () => {
     // Prevent double submission
     if (isSubmitting) return;
     
+    console.log('Form submission started with formData:', formData);
+    
     // Validate form
     const errors = validateForm();
     if (Object.keys(errors).length > 0) {
+      console.error('Form validation errors:', errors);
       setValidationErrors(errors);
       return;
     }
     
+    console.log('Form validation passed, calling login...');
     setIsSubmitting(true);
     
     try {
-      await login(formData.email, formData.password);
+      // Pass the entire formData object as credentials
+      const result = await login(formData);
+      console.log('Login successful:', result);
       
       // Redirect to intended page or home
       navigate(from, { replace: true });
