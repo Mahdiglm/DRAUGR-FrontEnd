@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { getIconUrl } from '../../utils/assetUtils';
 import { useAuth } from '../../contexts/AuthContext';
+import BackendStatus from '../shared/BackendStatus';
 
 const Header = ({ cartItems, onCartClick }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -245,6 +246,13 @@ const Header = ({ cartItems, onCartClick }) => {
         
         {/* Header right section: improved for mobile */}
         <div className="flex items-center">
+          {/* Backend Status Indicator - shows in development */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="hidden md:block mr-4">
+              <BackendStatus />
+            </div>
+          )}
+          
           {/* User Account Button - Updated for authentication */}
           <div className="relative" ref={userDropdownRef}
                onMouseEnter={() => isAuthenticated && setShowUserDropdown(true)}
