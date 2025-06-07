@@ -1,10 +1,46 @@
-<!doctype html>
-<html lang="fa" class="w-full h-full" dir="rtl">
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="./vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-    <title>فروشگاه DRAUGR</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Security Headers (X-Frame-Options and frame-ancestors will be set via HTTP headers) -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    
+    <!-- Content Security Policy (frame-ancestors removed for meta tag) -->
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval';
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      font-src 'self' https://fonts.gstatic.com data:;
+      img-src 'self' data: https: blob: http://localhost:5000;
+      connect-src 'self' ws: wss: http://localhost:5000;
+      media-src 'self' blob:;
+      object-src 'none';
+      base-uri 'self';
+      form-action 'self';
+    ">
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="فروشگاه اینترنتی درائوگر - خرید آنلاین محصولات با کیفیت" />
+    <meta name="keywords" content="فروشگاه, خرید آنلاین, محصولات, درائوگر" />
+    <meta name="author" content="Draugr Shop" />
+    <meta name="robots" content="index, follow" />
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="فروشگاه درائوگر" />
+    <meta property="og:description" content="فروشگاه اینترنتی درائوگر - خرید آنلاین محصولات با کیفیت" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="fa_IR" />
+    
+    <!-- Privacy and Security -->
+    <meta name="format-detection" content="telephone=no">
+    <meta name="pinterest" content="nopin">
+    
+    <link rel="icon" type="image/svg+xml" href="/DRAUGR-FrontEnd/vite.svg" />
+    <title>فروشگاه درائوگر</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap" rel="stylesheet">
@@ -25,8 +61,8 @@
         height: 100%;
       }
     </style>
-    <script type="module" crossorigin src="/DRAUGR-FrontEnd/assets/index-C6QIRMqo.js"></script>
-    <link rel="stylesheet" crossorigin href="/DRAUGR-FrontEnd/assets/index-CwxjpTHr.css">
+    <script type="module" crossorigin src="/DRAUGR-FrontEnd/assets/index-Cf5HLkJ_.js"></script>
+    <link rel="stylesheet" crossorigin href="/DRAUGR-FrontEnd/assets/index-DcPo5OoP.css">
   </head>
   <body class="w-full h-full m-0 p-0 font-vazirmatn">
     <div id="root" class="w-full h-full"></div>
