@@ -214,7 +214,6 @@ const AdminProducts = () => {
       
       // Then fetch products
       const adminResponse = await adminService.getAllProducts(1, 1000);
-      console.log('Admin products API response:', adminResponse);
       
       let productsData = [];
       if (adminResponse.data && adminResponse.data.data) {
