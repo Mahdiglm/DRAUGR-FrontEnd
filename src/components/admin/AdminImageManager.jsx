@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import api from '../../services/api';
 import { toast } from 'react-toastify';
-import imageOptimizer from '../../utils/imageOptimizer';
+import assetManagementService from '../../services/assetManagementService';
 
 const AdminImageManager = () => {
   const [assets, setAssets] = useState([]);
@@ -9,6 +8,8 @@ const AdminImageManager = () => {
   const [selectedCategory, setSelectedCategory] = useState('product');
   const [dragOver, setDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredAssets, setFilteredAssets] = useState([]);
 
   const categories = [
     { value: 'product', label: 'محصولات' },
@@ -25,8 +26,8 @@ const AdminImageManager = () => {
   const fetchAssets = async () => {
     try {
       setIsLoading(true);
-      const response = await api.get(`/api/assets?category=${selectedCategory}`);
-      setAssets(response.data || []);
+      const assets = await assetManagementService.getAssets(selectedCategory);
+      setAssets(assets);
     } catch (error) {
       console.error('Error fetching assets:', error);
       toast.error('خطا در بارگذاری تصاویر');
@@ -42,60 +43,46 @@ const AdminImageManager = () => {
     
     try {
       // Show optimization progress
-      toast.info('در حال بهینه‌سازی تصاویر...');
+      toast.info('در حال بهینه‌سازی و آپلود تصاویر...');
       
-      // Optimize images first
-      const optimizedResults = await imageOptimizer.prepareImagesForUpload(files, {
-        maxWidth: selectedCategory === 'background' ? 1920 : 800,
-        maxHeight: selectedCategory === 'background' ? 1080 : 600,
-        quality: selectedCategory === 'icon' ? 0.9 : 0.8
-      });
+      // Use asset management service which handles optimization
+      const results = await assetManagementService.uploadAssets(files, selectedCategory);
 
-      if (optimizedResults.invalid.length > 0) {
-        optimizedResults.invalid.forEach(result => {
+      // Show optimization results
+      if (results.optimizationResults.totalSaved > 0) {
+        toast.success(
+          `بهینه‌سازی کامل شد! ${results.optimizationResults.savingsPercentage}% کاهش حجم (${assetManagementService.formatFileSize(results.optimizationResults.totalSaved)} صرفه‌جویی)`
+        );
+      }
+
+      // Show invalid files
+      if (results.optimizationResults.invalid.length > 0) {
+        results.optimizationResults.invalid.forEach(result => {
           toast.error(result.error);
         });
       }
 
-      if (optimizedResults.valid.length === 0) {
-        toast.error('هیچ تصویر معتبری برای آپلود وجود ندارد');
-        return;
+      // Update assets list with successful uploads
+      if (results.successful > 0) {
+        const newAssets = results.uploadResults
+          .filter(r => r.success)
+          .map(r => r.asset);
+        
+        setAssets(prev => [...newAssets, ...prev]);
+        toast.success(`${results.successful} تصویر با موفقیت آپلود شد`);
       }
 
-      // Show optimization results
-      if (optimizedResults.totalSaved > 0) {
-        toast.success(
-          `بهینه‌سازی کامل شد! ${optimizedResults.savingsPercentage}% کاهش حجم (${imageOptimizer.formatFileSize(optimizedResults.totalSaved)} صرفه‌جویی)`
-        );
+      // Show failed uploads
+      if (results.failed > 0) {
+        const failedUploads = results.uploadResults.filter(r => !r.success);
+        failedUploads.forEach(result => {
+          toast.error(`خطا در آپلود ${result.fileName}: ${result.error}`);
+        });
       }
 
-      // Upload optimized images
-      for (const result of optimizedResults.valid) {
-        try {
-          const formData = new FormData();
-          formData.append('file', result.file);
-          formData.append('category', selectedCategory);
-          formData.append('name', result.originalFile.name.split('.')[0]);
-          formData.append('altText', result.originalFile.name);
-
-          const response = await api.post('/api/assets', formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          });
-
-          if (response.data) {
-            setAssets(prev => [response.data, ...prev]);
-            toast.success(`تصویر ${result.originalFile.name} با موفقیت آپلود شد`);
-          }
-        } catch (error) {
-          console.error('Upload error:', error);
-          toast.error(`خطا در آپلود ${result.originalFile.name}`);
-        }
-      }
     } catch (error) {
-      console.error('Image optimization error:', error);
-      toast.error('خطا در بهینه‌سازی تصاویر');
+      console.error('Upload error:', error);
+      toast.error('خطا در آپلود تصاویر');
     } finally {
       setIsUploading(false);
     }
@@ -127,7 +114,7 @@ const AdminImageManager = () => {
     if (!confirm('آیا از حذف این تصویر اطمینان دارید؟')) return;
 
     try {
-      await api.delete(`/api/assets/${assetId}`);
+      await assetManagementService.deleteAsset(assetId);
       setAssets(prev => prev.filter(asset => asset._id !== assetId));
       toast.success('تصویر با موفقیت حذف شد');
     } catch (error) {
