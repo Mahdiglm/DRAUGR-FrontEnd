@@ -29,9 +29,7 @@ const productService = {
   getAllProducts: async () => {
     try {
       const endpoint = '/api/products/all';
-      console.log('Calling API endpoint:', endpoint);
       const response = await secureApi.get(endpoint);
-      console.log('Raw API response for all products:', response);
       return response;
     } catch (error) {
       console.error('Error in getAllProducts:', error);
