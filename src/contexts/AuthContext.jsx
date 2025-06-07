@@ -257,12 +257,17 @@ export const AuthProvider = ({ children }) => {
 
       const response = await secureApi.put('/api/auth/user', sanitizedData);
       
-      if (response.success && response.data) {
-        setUser(response.data.user);
-        return response.data;
-      } else {
-        throw new Error(response.message || 'خطا در به‌روزرسانی پروفایل');
+      // Handle successful update - backend returns 200 status means success
+      if (response) {
+        const userData = response.user || response.data?.user || response.data;
+        
+        if (userData && userData._id) {
+          setUser(userData);
+          return response;
+        }
       }
+      
+      throw new Error('خطا در به‌روزرسانی پروفایل');
     } catch (error) {
       const errorMessage = error.response?.data?.message || error.message || 'خطا در به‌روزرسانی پروفایل';
       const persianError = translateError(errorMessage);
