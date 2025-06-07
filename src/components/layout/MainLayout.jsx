@@ -78,7 +78,7 @@ const MainLayout = () => {
         removeItem={removeFromCart} 
         isOpen={isCartOpen} 
         onClose={() => toggleCart()} 
-        addToCartPlus={(product) => updateCartItem(product.id, product.quantity + 1)}
+        addToCartPlus={(product) => addToCart(product, 1)}
       />
 
       {/* Floating Message - Moved to right side and made responsive */}
