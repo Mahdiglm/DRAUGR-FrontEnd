@@ -301,11 +301,12 @@ export const AuthProvider = ({ children }) => {
         password: passwordData.newPassword
       });
       
-      if (response.success) {
-        return response.data;
-      } else {
-        throw new Error(response.message || 'خطا در تغییر رمز عبور');
+      // Password change success - backend returns 200 status means success
+      if (response) {
+        return response;
       }
+      
+      throw new Error('خطا در تغییر رمز عبور');
     } catch (error) {
       const errorMessage = error.response?.data?.message || error.message || 'خطا در تغییر رمز عبور';
       const persianError = translateError(errorMessage);
