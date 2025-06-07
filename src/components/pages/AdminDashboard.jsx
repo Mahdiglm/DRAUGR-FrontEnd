@@ -9,6 +9,7 @@ import AdminBlogs from '../admin/AdminBlogs';
 import AdminSettings from '../admin/AdminSettings';
 import AdminCategories from '../admin/AdminCategories';
 import AdminContentManager from '../admin/AdminContentManager';
+import AdminImageManager from '../admin/AdminImageManager';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -294,6 +295,8 @@ const AdminDashboard = () => {
         return <AdminCategories />;
       case 'content':
         return <AdminContentManager />;
+      case 'images':
+        return <AdminImageManager />;
       default:
         return renderOverview();
     }
@@ -404,6 +407,17 @@ const AdminDashboard = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                     <span>محتوای سایت</span>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${activeTab === 'images' ? 'bg-draugr-900 text-draugr-400' : 'hover:bg-gray-900 text-gray-400 hover:text-white'}`}
+                    onClick={() => handleTabChange('images')}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span>مدیریت تصاویر</span>
                   </button>
                 </li>
                 <li>
