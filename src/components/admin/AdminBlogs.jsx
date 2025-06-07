@@ -29,7 +29,6 @@ const AdminBlogs = () => {
   // Check existing blog format
   const checkExistingBlogFormat = () => {
     if (blogs && blogs.length > 0) {
-      console.log('Existing blog format:', blogs[0]);
       return blogs[0];
     }
     return null;
@@ -52,11 +51,9 @@ const AdminBlogs = () => {
       } else {
         // Fallback to public blogs API if admin API returns unexpected data
         const publicResponse = await api.get('/api/blogs');
-        console.log('Public blogs response:', publicResponse);
         
         if (publicResponse.data && Array.isArray(publicResponse.data)) {
           setBlogs(publicResponse.data);
-          console.log(`Found ${publicResponse.data.length} blogs from public API`);
         } else {
           setError('No blogs found or unexpected data format');
         }
