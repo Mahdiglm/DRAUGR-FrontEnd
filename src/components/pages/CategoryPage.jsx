@@ -158,7 +158,12 @@ const CategoryPage = () => {
   const filteredProducts = getFilteredProducts();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-black to-gray-900 relative overflow-hidden">
+    <motion.div 
+      className="min-h-screen bg-gradient-to-b from-gray-900 via-black to-gray-900 relative overflow-hidden"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: pageLoaded ? 1 : 0, scale: pageLoaded ? 1 : 0.95 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+    >
       {/* Dynamic background with parallax effect */}
       <motion.div 
         className="absolute inset-0 opacity-30"
