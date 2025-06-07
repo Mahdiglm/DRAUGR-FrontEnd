@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { toast } from 'react-toastify';
+import imageOptimizer from '../../utils/imageOptimizer';
 
 const AdminImageManager = () => {
   const [assets, setAssets] = useState([]);
