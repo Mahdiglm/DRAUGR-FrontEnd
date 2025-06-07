@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import secureApi from '../services/api';
+import apiIntegration from '../services/apiIntegration';
 
 // Create Auth Context
 const AuthContext = createContext();
@@ -23,9 +24,9 @@ export const AuthProvider = ({ children }) => {
         const token = localStorage.getItem('token');
         if (token) {
           try {
-            const userData = await secureApi.get('/api/auth/user');
-            if (userData) {
-              setUser(userData);
+            const response = await apiIntegration.getCurrentUser();
+            if (response && response.data) {
+              setUser(response.data);
             }
           } catch (error) {
             // Check if it's a network error (backend not available)
@@ -121,8 +122,8 @@ export const AuthProvider = ({ children }) => {
         throw new Error('فرمت ایمیل نامعتبر است');
       }
 
-      // Make secure login request
-      const response = await secureApi.post('/api/auth/login', sanitizedCredentials);
+      // Make secure login request using enhanced API integration
+      const response = await apiIntegration.login(sanitizedCredentials);
       
       // Handle successful login - backend returns 200 status means success
       if (response) {
@@ -190,8 +191,8 @@ export const AuthProvider = ({ children }) => {
       // Remove confirmPassword before sending to API
       delete sanitizedUserData.confirmPassword;
 
-      // Make secure register request
-      const response = await secureApi.post('/api/auth/register', sanitizedUserData);
+      // Make secure register request using enhanced API integration
+      const response = await apiIntegration.register(sanitizedUserData);
       
       // Handle successful registration - backend returns 200 status means success
       if (response) {
@@ -255,7 +256,7 @@ export const AuthProvider = ({ children }) => {
         email: profileData.email.trim().toLowerCase()
       };
 
-      const response = await secureApi.put('/api/auth/user', sanitizedData);
+      const response = await apiIntegration.updateProfile(sanitizedData);
       
       // Handle successful update - backend returns 200 status means success
       if (response) {
