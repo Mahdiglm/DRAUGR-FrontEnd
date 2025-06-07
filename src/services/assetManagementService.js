@@ -178,72 +178,331 @@ class AssetManagementService {
    * Get mock assets for fallback
    */
   getMockAssets(category) {
-    const mockAssets = [
+    const allMockAssets = [
+      // Product Images
       {
-        _id: 'mock-1',
-        name: 'Product Image 1',
+        _id: 'product-1',
+        name: 'Product_1',
         url: 'http://localhost:5000/static/images/products/Product_1.jpg',
         category: 'product',
         type: 'image/jpeg',
-        altText: 'Product Image 1',
+        altText: 'شمشیر DRAUGR',
         size: 245760,
-        createdAt: new Date().toISOString()
+        createdAt: new Date('2024-01-01').toISOString()
       },
       {
-        _id: 'mock-2',
-        name: 'Product Image 2',
+        _id: 'product-2',
+        name: 'Product_2',
         url: 'http://localhost:5000/static/images/products/Product_2.jpg',
         category: 'product',
         type: 'image/jpeg',
-        altText: 'Product Image 2',
+        altText: 'کلاه‌خود نوردیک',
         size: 198432,
-        createdAt: new Date().toISOString()
+        createdAt: new Date('2024-01-01').toISOString()
       },
       {
-        _id: 'mock-3',
-        name: 'Product Image 3',
+        _id: 'product-3',
+        name: 'Product_3',
         url: 'http://localhost:5000/static/images/products/Product_3.jpg',
         category: 'product',
         type: 'image/jpeg',
-        altText: 'Product Image 3',
+        altText: 'معجون شفا',
         size: 276543,
-        createdAt: new Date().toISOString()
+        createdAt: new Date('2024-01-01').toISOString()
       },
       {
-        _id: 'mock-4',
-        name: 'Background 1',
+        _id: 'product-4',
+        name: 'Product_4',
+        url: 'http://localhost:5000/static/images/products/Product_4.jpg',
+        category: 'product',
+        type: 'image/jpeg',
+        altText: 'طومار باستانی',
+        size: 234567,
+        createdAt: new Date('2024-01-01').toISOString()
+      },
+      {
+        _id: 'product-5',
+        name: 'Product_5',
+        url: 'http://localhost:5000/static/images/products/Product_5.jpg',
+        category: 'product',
+        type: 'image/jpeg',
+        altText: 'گردنبند مقدس',
+        size: 189234,
+        createdAt: new Date('2024-01-01').toISOString()
+      },
+      {
+        _id: 'product-6',
+        name: 'Product_6',
+        url: 'http://localhost:5000/static/images/products/Product_6.jpg',
+        category: 'product',
+        type: 'image/jpeg',
+        altText: 'دستبند محافظ',
+        size: 212345,
+        createdAt: new Date('2024-01-01').toISOString()
+      },
+      {
+        _id: 'product-7',
+        name: 'Product_7',
+        url: 'http://localhost:5000/static/images/products/Product_7.jpg',
+        category: 'product',
+        type: 'image/jpeg',
+        altText: 'فندک اژدها',
+        size: 198765,
+        createdAt: new Date('2024-01-01').toISOString()
+      },
+      {
+        _id: 'product-8',
+        name: 'Product_8',
+        url: 'http://localhost:5000/static/images/products/Product_8.jpg',
+        category: 'product',
+        type: 'image/jpeg',
+        altText: 'ویجا بورد نفرین شده',
+        size: 267890,
+        createdAt: new Date('2024-01-01').toISOString()
+      },
+      {
+        _id: 'product-9',
+        name: 'Product_9',
+        url: 'http://localhost:5000/static/images/products/Product_9.jpg',
+        category: 'product',
+        type: 'image/jpeg',
+        altText: 'پیک گیتار استخوانی',
+        size: 156789,
+        createdAt: new Date('2024-01-01').toISOString()
+      },
+      {
+        _id: 'product-10',
+        name: 'Product_10',
+        url: 'http://localhost:5000/static/images/products/Product_10.jpg',
+        category: 'product',
+        type: 'image/jpeg',
+        altText: 'زیرسیگاری جمجمه',
+        size: 223456,
+        createdAt: new Date('2024-01-01').toISOString()
+      },
+      {
+        _id: 'product-11',
+        name: 'Product_11',
+        url: 'http://localhost:5000/static/images/products/Product_11.jpg',
+        category: 'product',
+        type: 'image/jpeg',
+        altText: 'ماگ استخوانی',
+        size: 201234,
+        createdAt: new Date('2024-01-01').toISOString()
+      },
+      {
+        _id: 'product-12',
+        name: 'Product_12',
+        url: 'http://localhost:5000/static/images/products/Product_12.jpg',
+        category: 'product',
+        type: 'image/jpeg',
+        altText: 'کتاب نفرین‌ها',
+        size: 289012,
+        createdAt: new Date('2024-01-01').toISOString()
+      },
+      {
+        _id: 'product-13',
+        name: 'Product_13',
+        url: 'http://localhost:5000/static/images/products/Product_13.jpg',
+        category: 'product',
+        type: 'image/jpeg',
+        altText: 'چوب بیسبال خون‌آلود',
+        size: 245678,
+        createdAt: new Date('2024-01-01').toISOString()
+      },
+      {
+        _id: 'product-14',
+        name: 'Product_14',
+        url: 'http://localhost:5000/static/images/products/Product_14.jpg',
+        category: 'product',
+        type: 'image/jpeg',
+        altText: 'وست چرمی',
+        size: 267123,
+        createdAt: new Date('2024-01-01').toISOString()
+      },
+      {
+        _id: 'product-15',
+        name: 'Product_15',
+        url: 'http://localhost:5000/static/images/products/Product_15.jpg',
+        category: 'product',
+        type: 'image/jpeg',
+        altText: 'کامیک هارور',
+        size: 198456,
+        createdAt: new Date('2024-01-01').toISOString()
+      },
+      {
+        _id: 'product-default',
+        name: 'category_default',
+        url: 'http://localhost:5000/static/images/products/category_default.jpg',
+        category: 'product',
+        type: 'image/jpeg',
+        altText: 'تصویر پیش‌فرض دسته‌بندی',
+        size: 189456,
+        createdAt: new Date('2024-01-01').toISOString()
+      },
+
+      // Background Images
+      {
+        _id: 'bg-main',
+        name: 'BackGround-Main',
         url: 'http://localhost:5000/static/images/backgrounds/BackGround-Main.jpg',
         category: 'background',
         type: 'image/jpeg',
-        altText: 'Background 1',
+        altText: 'پس‌زمینه اصلی',
         size: 512000,
-        createdAt: new Date().toISOString()
+        createdAt: new Date('2024-01-01').toISOString()
       },
       {
-        _id: 'mock-5',
-        name: 'Hero Background',
+        _id: 'bg-hero',
+        name: 'Background-Hero',
         url: 'http://localhost:5000/static/images/backgrounds/Background-Hero.jpg',
         category: 'background',
         type: 'image/jpeg',
-        altText: 'Hero Background',
+        altText: 'پس‌زمینه قهرمان',
         size: 487321,
-        createdAt: new Date().toISOString()
+        createdAt: new Date('2024-01-01').toISOString()
       },
       {
-        _id: 'mock-6',
-        name: 'Profile Icon',
+        _id: 'bg-login',
+        name: 'BackGround-Login',
+        url: 'http://localhost:5000/static/images/backgrounds/BackGround-Login.jpg',
+        category: 'background',
+        type: 'image/jpeg',
+        altText: 'پس‌زمینه ورود',
+        size: 456789,
+        createdAt: new Date('2024-01-01').toISOString()
+      },
+      {
+        _id: 'bg-product',
+        name: 'BackGround-Product',
+        url: 'http://localhost:5000/static/images/backgrounds/BackGround-Product.jpg',
+        category: 'background',
+        type: 'image/jpeg',
+        altText: 'پس‌زمینه محصولات',
+        size: 423567,
+        createdAt: new Date('2024-01-01').toISOString()
+      },
+      {
+        _id: 'bg-footer',
+        name: 'Background-Footer',
+        url: 'http://localhost:5000/static/images/backgrounds/Background-Footer.png',
+        category: 'background',
+        type: 'image/png',
+        altText: 'پس‌زمینه فوتر',
+        size: 234890,
+        createdAt: new Date('2024-01-01').toISOString()
+      },
+
+      // Icon Images
+      {
+        _id: 'icon-pfp',
+        name: 'pfp-icon',
         url: 'http://localhost:5000/static/images/icons/pfp-icon.png',
         category: 'icon',
         type: 'image/png',
-        altText: 'Profile Icon',
+        altText: 'آیکون پروفایل',
         size: 4096,
-        createdAt: new Date().toISOString()
+        createdAt: new Date('2024-01-01').toISOString()
+      },
+      {
+        _id: 'icon-logo',
+        name: 'logo',
+        url: 'http://localhost:5000/static/images/icons/logo.png',
+        category: 'icon',
+        type: 'image/png',
+        altText: 'لوگوی سایت',
+        size: 8192,
+        createdAt: new Date('2024-01-01').toISOString()
+      },
+
+      // Blog Images
+      {
+        _id: 'blog-jangal',
+        name: 'blog-jangal-tarik',
+        url: 'http://localhost:5000/static/images/blogs/jangal-tarik.jpg',
+        category: 'blog',
+        type: 'image/jpeg',
+        altText: 'جنگل تاریک',
+        size: 345678,
+        createdAt: new Date('2024-01-01').toISOString()
+      },
+      {
+        _id: 'blog-emarat',
+        name: 'blog-emarat-taskhir',
+        url: 'http://localhost:5000/static/images/blogs/emarat-taskhir.jpg',
+        category: 'blog',
+        type: 'image/jpeg',
+        altText: 'عمارت تسخیر شده',
+        size: 398765,
+        createdAt: new Date('2024-01-01').toISOString()
+      },
+      {
+        _id: 'blog-moumiaei',
+        name: 'blog-nefrin-moumiaei',
+        url: 'http://localhost:5000/static/images/blogs/nefrin-moumiaei.jpg',
+        category: 'blog',
+        type: 'image/jpeg',
+        altText: 'نفرین مومیایی',
+        size: 376543,
+        createdAt: new Date('2024-01-01').toISOString()
+      },
+      {
+        _id: 'blog-darya',
+        name: 'blog-mojodat-darya',
+        url: 'http://localhost:5000/static/images/blogs/mojodat-darya.jpg',
+        category: 'blog',
+        type: 'image/jpeg',
+        altText: 'موجودات دریا',
+        size: 412345,
+        createdAt: new Date('2024-01-01').toISOString()
+      },
+
+      // Other Images
+      {
+        _id: 'other-skull',
+        name: 'skull',
+        url: 'http://localhost:5000/static/images/other/skull.jpg',
+        category: 'other',
+        type: 'image/jpeg',
+        altText: 'جمجمه',
+        size: 156432,
+        createdAt: new Date('2024-01-01').toISOString()
+      },
+      {
+        _id: 'other-placeholder',
+        name: 'placeholder',
+        url: 'http://localhost:5000/static/images/other/placeholder.jpg',
+        category: 'other',
+        type: 'image/jpeg',
+        altText: 'تصویر جایگزین',
+        size: 45678,
+        createdAt: new Date('2024-01-01').toISOString()
+      },
+      {
+        _id: 'other-fog1',
+        name: 'fog-texture',
+        url: 'http://localhost:5000/static/images/other/fog-texture.png',
+        category: 'other',
+        type: 'image/png',
+        altText: 'بافت مه اول',
+        size: 123456,
+        createdAt: new Date('2024-01-01').toISOString()
+      },
+      {
+        _id: 'other-fog2',
+        name: 'fog-texture-2',
+        url: 'http://localhost:5000/static/images/other/fog-texture-2.png',
+        category: 'other',
+        type: 'image/png',
+        altText: 'بافت مه دوم',
+        size: 134567,
+        createdAt: new Date('2024-01-01').toISOString()
       }
     ];
 
     return category 
-      ? mockAssets.filter(asset => asset.category === category)
-      : mockAssets;
+      ? allMockAssets.filter(asset => asset.category === category)
+      : allMockAssets;
   }
 
   /**
