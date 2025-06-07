@@ -117,29 +117,26 @@ const Login = () => {
     // Prevent double submission
     if (isSubmitting) return;
     
-    console.log('Form submission started with formData:', formData);
-    
     // Validate form
     const errors = validateForm();
     if (Object.keys(errors).length > 0) {
-      console.error('Form validation errors:', errors);
       setValidationErrors(errors);
       return;
     }
     
-    console.log('Form validation passed, calling login...');
     setIsSubmitting(true);
     
     try {
       // Pass the entire formData object as credentials
       const result = await login(formData);
-      console.log('Login successful:', result);
       
       // Redirect to intended page or home
       navigate(from, { replace: true });
     } catch (error) {
-      // Error will be handled by AuthContext
-      console.error('Login error:', error);
+      // Error will be handled by AuthContext - no need to log sensitive data
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Login failed:', error.message);
+      }
     } finally {
       setIsSubmitting(false);
     }
