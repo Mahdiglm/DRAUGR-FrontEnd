@@ -121,6 +121,9 @@ createRoot(document.getElementById('root')).render(
                 } />
                 
                 <Route path="order/:id" element={<OrderTrackingPage />} />
+                
+                {/* Catch-all route for unmatched paths */}
+                <Route path="*" element={<HomePage />} />
               </Route>
             </Routes>
             <ToastContainer
