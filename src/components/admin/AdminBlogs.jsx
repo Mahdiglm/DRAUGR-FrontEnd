@@ -4,9 +4,6 @@ import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 // Import our custom editor
 import SimpleRichEditor from './SimpleRichEditor';
-// Keep our styling imports
-import '../../styles/quill-basic.css';
-import '../../styles/quill-dark.css';
 import DOMPurify from 'dompurify'; // Import DOMPurify for sanitizing HTML
 
 // Custom CSS for dark-themed editor
