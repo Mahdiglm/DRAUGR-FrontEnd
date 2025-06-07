@@ -510,7 +510,6 @@ const AdminProducts = () => {
                       }
                     });
                     const data = await response.json();
-                    console.log(`API ${apiUrl} response:`, data);
                     
                     let productsFromApi = [];
                     if (data && data.data) {
@@ -521,7 +520,6 @@ const AdminProducts = () => {
                     
                     if (productsFromApi.length > maxProducts.length) {
                       maxProducts = productsFromApi;
-                      console.log(`Found ${productsFromApi.length} products from ${apiUrl}`);
                     }
                   } catch (apiError) {
                     console.error(`Error with ${apiUrl}:`, apiError);
