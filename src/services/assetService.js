@@ -61,7 +61,7 @@ const fetchAssetMap = async () => {
         iconImages: { ...assetMap.iconImages, ...response.data.iconImages },
         models: { ...assetMap.models, ...response.data.models },
       };
-      console.log('Asset map loaded from API');
+  
     }
   } catch (error) {
     // Only log once to avoid spam
