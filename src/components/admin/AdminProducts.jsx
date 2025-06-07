@@ -379,14 +379,6 @@ const AdminProducts = () => {
   // Function to get product image URL
   const getProductImage = (product) => {
     try {
-      // Debug product image structure
-      console.log('Product image data:', {
-        hasImages: !!product.images,
-        imagesLength: product.images?.length,
-        firstImageType: product.images && product.images.length > 0 ? typeof product.images[0] : 'none',
-        hasImageUrl: !!product.imageUrl,
-        imageUrl: product.imageUrl
-      });
     
       // First check for images array
       if (product.images && product.images.length > 0) {
