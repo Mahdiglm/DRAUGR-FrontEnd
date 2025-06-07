@@ -35,9 +35,7 @@ const AdminDashboard = () => {
       try {
         setIsLoading(true);
   
-        const token = localStorage.getItem('token');
-        console.log('Current auth token:', token ? 'Token exists' : 'No token');
-        console.log('User data:', user);
+                  const token = localStorage.getItem('token');
         
         const response = await api.get('/api/admin/dashboard');
   
