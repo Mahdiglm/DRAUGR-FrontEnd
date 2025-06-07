@@ -308,24 +308,24 @@ export const mockData = {
   users: [
     {
       _id: 'user-1',
-      firstName: 'مهدی',
-      lastName: 'احمدی',
-      email: 'mehdi@example.com',
-      role: 'admin',
+      firstName: 'کاربر',
+      lastName: 'تست',
+      email: 'test@test.local',
+      role: 'user',
       avatar: null,
-      phone: '+98 912 345 6789',
-      address: 'تهران، خیابان آزادی',
+      phone: '+98 900 000 0000',
+      address: 'آدرس تست',
       createdAt: '2024-01-01T00:00:00.000Z'
     },
     {
       _id: 'user-2',
-      firstName: 'فاطمه',
-      lastName: 'کریمی',
-      email: 'fateme@example.com',
+      firstName: 'کاربر',
+      lastName: 'دوم',
+      email: 'user2@test.local',
       role: 'user',
       avatar: null,
-      phone: '+98 910 123 4567',
-      address: 'اصفهان، خیابان چهارباغ',
+      phone: '+98 900 000 0001',
+      address: 'آدرس تست دوم',
       createdAt: '2024-01-02T00:00:00.000Z'
     }
   ],
