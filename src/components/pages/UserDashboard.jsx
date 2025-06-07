@@ -102,7 +102,7 @@ const UserDashboard = () => {
             setRecentOrders(response.slice(0, 3));
           } else {
             // Use example orders if the API returned an empty array
-            console.log('No orders returned from API, using examples');
+  
             setOrders(exampleOrders);
             setRecentOrders(exampleOrders.slice(0, 3));
           }
