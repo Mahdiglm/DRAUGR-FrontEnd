@@ -124,19 +124,25 @@ export const AuthProvider = ({ children }) => {
       // Make secure login request
       const response = await secureApi.post('/api/auth/login', sanitizedCredentials);
       
-      // Handle different response structures from backend
-      if (response && (response.success || response.data || response.user)) {
-        // Extract user data from various possible response structures
-        const userData = response.data?.user || response.user || response.data;
-        if (userData) {
+      // Handle successful login - backend returns 200 status means success
+      if (response) {
+        // Extract user data from response
+        const userData = response.user || response.data?.user || response.data;
+        const token = response.token || response.data?.token;
+        
+        if (userData && userData._id) {
+          // Store token if provided
+          if (token) {
+            localStorage.setItem('token', token);
+          }
+          
           setUser(userData);
           return response;
         }
       }
       
       // If we get here, login failed
-      const errorMsg = response?.message || response?.data?.message || 'خطا در ورود';
-      throw new Error(errorMsg);
+      throw new Error('خطا در ورود - اطلاعات کاربر دریافت نشد');
       
     } catch (error) {
       // Only log non-sensitive error information
