@@ -124,8 +124,6 @@ export const AuthProvider = ({ children }) => {
       // Make secure login request
       const response = await secureApi.post('/api/auth/login', sanitizedCredentials);
       
-
-      
       // Handle successful login - backend returns 200 status means success
       if (response) {
         // Extract user data from response
