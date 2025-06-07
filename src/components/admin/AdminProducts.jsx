@@ -74,10 +74,8 @@ const AdminProducts = () => {
         
         // Try direct call to public product API to see all products
         try {
-          console.log('Trying direct public products API call');
           const response = await fetch('http://localhost:5000/api/products?limit=100');
           const data = await response.json();
-          console.log('Public products API response:', data);
           
           // Extract products based on response structure
           let productsData = [];
@@ -87,7 +85,6 @@ const AdminProducts = () => {
             productsData = data;
           }
           
-          console.log(`Found ${productsData.length} products from public API`);
           if (productsData.length > 0) {
             setProducts(productsData);
             setIsLoading(false);
@@ -98,9 +95,7 @@ const AdminProducts = () => {
         }
         
         // If public API fails, try the admin endpoint
-        console.log('Trying admin products API call');
         const adminResponse = await adminService.getAllProducts(1, 1000);
-        console.log('Admin products API response:', adminResponse);
         
         // Check the structure of the response and extract the correct data
         let productsData = [];
