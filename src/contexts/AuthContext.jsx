@@ -101,10 +101,22 @@ export const AuthProvider = ({ children }) => {
     setError(null);
 
     try {
-      // Validate input data
-      const validationResult = securityHelpers.validateLoginForm(credentials);
-      if (!validationResult.isValid) {
-        throw new Error(validationResult.errors[0]);
+      console.log('Login attempt with credentials:', credentials);
+      
+      // Basic validation with detailed logging
+      if (!credentials) {
+        console.error('No credentials provided');
+        throw new Error('اطلاعات ورود ارائه نشده است');
+      }
+      
+      if (!credentials.email) {
+        console.error('No email provided');
+        throw new Error('ایمیل الزامی است');
+      }
+      
+      if (!credentials.password) {
+        console.error('No password provided');
+        throw new Error('رمز عبور الزامی است');
       }
 
       // Sanitize credentials
@@ -112,6 +124,15 @@ export const AuthProvider = ({ children }) => {
         email: credentials.email.trim().toLowerCase(),
         password: credentials.password // Don't sanitize password
       };
+
+      console.log('Sanitized credentials:', { email: sanitizedCredentials.email, password: '[HIDDEN]' });
+
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(sanitizedCredentials.email)) {
+        console.error('Invalid email format:', sanitizedCredentials.email);
+        throw new Error('فرمت ایمیل نامعتبر است');
+      }
 
       // Make secure login request
       const response = await secureApi.post('/api/auth/login', sanitizedCredentials);
@@ -123,6 +144,7 @@ export const AuthProvider = ({ children }) => {
         throw new Error(response.message || 'خطا در ورود');
       }
     } catch (error) {
+      console.error('Login error details:', error);
       const errorMessage = error.response?.data?.message || error.message || 'خطا در ورود';
       const persianError = translateError(errorMessage);
       setError(persianError);
