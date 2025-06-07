@@ -20,6 +20,14 @@ const CategoryPage = () => {
   const [backgroundPosition, setBackgroundPosition] = useState({ x: 0, y: 0 });
   const [pageLoaded, setPageLoaded] = useState(false);
 
+  // Page entrance animation
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPageLoaded(true);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Fetch category and products
   useEffect(() => {
     const fetchCategoryData = async () => {
