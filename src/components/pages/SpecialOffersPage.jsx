@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Box, Typography, Grid, Button, Card, CardMedia, CardContent, useTheme, Container } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import { backgroundImages, productImages } from '../../services/assetService';
-import { products } from '../../utils/mockData';
+import { mockData } from '../../utils/mockData';
 import ImageSlider from '../shared/ImageSlider';
 import ProductCard from '../product/ProductCard';
 import Helmet from 'react-helmet';
@@ -53,7 +53,7 @@ const SpecialOffersPage = () => {
   ];
 
   // Featured products - select a few random products from mockData
-  const featuredProducts = products.slice(0, 4);
+  const featuredProducts = mockData.products.slice(0, 4);
 
   return (
     <>
@@ -254,7 +254,7 @@ const SpecialOffersPage = () => {
             محصولات فروشگاه
           </Typography>
           
-          <ImageSlider products={products.slice(0, 8)} />
+                          <ImageSlider products={mockData.products.slice(0, 8)} />
         </Container>
       </Box>
     </>
