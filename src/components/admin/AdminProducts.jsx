@@ -38,7 +38,6 @@ const AdminProducts = () => {
   // New function to check existing product format
   const checkExistingProductFormat = () => {
     if (products && products.length > 0) {
-      console.log('Existing product format:', products[0]);
       return products[0];
     }
     return null;
