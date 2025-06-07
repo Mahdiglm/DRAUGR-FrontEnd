@@ -10,6 +10,7 @@ const Header = ({ cartItems, onCartClick }) => {
   const [typedText, setTypedText] = useState("");
   const [isTyping, setIsTyping] = useState(true);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [isMobileDevice, setIsMobileDevice] = useState(false);
   const userDropdownRef = useRef(null);
   const brandName = "DRAUGR";
   const navigate = useNavigate();
@@ -169,6 +170,17 @@ const Header = ({ cartItems, onCartClick }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Mobile device detection
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobileDevice(window.innerWidth < 768);
+    };
+    
+    checkIfMobile();
+    window.addEventListener('resize', checkIfMobile);
+    return () => window.removeEventListener('resize', checkIfMobile);
+  }, []);
+
   // Handle clicks outside the user dropdown to close it
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -260,160 +272,178 @@ const Header = ({ cartItems, onCartClick }) => {
               )}
             </motion.div>
             
-            {/* Enhanced User Dropdown with Horror Theme */}
+            {/* Enhanced User Dropdown with Minimal Mobile Design */}
             {isAuthenticated && (
               <AnimatePresence>
                 {showUserDropdown && (
                   <motion.div 
-                    initial={{ opacity: 0, y: -20, scale: 0.9, rotateX: -15 }}
-                    animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
-                    exit={{ opacity: 0, y: -10, scale: 0.95, rotateX: -10 }}
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -5, scale: 0.95 }}
                     transition={{ 
-                      duration: 0.3, 
-                      ease: [0.4, 0, 0.2, 1],
-                      opacity: { duration: 0.2 }
+                      duration: 0.2, 
+                      ease: [0.4, 0, 0.2, 1]
                     }}
-                    className="absolute mt-2 w-64 bg-gradient-to-b from-gray-900 via-black to-gray-900 border border-red-900/30 rounded-xl shadow-2xl z-50 text-right overflow-hidden" 
+                    className={`absolute mt-2 bg-gray-900 border border-gray-700 rounded-lg shadow-xl z-50 text-right overflow-hidden ${
+                      isMobileDevice ? 'w-48 md:w-64' : 'w-64'
+                    }`}
                     dir="rtl"
                     style={{ 
-                      boxShadow: '0 20px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(220, 38, 38, 0.3), inset 0 0 20px rgba(220, 38, 38, 0.1)',
-                      right: '-85px',
+                      boxShadow: isMobileDevice 
+                        ? '0 4px 12px rgba(0, 0, 0, 0.5)' 
+                        : '0 8px 25px rgba(0, 0, 0, 0.6), 0 0 8px rgba(220, 38, 38, 0.1)',
+                      right: '-75px',
                       transformOrigin: 'top right',
-                      backdropFilter: 'blur(12px)',
-                      perspective: '1000px'
+                      backdropFilter: 'blur(8px)'
                     }}
                   >
-                    {/* Blood drip effect at top */}
-                    <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-1 h-0 bg-gradient-to-b from-red-600 to-transparent animate-blood-drip"></div>
-                    
-                    {/* Glowing border effect */}
-                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-red-600/20 via-transparent to-red-600/20 animate-pulse"></div>
+                    {/* Minimal top accent for desktop, none for mobile */}
+                    {!isMobileDevice && (
+                      <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-red-600/60"></div>
+                    )}
                     
                     {/* User Info Section with Avatar */}
-                    <div className="relative p-4 border-b border-red-900/30 bg-gradient-to-r from-transparent via-red-950/10 to-transparent">
-                      <div className="flex items-center gap-3 mb-2">
+                    <div className={`relative border-b border-gray-700 ${
+                      isMobileDevice ? 'p-3' : 'p-4'
+                    }`}>
+                      <div className={`flex items-center ${isMobileDevice ? 'gap-2' : 'gap-3'} ${isMobileDevice ? 'mb-1' : 'mb-2'}`}>
                         <div className="relative">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-900 to-red-700 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                          <div className={`rounded-full bg-gray-700 flex items-center justify-center text-white font-bold ${
+                            isMobileDevice ? 'w-8 h-8 text-sm' : 'w-10 h-10 text-base'
+                          }`}>
                             {user?.name?.charAt(0) || 'ک'}
                           </div>
-                          <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-black rounded-full animate-pulse"></span>
+                          <span className={`absolute -bottom-0.5 -right-0.5 bg-green-500 border border-black rounded-full ${
+                            isMobileDevice ? 'w-2 h-2' : 'w-2.5 h-2.5'
+                          }`}></span>
                         </div>
-                        <div className="flex-1">
-                          <p className="font-bold text-white text-sm">{user?.name}</p>
-                          <p className="text-xs text-gray-400">{blurEmail(user?.email)}</p>
+                        <div className="flex-1 min-w-0">
+                          <p className={`font-medium text-white truncate ${isMobileDevice ? 'text-xs' : 'text-sm'}`}>
+                            {user?.name}
+                          </p>
+                          <p className={`text-gray-400 truncate ${isMobileDevice ? 'text-xs' : 'text-xs'}`}>
+                            {blurEmail(user?.email)}
+                          </p>
                         </div>
                       </div>
                       
-                      {/* User type badge */}
-                      <div className="flex justify-center">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-900/30 text-red-300 border border-red-800/50">
-                          {user?.isAdmin ? (
-                            <>
-                              <svg className="w-3 h-3 ml-1" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                              </svg>
-                              مدیر سیستم
-                            </>
-                          ) : (
-                            <>
-                              <svg className="w-3 h-3 ml-1" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                              </svg>
-                              کاربر عادی
-                            </>
-                          )}
-                        </span>
-                      </div>
+                      {/* User type badge - hidden on mobile to save space */}
+                      {!isMobileDevice && (
+                        <div className="flex justify-center">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-gray-800 text-gray-300">
+                            {user?.isAdmin ? (
+                              <>
+                                <svg className="w-3 h-3 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                                </svg>
+                                مدیر
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-3 h-3 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                                </svg>
+                                کاربر
+                              </>
+                            )}
+                          </span>
+                        </div>
+                      )}
                     </div>
                     
-                    {/* Menu Items with enhanced styling */}
-                    <div className="py-2">
+                    {/* Menu Items with minimal styling */}
+                    <div className={isMobileDevice ? 'py-1' : 'py-2'}>
                       {/* Dashboard Link */}
                       <Link
                         to="/dashboard"
-                        className="group relative block px-4 py-3 text-gray-200 hover:bg-red-950/20 transition-all duration-300 overflow-hidden"
+                        className={`group relative block text-gray-200 hover:bg-gray-800 transition-colors duration-200 ${
+                          isMobileDevice ? 'px-3 py-2' : 'px-4 py-3'
+                        }`}
                         onClick={() => setShowUserDropdown(false)}
                       >
-                        <motion.div 
-                          className="flex items-center relative z-10"
-                          whileHover={{ x: 5 }}
-                          transition={{ type: "spring", stiffness: 300 }}
-                        >
-                          <div className="w-10 h-10 rounded-lg bg-gray-800/50 flex items-center justify-center ml-3 group-hover:bg-red-900/30 transition-colors duration-300">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400 group-hover:text-red-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div className="flex items-center">
+                          <div className={`rounded-lg bg-gray-800 flex items-center justify-center group-hover:bg-gray-700 transition-colors ${
+                            isMobileDevice ? 'w-7 h-7 ml-2' : 'w-8 h-8 ml-3'
+                          }`}>
+                            <svg xmlns="http://www.w3.org/2000/svg" className={`text-gray-400 group-hover:text-gray-300 transition-colors ${
+                              isMobileDevice ? 'h-4 w-4' : 'h-4 w-4'
+                            }`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                             </svg>
                           </div>
                           <div>
-                            <p className="font-medium text-white group-hover:text-red-300 transition-colors">داشبورد</p>
-                            <p className="text-xs text-gray-500">مدیریت حساب کاربری</p>
+                            <p className={`font-medium text-white group-hover:text-gray-200 transition-colors ${
+                              isMobileDevice ? 'text-sm' : 'text-sm'
+                            }`}>داشبورد</p>
+                            {!isMobileDevice && (
+                              <p className="text-xs text-gray-500">مدیریت حساب کاربری</p>
+                            )}
                           </div>
-                        </motion.div>
-                        {/* Hover background effect */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        </div>
                       </Link>
                       
                       {/* Admin Panel Link (if admin) */}
                       {user?.isAdmin && (
                         <Link
                           to="/hidden"
-                          className="group relative block px-4 py-3 text-gray-200 hover:bg-purple-950/20 transition-all duration-300 overflow-hidden"
+                          className={`group relative block text-gray-200 hover:bg-gray-800 transition-colors duration-200 ${
+                            isMobileDevice ? 'px-3 py-2' : 'px-4 py-3'
+                          }`}
                           onClick={() => setShowUserDropdown(false)}
                         >
-                          <motion.div 
-                            className="flex items-center relative z-10"
-                            whileHover={{ x: 5 }}
-                            transition={{ type: "spring", stiffness: 300 }}
-                          >
-                            <div className="w-10 h-10 rounded-lg bg-gray-800/50 flex items-center justify-center ml-3 group-hover:bg-purple-900/30 transition-colors duration-300">
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400 group-hover:text-purple-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <div className="flex items-center">
+                            <div className={`rounded-lg bg-gray-800 flex items-center justify-center group-hover:bg-gray-700 transition-colors ${
+                              isMobileDevice ? 'w-7 h-7 ml-2' : 'w-8 h-8 ml-3'
+                            }`}>
+                              <svg xmlns="http://www.w3.org/2000/svg" className={`text-gray-400 group-hover:text-gray-300 transition-colors ${
+                                isMobileDevice ? 'h-4 w-4' : 'h-4 w-4'
+                              }`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                               </svg>
                             </div>
                             <div>
-                              <p className="font-medium text-white group-hover:text-purple-300 transition-colors">پنل مدیریت</p>
-                              <p className="text-xs text-gray-500">دسترسی مدیر</p>
+                              <p className={`font-medium text-white group-hover:text-gray-200 transition-colors ${
+                                isMobileDevice ? 'text-sm' : 'text-sm'
+                              }`}>پنل مدیریت</p>
+                              {!isMobileDevice && (
+                                <p className="text-xs text-gray-500">دسترسی مدیر</p>
+                              )}
                             </div>
-                          </motion.div>
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                          </div>
                         </Link>
                       )}
                       
-                      {/* Divider with blood effect */}
-                      <div className="my-2 mx-4 h-px bg-gradient-to-r from-transparent via-red-900/50 to-transparent relative">
-                        <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-red-600 rounded-full animate-pulse"></div>
-                      </div>
+                      {/* Simple divider */}
+                      <div className={`${isMobileDevice ? 'my-1 mx-3' : 'my-2 mx-4'} h-px bg-gray-700`}></div>
                       
-                      {/* Logout Button with enhanced horror effect */}
+                      {/* Logout Button - minimal style */}
                       <button
                         onClick={handleLogout}
-                        className="group relative w-full text-right px-4 py-3 hover:bg-red-950/30 transition-all duration-300 overflow-hidden"
+                        className={`group relative w-full text-right hover:bg-red-900/20 transition-colors duration-200 ${
+                          isMobileDevice ? 'px-3 py-2' : 'px-4 py-3'
+                        }`}
                       >
-                        <motion.div 
-                          className="flex items-center relative z-10"
-                          whileHover={{ x: 5 }}
-                          transition={{ type: "spring", stiffness: 300 }}
-                        >
-                          <div className="w-10 h-10 rounded-lg bg-red-900/20 flex items-center justify-center ml-3 group-hover:bg-red-800/40 transition-all duration-300">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500 group-hover:text-red-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div className="flex items-center">
+                          <div className={`rounded-lg bg-red-900/30 flex items-center justify-center group-hover:bg-red-800/40 transition-colors ${
+                            isMobileDevice ? 'w-7 h-7 ml-2' : 'w-8 h-8 ml-3'
+                          }`}>
+                            <svg xmlns="http://www.w3.org/2000/svg" className={`text-red-500 group-hover:text-red-400 transition-colors ${
+                              isMobileDevice ? 'h-4 w-4' : 'h-4 w-4'
+                            }`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                             </svg>
                           </div>
                           <div>
-                            <p className="font-medium text-red-400 group-hover:text-red-300 transition-colors">خروج از حساب</p>
-                            <p className="text-xs text-gray-500">خداحافظ {user?.name?.split(' ')[0] || 'کاربر'}</p>
+                            <p className={`font-medium text-red-400 group-hover:text-red-300 transition-colors ${
+                              isMobileDevice ? 'text-sm' : 'text-sm'
+                            }`}>خروج از حساب</p>
+                            {!isMobileDevice && (
+                              <p className="text-xs text-gray-500">خداحافظ {user?.name?.split(' ')[0] || 'کاربر'}</p>
+                            )}
                           </div>
-                        </motion.div>
-                        {/* Blood splatter effect on hover */}
-                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                          <div className="absolute -right-4 top-1/2 transform -translate-y-1/2 w-24 h-24 bg-red-600/10 rounded-full blur-xl"></div>
-                          <div className="absolute -left-4 top-1/2 transform -translate-y-1/2 w-20 h-20 bg-red-600/10 rounded-full blur-xl"></div>
                         </div>
                       </button>
                     </div>
-                    
-                    {/* Bottom decoration */}
-                    <div className="h-1 bg-gradient-to-r from-red-900 via-red-600 to-red-900 opacity-50"></div>
                   </motion.div>
                 )}
               </AnimatePresence>
