@@ -165,7 +165,7 @@ class ApiIntegrationService {
           _id: 'mock-user-id', 
           name: credentials.email?.split('@')[0] || 'User',
           email: credentials.email,
-          isAdmin: credentials.email === 'admin@draugrshop.com'
+          isAdmin: credentials.email === 'admin@draugrshop.com' || credentials.email?.includes('admin')
         },
         token: 'mock-jwt-token'
       }
