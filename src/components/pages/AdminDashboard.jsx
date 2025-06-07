@@ -40,7 +40,7 @@ const AdminDashboard = () => {
         console.log('User data:', user);
         
         const response = await api.get('/api/admin/dashboard');
-        console.log('Dashboard API response:', response);
+  
         setDashboardData(response);
         setIsLoading(false);
       } catch (err) {
