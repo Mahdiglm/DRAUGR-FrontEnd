@@ -64,9 +64,7 @@ const productService = {
   getCategories: async () => {
     try {
       const endpoint = '/api/categories';
-      console.log('Calling API endpoint:', endpoint);
       const response = await secureApi.get(endpoint);
-      console.log('Raw API response for categories:', response);
       return response;
     } catch (error) {
       console.error('Error in getCategories:', error);
