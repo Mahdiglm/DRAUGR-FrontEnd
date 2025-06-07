@@ -23,6 +23,18 @@ const AdminImageManager = () => {
     fetchAssets();
   }, [selectedCategory]);
 
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const filtered = assets.filter(asset => 
+        asset.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        asset.altText.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredAssets(filtered);
+    } else {
+      setFilteredAssets(assets);
+    }
+  }, [assets, searchQuery]);
+
   const fetchAssets = async () => {
     try {
       setIsLoading(true);
@@ -133,6 +145,18 @@ const AdminImageManager = () => {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">مدیریت تصاویر و فایل‌ها</h2>
         <div className="flex gap-4 items-center">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="جستجو در تصاویر..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-gray-800 rounded-lg px-4 py-2 pr-10 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-draugr-500 w-64"
+            />
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
@@ -189,7 +213,7 @@ const AdminImageManager = () => {
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {assets.map(asset => (
+          {filteredAssets.map(asset => (
             <div key={asset._id} className="bg-black bg-opacity-40 rounded-xl overflow-hidden border border-gray-800 group">
               <div className="aspect-square bg-gray-800 relative">
                 <img
