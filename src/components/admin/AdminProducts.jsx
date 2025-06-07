@@ -405,7 +405,6 @@ const AdminProducts = () => {
   useEffect(() => {
     const handleStorageChange = (event) => {
       if (event.key === 'categoriesUpdated') {
-        console.log('Categories were updated in another component, refreshing data');
         refreshData();
       }
     };
