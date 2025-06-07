@@ -40,31 +40,65 @@ const AdminImageManager = () => {
 
     setIsUploading(true);
     
-    for (const file of files) {
-      try {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('category', selectedCategory);
-        formData.append('name', file.name.split('.')[0]);
-        formData.append('altText', file.name);
+    try {
+      // Show optimization progress
+      toast.info('در حال بهینه‌سازی تصاویر...');
+      
+      // Optimize images first
+      const optimizedResults = await imageOptimizer.prepareImagesForUpload(files, {
+        maxWidth: selectedCategory === 'background' ? 1920 : 800,
+        maxHeight: selectedCategory === 'background' ? 1080 : 600,
+        quality: selectedCategory === 'icon' ? 0.9 : 0.8
+      });
 
-        const response = await api.post('/api/assets', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
+      if (optimizedResults.invalid.length > 0) {
+        optimizedResults.invalid.forEach(result => {
+          toast.error(result.error);
         });
-
-        if (response.data) {
-          setAssets(prev => [response.data, ...prev]);
-          toast.success(`تصویر ${file.name} با موفقیت آپلود شد`);
-        }
-      } catch (error) {
-        console.error('Upload error:', error);
-        toast.error(`خطا در آپلود ${file.name}`);
       }
+
+      if (optimizedResults.valid.length === 0) {
+        toast.error('هیچ تصویر معتبری برای آپلود وجود ندارد');
+        return;
+      }
+
+      // Show optimization results
+      if (optimizedResults.totalSaved > 0) {
+        toast.success(
+          `بهینه‌سازی کامل شد! ${optimizedResults.savingsPercentage}% کاهش حجم (${imageOptimizer.formatFileSize(optimizedResults.totalSaved)} صرفه‌جویی)`
+        );
+      }
+
+      // Upload optimized images
+      for (const result of optimizedResults.valid) {
+        try {
+          const formData = new FormData();
+          formData.append('file', result.file);
+          formData.append('category', selectedCategory);
+          formData.append('name', result.originalFile.name.split('.')[0]);
+          formData.append('altText', result.originalFile.name);
+
+          const response = await api.post('/api/assets', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+
+          if (response.data) {
+            setAssets(prev => [response.data, ...prev]);
+            toast.success(`تصویر ${result.originalFile.name} با موفقیت آپلود شد`);
+          }
+        } catch (error) {
+          console.error('Upload error:', error);
+          toast.error(`خطا در آپلود ${result.originalFile.name}`);
+        }
+      }
+    } catch (error) {
+      console.error('Image optimization error:', error);
+      toast.error('خطا در بهینه‌سازی تصاویر');
+    } finally {
+      setIsUploading(false);
     }
-    
-    setIsUploading(false);
   };
 
   const handleDragOver = (e) => {
