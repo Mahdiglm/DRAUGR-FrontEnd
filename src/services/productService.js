@@ -41,7 +41,6 @@ const productService = {
   getFeaturedProducts: async () => {
     try {
       const response = await secureApi.get('/api/products/featured');
-      console.log('Raw API response for featured products:', response);
       return response;
     } catch (error) {
       console.error('Error in getFeaturedProducts:', error);
