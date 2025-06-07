@@ -649,7 +649,6 @@ const AdminProducts = () => {
                   });
                   
                   const data = await response.json();
-                  console.log("Raw API response:", data);
                   
                   if (!response.ok) {
                     throw new Error(data.message || "خطا در ایجاد محصول");
