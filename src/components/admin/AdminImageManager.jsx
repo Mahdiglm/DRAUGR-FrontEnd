@@ -257,9 +257,14 @@ const AdminImageManager = () => {
         </div>
       )}
 
-      {assets.length === 0 && !isLoading && (
+      {filteredAssets.length === 0 && !isLoading && (
         <div className="text-center py-12 text-gray-400">
-          <p>هیچ تصویری در این دسته‌بندی موجود نیست</p>
+          <p>
+            {searchQuery 
+              ? `هیچ تصویری با عبارت "${searchQuery}" یافت نشد`
+              : 'هیچ تصویری در این دسته‌بندی موجود نیست'
+            }
+          </p>
         </div>
       )}
     </div>
