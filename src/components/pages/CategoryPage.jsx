@@ -18,6 +18,7 @@ const CategoryPage = () => {
   const [filterPrice, setFilterPrice] = useState('all');
   const [hoveredCard, setHoveredCard] = useState(null);
   const [backgroundPosition, setBackgroundPosition] = useState({ x: 0, y: 0 });
+  const [pageLoaded, setPageLoaded] = useState(false);
 
   // Fetch category and products
   useEffect(() => {
