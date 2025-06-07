@@ -47,6 +47,7 @@ import OrderTrackingPage from './components/pages/OrderTrackingPage';
 import UserDashboard from './components/pages/UserDashboard';
 import AdminDashboard from './components/pages/AdminDashboard';
 import CategoryPage from './components/pages/CategoryPage';
+import NotFoundPage from './components/pages/NotFoundPage';
 
 // Context Providers
 import { AuthProvider } from './contexts/AuthContext';
@@ -123,7 +124,7 @@ createRoot(document.getElementById('root')).render(
                 <Route path="order/:id" element={<OrderTrackingPage />} />
                 
                 {/* Catch-all route for unmatched paths */}
-                <Route path="*" element={<HomePage />} />
+                <Route path="*" element={<NotFoundPage />} />
               </Route>
             </Routes>
             <ToastContainer
