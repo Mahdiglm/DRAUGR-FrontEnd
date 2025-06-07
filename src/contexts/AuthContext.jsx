@@ -124,6 +124,17 @@ export const AuthProvider = ({ children }) => {
       // Make secure login request
       const response = await secureApi.post('/api/auth/login', sanitizedCredentials);
       
+      // Debug log for development (no sensitive data)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Login response structure:', {
+          hasUser: !!response.user,
+          hasDataUser: !!response.data?.user,
+          hasToken: !!response.token,
+          hasDataToken: !!response.data?.token,
+          responseKeys: Object.keys(response || {})
+        });
+      }
+      
       // Handle successful login - backend returns 200 status means success
       if (response) {
         // Extract user data from response
