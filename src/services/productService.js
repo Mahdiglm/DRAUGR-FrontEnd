@@ -52,9 +52,7 @@ const productService = {
   getProductById: async (id) => {
     try {
       const endpoint = `/api/products/${id}`;
-      console.log('Calling API endpoint:', endpoint);
       const response = await secureApi.get(endpoint);
-      console.log('Raw API response for product by ID:', response);
       return response;
     } catch (error) {
       console.error('Error in getProductById:', error);
