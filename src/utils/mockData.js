@@ -1,5 +1,24 @@
 // Import asset service instead of direct imports
-import { productImages } from '../services/assetService';
+// import { productImages } from '../services/assetService';
+
+// Temporary fallback images for development
+const productImages = {
+  product1: "http://localhost:5000/static/images/products/Product_1.jpg",
+  product2: "http://localhost:5000/static/images/products/Product_2.jpg",
+  product3: "http://localhost:5000/static/images/products/Product_3.jpg",
+  product4: "http://localhost:5000/static/images/products/Product_4.jpg",
+  product5: "http://localhost:5000/static/images/products/Product_5.jpg",
+  product6: "http://localhost:5000/static/images/products/Product_6.jpg",
+  product7: "http://localhost:5000/static/images/products/Product_7.jpg",
+  product8: "http://localhost:5000/static/images/products/Product_8.jpg",
+  product9: "http://localhost:5000/static/images/products/Product_9.jpg",
+  product10: "http://localhost:5000/static/images/products/Product_10.jpg",
+  product11: "http://localhost:5000/static/images/products/Product_11.jpg",
+  product12: "http://localhost:5000/static/images/products/Product_12.jpg",
+  product13: "http://localhost:5000/static/images/products/Product_13.jpg",
+  product14: "http://localhost:5000/static/images/products/Product_14.jpg",
+  product15: "http://localhost:5000/static/images/products/Product_15.jpg"
+};
 
 // Blog placeholder images (using null to trigger the fallback)
 const blogPlaceholderJangal = null;
@@ -7,7 +26,7 @@ const blogPlaceholderEmarat = null;
 const blogPlaceholderMoumiaei = null;
 const blogPlaceholderDarya = null;
 
-export const products = [
+const products = [
   {
     id: 1,
     name: "شمشیر DRAUGR",
@@ -130,7 +149,7 @@ export const products = [
   }
 ];
 
-export const categories = [
+const categories = [
   { id: 1, name: "سلاح‌ها", slug: "weapons", themeColor: "#8B0000" },
   { id: 2, name: "زره‌ها", slug: "armor", themeColor: "#4A4A4A" },
   { id: 3, name: "معجون‌ها", slug: "potions", themeColor: "#800080" },
@@ -139,7 +158,7 @@ export const categories = [
   { id: 6, name: "کتاب‌های نایاب", slug: "rare_books", themeColor: "#654321" }
 ];
 
-export const additionalCategories = [
+const additionalCategories = [
   { id: 7, name: "ابزار شکار", slug: "hunting_gear", themeColor: "#556B2F" },
   { id: 8, name: "طلسم‌ها", slug: "charms", themeColor: "#9932CC" },
   { id: 9, name: "گیاهان نادر", slug: "rare_herbs", themeColor: "#006400" },
@@ -148,7 +167,7 @@ export const additionalCategories = [
   { id: 12, name: "عناصر ماورایی", slug: "occult_items", themeColor: "#2F4F4F" }
 ];
 
-export const thirdRowCategories = [
+const thirdRowCategories = [
   { id: 13, name: "جواهرات افسونگر", slug: "enchanted_jewelry", themeColor: "#FFD700" },
   { id: 14, name: "ابزارهای نجومی", slug: "astronomical_tools", themeColor: "#191970" },
   { id: 15, name: "نقشه‌های باستانی", slug: "ancient_maps", themeColor: "#8B4513" },
@@ -157,7 +176,7 @@ export const thirdRowCategories = [
   { id: 18, name: "ادویه‌های نادر", slug: "rare_spices", themeColor: "#CD5C5C" }
 ];
 
-export const fourthRowCategories = [
+const fourthRowCategories = [
   { id: 19, name: "نشان‌های قبیله‌ای", slug: "tribal_emblems", themeColor: "#CD853F" },
   { id: 20, name: "رمزنگاری‌ها", slug: "cryptic_writings", themeColor: "#2F4F4F" },
   { id: 21, name: "چوب‌دستی‌های جادویی", slug: "magic_wands", themeColor: "#800080" },
@@ -166,7 +185,7 @@ export const fourthRowCategories = [
   { id: 24, name: "سازهای موسیقی کهن", slug: "ancient_instruments", themeColor: "#8B008B" }
 ]; 
 
-export const blogPosts = [
+const blogPosts = [
   {
     id: "bp1",
     title: "رازهای نهفته در جنگل تاریک",
@@ -278,3 +297,74 @@ export const blogPosts = [
     `
   }
 ];
+
+// Main mock data export
+export const mockData = {
+  products,
+  categories: [...categories, ...additionalCategories, ...thirdRowCategories, ...fourthRowCategories],
+  blogPosts,
+  
+  // Add mock users
+  users: [
+    {
+      _id: 'user-1',
+      firstName: 'مهدی',
+      lastName: 'احمدی',
+      email: 'mehdi@example.com',
+      role: 'admin',
+      avatar: null,
+      phone: '+98 912 345 6789',
+      address: 'تهران، خیابان آزادی',
+      createdAt: '2024-01-01T00:00:00.000Z'
+    },
+    {
+      _id: 'user-2',
+      firstName: 'فاطمه',
+      lastName: 'کریمی',
+      email: 'fateme@example.com',
+      role: 'user',
+      avatar: null,
+      phone: '+98 910 123 4567',
+      address: 'اصفهان، خیابان چهارباغ',
+      createdAt: '2024-01-02T00:00:00.000Z'
+    }
+  ],
+
+  // Add mock orders
+  orders: [
+    {
+      _id: 'order-1',
+      user: 'user-2',
+      items: [
+        { product: products[0], quantity: 1, price: products[0].price },
+        { product: products[1], quantity: 2, price: products[1].price }
+      ],
+      total: products[0].price + (products[1].price * 2),
+      status: 'completed',
+      shippingAddress: 'اصفهان، خیابان چهارباغ',
+      createdAt: '2024-01-03T00:00:00.000Z'
+    }
+  ],
+
+  // Add mock assets
+  assets: [
+    {
+      _id: 'asset-1',
+      name: 'Product_1',
+      type: 'image',
+      category: 'product',
+      url: 'http://localhost:5000/static/images/products/Product_1.jpg',
+      altText: 'محصول شماره یک',
+      createdAt: '2024-01-01T00:00:00.000Z'
+    },
+    {
+      _id: 'asset-2',
+      name: 'background_dark',
+      type: 'image',
+      category: 'background',
+      url: 'http://localhost:5000/static/images/backgrounds/dark_bg.jpg',
+      altText: 'پس‌زمینه تاریک',
+      createdAt: '2024-01-01T00:00:00.000Z'
+    }
+  ]
+};
