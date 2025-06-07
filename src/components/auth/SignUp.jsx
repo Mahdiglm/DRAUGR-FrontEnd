@@ -389,7 +389,7 @@ const SignUp = () => {
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                className={`w-full px-4 py-3 bg-gray-800/70 border rounded-lg focus:outline-none focus:ring-2 text-white pr-12 transition-all duration-300 ${
+                className={`w-full px-4 py-3 bg-gray-800/70 border rounded-lg focus:outline-none focus:ring-2 text-white pl-12 transition-all duration-300 ${
                   validationErrors.confirmPassword 
                     ? 'border-red-600 focus:ring-red-500 focus:border-red-500' 
                     : 'border-gray-700 focus:ring-red-500 focus:border-red-500 hover:border-gray-600'
