@@ -381,7 +381,7 @@ const CategoryPage = () => {
       <div className="fixed inset-0 pointer-events-none z-20">
         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-50"></div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
