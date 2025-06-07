@@ -34,7 +34,7 @@ const AdminDashboard = () => {
     const fetchDashboardData = async () => {
       try {
         setIsLoading(true);
-        console.log('Fetching dashboard data...');
+  
         const token = localStorage.getItem('token');
         console.log('Current auth token:', token ? 'Token exists' : 'No token');
         console.log('User data:', user);
