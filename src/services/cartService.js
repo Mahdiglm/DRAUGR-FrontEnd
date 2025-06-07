@@ -24,7 +24,32 @@ const cartService = {
     try {
       // For authenticated users, use API
       if (authService.isAuthenticated()) {
-        return await secureApi.post('/api/cart/items', { productId, quantity });
+        // We need to get product details first since backend expects full product info
+        try {
+          const productResponse = await secureApi.get(`/api/products/${productId}`);
+          const product = productResponse;
+          
+          const cartData = {
+            productId: productId,
+            name: product.name,
+            price: product.price,
+            image: product.images && product.images.length > 0 ? product.images[0].url : product.imageUrl || '',
+            qty: quantity
+          };
+          
+          return await secureApi.post('/api/cart', cartData);
+        } catch (productError) {
+          console.error('Error fetching product details:', productError);
+          // Fallback with minimal data
+          const cartData = {
+            productId: productId,
+            name: 'Unknown Product',
+            price: 0,
+            image: '',
+            qty: quantity
+          };
+          return await secureApi.post('/api/cart', cartData);
+        }
       } else {
         // For guests, store in localStorage
         const cart = await cartService.getCart();
@@ -54,7 +79,7 @@ const cartService = {
     try {
       // For authenticated users, use API
       if (authService.isAuthenticated()) {
-        return await secureApi.put(`/api/cart/items/${productId}`, { quantity });
+        return await secureApi.put(`/api/cart/${productId}`, { qty: quantity });
       } else {
         // For guests, update localStorage
         const cart = await cartService.getCart();
@@ -88,7 +113,7 @@ const cartService = {
     try {
       // For authenticated users, use API
       if (authService.isAuthenticated()) {
-        return await secureApi.delete(`/api/cart/items/${productId}`);
+        return await secureApi.delete(`/api/cart/${productId}`);
       } else {
         // For guests, update localStorage
         const cart = await cartService.getCart();
