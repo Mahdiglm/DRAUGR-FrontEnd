@@ -54,38 +54,8 @@ const DevTools = () => {
     };
 
     console.log = (...args) => {
-      try {
-        const content = args.map(arg => {
-          try {
-            return typeof arg === 'object' ? JSON.stringify(arg) : String(arg);
-          } catch (e) {
-            return '[Complex Object]';
-          }
-        }).join(' ');
-        
-        // Skip repetitive logs and product card renders
-        if (content.includes('Rendering product card') || 
-            content.includes('Product card:') ||
-            content.includes('کاربر وارد نشده است')) {
-          originalConsoleLog(...args);
-          return;
-        }
-        
-        const newLog = { 
-          type: 'log', 
-          content, 
-          time: new Date() 
-        };
-        
-        // Limit to last 50 logs instead of 100
-        if (logsRef.current.length >= 50) {
-          logsRef.current.shift();
-        }
-        logsRef.current.push(newLog);
-        scheduleUpdate();
-      } catch (e) {
-        // Fail silently to avoid breaking the app
-      }
+      // Only pass through to original console.log, don't capture in DevTools
+      // This reduces clutter and only shows errors/warnings in DevTools
       originalConsoleLog(...args);
     };
 
