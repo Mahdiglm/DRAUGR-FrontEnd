@@ -260,52 +260,160 @@ const Header = ({ cartItems, onCartClick }) => {
               )}
             </motion.div>
             
-            {/* User Dropdown */}
+            {/* Enhanced User Dropdown with Horror Theme */}
             {isAuthenticated && (
               <AnimatePresence>
                 {showUserDropdown && (
                   <motion.div 
-                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                    transition={{ duration: 0.2, ease: "easeOut" }}
-                    className="absolute mt-2 w-48 bg-black bg-opacity-50 border border-draugr-900/30 rounded-lg shadow-xl z-50 text-right backdrop-blur-sm" 
+                    initial={{ opacity: 0, y: -20, scale: 0.9, rotateX: -15 }}
+                    animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95, rotateX: -10 }}
+                    transition={{ 
+                      duration: 0.3, 
+                      ease: [0.4, 0, 0.2, 1],
+                      opacity: { duration: 0.2 }
+                    }}
+                    className="absolute mt-2 w-64 bg-gradient-to-b from-gray-900 via-black to-gray-900 border border-red-900/30 rounded-xl shadow-2xl z-50 text-right overflow-hidden" 
                     dir="rtl"
                     style={{ 
-                      boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3), 0 0 10px rgba(139, 0, 0, 0.15)',
-                      right: '-75px',
-                      transformOrigin: 'top right'
+                      boxShadow: '0 20px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(220, 38, 38, 0.3), inset 0 0 20px rgba(220, 38, 38, 0.1)',
+                      right: '-85px',
+                      transformOrigin: 'top right',
+                      backdropFilter: 'blur(12px)',
+                      perspective: '1000px'
                     }}
                   >
-                    <div className="p-3 border-b border-gray-700 text-center">
-                      <p className="font-medium text-white truncate">{user?.name}</p>
-                      <p className="text-xs text-gray-400 truncate">{blurEmail(user?.email)}</p>
+                    {/* Blood drip effect at top */}
+                    <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-1 h-0 bg-gradient-to-b from-red-600 to-transparent animate-blood-drip"></div>
+                    
+                    {/* Glowing border effect */}
+                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-red-600/20 via-transparent to-red-600/20 animate-pulse"></div>
+                    
+                    {/* User Info Section with Avatar */}
+                    <div className="relative p-4 border-b border-red-900/30 bg-gradient-to-r from-transparent via-red-950/10 to-transparent">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="relative">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-900 to-red-700 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                            {user?.name?.charAt(0) || 'ک'}
+                          </div>
+                          <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-black rounded-full animate-pulse"></span>
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-white text-sm">{user?.name}</p>
+                          <p className="text-xs text-gray-400">{blurEmail(user?.email)}</p>
+                        </div>
+                      </div>
+                      
+                      {/* User type badge */}
+                      <div className="flex justify-center">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-900/30 text-red-300 border border-red-800/50">
+                          {user?.isAdmin ? (
+                            <>
+                              <svg className="w-3 h-3 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                              </svg>
+                              مدیر سیستم
+                            </>
+                          ) : (
+                            <>
+                              <svg className="w-3 h-3 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                              </svg>
+                              کاربر عادی
+                            </>
+                          )}
+                        </span>
+                      </div>
                     </div>
-                    <div className="py-1">
+                    
+                    {/* Menu Items with enhanced styling */}
+                    <div className="py-2">
+                      {/* Dashboard Link */}
                       <Link
                         to="/dashboard"
-                        className="block px-4 py-2 text-gray-200 hover:bg-gray-700 hover:text-white"
+                        className="group relative block px-4 py-3 text-gray-200 hover:bg-red-950/20 transition-all duration-300 overflow-hidden"
                         onClick={() => setShowUserDropdown(false)}
                       >
-                        <div className="flex items-center">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
-                          </svg>
-                          حساب کاربری
-                        </div>
+                        <motion.div 
+                          className="flex items-center relative z-10"
+                          whileHover={{ x: 5 }}
+                          transition={{ type: "spring", stiffness: 300 }}
+                        >
+                          <div className="w-10 h-10 rounded-lg bg-gray-800/50 flex items-center justify-center ml-3 group-hover:bg-red-900/30 transition-colors duration-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400 group-hover:text-red-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="font-medium text-white group-hover:text-red-300 transition-colors">داشبورد</p>
+                            <p className="text-xs text-gray-500">مدیریت حساب کاربری</p>
+                          </div>
+                        </motion.div>
+                        {/* Hover background effect */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                       </Link>
+                      
+                      {/* Admin Panel Link (if admin) */}
+                      {user?.isAdmin && (
+                        <Link
+                          to="/hidden"
+                          className="group relative block px-4 py-3 text-gray-200 hover:bg-purple-950/20 transition-all duration-300 overflow-hidden"
+                          onClick={() => setShowUserDropdown(false)}
+                        >
+                          <motion.div 
+                            className="flex items-center relative z-10"
+                            whileHover={{ x: 5 }}
+                            transition={{ type: "spring", stiffness: 300 }}
+                          >
+                            <div className="w-10 h-10 rounded-lg bg-gray-800/50 flex items-center justify-center ml-3 group-hover:bg-purple-900/30 transition-colors duration-300">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400 group-hover:text-purple-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                              </svg>
+                            </div>
+                            <div>
+                              <p className="font-medium text-white group-hover:text-purple-300 transition-colors">پنل مدیریت</p>
+                              <p className="text-xs text-gray-500">دسترسی مدیر</p>
+                            </div>
+                          </motion.div>
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        </Link>
+                      )}
+                      
+                      {/* Divider with blood effect */}
+                      <div className="my-2 mx-4 h-px bg-gradient-to-r from-transparent via-red-900/50 to-transparent relative">
+                        <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-red-600 rounded-full animate-pulse"></div>
+                      </div>
+                      
+                      {/* Logout Button with enhanced horror effect */}
                       <button
                         onClick={handleLogout}
-                        className="w-full text-right px-4 py-2 text-gray-200 hover:bg-gray-700 hover:text-white"
+                        className="group relative w-full text-right px-4 py-3 hover:bg-red-950/30 transition-all duration-300 overflow-hidden"
                       >
-                        <div className="flex items-center text-red-500">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                          </svg>
-                          خروج
+                        <motion.div 
+                          className="flex items-center relative z-10"
+                          whileHover={{ x: 5 }}
+                          transition={{ type: "spring", stiffness: 300 }}
+                        >
+                          <div className="w-10 h-10 rounded-lg bg-red-900/20 flex items-center justify-center ml-3 group-hover:bg-red-800/40 transition-all duration-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500 group-hover:text-red-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="font-medium text-red-400 group-hover:text-red-300 transition-colors">خروج از حساب</p>
+                            <p className="text-xs text-gray-500">خداحافظ {user?.name?.split(' ')[0] || 'کاربر'}</p>
+                          </div>
+                        </motion.div>
+                        {/* Blood splatter effect on hover */}
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                          <div className="absolute -right-4 top-1/2 transform -translate-y-1/2 w-24 h-24 bg-red-600/10 rounded-full blur-xl"></div>
+                          <div className="absolute -left-4 top-1/2 transform -translate-y-1/2 w-20 h-20 bg-red-600/10 rounded-full blur-xl"></div>
                         </div>
                       </button>
                     </div>
+                    
+                    {/* Bottom decoration */}
+                    <div className="h-1 bg-gradient-to-r from-red-900 via-red-600 to-red-900 opacity-50"></div>
                   </motion.div>
                 )}
               </AnimatePresence>
