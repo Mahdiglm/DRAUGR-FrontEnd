@@ -60,7 +60,7 @@ const AdminBlogs = () => {
       
       // Try to fetch admin blogs
       const adminResponse = await api.get('/api/admin/blogs');
-      console.log('Admin blogs response:', adminResponse);
+      
       
       if (adminResponse.data && (adminResponse.data.data || Array.isArray(adminResponse.data))) {
         const blogsData = adminResponse.data.data || adminResponse.data;
