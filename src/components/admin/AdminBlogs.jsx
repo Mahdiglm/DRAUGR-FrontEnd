@@ -392,7 +392,7 @@ const AdminBlogs = () => {
                   
                   <div className="mb-4">
                     <label className="block text-gray-400 mb-1 text-sm">محتوا</label>
-                    <div className="quill-editor-dark">
+                    <div>
                       <SimpleRichEditor
                         value={currentBlog.content}
                         onChange={(content) => setCurrentBlog({ ...currentBlog, content })}
