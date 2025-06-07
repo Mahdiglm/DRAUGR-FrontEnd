@@ -81,9 +81,6 @@ const Login = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     
-    // Don't sanitize while typing, just store the raw value
-    console.log(`Input changed - ${name}:`, value);
-    
     setFormData(prev => ({
       ...prev,
       [name]: value
