@@ -67,6 +67,7 @@ createRoot(document.getElementById('root')).render(
               <Route path="/" element={<MainLayout />}>
                 <Route index element={<HomePage />} />
                 <Route path="shop" element={<ShopPage />} />
+                <Route path="category/:slug" element={<CategoryPage />} />
                 <Route path="checkout" element={<CheckoutPage />} />
                 <Route path="product/:id" element={<ProductDetail />} />
                 <Route path="about" element={<AboutPage />} />
