@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import CategoryItem from './CategoryItem';
-import { categories, additionalCategories, thirdRowCategories, fourthRowCategories } from '../../utils/mockData';
+import { mockData } from '../../utils/mockData';
 
 /**
  * CategoryGrid Component
@@ -68,7 +68,7 @@ const CategoryGrid = ({ title = "دسته‌بندی‌ها", subtitle = "مجم
   const gridCategories = [];
   
   // Combine all category arrays and ensure we have exactly 28 items
-  const allCategories = [...categories, ...additionalCategories, ...thirdRowCategories, ...fourthRowCategories];
+  const allCategories = mockData.categories;
   
   // If we have more than 28 categories, trim the array
   const trimmedCategories = allCategories.slice(0, 28);
