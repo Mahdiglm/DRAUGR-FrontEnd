@@ -96,21 +96,16 @@ export const AuthProvider = ({ children }) => {
     setError(null);
 
     try {
-      console.log('Login attempt with credentials:', credentials);
-      
-      // Basic validation with detailed logging
+      // Basic validation (no logging of sensitive data)
       if (!credentials) {
-        console.error('No credentials provided');
         throw new Error('اطلاعات ورود ارائه نشده است');
       }
       
       if (!credentials.email) {
-        console.error('No email provided');
         throw new Error('ایمیل الزامی است');
       }
       
       if (!credentials.password) {
-        console.error('No password provided');
         throw new Error('رمز عبور الزامی است');
       }
 
@@ -120,26 +115,35 @@ export const AuthProvider = ({ children }) => {
         password: credentials.password // Don't sanitize password
       };
 
-      console.log('Sanitized credentials:', { email: sanitizedCredentials.email, password: '[HIDDEN]' });
-
       // Basic email validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(sanitizedCredentials.email)) {
-        console.error('Invalid email format:', sanitizedCredentials.email);
         throw new Error('فرمت ایمیل نامعتبر است');
       }
 
       // Make secure login request
       const response = await secureApi.post('/api/auth/login', sanitizedCredentials);
       
-      if (response.success && response.data) {
-        setUser(response.data.user);
-        return response.data;
-      } else {
-        throw new Error(response.message || 'خطا در ورود');
+      // Handle different response structures from backend
+      if (response && (response.success || response.data || response.user)) {
+        // Extract user data from various possible response structures
+        const userData = response.data?.user || response.user || response.data;
+        if (userData) {
+          setUser(userData);
+          return response;
+        }
       }
+      
+      // If we get here, login failed
+      const errorMsg = response?.message || response?.data?.message || 'خطا در ورود';
+      throw new Error(errorMsg);
+      
     } catch (error) {
-      console.error('Login error details:', error);
+      // Only log non-sensitive error information
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Login failed:', error.message);
+      }
+      
       const errorMessage = error.response?.data?.message || error.message || 'خطا در ورود';
       const persianError = translateError(errorMessage);
       setError(persianError);
