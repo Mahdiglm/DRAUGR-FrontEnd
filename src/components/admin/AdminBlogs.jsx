@@ -65,7 +65,7 @@ const AdminBlogs = () => {
       if (adminResponse.data && (adminResponse.data.data || Array.isArray(adminResponse.data))) {
         const blogsData = adminResponse.data.data || adminResponse.data;
         setBlogs(blogsData);
-        console.log(`Found ${blogsData.length} blogs from admin API`);
+        
       } else {
         // Fallback to public blogs API if admin API returns unexpected data
         const publicResponse = await api.get('/api/blogs');
