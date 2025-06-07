@@ -46,6 +46,7 @@ import SpecialOffersPage from './components/pages/SpecialOffersPage';
 import OrderTrackingPage from './components/pages/OrderTrackingPage';
 import UserDashboard from './components/pages/UserDashboard';
 import AdminDashboard from './components/pages/AdminDashboard';
+import CategoryPage from './components/pages/CategoryPage';
 
 // Context Providers
 import { AuthProvider } from './contexts/AuthContext';
