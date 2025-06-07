@@ -5,7 +5,7 @@ import { useOutletContext, Link } from 'react-router-dom';
 import ProductList from '../product/ProductList';
 import FeaturedProductSlider from '../product/FeaturedProductSlider';
 import CategoryGrid from '../shared/CategoryGrid';
-import { products } from '../../utils/mockData';
+import { mockData } from '../../utils/mockData';
 import { safeBlur, safeFilterTransition, isLowPerformanceDevice, getOptimizedAnimationSettings } from '../../utils/animationHelpers';
 import { getAssetUrl } from '../../utils/assetUtils';
 
@@ -258,10 +258,10 @@ const HomePage = () => {
             
             {/* Ensure products are available before rendering slider 
                 Apply key for proper remounting when props change */}
-            {products && products.length > 0 && (
+            {mockData.products && mockData.products.length > 0 && (
               <FeaturedProductSlider 
                 key="featured-product-slider"
-                products={products} 
+                products={mockData.products} 
                 onAddToCart={addToCart} 
               />
             )}
