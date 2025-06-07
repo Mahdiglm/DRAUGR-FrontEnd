@@ -82,14 +82,12 @@ const Login = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     
-    // Use basic sanitization that won't affect email format
-    const sanitizedValue = name === 'email' ? value.trim() : value;
-    
-    console.log(`Input changed - ${name}:`, sanitizedValue);
+    // Don't sanitize while typing, just store the raw value
+    console.log(`Input changed - ${name}:`, value);
     
     setFormData(prev => ({
       ...prev,
-      [name]: sanitizedValue
+      [name]: value
     }));
     
     // Clear any existing validation errors for this field
