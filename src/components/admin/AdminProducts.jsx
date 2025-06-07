@@ -113,7 +113,6 @@ const AdminProducts = () => {
           }
         }
         
-        console.log(`Found ${productsData.length} products from admin API`);
         setProducts(productsData);
         setIsLoading(false);
       } catch (err) {
