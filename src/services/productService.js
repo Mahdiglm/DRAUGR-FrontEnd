@@ -88,9 +88,7 @@ const productService = {
   searchProducts: async (query) => {
     try {
       const endpoint = `/api/products/search?q=${encodeURIComponent(query)}`;
-      console.log('Calling API endpoint:', endpoint);
       const response = await secureApi.get(endpoint);
-      console.log('Raw API response for search products:', response);
       return response;
     } catch (error) {
       console.error('Error in searchProducts:', error);
