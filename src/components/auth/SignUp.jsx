@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { inputValidation, xssProtection } from '../../utils/security';
+import AuthLayout from './AuthLayout';
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -231,11 +232,8 @@ const SignUp = () => {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      <div className="bg-gray-900 border border-red-900 rounded-lg p-6">
-        <h2 className="text-2xl font-bold text-center text-red-500 mb-6">
-          ثبت نام
-        </h2>
+    <AuthLayout title="ایجاد حساب کاربری">
+      <div className="space-y-6">
         
         {/* Display authentication error */}
         {authError && (
@@ -257,10 +255,10 @@ const SignUp = () => {
               value={formData.firstName}
               onChange={handleChange}
               onBlur={handleBlur}
-              className={`w-full px-3 py-2 bg-gray-800 border rounded-lg focus:outline-none focus:ring-2 text-white ${
+              className={`w-full px-4 py-3 bg-gray-800/70 border rounded-lg focus:outline-none focus:ring-2 text-white transition-all duration-300 ${
                 validationErrors.firstName 
-                  ? 'border-red-600 focus:ring-red-500' 
-                  : 'border-gray-700 focus:ring-red-500'
+                  ? 'border-red-600 focus:ring-red-500 focus:border-red-500' 
+                  : 'border-gray-700 focus:ring-red-500 focus:border-red-500 hover:border-gray-600'
               }`}
               placeholder="نام خود را وارد کنید"
               autoComplete="given-name"
@@ -284,10 +282,10 @@ const SignUp = () => {
               value={formData.lastName}
               onChange={handleChange}
               onBlur={handleBlur}
-              className={`w-full px-3 py-2 bg-gray-800 border rounded-lg focus:outline-none focus:ring-2 text-white ${
+              className={`w-full px-4 py-3 bg-gray-800/70 border rounded-lg focus:outline-none focus:ring-2 text-white transition-all duration-300 ${
                 validationErrors.lastName 
-                  ? 'border-red-600 focus:ring-red-500' 
-                  : 'border-gray-700 focus:ring-red-500'
+                  ? 'border-red-600 focus:ring-red-500 focus:border-red-500' 
+                  : 'border-gray-700 focus:ring-red-500 focus:border-red-500 hover:border-gray-600'
               }`}
               placeholder="نام خانوادگی خود را وارد کنید"
               autoComplete="family-name"
@@ -311,10 +309,10 @@ const SignUp = () => {
               value={formData.email}
               onChange={handleChange}
               onBlur={handleBlur}
-              className={`w-full px-3 py-2 bg-gray-800 border rounded-lg focus:outline-none focus:ring-2 text-white ${
+              className={`w-full px-4 py-3 bg-gray-800/70 border rounded-lg focus:outline-none focus:ring-2 text-white transition-all duration-300 ${
                 validationErrors.email 
-                  ? 'border-red-600 focus:ring-red-500' 
-                  : 'border-gray-700 focus:ring-red-500'
+                  ? 'border-red-600 focus:ring-red-500 focus:border-red-500' 
+                  : 'border-gray-700 focus:ring-red-500 focus:border-red-500 hover:border-gray-600'
               }`}
               placeholder="ایمیل خود را وارد کنید"
               autoComplete="email"
@@ -339,10 +337,10 @@ const SignUp = () => {
                 value={formData.password}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                className={`w-full px-3 py-2 bg-gray-800 border rounded-lg focus:outline-none focus:ring-2 text-white pr-10 ${
+                className={`w-full px-4 py-3 bg-gray-800/70 border rounded-lg focus:outline-none focus:ring-2 text-white pr-12 transition-all duration-300 ${
                   validationErrors.password 
-                    ? 'border-red-600 focus:ring-red-500' 
-                    : 'border-gray-700 focus:ring-red-500'
+                    ? 'border-red-600 focus:ring-red-500 focus:border-red-500' 
+                    : 'border-gray-700 focus:ring-red-500 focus:border-red-500 hover:border-gray-600'
                 }`}
                 placeholder="رمز عبور خود را وارد کنید"
                 autoComplete="new-password"
@@ -391,10 +389,10 @@ const SignUp = () => {
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                className={`w-full px-3 py-2 bg-gray-800 border rounded-lg focus:outline-none focus:ring-2 text-white pr-10 ${
+                className={`w-full px-4 py-3 bg-gray-800/70 border rounded-lg focus:outline-none focus:ring-2 text-white pr-12 transition-all duration-300 ${
                   validationErrors.confirmPassword 
-                    ? 'border-red-600 focus:ring-red-500' 
-                    : 'border-gray-700 focus:ring-red-500'
+                    ? 'border-red-600 focus:ring-red-500 focus:border-red-500' 
+                    : 'border-gray-700 focus:ring-red-500 focus:border-red-500 hover:border-gray-600'
                 }`}
                 placeholder="رمز عبور خود را دوباره وارد کنید"
                 autoComplete="new-password"
@@ -419,10 +417,10 @@ const SignUp = () => {
           <button
             type="submit"
             disabled={loading || isSubmitting || Object.keys(validationErrors).length > 0}
-            className={`w-full py-2 px-4 rounded-lg font-semibold transition-colors ${
+            className={`w-full py-3 px-4 rounded-lg font-semibold transition-all duration-300 ${
               loading || isSubmitting || Object.keys(validationErrors).length > 0
                 ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                : 'bg-red-600 hover:bg-red-700 text-white'
+                : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg hover:shadow-red-500/25 transform hover:scale-[1.02]'
             }`}
           >
             {loading || isSubmitting ? 'در حال ایجاد حساب...' : 'ثبت نام'}
@@ -435,7 +433,7 @@ const SignUp = () => {
             قبلاً حساب کاربری دارید؟{' '}
             <Link
               to="/auth/login"
-              className="text-red-500 hover:text-red-400 font-semibold"
+              className="text-red-500 hover:text-red-400 font-semibold transition-colors"
             >
               وارد شوید
             </Link>
@@ -447,7 +445,7 @@ const SignUp = () => {
           <p>🔒 اتصال شما امن است و اطلاعات شما محافظت می‌شود</p>
         </div>
       </div>
-    </div>
+    </AuthLayout>
   );
 };
 
