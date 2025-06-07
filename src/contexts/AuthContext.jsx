@@ -1,6 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import secureApi from '../services/api';
-import { inputValidation, securityHelpers, csrfProtection } from '../utils/security';
 
 // Create Auth Context
 const AuthContext = createContext();
@@ -20,10 +19,6 @@ export const AuthProvider = ({ children }) => {
 
     const initializeAuth = async () => {
       try {
-        // Generate and set CSRF token
-        const csrfToken = csrfProtection.generateToken();
-        csrfProtection.setToken(csrfToken);
-
         // Only check authentication if we have a token
         const token = localStorage.getItem('token');
         if (token) {
@@ -159,10 +154,19 @@ export const AuthProvider = ({ children }) => {
     setError(null);
 
     try {
-      // Validate input data
-      const validationResult = securityHelpers.validateRegisterForm(userData);
-      if (!validationResult.isValid) {
-        throw new Error(validationResult.errors[0]);
+      // Basic validation
+      if (!userData.firstName || !userData.lastName || !userData.email || !userData.password) {
+        throw new Error('تمام فیلدها الزامی هستند');
+      }
+
+      if (userData.password !== userData.confirmPassword) {
+        throw new Error('رمزهای عبور یکسان نیستند');
+      }
+
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(userData.email)) {
+        throw new Error('فرمت ایمیل نامعتبر است');
       }
 
       // Sanitize user data
@@ -212,12 +216,6 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('token');
       sessionStorage.removeItem('token');
       
-      // Clear CSRF token
-      const metaTag = document.querySelector('meta[name="csrf-token"]');
-      if (metaTag) {
-        metaTag.remove();
-      }
-      
       setLoading(false);
     }
   };
@@ -266,9 +264,9 @@ export const AuthProvider = ({ children }) => {
         throw new Error('رمزهای عبور جدید یکسان نیستند');
       }
 
-      const passwordValidation = inputValidation.validatePassword(passwordData.newPassword);
-      if (!passwordValidation.isValid) {
-        throw new Error(passwordValidation.errors[0]);
+      // Basic password validation
+      if (passwordData.newPassword.length < 6) {
+        throw new Error('رمز عبور باید حداقل ۶ کاراکتر باشد');
       }
 
       const response = await secureApi.put('/api/auth/user', {
