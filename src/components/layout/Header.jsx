@@ -246,7 +246,7 @@ const Header = ({ cartItems, onCartClick }) => {
               }}
               whileTap={{ scale: 0.95 }}
               className="relative cursor-pointer"
-              onClick={() => !isAuthenticated && navigate('/login')}
+                              onClick={() => !isAuthenticated && navigate('/auth/login')}
             >
               <img 
                 src={pfpIcon} 
