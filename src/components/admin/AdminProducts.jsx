@@ -628,8 +628,7 @@ const AdminProducts = () => {
                   isShopConnected: true
                 };
                 
-                // Log the exact product we're sending
-                console.log("Trying to create product with:", JSON.stringify(testProduct, null, 2));
+
                 
                 try {
                   // Modify the createProduct method to use fetch directly just for this test
