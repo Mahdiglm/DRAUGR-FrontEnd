@@ -193,12 +193,25 @@ export const AuthProvider = ({ children }) => {
       // Make secure register request
       const response = await secureApi.post('/api/auth/register', sanitizedUserData);
       
-      if (response.success && response.data) {
-        setUser(response.data.user);
-        return response.data;
-      } else {
-        throw new Error(response.message || 'خطا در ثبت نام');
+      // Handle successful registration - backend returns 200 status means success
+      if (response) {
+        // Extract user data from response
+        const userData = response.user || response.data?.user || response.data;
+        const token = response.token || response.data?.token;
+        
+        if (userData && userData._id) {
+          // Store token if provided
+          if (token) {
+            localStorage.setItem('token', token);
+          }
+          
+          setUser(userData);
+          return response;
+        }
       }
+      
+      // If we get here, registration failed
+      throw new Error('خطا در ثبت نام - اطلاعات کاربر دریافت نشد');
     } catch (error) {
       const errorMessage = error.response?.data?.message || error.message || 'خطا در ثبت نام';
       const persianError = translateError(errorMessage);
