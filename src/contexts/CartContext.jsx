@@ -47,13 +47,31 @@ export const CartProvider = ({ children }) => {
       try {
         const productPromises = cart.items.map(async (item) => {
           try {
-            const product = await productService.getProductById(item.productId);
+            // Handle different data structures from backend vs localStorage
+            const productId = item.productId || item.id;
+            const quantity = item.qty || item.quantity || 1;
+            
+            // If we already have product details in the cart item (from backend)
+            if (item.name && item.price) {
+              return {
+                id: productId,
+                _id: productId,
+                name: item.name,
+                price: item.price,
+                imageUrl: item.image,
+                images: item.image ? [{ url: item.image }] : [],
+                quantity: quantity,
+              };
+            }
+            
+            // Otherwise fetch product details from API
+            const product = await productService.getProductById(productId);
             return {
               ...product,
-              quantity: item.quantity,
+              quantity: quantity,
             };
           } catch (err) {
-            console.error(`Error loading product ${item.productId}:`, err);
+            console.error(`Error loading product ${item.productId || item.id}:`, err);
             return null;
           }
         });
@@ -71,9 +89,23 @@ export const CartProvider = ({ children }) => {
   }, [cart.items]);
 
   // Add to cart
-  const addToCart = async (productId, quantity = 1) => {
+  const addToCart = async (productOrId, quantity = 1) => {
     setLoading(true);
     try {
+      // Handle both product objects and product IDs
+      let productId;
+      if (typeof productOrId === 'object' && productOrId !== null) {
+        // If it's a product object, extract the ID
+        productId = productOrId._id || productOrId.id;
+      } else {
+        // If it's already an ID
+        productId = productOrId;
+      }
+      
+      if (!productId) {
+        throw new Error('Product ID is required');
+      }
+      
       const updatedCart = await cartService.addToCart(productId, quantity);
       setCart(updatedCart);
       return updatedCart;
@@ -87,9 +119,23 @@ export const CartProvider = ({ children }) => {
   };
 
   // Update cart item
-  const updateCartItem = async (productId, quantity) => {
+  const updateCartItem = async (productOrId, quantity) => {
     setLoading(true);
     try {
+      // Handle both product objects and product IDs
+      let productId;
+      if (typeof productOrId === 'object' && productOrId !== null) {
+        // If it's a product object, extract the ID
+        productId = productOrId._id || productOrId.id;
+      } else {
+        // If it's already an ID
+        productId = productOrId;
+      }
+      
+      if (!productId) {
+        throw new Error('Product ID is required');
+      }
+      
       const updatedCart = await cartService.updateCartItem(productId, quantity);
       setCart(updatedCart);
       return updatedCart;
@@ -103,9 +149,23 @@ export const CartProvider = ({ children }) => {
   };
 
   // Remove from cart
-  const removeFromCart = async (productId) => {
+  const removeFromCart = async (productOrId) => {
     setLoading(true);
     try {
+      // Handle both product objects and product IDs
+      let productId;
+      if (typeof productOrId === 'object' && productOrId !== null) {
+        // If it's a product object, extract the ID
+        productId = productOrId._id || productOrId.id;
+      } else {
+        // If it's already an ID
+        productId = productOrId;
+      }
+      
+      if (!productId) {
+        throw new Error('Product ID is required');
+      }
+      
       const updatedCart = await cartService.removeFromCart(productId);
       setCart(updatedCart);
       return updatedCart;
